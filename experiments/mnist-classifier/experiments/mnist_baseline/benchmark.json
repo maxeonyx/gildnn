@@ -1,0 +1,15 @@
+{
+  "final_train": {
+    "step": 25,
+    "loss": 1.2708936,
+    "accuracy": 76.5625
+  },
+  "final_test": {
+    "loss": 1.2169349,
+    "accuracy": 76.08
+  },
+  "five_shot": {
+    "loss": 1.918986,
+    "accuracy": 64.375
+  }
+}
