@@ -384,7 +384,14 @@ fn write_report(
 
 fn render_dataset_section(label: &str, image: &Option<String>) -> String {
     match image {
-        Some(url) => format!("![{label}]({url})\n"),
+        Some(url) => {
+            let slug = slugify_identifier(&[label, "row"]);
+            format!(
+                "Each strip shows ten MNIST digits sampled from the {} in dataset order.\n\n{}\n",
+                label.to_lowercase(),
+                format_image_reference(&slug, label, url)
+            )
+        }
         None => {
             let lower = label.to_lowercase();
             format!("No {lower} examples available.\n")
@@ -451,14 +458,15 @@ fn render_hypothesis_section(panels: &[String]) -> String {
     }
 
     let mut output = String::new();
+    output.push_str(
+        "Each hypothesis panel stacks the MNIST input row (top) with the expected digit rendered as a label row (bottom).\n\n",
+    );
     for (index, panel) in panels.iter().enumerate() {
-        let _ = writeln!(
-            &mut output,
-            "#### Hypothesis batch {}\n\n![Hypothesis batch {}]({})\n",
-            index + 1,
-            index + 1,
-            panel
-        );
+        let label = format!("Hypothesis batch {}", index + 1);
+        let slug = slugify_identifier(&["hypothesis", &format!("batch-{}", index + 1)]);
+        let _ = writeln!(&mut output, "#### {}\n", label);
+        output.push_str(&format_image_reference(&slug, &label, panel));
+        output.push('\n');
     }
     output
 }
@@ -469,17 +477,22 @@ fn render_training_progress_section(snapshots: &[TrainingSnapshotArtifact]) -> S
     }
 
     let mut output = String::new();
+    output.push_str(
+        "Each snapshot shows inputs (top), expected labels (middle), and model predictions (bottom). Dark green panels mark correct predictions; dark red panels mark errors.\n\n",
+    );
     for snapshot in snapshots {
+        let slug = slugify_identifier(&["snapshot", &format!("step-{}", snapshot.step)]);
         let _ = writeln!(
             &mut output,
             "#### Step {} ({} / {} correct)\n",
             snapshot.step, snapshot.correct, snapshot.total
         );
-        let _ = writeln!(
-            &mut output,
-            "![Predictions at step {}]({})\n",
-            snapshot.step, snapshot.image_data_url
-        );
+        output.push_str(&format_image_reference(
+            &slug,
+            &format!("Predictions at step {}", snapshot.step),
+            &snapshot.image_data_url,
+        ));
+        output.push('\n');
     }
 
     output
@@ -498,21 +511,57 @@ fn render_final_evaluation_section(panels: &[EvaluationPanelArtifact]) -> String
         "Overall: {} / {} correct across the hypothesis set.\n",
         total_correct, total_samples
     );
+    output.push_str(
+        "Each evaluation panel mirrors the snapshot layout with dark green marking correct predictions and dark red highlighting errors.\n\n",
+    );
 
     for panel in panels {
+        let slug = slugify_identifier(&["final", &format!("panel-{}", panel.index)]);
         let _ = writeln!(
             &mut output,
             "#### Panel {} ({} / {} correct)\n",
             panel.index, panel.correct, panel.total
         );
-        let _ = writeln!(
-            &mut output,
-            "![Final inference panel {}]({})\n",
-            panel.index, panel.image_data_url
-        );
+        output.push_str(&format_image_reference(
+            &slug,
+            &format!("Final inference panel {}", panel.index),
+            &panel.image_data_url,
+        ));
+        output.push('\n');
     }
 
     output
+}
+
+fn format_image_reference(identifier: &str, alt_text: &str, data_url: &str) -> String {
+    format!(
+        "[{identifier}]: <{data_url}>\n\n![{alt_text}][{identifier}]\n",
+        identifier = identifier,
+        data_url = data_url,
+        alt_text = alt_text
+    )
+}
+
+fn slugify_identifier(parts: &[&str]) -> String {
+    let mut segments = Vec::new();
+    for part in parts {
+        let mut segment = String::new();
+        let mut last_dash = true;
+        for ch in part.chars() {
+            if ch.is_ascii_alphanumeric() {
+                segment.push(ch.to_ascii_lowercase());
+                last_dash = false;
+            } else if !last_dash {
+                segment.push('-');
+                last_dash = true;
+            }
+        }
+        let segment = segment.trim_matches('-');
+        if !segment.is_empty() {
+            segments.push(segment.to_string());
+        }
+    }
+    segments.join("-")
 }
 
 fn summarize_history<'a>(history: &'a [StepMetrics]) -> Vec<&'a StepMetrics> {
@@ -702,7 +751,7 @@ fn build_hypothesis_panel(items: &[MnistItem]) -> Result<String> {
                 let dest_y = DIGIT_SIZE + y;
                 let dest_index = dest_y * (width as usize) + dest_x;
                 let mask = label_mask[y * DIGIT_SIZE + x];
-                pixels[dest_index] = 0.9 - mask * 0.8;
+                pixels[dest_index] = mask * 0.85f32;
             }
         }
     }
@@ -735,9 +784,9 @@ fn build_prediction_panel(
     for column in 0..columns {
         let is_correct = expected[column] == predicted[column];
         let background = if is_correct {
-            [0.82, 0.95, 0.82]
+            [0.08, 0.24, 0.08]
         } else {
-            [0.95, 0.82, 0.82]
+            [0.24, 0.08, 0.08]
         };
 
         let input_pixels = &inputs[column];
@@ -907,25 +956,58 @@ fn render_digit_mask(digit: usize) -> Vec<f32> {
 
     let mut mask = vec![0.0; DIGIT_SIZE * DIGIT_SIZE];
     let pattern = &FONT[digit % FONT.len()];
-    let scale = 4;
-    let horizontal_padding = (DIGIT_SIZE - pattern[0].len() * scale) / 2;
+    let scale = 3;
+    let pattern_height = pattern.len();
+    let pattern_width = pattern[0].len();
+    let horizontal_padding = (DIGIT_SIZE - pattern_width * scale) / 2;
+    let vertical_padding = (DIGIT_SIZE - pattern_height * scale) / 2;
 
     for (row_idx, row) in pattern.iter().enumerate() {
         for (col_idx, ch) in row.chars().enumerate() {
-            let value = if ch == '1' { 1.0 } else { 0.0 };
+            let value = if ch == '1' { 1.0f32 } else { 0.0f32 };
             for y in 0..scale {
                 for x in 0..scale {
-                    let dest_y = row_idx * scale + y;
+                    let dest_y = vertical_padding + row_idx * scale + y;
                     let dest_x = horizontal_padding + col_idx * scale + x;
                     if dest_y < DIGIT_SIZE && dest_x < DIGIT_SIZE {
-                        mask[dest_y * DIGIT_SIZE + dest_x] = value;
+                        let index = dest_y * DIGIT_SIZE + dest_x;
+                        if mask[index] < value {
+                            mask[index] = value;
+                        }
                     }
                 }
             }
         }
     }
 
-    mask
+    let mut with_border = mask.clone();
+    let border_value = 0.6f32;
+    for y in 0..DIGIT_SIZE {
+        for x in 0..DIGIT_SIZE {
+            let idx = y * DIGIT_SIZE + x;
+            if mask[idx] >= 0.99f32 {
+                for dy in -1i32..=1 {
+                    for dx in -1i32..=1 {
+                        if dy == 0 && dx == 0 {
+                            continue;
+                        }
+                        let ny = y as i32 + dy;
+                        let nx = x as i32 + dx;
+                        if ny >= 0 && ny < DIGIT_SIZE as i32 && nx >= 0 && nx < DIGIT_SIZE as i32 {
+                            let neighbor_index = ny as usize * DIGIT_SIZE + nx as usize;
+                            if mask[neighbor_index] < 0.99f32
+                                && with_border[neighbor_index] < border_value
+                            {
+                                with_border[neighbor_index] = border_value;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    with_border
 }
 
 fn mix_grayscale_with_background(value: f32, background: [f32; 3]) -> [f32; 3] {
@@ -938,7 +1020,7 @@ fn mix_grayscale_with_background(value: f32, background: [f32; 3]) -> [f32; 3] {
 }
 
 fn render_label_pixel(mask: f32, background: [f32; 3]) -> [f32; 3] {
-    let digit_color = [0.1, 0.1, 0.1];
+    let digit_color = [0.85f32, 0.85f32, 0.85f32];
     [
         background[0] * (1.0 - mask) + digit_color[0] * mask,
         background[1] * (1.0 - mask) + digit_color[1] * mask,
