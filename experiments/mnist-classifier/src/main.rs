@@ -58,9 +58,15 @@ struct ExperimentConfig {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct BenchmarkSnapshot {
+    #[serde(default = "default_benchmark_train_steps")]
+    train_steps: usize,
     final_train: StepMetrics,
     final_test: EvaluationMetrics,
     five_shot: Option<EvaluationMetrics>,
+}
+
+const fn default_benchmark_train_steps() -> usize {
+    TEST_TRAIN_STEPS
 }
 
 struct ExperimentPaths {
@@ -140,7 +146,9 @@ fn main() -> Result<()> {
 
     let result = run_training(train_steps, &config)?;
 
-    write_report(&paths.report, &config, train_steps, &result)?;
+    if matches!(mode, ExperimentMode::Full) {
+        write_report(&paths.report, &config, train_steps, &result)?;
+    }
 
     match mode {
         ExperimentMode::Full => {
@@ -152,6 +160,7 @@ fn main() -> Result<()> {
         }
         ExperimentMode::Test => {
             let snapshot = BenchmarkSnapshot {
+                train_steps,
                 final_train: result.final_train.clone(),
                 final_test: result.final_test,
                 five_shot: result.five_shot,
@@ -994,6 +1003,13 @@ fn save_benchmark(path: &Path, snapshot: &BenchmarkSnapshot) -> Result<()> {
 }
 
 fn validate_benchmark(actual: &BenchmarkSnapshot, reference: &BenchmarkSnapshot) -> Result<()> {
+    if actual.train_steps != reference.train_steps {
+        return Err(anyhow!(
+            "train step count mismatch (expected {}, found {})",
+            reference.train_steps,
+            actual.train_steps
+        ));
+    }
     ensure_close(
         actual.final_train.step as f32,
         reference.final_train.step as f32,
