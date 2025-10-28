@@ -1,4 +1,5 @@
 {
+  "train_steps": 25,
   "final_train": {
     "step": 25,
     "loss": 1.2708936,
