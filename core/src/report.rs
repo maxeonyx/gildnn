@@ -2,44 +2,6 @@ use std::{fs, path::Path};
 
 use anyhow::{anyhow, Context, Result};
 
-pub const DEFAULT_REPORT_TEMPLATE: &str = r"# Experiment Notebook
-
-<!-- SECTION:overview start -->
-<!-- Summarize the experiment's role within the broader gildnn roadmap. -->
-<!-- SECTION:overview end -->
-
-## Hypotheses
-
-<!-- SECTION:hypotheses start -->
-<!-- Capture the expectations being validated in this run. -->
-<!-- SECTION:hypotheses end -->
-
-## Configuration
-
-<!-- SECTION:configuration start -->
-<!-- Populated automatically with the parameters from the latest run. -->
-<!-- SECTION:configuration end -->
-
-## Metrics
-
-<!-- SECTION:metrics start -->
-<!-- Populated automatically with training and evaluation summaries. -->
-<!-- SECTION:metrics end -->
-
-## Sample Artifacts
-
-<!-- SECTION:samples-primary start -->
-<!-- Experiments may document qualitative artefacts here (images, text, etc.). -->
-<!-- SECTION:samples-primary end -->
-
-<!-- SECTION:samples-secondary start -->
-<!-- Additional qualitative artefacts can live in custom sections like this one. -->
-<!-- SECTION:samples-secondary end -->
-
-> Experiments are free to tailor the notebook structure to their needs; add or rename sections as appropriate. Maintain the
-> `<!-- SECTION:name start/end -->` markers around any regions that should be programmatically updated.
-";
-
 #[derive(Clone, Debug)]
 pub struct ReportSection {
     id: String,
@@ -55,23 +17,25 @@ impl ReportSection {
     }
 
     fn start_marker(&self) -> String {
-        format!("<!-- SECTION:{} start -->", self.id)
+        format!("<!-- OUTPUTSLOT:{} start -->", self.id)
     }
 
     fn end_marker(&self) -> String {
-        format!("<!-- SECTION:{} end -->", self.id)
+        format!("<!-- OUTPUTSLOT:{} end -->", self.id)
     }
 }
 
-pub fn ensure_report_file(path: &Path, template: &str) -> Result<()> {
+pub fn ensure_report_file(path: &Path) -> Result<()> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)
             .with_context(|| format!("failed to create directory {}", parent.display()))?;
     }
 
     if !path.exists() {
-        fs::write(path, template)
-            .with_context(|| format!("failed to write report template to {}", path.display()))?;
+        return Err(anyhow!(
+            "expected report template at {} but none was found",
+            path.display()
+        ));
     }
 
     Ok(())
