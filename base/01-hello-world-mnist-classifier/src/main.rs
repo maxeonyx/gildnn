@@ -189,7 +189,7 @@ fn print_usage() {
 }
 
 fn initialize_paths() -> Result<ExperimentPaths> {
-    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("experiments/mnist_baseline");
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     fs::create_dir_all(&dir)
         .with_context(|| format!("failed to create experiment directory {}", dir.display()))?;
 
