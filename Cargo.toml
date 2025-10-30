@@ -1,6 +1,6 @@
 [workspace]
 members = [
     "core",
-    "experiments/mnist-classifier",
+    "base/01-hello-world-mnist-classifier",
 ]
 resolver = "2"

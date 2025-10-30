@@ -1,5 +1,7 @@
 # Hello World MNIST Classifier
 
+This stage now hosts the executable base crate (see `Cargo.toml` and `src/`) that exercises the MNIST pipeline. Use it as the canonical training loop before layering on research aspects.
+
 Objective:
 - Stand up the core training harness with the smallest possible supervised task.
 
