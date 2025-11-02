@@ -1,0 +1,23 @@
+{
+  "seed": 1337,
+  "train_steps": 96,
+  "eval_every": 8,
+  "train_batch_size": 32,
+  "test_batch_size": 64,
+  "downsample_factor": 2,
+  "sequence_order": "raster",
+  "model": {
+    "type": "decoder_transformer",
+    "embedding_dim": 64,
+    "ffn_dim": 128,
+    "num_layers": 3,
+    "num_heads": 4,
+    "dropout": 0.0
+  },
+  "optimizer": {
+    "type": "adam",
+    "lr": 0.0003,
+    "beta1": 0.9,
+    "beta2": 0.95
+  }
+}

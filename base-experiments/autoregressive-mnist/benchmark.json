@@ -1,0 +1,14 @@
+{
+  "train_steps": 0,
+  "status": "pending reimplementation",
+  "metrics": {
+    "train_loss": null,
+    "train_bits_per_dim": null,
+    "test_loss": null,
+    "test_bits_per_dim": null
+  },
+  "notes": [
+    "Reset after pruning multi-architecture pipeline.",
+    "Populate once the simplified transformer baseline has been trained."
+  ]
+}

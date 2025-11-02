@@ -1,0 +1,24 @@
+{
+  "seed": 2025,
+  "train_steps": 120,
+  "eval_every": 10,
+  "train_batch_size": 32,
+  "test_batch_size": 64,
+  "patch_size": 4,
+  "codebook_size": 64,
+  "sequence_order": "patch_raster",
+  "model": {
+    "type": "decoder_transformer",
+    "embedding_dim": 96,
+    "ffn_dim": 192,
+    "num_layers": 3,
+    "num_heads": 4,
+    "dropout": 0.0
+  },
+  "optimizer": {
+    "type": "adam",
+    "lr": 0.0003,
+    "beta1": 0.9,
+    "beta2": 0.95
+  }
+}

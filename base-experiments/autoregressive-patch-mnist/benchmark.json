@@ -1,0 +1,13 @@
+{
+  "train_steps": 0,
+  "status": "pending implementation",
+  "metrics": {
+    "train_loss": null,
+    "train_bits_per_dim": null,
+    "test_loss": null,
+    "test_bits_per_dim": null
+  },
+  "notes": [
+    "Fill in once the discrete VAE + transformer pipeline runs end-to-end."
+  ]
+}

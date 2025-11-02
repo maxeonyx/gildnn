@@ -1,0 +1,13 @@
+[package]
+name = "mnist-core"
+version = "0.1.0"
+edition = "2021"
+description = "Shared MNIST utilities for gildnn experiments"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+anyhow = "1.0"
+burn = { version = "0.18.0", features = ["dataset"] }
+burn-dataset = { version = "0.18.0", features = ["vision"] }
+gildnn-core = { path = ".." }
+rand = { version = "0.8", features = ["std"] }

@@ -1,0 +1,14 @@
+{
+  "train_steps": 0,
+  "status": "pending implementation",
+  "metrics": {
+    "raster": null,
+    "column_major": null,
+    "snake": null,
+    "k-random": null,
+    "random": null
+  },
+  "notes": [
+    "Populate once shuffled-order training runs and evaluations complete."
+  ]
+}

@@ -1,0 +1,6 @@
+[package]
+name = "gildnn-experiment-mnist-generator"
+version = "0.1.0"
+edition = "2021"
+description = "Autoregressive MNIST pixel generator baseline"
+license = "MIT OR Apache-2.0"

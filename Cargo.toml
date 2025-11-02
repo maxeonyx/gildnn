@@ -1,6 +1,8 @@
 [workspace]
 members = [
     "core",
-    "base/01-hello-world-mnist-classifier",
+    "core/mnist-core",
+    "base-experiments/hello-world-mnist-classifier",
+    "base-experiments/autoregressive-mnist",
 ]
 resolver = "2"

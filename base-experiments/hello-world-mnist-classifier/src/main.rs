@@ -26,14 +26,22 @@ use burn_dataset::{
     Dataset,
 };
 use gildnn_core::{
-    encode_luma_png, encode_rgb_png, ensure_report_file, load_or_init, png_data_uri, seeded_rng,
-    update_sections, EvaluationMetrics, ExperimentMode, ExperimentModeArgs, ReportSection,
-    StepMetrics,
+    ensure_report_file, load_or_init, png_data_uri, seeded_rng, update_sections, EvaluationMetrics,
+    ExperimentMode, ExperimentModeArgs, ReportSection, StepMetrics,
 };
-use rand::{rngs::StdRng, seq::index::sample, Rng};
+use mnist_core::{
+    dataset::{collect_first_items, item_to_normalized_pixels, sample_random_items},
+    image::{
+        build_dataset_row_image, build_final_evaluation_panels, build_hypothesis_panel,
+        build_prediction_panel, EvaluationPanel,
+    },
+    schedule::prediction_schedule,
+    DEFAULT_PANEL_DIGITS, MNIST_PIXEL_COUNT,
+};
+use rand::{rngs::StdRng, Rng};
 use serde::{Deserialize, Serialize};
 
-const INPUT_DIM: usize = 28 * 28;
+const INPUT_DIM: usize = MNIST_PIXEL_COUNT;
 const NUM_CLASSES: usize = 10;
 const HIDDEN_DIM: usize = 128;
 const BATCH_SIZE: usize = 64;
@@ -43,11 +51,10 @@ const FIVE_SHOT_STEP: usize = 10;
 const FULL_TRAIN_STEPS: usize = 200;
 const TEST_TRAIN_STEPS: usize = 25;
 const BENCHMARK_TOLERANCE: f32 = 5e-3;
-const DATASET_ROW_COUNT: usize = 10;
+const DATASET_ROW_COUNT: usize = DEFAULT_PANEL_DIGITS;
 const HYPOTHESIS_SAMPLE_COUNT: usize = 50;
 const SNAPSHOT_SAMPLE_COUNT: usize = 10;
 const MAX_SNAPSHOT_IMAGES: usize = 10;
-const DIGIT_SIZE: usize = 28;
 
 type TrainingBackend = Autodiff<Candle<f32, i64>>;
 
@@ -230,8 +237,10 @@ fn run_training(train_steps: usize, config: &ExperimentConfig) -> Result<Experim
         .filter(|chunk| !chunk.is_empty())
         .map(build_hypothesis_panel)
         .collect::<Result<Vec<_>>>()?;
-    let hypothesis_inputs: Vec<Vec<f32>> =
-        hypothesis_items.iter().map(mnist_item_to_pixels).collect();
+    let hypothesis_inputs: Vec<Vec<f32>> = hypothesis_items
+        .iter()
+        .map(item_to_normalized_pixels)
+        .collect();
     let hypothesis_labels: Vec<usize> = hypothesis_items
         .iter()
         .map(|item| item.label as usize)
@@ -239,7 +248,10 @@ fn run_training(train_steps: usize, config: &ExperimentConfig) -> Result<Experim
 
     let snapshot_items =
         sample_random_items(&test_dataset, SNAPSHOT_SAMPLE_COUNT, &mut artifact_rng)?;
-    let snapshot_inputs: Vec<Vec<f32>> = snapshot_items.iter().map(mnist_item_to_pixels).collect();
+    let snapshot_inputs: Vec<Vec<f32>> = snapshot_items
+        .iter()
+        .map(item_to_normalized_pixels)
+        .collect();
     let snapshot_labels: Vec<usize> = snapshot_items
         .iter()
         .map(|item| item.label as usize)
@@ -347,8 +359,21 @@ fn run_training(train_steps: usize, config: &ExperimentConfig) -> Result<Experim
         .ok_or_else(|| anyhow!("training history is empty"))?;
 
     let final_predictions = infer_predictions(&model, &device, &hypothesis_items)?;
-    let final_evaluation =
-        build_final_evaluation_panels(&hypothesis_inputs, &hypothesis_labels, &final_predictions)?;
+    let evaluation_panels = build_final_evaluation_panels(
+        &hypothesis_inputs,
+        &hypothesis_labels,
+        &final_predictions,
+        DATASET_ROW_COUNT,
+    )?;
+    let final_evaluation = evaluation_panels
+        .into_iter()
+        .map(|panel: EvaluationPanel| EvaluationPanelArtifact {
+            index: panel.index,
+            correct: panel.correct,
+            total: panel.total,
+            image_bytes: panel.image_bytes,
+        })
+        .collect();
 
     Ok(ExperimentResult {
         history,
@@ -736,241 +761,6 @@ fn accuracy_counts<B: Backend>(logits: Tensor<B, 2>, targets: Tensor<B, 1, Int>)
     (correct, total)
 }
 
-fn collect_first_items(dataset: &MnistDataset, count: usize) -> Result<Vec<MnistItem>> {
-    let available = count.min(dataset.len());
-    let mut items = Vec::with_capacity(available);
-    for index in 0..available {
-        let item = dataset
-            .get(index)
-            .ok_or_else(|| anyhow!("dataset index {} out of bounds", index))?;
-        items.push(item);
-    }
-    Ok(items)
-}
-
-fn sample_random_items(
-    dataset: &MnistDataset,
-    count: usize,
-    rng: &mut StdRng,
-) -> Result<Vec<MnistItem>> {
-    let available = count.min(dataset.len());
-    if available == 0 {
-        return Ok(Vec::new());
-    }
-
-    let indices = sample(rng, dataset.len(), available).into_vec();
-    let mut items = Vec::with_capacity(available);
-    for index in indices {
-        let item = dataset
-            .get(index)
-            .ok_or_else(|| anyhow!("dataset index {} out of bounds", index))?;
-        items.push(item);
-    }
-    Ok(items)
-}
-
-fn mnist_item_to_pixels(item: &MnistItem) -> Vec<f32> {
-    let mut pixels = Vec::with_capacity(INPUT_DIM);
-    for row in item.image.iter() {
-        for &pixel in row.iter() {
-            pixels.push(pixel as f32 / 255.0);
-        }
-    }
-    pixels
-}
-
-fn build_dataset_row_image(items: &[MnistItem]) -> Result<Vec<u8>> {
-    if items.is_empty() {
-        return Err(anyhow!("cannot build dataset row for empty slice"));
-    }
-
-    let width = (DIGIT_SIZE * items.len()) as u32;
-    let height = DIGIT_SIZE as u32;
-    let mut pixels = Vec::with_capacity((width * height) as usize);
-
-    for y in 0..DIGIT_SIZE {
-        for item in items {
-            for &pixel in item.image[y].iter() {
-                pixels.push(pixel as f32 / 255.0);
-            }
-        }
-    }
-
-    encode_luma_png(width, height, &pixels)
-}
-
-fn build_hypothesis_panel(items: &[MnistItem]) -> Result<Vec<u8>> {
-    if items.is_empty() {
-        return Err(anyhow!("cannot build hypothesis panel for empty slice"));
-    }
-
-    let width = (DIGIT_SIZE * items.len()) as u32;
-    let height = (DIGIT_SIZE * 2) as u32;
-    let mut pixels = vec![0.0; (width * height) as usize];
-
-    for (column, item) in items.iter().enumerate() {
-        let digit_pixels = mnist_item_to_pixels(item);
-        for y in 0..DIGIT_SIZE {
-            for x in 0..DIGIT_SIZE {
-                let dest_x = column * DIGIT_SIZE + x;
-                let dest_y = y;
-                let dest_index = dest_y * (width as usize) + dest_x;
-                pixels[dest_index] = digit_pixels[y * DIGIT_SIZE + x];
-            }
-        }
-
-        let label_mask = render_digit_mask(item.label as usize);
-        for y in 0..DIGIT_SIZE {
-            for x in 0..DIGIT_SIZE {
-                let dest_x = column * DIGIT_SIZE + x;
-                let dest_y = DIGIT_SIZE + y;
-                let dest_index = dest_y * (width as usize) + dest_x;
-                let mask = label_mask[y * DIGIT_SIZE + x];
-                pixels[dest_index] = mask * 0.85f32;
-            }
-        }
-    }
-
-    encode_luma_png(width, height, &pixels)
-}
-
-fn build_prediction_panel(
-    inputs: &[Vec<f32>],
-    expected: &[usize],
-    predicted: &[usize],
-) -> Result<Vec<u8>> {
-    if inputs.len() != expected.len() || expected.len() != predicted.len() {
-        return Err(anyhow!(
-            "prediction panel requires equal lengths (inputs {}, expected {}, predicted {})",
-            inputs.len(),
-            expected.len(),
-            predicted.len()
-        ));
-    }
-    if inputs.is_empty() {
-        return Err(anyhow!("cannot build prediction panel for empty inputs"));
-    }
-
-    let columns = inputs.len();
-    let width = (DIGIT_SIZE * columns) as u32;
-    let height = (DIGIT_SIZE * 3) as u32;
-    let mut pixels = vec![0.0; (width * height * 3) as usize];
-
-    for column in 0..columns {
-        let is_correct = expected[column] == predicted[column];
-        let background = if is_correct {
-            [0.08, 0.24, 0.08]
-        } else {
-            [0.24, 0.08, 0.08]
-        };
-
-        let input_pixels = &inputs[column];
-        for y in 0..DIGIT_SIZE {
-            for x in 0..DIGIT_SIZE {
-                let dest_x = column * DIGIT_SIZE + x;
-                let dest_y = y;
-                let dest_index = (dest_y * (width as usize) + dest_x) * 3;
-                let value = input_pixels[y * DIGIT_SIZE + x];
-                let color = mix_grayscale_with_background(value, background);
-                pixels[dest_index] = color[0];
-                pixels[dest_index + 1] = color[1];
-                pixels[dest_index + 2] = color[2];
-            }
-        }
-
-        let expected_mask = render_digit_mask(expected[column]);
-        for y in 0..DIGIT_SIZE {
-            for x in 0..DIGIT_SIZE {
-                let dest_x = column * DIGIT_SIZE + x;
-                let dest_y = DIGIT_SIZE + y;
-                let dest_index = (dest_y * (width as usize) + dest_x) * 3;
-                let mask = expected_mask[y * DIGIT_SIZE + x];
-                let color = render_label_pixel(mask, background);
-                pixels[dest_index] = color[0];
-                pixels[dest_index + 1] = color[1];
-                pixels[dest_index + 2] = color[2];
-            }
-        }
-
-        let predicted_mask = render_digit_mask(predicted[column]);
-        for y in 0..DIGIT_SIZE {
-            for x in 0..DIGIT_SIZE {
-                let dest_x = column * DIGIT_SIZE + x;
-                let dest_y = DIGIT_SIZE * 2 + y;
-                let dest_index = (dest_y * (width as usize) + dest_x) * 3;
-                let mask = predicted_mask[y * DIGIT_SIZE + x];
-                let color = render_label_pixel(mask, background);
-                pixels[dest_index] = color[0];
-                pixels[dest_index + 1] = color[1];
-                pixels[dest_index + 2] = color[2];
-            }
-        }
-    }
-
-    encode_rgb_png(width, height, &pixels)
-}
-
-fn build_final_evaluation_panels(
-    inputs: &[Vec<f32>],
-    labels: &[usize],
-    predictions: &[usize],
-) -> Result<Vec<EvaluationPanelArtifact>> {
-    if inputs.len() != labels.len() || labels.len() != predictions.len() {
-        return Err(anyhow!(
-            "final evaluation requires equal lengths (inputs {}, labels {}, predictions {})",
-            inputs.len(),
-            labels.len(),
-            predictions.len()
-        ));
-    }
-    if inputs.is_empty() {
-        return Ok(Vec::new());
-    }
-
-    let mut panels = Vec::new();
-    for (panel_idx, start) in (0..inputs.len()).step_by(DATASET_ROW_COUNT).enumerate() {
-        let end = (start + DATASET_ROW_COUNT).min(inputs.len());
-        if start >= end {
-            break;
-        }
-
-        let panel_inputs = &inputs[start..end];
-        let panel_labels = &labels[start..end];
-        let panel_predictions = &predictions[start..end];
-        let image = build_prediction_panel(panel_inputs, panel_labels, panel_predictions)?;
-        let correct = panel_predictions
-            .iter()
-            .zip(panel_labels)
-            .filter(|(pred, label)| pred == label)
-            .count();
-        panels.push(EvaluationPanelArtifact {
-            index: panel_idx + 1,
-            correct,
-            total: panel_labels.len(),
-            image_bytes: image,
-        });
-    }
-
-    Ok(panels)
-}
-
-fn prediction_schedule(total_steps: usize, max_images: usize) -> Vec<usize> {
-    if total_steps == 0 || max_images == 0 {
-        return Vec::new();
-    }
-
-    let mut steps = Vec::new();
-    let mut value = 1usize;
-    while value < total_steps && steps.len() + 1 < max_images {
-        steps.push(value);
-        value *= 2;
-    }
-    if steps.last().copied() != Some(total_steps) {
-        steps.push(total_steps);
-    }
-    steps
-}
-
 fn infer_predictions(
     model: &MnistClassifier<TrainingBackend>,
     device: &CandleDevice,
@@ -993,114 +783,6 @@ fn infer_predictions(
         .into_iter()
         .map(|value| value as usize)
         .collect())
-}
-
-fn render_digit_mask(digit: usize) -> Vec<f32> {
-    const FONT: [[&str; 7]; 10] = [
-        [
-            "01110", "10001", "10011", "10101", "11001", "10001", "01110",
-        ],
-        [
-            "00100", "01100", "00100", "00100", "00100", "00100", "01110",
-        ],
-        [
-            "01110", "10001", "00001", "00110", "01000", "10000", "11111",
-        ],
-        [
-            "11110", "00001", "00001", "01110", "00001", "00001", "11110",
-        ],
-        [
-            "00010", "00110", "01010", "10010", "11111", "00010", "00010",
-        ],
-        [
-            "11111", "10000", "11110", "00001", "00001", "10001", "01110",
-        ],
-        [
-            "00110", "01000", "10000", "11110", "10001", "10001", "01110",
-        ],
-        [
-            "11111", "00001", "00010", "00100", "01000", "01000", "01000",
-        ],
-        [
-            "01110", "10001", "10001", "01110", "10001", "10001", "01110",
-        ],
-        [
-            "01110", "10001", "10001", "01111", "00001", "00010", "01100",
-        ],
-    ];
-
-    let mut mask = vec![0.0; DIGIT_SIZE * DIGIT_SIZE];
-    let pattern = &FONT[digit % FONT.len()];
-    let scale = 3;
-    let pattern_height = pattern.len();
-    let pattern_width = pattern[0].len();
-    let horizontal_padding = (DIGIT_SIZE - pattern_width * scale) / 2;
-    let vertical_padding = (DIGIT_SIZE - pattern_height * scale) / 2;
-
-    for (row_idx, row) in pattern.iter().enumerate() {
-        for (col_idx, ch) in row.chars().enumerate() {
-            let value = if ch == '1' { 1.0f32 } else { 0.0f32 };
-            for y in 0..scale {
-                for x in 0..scale {
-                    let dest_y = vertical_padding + row_idx * scale + y;
-                    let dest_x = horizontal_padding + col_idx * scale + x;
-                    if dest_y < DIGIT_SIZE && dest_x < DIGIT_SIZE {
-                        let index = dest_y * DIGIT_SIZE + dest_x;
-                        if mask[index] < value {
-                            mask[index] = value;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    let mut with_border = mask.clone();
-    let border_value = 0.6f32;
-    for y in 0..DIGIT_SIZE {
-        for x in 0..DIGIT_SIZE {
-            let idx = y * DIGIT_SIZE + x;
-            if mask[idx] >= 0.99f32 {
-                for dy in -1i32..=1 {
-                    for dx in -1i32..=1 {
-                        if dy == 0 && dx == 0 {
-                            continue;
-                        }
-                        let ny = y as i32 + dy;
-                        let nx = x as i32 + dx;
-                        if ny >= 0 && ny < DIGIT_SIZE as i32 && nx >= 0 && nx < DIGIT_SIZE as i32 {
-                            let neighbor_index = ny as usize * DIGIT_SIZE + nx as usize;
-                            if mask[neighbor_index] < 0.99f32
-                                && with_border[neighbor_index] < border_value
-                            {
-                                with_border[neighbor_index] = border_value;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    with_border
-}
-
-fn mix_grayscale_with_background(value: f32, background: [f32; 3]) -> [f32; 3] {
-    let grayscale = [value, value, value];
-    [
-        background[0] * (1.0 - value) + grayscale[0] * value,
-        background[1] * (1.0 - value) + grayscale[1] * value,
-        background[2] * (1.0 - value) + grayscale[2] * value,
-    ]
-}
-
-fn render_label_pixel(mask: f32, background: [f32; 3]) -> [f32; 3] {
-    let digit_color = [0.85f32, 0.85f32, 0.85f32];
-    [
-        background[0] * (1.0 - mask) + digit_color[0] * mask,
-        background[1] * (1.0 - mask) + digit_color[1] * mask,
-        background[2] * (1.0 - mask) + digit_color[2] * mask,
-    ]
 }
 
 fn linear_from_rng<B: Backend>(
