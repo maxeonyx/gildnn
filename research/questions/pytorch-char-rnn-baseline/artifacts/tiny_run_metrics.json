@@ -1,0 +1,162 @@
+{
+  "final_loss": 0.03424537926912308,
+  "final_accuracy": 0.9793282151222229,
+  "trace": [
+    {
+      "step": 0,
+      "loss": 2.987607,
+      "accuracy": 0.041344
+    },
+    {
+      "step": 50,
+      "loss": 0.156812,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 100,
+      "loss": 0.029959,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 150,
+      "loss": 0.034219,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 200,
+      "loss": 0.03073,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 250,
+      "loss": 0.029251,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 300,
+      "loss": 0.02916,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 350,
+      "loss": 0.033941,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 400,
+      "loss": 0.031591,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 450,
+      "loss": 0.059379,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 500,
+      "loss": 0.046636,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 550,
+      "loss": 0.055258,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 600,
+      "loss": 0.02918,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 650,
+      "loss": 0.070215,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 700,
+      "loss": 0.029565,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 750,
+      "loss": 0.044557,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 800,
+      "loss": 0.033058,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 850,
+      "loss": 0.029587,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 900,
+      "loss": 0.066589,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 950,
+      "loss": 0.038511,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 1000,
+      "loss": 0.0488,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 1050,
+      "loss": 0.035345,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 1100,
+      "loss": 0.055306,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 1150,
+      "loss": 0.030793,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 1200,
+      "loss": 0.052617,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 1250,
+      "loss": 0.033307,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 1300,
+      "loss": 0.036937,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 1350,
+      "loss": 0.051049,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 1400,
+      "loss": 0.083746,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 1450,
+      "loss": 0.058067,
+      "accuracy": 0.979328
+    },
+    {
+      "step": 1500,
+      "loss": 0.034245,
+      "accuracy": 0.979328
+    }
+  ],
+  "hidden_state_handling": "reset_to_zero_per_forward_call_no_carry_between_windows_or_batches"
+}

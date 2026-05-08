@@ -1,0 +1,16 @@
+{
+  "git_sha": "fe45c8937d442aad1a6f0d6836bf12a999e985f9",
+  "git_working_tree_clean": false,
+  "git_status_short": [
+    "?? experiments/pytorch_char_rnn_baseline.py",
+    "?? research/questions/pytorch-char-rnn-baseline/"
+  ],
+  "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+  "torch_version": "2.11.0+cu128",
+  "device": "cuda",
+  "cuda_is_available": true,
+  "cuda_device_name": "NVIDIA GeForce RTX 3090",
+  "text_characters": 392,
+  "vocab_size": 19,
+  "window_count": 387
+}

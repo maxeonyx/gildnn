@@ -1,0 +1,15 @@
+{
+  "context_size": 5,
+  "embedding_dim": 24,
+  "hidden_dim": 64,
+  "num_layers": 1,
+  "nonlinearity": "tanh",
+  "overfit_batch_size": 16,
+  "overfit_steps": 2000,
+  "overfit_learning_rate": 0.05,
+  "tiny_batch_size": 64,
+  "tiny_steps": 1500,
+  "tiny_learning_rate": 0.03,
+  "sample_length": 80,
+  "seed": 7
+}

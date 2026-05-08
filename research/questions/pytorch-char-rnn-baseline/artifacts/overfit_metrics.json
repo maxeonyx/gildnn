@@ -1,0 +1,18 @@
+{
+  "final_loss": 0.0008715996518731117,
+  "final_accuracy": 1.0,
+  "reached_memorization_bar": true,
+  "trace": [
+    {
+      "step": 0,
+      "loss": 2.875432,
+      "accuracy": 0.1875
+    },
+    {
+      "step": 9,
+      "loss": 0.000872,
+      "accuracy": 1.0
+    }
+  ],
+  "hidden_state_handling": "reset_to_zero_per_forward_call_no_carry_between_windows_or_batches"
+}

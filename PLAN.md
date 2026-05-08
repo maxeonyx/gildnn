@@ -16,16 +16,15 @@ The first bounded experiment rung is also now proven on that path: a tiny PyTorc
 
 An ordinary transformer baseline on the same tiny task is now also proven on that same path, with the task framing held fixed enough that the main changed variable is model family. See `research/questions/pytorch-char-transformer-baseline/`.
 
-These are still bounded proofs, not project-wide decisions. The backend/framework choice remains open. The first ordinary transformer baseline now exists, but no RNN baseline exists yet, and the experiment harness is still only whatever these tiny bounded paths genuinely needed.
+These are still bounded proofs, not project-wide decisions. The backend/framework choice remains open. The repo now has feedforward, ordinary transformer, and ordinary RNN references on the same tiny fixed-window task, and the experiment harness is still only whatever these tiny bounded paths genuinely needed.
 
 ---
 
 ## Immediate priorities
 
-1. **Ordinary RNN baseline (or something like it)** — simplest stateful baseline on the same tiny character-level next-token task, so the repo has the first three model-family reference points on one bounded problem.
-2. **Compare the tiny bounded references honestly** — feedforward sanity check, ordinary transformer baseline, and then the RNN baseline once it exists. Keep claims narrow and artifact-backed.
-3. **Experiment harness** — logging, checkpointing, config locking, reproducibility. Tighten this once the first few runnable baselines exist beyond the current tiny bounded path.
-4. **Another backend probe only if it becomes the sharper uncertainty reducer** — keep backend choice open, but do not branch into it unless it is more discriminating than the next baseline step.
+1. **Compare the tiny bounded references honestly** — feedforward sanity check, ordinary transformer baseline, and ordinary RNN baseline on the same tiny task. Keep claims narrow and artifact-backed.
+2. **Experiment harness** — logging, checkpointing, config locking, reproducibility. Tighten this now that the first three runnable baselines exist beyond the current tiny bounded path.
+3. **Another backend probe only if it becomes the sharper uncertainty reducer** — keep backend choice open, but do not branch into it unless it is more discriminating than the next baseline step.
 
 ## After the first runnable stack exists
 

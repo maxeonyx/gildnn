@@ -1,0 +1,18 @@
+{
+  "model_family": "ordinary_rnn",
+  "rnn_type": "nn.RNN",
+  "rnn_parameter_count": 7451,
+  "feedforward_reference_parameter_count": 9435,
+  "transformer_reference_parameter_count": 9107,
+  "parameter_delta_vs_feedforward": -1984,
+  "parameter_delta_vs_transformer": -1656,
+  "parameter_ratio_vs_feedforward": 0.789719,
+  "parameter_ratio_vs_transformer": 0.818162,
+  "embedding_dim": 24,
+  "hidden_dim": 64,
+  "num_layers": 1,
+  "nonlinearity": "tanh",
+  "context_size": 5,
+  "vocab_size": 19,
+  "hidden_state_handling": "reset_to_zero_per_forward_call_no_carry_between_windows_or_batches"
+}
