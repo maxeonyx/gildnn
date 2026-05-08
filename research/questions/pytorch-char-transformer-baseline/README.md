@@ -2,7 +2,7 @@
 
 ## What this bounded unit asks
 
-Can an ordinary transformer clear the same tiny character-level next-token ladder as the feedforward sanity check in this repo: fixed 5-character context, one-batch overfit first, then a tiny-data run with inspectable outputs, while keeping the task framing fixed enough that the main changed variable is model family?
+Can an ordinary transformer clear the same tiny character-level next-token ladder as the feedforward sanity check in this repo: fixed 5-character context, one-batch overfit first, then a tiny-data run with inspectable outputs, while keeping enough of the tiny task surface fixed to make a narrow bounded comparison without treating it as a controlled single-variable experiment?
 
 ## Artifacts
 
@@ -21,7 +21,7 @@ Can an ordinary transformer clear the same tiny character-level next-token ladde
 - same character-level next-token objective
 - same context size: `5`
 - same fixed first `16` windows for the one-batch overfit stage
-- same tiny-data full-dataset run framing
+- same tiny-data run framing
 - same seed: `7`
 - same prompts for saved outputs: `"hello"`, `"small"`, `" text"`
 
@@ -83,8 +83,8 @@ This repo now has an ordinary transformer baseline for the same tiny bounded tas
 
 ## Remaining open edge
 
-The tiny-data run landed at the same 0.9793 full-dataset accuracy as the feedforward reference rather than exact memorization of the whole tiny dataset. That keeps the comparison narrow and tidy, but it also means this baseline should not be over-read as stronger than the bounded evidence actually supports.
+The tiny-data run landed at the same saved `final_accuracy` value of `0.9793282151222229` as the feedforward reference rather than `1.0`. That keeps the comparison narrow and tidy, but it also means this baseline should not be over-read as stronger than the bounded evidence actually supports.
 
 ## Next discriminating step
 
-Build the ordinary RNN baseline on the same tiny character-level task, unless cleanup of the current comparison first reveals a more basic issue that should be fixed before adding the next model family.
+See `../pytorch-char-reference-comparison/README.md` for what the three tiny references now jointly show. From here, decide whether the shared saved `final_accuracy` value deserves its own bounded follow-up, unless stronger controlled-comparison claims make harness tightening the sharper next step.

@@ -14,17 +14,17 @@ One minimal local backend path is verified on this machine: UV + local `.venv` +
 
 The first bounded experiment rung is also now proven on that path: a tiny PyTorch character-level next-token pipeline can overfit one batch, run end to end on tiny data, and produce inspectable saved outputs. See `research/questions/pytorch-char-sanity-check/`.
 
-An ordinary transformer baseline on the same tiny task is now also proven on that same path, with the task framing held fixed enough that the main changed variable is model family. See `research/questions/pytorch-char-transformer-baseline/`.
+An ordinary transformer baseline on the same tiny task is now also proven on that same path. Together with the feedforward and ordinary RNN references, the repo now has a narrow three-way comparison on the same tiny fixed-window task. Across the saved references, the raw text, core task-surface fields, sample prompts, and recorded environment fields match, but learning rates, git SHAs, and observed parameter counts do not all match. This is not a controlled or matched-capacity comparison. See `research/questions/pytorch-char-reference-comparison/` when deciding what these three references jointly show.
 
-These are still bounded proofs, not project-wide decisions. The backend/framework choice remains open. The repo now has feedforward, ordinary transformer, and ordinary RNN references on the same tiny fixed-window task, and the experiment harness is still only whatever these tiny bounded paths genuinely needed.
+These are still bounded proofs, not project-wide decisions. The backend/framework choice remains open. The experiment harness is still only whatever these tiny bounded paths genuinely needed.
 
 ---
 
 ## Immediate priorities
 
-1. **Compare the tiny bounded references honestly** — feedforward sanity check, ordinary transformer baseline, and ordinary RNN baseline on the same tiny task. Keep claims narrow and artifact-backed.
-2. **Experiment harness** — logging, checkpointing, config locking, reproducibility. Tighten this now that the first three runnable baselines exist beyond the current tiny bounded path.
-3. **Another backend probe only if it becomes the sharper uncertainty reducer** — keep backend choice open, but do not branch into it unless it is more discriminating than the next baseline step.
+1. **Decide whether the shared saved `final_accuracy` value deserves its own bounded follow-up** — the three references all end with the same saved `0.9793282151222229`, but this comparison does not explain why.
+2. **Experiment harness** — logging, checkpointing, config locking, reproducibility. Tighten this only if the next bounded question genuinely needs stronger controlled-comparison claims.
+3. **Backend/runtime follow-up only if it becomes the sharper uncertainty reducer** — the captured NumPy warning is now a documented loose edge, but not yet automatically the next task.
 
 ## After the first runnable stack exists
 

@@ -60,8 +60,8 @@ This repo now has a minimal end-to-end PyTorch character sanity check for this b
 
 ## Remaining open edge
 
-The tiny-data run plateaued at 0.9793 full-dataset accuracy rather than exact memorization. That is enough for this bounded unit because the contract only required end-to-end completion plus inspectable outputs after the separate one-batch overfit proof, but it is still a real loose end if this script is kept as a long-lived reference.
+The tiny-data run ended with a saved `final_accuracy` of `0.9793282151222229` rather than `1.0`. That is enough for this bounded unit because the contract only required end-to-end completion plus inspectable outputs after the separate one-batch overfit proof, but it is still a real loose end if this script is kept as a long-lived reference.
 
 ## Next discriminating step
 
-Use the same tiny character-level task as the reference point for the first ordinary transformer baseline, unless cleanup of this script reveals a more basic blocker that should be fixed first.
+See `../pytorch-char-reference-comparison/README.md` for what the three tiny references now jointly show. From here, decide whether the shared saved `final_accuracy` value deserves its own bounded follow-up, unless stronger controlled-comparison claims make harness tightening the sharper next step.

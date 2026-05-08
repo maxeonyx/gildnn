@@ -2,7 +2,7 @@
 
 ## What this bounded unit asks
 
-Can an ordinary RNN clear the same tiny character-level next-token ladder as the existing feedforward and transformer references in this repo: fixed 5-character context, one-batch overfit first, then a tiny-data run with inspectable outputs, while keeping the main changed variable to model family?
+Can an ordinary RNN clear the same tiny character-level next-token ladder as the existing feedforward and transformer references in this repo: fixed 5-character context, one-batch overfit first, then a tiny-data run with inspectable outputs, while keeping enough of the tiny task surface fixed to make a narrow bounded comparison without treating it as a controlled single-variable experiment?
 
 ## Artifacts
 
@@ -22,7 +22,7 @@ Can an ordinary RNN clear the same tiny character-level next-token ladder as the
 - same character-level next-token objective
 - same context size: `5`
 - same fixed first `16` windows for the one-batch stage
-- same full-dataset tiny-data run framing
+- same tiny-data run framing
 - same seed: `7`
 - same prompts for saved outputs: `"hello"`, `"small"`, `" text"`
 - same CUDA-backed local PyTorch path
@@ -125,9 +125,9 @@ This repo now has an ordinary RNN baseline for the same tiny bounded task as the
 ## Remaining open edges
 
 - This is not a matched-capacity bake-off: the RNN has materially fewer parameters than the feedforward and transformer references.
-- The tiny-data run landed at the same `0.9793282151222229` full-dataset accuracy as the other two references rather than exact whole-dataset memorization.
+- The tiny-data run landed at the same saved `final_accuracy` value of `0.9793282151222229` as the other two references rather than `1.0`.
 - The verification capture shows a real local NumPy warning on this path, but this bounded unit did not investigate whether that matters beyond these successful runs.
 
 ## Next discriminating step
 
-Compare the three tiny bounded references honestly — feedforward, transformer, and RNN — without over-reading the parameter-count mismatch as if this were a controlled matched-capacity architecture comparison.
+See `../pytorch-char-reference-comparison/README.md` for what the three tiny references now jointly show. From here, decide whether the shared saved `final_accuracy` value deserves its own bounded follow-up, unless stronger controlled-comparison claims make harness tightening the sharper next step.
