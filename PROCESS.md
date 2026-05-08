@@ -4,9 +4,26 @@ How work gets done in this project. Covers the autonomous harness, experiment di
 
 ---
 
-## The autonomous harness
+## Background training runs
 
-The project runs as an outer loop: `harness.ps1` launches OpenCode, which works until it exits, then relaunches it with a reorientation prompt. The harness lives in the repo and should be refined as the process matures.
+If a training run will take longer than ~5–10 minutes, run it in the background — do not block on it. Use a background process with log output redirected to a file so you can check progress without waiting.
+
+- Start at most one training run at a time.
+- While a run is active: continue other work — cleanup, integration, reports, doc fixes.
+- Check run progress by tailing the log file. Do not poll in a tight loop.
+- When a run completes: read the output, update the relevant question folder, update PLAN.md.
+
+A suggested pattern (PowerShell):
+```powershell
+Start-Process python -ArgumentList "experiments/foo/train.py" -RedirectStandardOutput "runs/foo.log" -NoNewWindow
+# then continue working; periodically: Get-Content runs/foo.log -Tail 20
+```
+
+---
+
+## The autonomous loop
+
+The project runs as an outer loop: `loop.ps1` relaunches OpenCode if it ever exits. OpenCode is the real working environment — `loop.ps1` is just the restart wrapper. The loop reuses a persistent session ID so context carries across restarts.
 
 **The agent's job when relaunched:**
 

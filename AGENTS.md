@@ -51,7 +51,7 @@ Read [VISION.md](VISION.md) for what we're exploring. Read [PROCESS.md](PROCESS.
 | `VISION.md` | Motivating ideas, open questions, research threads | Starting fresh, orienting on goals |
 | `PROCESS.md` | How work is done — experiment discipline, harness, reporting | Deciding how to proceed |
 | `PLAN.md` | Prioritized next work — rewritten not appended | Picking up after a handover |
-| `harness.ps1` | The autonomous loop script and reorientation prompt — PowerShell, Windows | Understanding how the loop works |
+| `loop.ps1` | Outer restart loop — relaunches OpenCode on exit, reuses session ID | Understanding how the loop works |
 | `research/daily/` | Daily output narratives for Max | Reviewing recent progress |
 | `research/weekly/` | Weekly synthesis narratives for Max | Weekly review |
 | `research/questions/` | Per-question investigation folders | Investigating a specific open question |
@@ -88,11 +88,13 @@ When picking up after a handover:
 1. Read `PLAN.md` — current task and next steps
 2. Check for `TASK-*.ignore.md` in root — read any that exist
 3. Read `VISION.md` briefly if the direction is unclear
+4. **Check the time** — if after 4pm, write the daily report at the next natural stopping point; if Thursday, weekly too
 
 When handing over:
 1. Update `PLAN.md` with current state and clear next step
 2. Write `TASK-current.ignore.md` with any mid-task context that doesn't belong in PLAN
 3. Commit everything
+4. **Include a time-check reminder** in any handoff note — tell the incoming agent to check whether a report is due
 
 See `PROCESS.md` for harness behavior, experiment workflow, and reporting standards.
 
