@@ -6,7 +6,7 @@
 # Ensure we're always running from the repo root, regardless of where the script was launched from
 Set-Location $PSScriptRoot
 
-$sessionId = "ses_1fabddbe7ffe56KcM6SP73W55s"
+$sessionId = "ses_1f9625133ffelr3Li5SkSp02ET"
 
 $prompt = @"
 This is an autonomous ML research project. You should continue working for as long as possible. The user is not here — do not ask questions, do not wait for input, do not exit to wait for anything.
