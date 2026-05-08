@@ -133,7 +133,7 @@ If an architectural variant produced results (positive or negative), it stays in
 
 ### Dependencies and backend
 
-**Language:** Python. **Backend:** open — JAX + XLA is preferred for compiled training loops, but PyTorch or other libraries are acceptable when they make an experiment or integration cleaner.
+**Language:** Python. **Backend:** open — PyTorch, JAX, or other libraries are acceptable when they make an experiment or integration cleaner.
 
 UV for Python dependency management, local virtualenv. System dependencies (CUDA version, drivers, etc.) should be pinned and documented in `AGENTS.md` or a setup doc as soon as they're confirmed working.
 

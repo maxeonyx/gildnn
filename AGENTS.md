@@ -52,10 +52,18 @@ Read [VISION.md](VISION.md) for what we're exploring. Read [PROCESS.md](PROCESS.
 ## Technical preferences
 
 - **Language:** Python for ML experimentation. Max has a personal preference for Rust but recognises it's probably not the right choice here.
-- **Backend:** open. JAX + XLA is preferred for compiled training loops, but PyTorch or other options are acceptable when they make an experiment or integration cleaner.
+- **Backend:** open. PyTorch, JAX, or other options are acceptable when they make an experiment or integration cleaner.
 - **Tensor readability:** prefer named-dimension / einops-style operations where practical (e.g. `einops.rearrange`, `einops.reduce` with named axes, or equivalent). This is a readability preference, not a mandatory dependency. Indexed dimension juggling should be the exception, not the default.
 - Dependencies managed via UV, local virtualenv.
 - **Unified architecture:** an off-the-shelf framework that provides abstractions over backbones, embeddings, data pipelines, and prediction heads is acceptable — probably one already exists. If used, it must be explained very well, not assumed. Max wants to understand what it's doing, not just use it as a black box.
+
+## Verified local runtime facts
+
+- Verified on 2026-05-08: one minimal local backend path works on this Windows machine with UV + local `.venv`, CPython 3.12.12, and `torch==2.11.0+cu128`.
+- CUDA proof for that path: tiny tensor multiply succeeded on `cuda:0` / `NVIDIA GeForce RTX 3090`.
+- Machine evidence captured during the probe: NVIDIA driver 591.86, `nvidia-smi` reports CUDA 13.1.
+- Probe artifact and exact output: see `research/questions/backend-validation/README.md`.
+- This is an operational probe only. It does **not** settle the project-wide backend choice.
 
 ---
 
