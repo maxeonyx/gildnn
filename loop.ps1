@@ -37,7 +37,7 @@ while ($true) {
     $now = Get-Date
     Write-Host "[$($now.ToString('yyyy-MM-dd HH:mm:ss'))] Launching OpenCode (session $sessionId)..."
 
-    opencode run --session $sessionId $prompt
+    opencode run --session $sessionId --no-ephemeral $prompt
 
     $exitCode = $LASTEXITCODE
     $elapsed = ((Get-Date) - $lastLaunch).TotalSeconds
