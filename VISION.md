@@ -13,7 +13,7 @@ A recurrent transformer where computation is distributed across many small state
 The motivating intuitions:
 
 - A standard transformer processes a sequence synchronously through depth. What if instead you had many small recurrent units arranged spatially, each maintaining local state, each running at its own rate?
-- Each unit (column) makes predictions about its own next state — a local self-supervised objective. Does useful computation emerge from this?
+- Each unit (column) makes predictions about its own **next input** (the latent it will receive from surrounding nodes and the global broadcast at the next time step) — a local self-supervised objective on the incoming residual stream, not on its own output. Does useful computation emerge from this?
 - Predictive heads draw from all residual blocks, including raw inputs — not just the final layer.
 - Inputs are initially handled by adjacent columns; columns start as feedforward blocks and gain recurrence as the system scales.
 - Columns communicate through some combination of local graph edges and a global channel. The relative roles of these are not settled.

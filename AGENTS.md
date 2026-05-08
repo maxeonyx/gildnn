@@ -51,6 +51,7 @@ Read [VISION.md](VISION.md) for what we're exploring. Read [PROCESS.md](PROCESS.
 - **Backend:** open. JAX + XLA is preferred for compiled training loops, but PyTorch or other options are acceptable when they make an experiment or integration cleaner.
 - **Tensor readability:** prefer named-dimension / einops-style operations where practical (e.g. `einops.rearrange`, `einops.reduce` with named axes, or equivalent). This is a readability preference, not a mandatory dependency. Indexed dimension juggling should be the exception, not the default.
 - Dependencies managed via UV, local virtualenv.
+- **Unified architecture:** an off-the-shelf framework that provides abstractions over backbones, embeddings, data pipelines, and prediction heads is acceptable — probably one already exists. If used, it must be explained very well, not assumed. Max wants to understand what it's doing, not just use it as a black box.
 
 ---
 
@@ -87,6 +88,8 @@ Read [VISION.md](VISION.md) for what we're exploring. Read [PROCESS.md](PROCESS.
 **No large blobs.** Do not commit model weights or datasets. Do commit small output artifacts: example images, input/output samples, embedded in markdown.
 
 **No status.md.** Use `PLAN.md` for current state and transient `TASK-*.ignore.md` files for handover notes. Delete them when done.
+
+**Review after doing things.** After completing any significant task, pause and review it against the spirit of what was asked — not the literal instructions. Did the framing come out right? Are open things still open? Is anything stated with more certainty than it deserves?
 
 **Rewrite, don't append.** Every file has a job. When information becomes stale, remove it. Files should shrink over time as things become clear, not grow.
 
