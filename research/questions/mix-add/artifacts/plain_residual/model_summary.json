@@ -1,0 +1,15 @@
+{
+  "model_family": "tiny_transformer",
+  "host_surface": "tiny_transformer_baseline",
+  "residual_mode": "plain_residual",
+  "parameter_count": 9107,
+  "feedforward_reference_parameter_count": 9435,
+  "parameter_delta_vs_feedforward": -328,
+  "parameter_ratio_vs_feedforward": 0.965236,
+  "d_model": 24,
+  "feedforward_dim": 112,
+  "num_heads": 4,
+  "num_layers": 1,
+  "context_size": 5,
+  "vocab_size": 19
+}

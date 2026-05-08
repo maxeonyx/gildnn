@@ -1,0 +1,60 @@
+{
+  "host_surface": "tiny_transformer_baseline",
+  "residual_mode": "scalar_mix_add",
+  "overfit_surface": {
+    "block_0": {
+      "attention_residual": {
+        "input_branch_rms": 1.328253984451294,
+        "update_branch_rms": 1.636956810951233,
+        "combined_output_rms": 1.5214407444000244,
+        "branch_correlation": 0.03457440808415413,
+        "effective_gate": 0.48064154386520386,
+        "input_weight": 0.6932831406593323,
+        "update_weight": 0.7206652760505676,
+        "gate_saturation_frequency": 0.0,
+        "gate_saturation_low": 0.05,
+        "gate_saturation_high": 0.95
+      },
+      "feedforward_residual": {
+        "input_branch_rms": 1.5214407444000244,
+        "update_branch_rms": 1.9291714429855347,
+        "combined_output_rms": 1.8786777257919312,
+        "branch_correlation": 0.16869190335273743,
+        "effective_gate": 0.4884944260120392,
+        "input_weight": 0.6989237666130066,
+        "update_weight": 0.7151961922645569,
+        "gate_saturation_frequency": 0.0,
+        "gate_saturation_low": 0.05,
+        "gate_saturation_high": 0.95
+      }
+    }
+  },
+  "tiny_surface": {
+    "block_0": {
+      "attention_residual": {
+        "input_branch_rms": 1.2282209396362305,
+        "update_branch_rms": 1.5787639617919922,
+        "combined_output_rms": 1.373215913772583,
+        "branch_correlation": -0.09271959215402603,
+        "effective_gate": 0.4354681670665741,
+        "input_weight": 0.6599001288414001,
+        "update_weight": 0.7513533234596252,
+        "gate_saturation_frequency": 0.0,
+        "gate_saturation_low": 0.05,
+        "gate_saturation_high": 0.95
+      },
+      "feedforward_residual": {
+        "input_branch_rms": 1.373215913772583,
+        "update_branch_rms": 0.8789265155792236,
+        "combined_output_rms": 1.2020200490951538,
+        "branch_correlation": 0.12796355783939362,
+        "effective_gate": 0.4655552804470062,
+        "input_weight": 0.6823161244392395,
+        "update_weight": 0.7310572266578674,
+        "gate_saturation_frequency": 0.0,
+        "gate_saturation_low": 0.05,
+        "gate_saturation_high": 0.95
+      }
+    }
+  }
+}

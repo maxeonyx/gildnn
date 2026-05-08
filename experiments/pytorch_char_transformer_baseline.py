@@ -8,8 +8,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 import torch
-from torch import Tensor, nn
-from torch.nn import functional as F
+from torch import nn
 
 from core.fixed_window_char import (
     FixedWindowCharDataset as CharDataset,
@@ -19,6 +18,11 @@ from core.fixed_window_char import (
     set_seed,
     train_fixed_batch,
     train_tiny_dataset,
+)
+from core.tiny_char_transformer import (
+    PlainResidualCombine,
+    TinyTransformerCharModel,
+    count_parameters,
 )
 
 
@@ -39,90 +43,6 @@ class RunConfig:
     seed: int = 7
 
 
-class TransformerBlock(nn.Module):
-    def __init__(self, d_model: int, num_heads: int, feedforward_dim: int) -> None:
-        super().__init__()
-        self.attention_norm = nn.LayerNorm(d_model)
-        self.attention = nn.MultiheadAttention(
-            embed_dim=d_model,
-            num_heads=num_heads,
-            dropout=0.0,
-            batch_first=True,
-        )
-        self.feedforward_norm = nn.LayerNorm(d_model)
-        self.feedforward = nn.Sequential(
-            nn.Linear(d_model, feedforward_dim),
-            nn.ReLU(),
-            nn.Linear(feedforward_dim, d_model),
-        )
-
-    def forward(self, x: Tensor, *, causal_mask: Tensor) -> Tensor:
-        normalized = self.attention_norm(x)
-        attention_output, _ = self.attention(
-            normalized,
-            normalized,
-            normalized,
-            attn_mask=causal_mask,
-            need_weights=False,
-        )
-        x = x + attention_output
-        x = x + self.feedforward(self.feedforward_norm(x))
-        return x
-
-
-class TinyTransformerCharModel(nn.Module):
-    def __init__(
-        self,
-        *,
-        vocab_size: int,
-        context_size: int,
-        d_model: int,
-        num_heads: int,
-        num_layers: int,
-        feedforward_dim: int,
-    ) -> None:
-        super().__init__()
-        self.context_size = context_size
-        self.token_embedding = nn.Embedding(vocab_size, d_model)
-        self.position_embedding = nn.Embedding(context_size, d_model)
-        self.blocks = nn.ModuleList(
-            [
-                TransformerBlock(
-                    d_model=d_model,
-                    num_heads=num_heads,
-                    feedforward_dim=feedforward_dim,
-                )
-                for _ in range(num_layers)
-            ]
-        )
-        self.final_norm = nn.LayerNorm(d_model)
-        self.output = nn.Linear(d_model, vocab_size)
-
-    def forward(self, tokens: Tensor) -> Tensor:
-        sequence_length = tokens.shape[1]
-        if sequence_length != self.context_size:
-            raise ValueError(
-                f"Expected context length {self.context_size}, got {sequence_length}."
-            )
-
-        positions = torch.arange(sequence_length, device=tokens.device)
-        x = self.token_embedding(tokens) + self.position_embedding(positions).unsqueeze(
-            0
-        )
-        causal_mask = torch.triu(
-            torch.ones(
-                sequence_length, sequence_length, device=tokens.device, dtype=torch.bool
-            ),
-            diagonal=1,
-        )
-
-        for block in self.blocks:
-            x = block(x, causal_mask=causal_mask)
-
-        x = self.final_norm(x)
-        return self.output(x[:, -1, :])
-
-
 def current_git_sha() -> str:
     result = subprocess.run(
         ["git", "rev-parse", "HEAD"],
@@ -135,10 +55,6 @@ def current_git_sha() -> str:
 
 def write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-
-
-def count_parameters(model: nn.Module) -> int:
-    return sum(parameter.numel() for parameter in model.parameters())
 
 
 def feedforward_reference_parameter_count(vocab_size: int) -> int:
@@ -195,6 +111,7 @@ def main() -> None:
         num_heads=config.num_heads,
         num_layers=config.num_layers,
         feedforward_dim=config.feedforward_dim,
+        residual_factory=PlainResidualCombine,
     ).to(device)
     transformer_parameter_count = count_parameters(overfit_model)
     feedforward_parameter_count = feedforward_reference_parameter_count(
@@ -256,6 +173,7 @@ def main() -> None:
         num_heads=config.num_heads,
         num_layers=config.num_layers,
         feedforward_dim=config.feedforward_dim,
+        residual_factory=PlainResidualCombine,
     ).to(device)
     tiny_inputs = dataset.inputs.to(device)
     tiny_targets = dataset.targets.to(device)

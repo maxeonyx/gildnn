@@ -1,0 +1,10 @@
+{
+  "host_surface": "tiny_transformer_baseline",
+  "variant_under_test": "scalar_m_mix_add",
+  "primary_comparator": "plain_residual",
+  "bounded_task_surface": "tiny_fixed_window_character_next_token",
+  "branches": [
+    "plain_residual",
+    "scalar_mix_add"
+  ]
+}

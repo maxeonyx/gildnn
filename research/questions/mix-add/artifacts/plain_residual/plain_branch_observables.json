@@ -1,0 +1,36 @@
+{
+  "host_surface": "tiny_transformer_baseline",
+  "residual_mode": "plain_residual",
+  "overfit_surface": {
+    "block_0": {
+      "attention_residual": {
+        "input_branch_rms": 1.3292592763900757,
+        "update_branch_rms": 1.6690236330032349,
+        "combined_output_rms": 2.1826846599578857,
+        "branch_correlation": 0.047675490379333496
+      },
+      "feedforward_residual": {
+        "input_branch_rms": 2.1826846599578857,
+        "update_branch_rms": 2.247131109237671,
+        "combined_output_rms": 3.378807544708252,
+        "branch_correlation": 0.16337436437606812
+      }
+    }
+  },
+  "tiny_surface": {
+    "block_0": {
+      "attention_residual": {
+        "input_branch_rms": 1.2268954515457153,
+        "update_branch_rms": 1.622765064239502,
+        "combined_output_rms": 1.946786642074585,
+        "branch_correlation": -0.08756080269813538
+      },
+      "feedforward_residual": {
+        "input_branch_rms": 1.946786642074585,
+        "update_branch_rms": 1.1967990398406982,
+        "combined_output_rms": 2.3190948963165283,
+        "branch_correlation": 0.03345495089888573
+      }
+    }
+  }
+}

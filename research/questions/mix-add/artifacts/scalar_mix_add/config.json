@@ -1,0 +1,22 @@
+{
+  "context_size": 5,
+  "d_model": 24,
+  "feedforward_dim": 112,
+  "num_heads": 4,
+  "num_layers": 1,
+  "overfit_batch_size": 16,
+  "overfit_steps": 2000,
+  "overfit_learning_rate": 0.02,
+  "tiny_batch_size": 64,
+  "tiny_steps": 1500,
+  "tiny_learning_rate": 0.01,
+  "sample_length": 80,
+  "seed": 7,
+  "gate_saturation_low": 0.05,
+  "gate_saturation_high": 0.95,
+  "host_surface": "tiny_transformer_baseline",
+  "bounded_task_surface": "tiny_fixed_window_character_next_token",
+  "primary_comparator": "plain_residual",
+  "variant_under_test": "scalar_m_mix_add",
+  "residual_mode": "scalar_mix_add"
+}
