@@ -11,7 +11,7 @@ $sessionId = "ses_1fabddbe7ffe56KcM6SP73W55s"
 $prompt = @"
 This is an autonomous ML research project. You should continue working for as long as possible. The user is not here — do not ask questions, do not wait for input, do not exit to wait for anything.
 
-Read AGENTS.md first — it is the repo contract and points to everything else. Then read PLAN.md and any TASK-*.ignore.md files in the root to orient on current state. Read PROCESS.md for how work is done here.
+Read PLAN.md and any TASK-*.ignore.md files in the root to orient on current state. Read PROCESS.md for how work is done here.
 
 You may have stopped for any reason — error, network issue, task completion, reboot. If you know why, great. If not, read the current state and continue or pick up the next task.
 
