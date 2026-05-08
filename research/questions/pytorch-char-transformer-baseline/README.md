@@ -83,8 +83,8 @@ This repo now has an ordinary transformer baseline for the same tiny bounded tas
 
 ## Remaining open edge
 
-The tiny-data run landed at the same saved `final_accuracy` value of `0.9793282151222229` as the feedforward reference rather than `1.0`. That keeps the comparison narrow and tidy, but it also means this baseline should not be over-read as stronger than the bounded evidence actually supports.
+The tiny-data run landed at the same saved `final_accuracy` value of `0.9793282151222229` as the feedforward reference rather than `1.0`. See `../pytorch-char-reference-comparison/README.md` when asking what that shared value means across the three tiny references: on current evidence it is treated as a bounded fixed-window task-surface plateau, not as an unexplained architecture-specific effect. This folder still does not archive the final per-window prediction table.
 
 ## Next discriminating step
 
-See `../pytorch-char-reference-comparison/README.md` for what the three tiny references now jointly show. From here, decide whether the shared saved `final_accuracy` value deserves its own bounded follow-up, unless stronger controlled-comparison claims make harness tightening the sharper next step.
+See `../pytorch-char-reference-comparison/README.md` for what the three tiny references now jointly show. No separate `final_accuracy` follow-up starts from this folder on current evidence; tighten the harness only if a later bounded question genuinely needs stronger controlled-comparison claims.

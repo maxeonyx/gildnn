@@ -22,9 +22,9 @@ These are still bounded proofs, not project-wide decisions. The backend/framewor
 
 ## Immediate priorities
 
-1. **Decide whether the shared saved `final_accuracy` value deserves its own bounded follow-up** — the three references all end with the same saved `0.9793282151222229`, but this comparison does not explain why.
-2. **Experiment harness** — logging, checkpointing, config locking, reproducibility. Tighten this only if the next bounded question genuinely needs stronger controlled-comparison claims.
-3. **Backend/runtime follow-up only if it becomes the sharper uncertainty reducer** — the captured NumPy warning is now a documented loose edge, but not yet automatically the next task.
+1. **Experiment harness** — logging, checkpointing, config locking, reproducibility. Tighten this only if the next bounded question genuinely needs stronger controlled-comparison claims.
+2. **Backend/runtime follow-up only if it becomes the sharper uncertainty reducer** — the captured NumPy warning is now a documented loose edge, but not yet automatically the next task.
+3. **Keep the tiny-reference interpretation narrow** — the shared saved `final_accuracy` across the three tiny references no longer needs its own bounded follow-up on current evidence. The comparison write-up now treats it as a bounded fixed-window task-surface plateau on the shared tiny corpus, not as evidence of model-family equivalence. The exact final mistake locations are still not directly archived.
 
 ## After the first runnable stack exists
 

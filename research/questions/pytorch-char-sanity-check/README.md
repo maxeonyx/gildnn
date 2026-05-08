@@ -60,8 +60,8 @@ This repo now has a minimal end-to-end PyTorch character sanity check for this b
 
 ## Remaining open edge
 
-The tiny-data run ended with a saved `final_accuracy` of `0.9793282151222229` rather than `1.0`. That is enough for this bounded unit because the contract only required end-to-end completion plus inspectable outputs after the separate one-batch overfit proof, but it is still a real loose end if this script is kept as a long-lived reference.
+The tiny-data run ended with a saved `final_accuracy` of `0.9793282151222229` rather than `1.0`. See `../pytorch-char-reference-comparison/README.md` when asking what that shared value means across the three tiny references: on current evidence it is treated as a bounded fixed-window task-surface plateau, not as an unexplained model-specific failure. This folder still does not archive the final per-window prediction table.
 
 ## Next discriminating step
 
-See `../pytorch-char-reference-comparison/README.md` for what the three tiny references now jointly show. From here, decide whether the shared saved `final_accuracy` value deserves its own bounded follow-up, unless stronger controlled-comparison claims make harness tightening the sharper next step.
+See `../pytorch-char-reference-comparison/README.md` for what the three tiny references now jointly show. No separate `final_accuracy` follow-up starts from this folder on current evidence; tighten the harness only if a later bounded question genuinely needs stronger controlled-comparison claims.

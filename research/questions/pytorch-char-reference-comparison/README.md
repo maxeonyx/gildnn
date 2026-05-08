@@ -73,10 +73,10 @@ This repo now has a narrow three-way reference comparison on one tiny fixed-wind
 
 ## Remaining open edges
 
-- The same saved `final_accuracy` value appears in all three tiny-run metric files, but this unit does not explain why.
-- The metric artifacts do not declare the evaluation scope of `final_accuracy`, so this comparison keeps that value as a saved field rather than a stronger metric claim.
+- The same saved `final_accuracy` value appears in all three tiny-run metric files, and current evidence supports a bounded task-surface explanation for that shared plateau: all three scripts compute that field on the same fixed-window next-token surface over the same saved `window_count = 387`, and the shared tiny corpus has one ambiguous 5-character context, `mall `, split evenly between next-token targets `n` and `t` (`8` each). On this surface, that makes an eight-error plateau a strong interpretation rather than an unexplained architecture result.
+- The exact final mistake locations are still not directly archived in the repo. This interpretation is grounded in the shared metric definition, shared denominator, and shared corpus structure, but not in a saved final per-window prediction table.
 - The local NumPy warning captured in the RNN question folder is real but still only captured, not investigated.
 
 ## Next discriminating step
 
-Decide whether the shared saved `final_accuracy` value should become its own bounded follow-up. If stronger controlled-comparison claims are needed instead, tighten the harness first rather than over-reading this comparison.
+No separate `final_accuracy` follow-up is needed on current evidence. Reopen that question only if a future rerun under the same setup materially breaks this interpretation, or if a later comparison genuinely needs the final per-window predictions saved. If stronger controlled-comparison claims are needed instead, tighten the harness first rather than over-reading this comparison.

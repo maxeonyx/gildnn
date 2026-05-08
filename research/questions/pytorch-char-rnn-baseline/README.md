@@ -125,9 +125,9 @@ This repo now has an ordinary RNN baseline for the same tiny bounded task as the
 ## Remaining open edges
 
 - This is not a matched-capacity bake-off: the RNN has materially fewer parameters than the feedforward and transformer references.
-- The tiny-data run landed at the same saved `final_accuracy` value of `0.9793282151222229` as the other two references rather than `1.0`.
+- The tiny-data run landed at the same saved `final_accuracy` value of `0.9793282151222229` as the other two references rather than `1.0`. See `../pytorch-char-reference-comparison/README.md` when asking what that shared value means across the three tiny references: on current evidence it is treated as a bounded fixed-window task-surface plateau, not as an unexplained RNN-specific issue. This folder still does not archive the final per-window prediction table.
 - The verification capture shows a real local NumPy warning on this path, but this bounded unit did not investigate whether that matters beyond these successful runs.
 
 ## Next discriminating step
 
-See `../pytorch-char-reference-comparison/README.md` for what the three tiny references now jointly show. From here, decide whether the shared saved `final_accuracy` value deserves its own bounded follow-up, unless stronger controlled-comparison claims make harness tightening the sharper next step.
+See `../pytorch-char-reference-comparison/README.md` for what the three tiny references now jointly show. No separate `final_accuracy` follow-up starts from this folder on current evidence; tighten the harness only if a later bounded question genuinely needs stronger controlled-comparison claims.
