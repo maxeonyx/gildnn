@@ -22,9 +22,9 @@ These are still bounded proofs, not project-wide decisions. The backend/framewor
 
 ## Immediate priorities
 
-1. **Experiment harness** — logging, checkpointing, config locking, reproducibility. Tighten this only if the next bounded question genuinely needs stronger controlled-comparison claims.
-2. **Backend/runtime follow-up only if it becomes the sharper uncertainty reducer** — the captured NumPy warning is now a documented loose edge, but not yet automatically the next task.
-3. **Keep the tiny-reference interpretation narrow** — the shared saved `final_accuracy` across the three tiny references no longer needs its own bounded follow-up on current evidence. The comparison write-up now treats it as a bounded fixed-window task-surface plateau on the shared tiny corpus, not as evidence of model-family equivalence. The exact final mistake locations are still not directly archived.
+1. **Minimal `core/` integration slice for the tiny fixed-window PyTorch references** — the feedforward, transformer, and RNN references are now proven and compared narrowly enough that the next step is to move their shared bounded task surface into `core/`. Keep this narrow: integrate the shared tiny fixed-window path, keep experiment-specific entrypoints thin, and do not broaden into a general harness rewrite, backend decision, or new experiment.
+2. **Experiment harness only when a later bounded question genuinely needs it** — logging, checkpointing, config locking, and stronger reproducibility work should follow only if the next real question needs stronger controlled-comparison claims than the current bounded stack supports.
+3. **Backend/runtime follow-up only if it becomes the sharper uncertainty reducer** — the captured NumPy warning is still a documented loose edge, but not yet automatically the next task.
 
 ## After the first runnable stack exists
 

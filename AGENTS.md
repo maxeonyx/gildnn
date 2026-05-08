@@ -81,7 +81,7 @@ Read [VISION.md](VISION.md) for what we're exploring. Read [PROCESS.md](PROCESS.
 | `dictations/` | Raw unedited capture of Max's words | Recovering original intent |
 | `core/` | Integrated, clean, tested Python code | Writing or reading production code |
 | `base-experiments/` | Foundational reference experiments | Understanding baseline results |
-| `experiments/` | Experimental code — not yet integrated | Running or reviewing an experiment |
+| `experiments/` | Experimental code — not yet integrated; run entrypoints from repo root via `python -m experiments.<name>` | Running or reviewing an experiment |
 | `rust-archive/` | Prior Rust implementation — reference only, not active | Historical reference |
 | `runs/` | Training run logs and lock file | Checking on active/recent runs |
 

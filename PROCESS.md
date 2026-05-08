@@ -21,7 +21,7 @@ A suggested pattern (PowerShell):
 New-Item -Force runs/ | Out-Null
 "my-run-name $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Set-Content runs/active.lock
 
-Start-Process python -ArgumentList "experiments/foo/train.py" -RedirectStandardOutput "runs/foo.log" -NoNewWindow
+Start-Process python -ArgumentList "-m","experiments.foo.train" -RedirectStandardOutput "runs/foo.log" -NoNewWindow
 
 # After completing (in the training script or manually):
 Remove-Item runs/active.lock
@@ -124,6 +124,8 @@ experiments/      # experimental code — not yet integrated or proven
 ```
 
 New code starts in `experiments/`. Once it works and is understood, it gets refactored into `core/` and the experiment version is either removed or kept as a thin wrapper that uses `core/`.
+
+Supported execution contract for experiment entrypoints: run from the repo root via `python -m experiments.<name>`. Do not rely on direct file-path execution for integrated experiment wrappers.
 
 When two experiments share logic, that logic moves to `core/` immediately.
 

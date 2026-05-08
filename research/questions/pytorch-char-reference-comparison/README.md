@@ -11,6 +11,8 @@ What can this repo honestly say when comparing the feedforward sanity check, ord
 - RNN reference: [`../pytorch-char-rnn-baseline/README.md`](../pytorch-char-rnn-baseline/README.md)
 - Backend proof reused by all three: [`../backend-validation/README.md`](../backend-validation/README.md)
 
+For post-integration reruns of these three entrypoints, run from repo root via `python -m experiments.<name>`.
+
 ## Key observed evidence
 
 All three references cleared the one-batch overfit bar: [`feedforward`](../pytorch-char-sanity-check/artifacts/overfit_metrics.json), [`transformer`](../pytorch-char-transformer-baseline/artifacts/overfit_metrics.json), [`rnn`](../pytorch-char-rnn-baseline/artifacts/overfit_metrics.json).
@@ -49,9 +51,7 @@ The comparison stays narrow because changed variables remain visible rather than
   "feedforward_overfit_learning_rate": 0.05,
   "transformer_overfit_learning_rate": 0.02,
   "rnn_overfit_learning_rate": 0.05,
-  "feedforward_git_sha": "b744cfe...",
-  "transformer_git_sha": "892a8aa...",
-  "rnn_git_sha": "7479cb5...",
+  "post_integration_git_sha": "9c40d58...",
   "feedforward_reference_parameter_count": 9435,
   "transformer_parameter_count": 9107,
   "rnn_parameter_count": 7451,
@@ -62,6 +62,8 @@ The comparison stays narrow because changed variables remain visible rather than
 ## What this shows
 
 This repo now has a narrow three-way reference comparison on one tiny fixed-window task. Across the saved artifacts, the three references share the same raw text, core task-surface fields, sample prompts, and recorded local PyTorch CUDA environment surface; all three clear the one-batch overfit bar, end with the same saved `final_accuracy` value, and save the same short prompt continuations.
+
+The comparison was rerun after the minimal `core/` integration slice using the supported module-entrypoint contract from repo root (`python -m experiments.<name>`). Those reruns preserved the same bounded evidence surface, but they were captured from a dirty pre-commit working tree rather than an exact committed clean tree, so they are useful as behavior-preservation checks rather than final clean-state provenance.
 
 ## What this does not show
 
