@@ -1,14 +1,16 @@
 # gildnn
 
-A personal research project exploring recurrent transformer architectures with unsynchronized cortical columns, dynamic computation depth, and arbitrary-order generation.
+Personal Python ML research exploring cortical-column-like recurrent transformers, dynamic computation depth, and arbitrary-order image-patch modelling. Whether these ideas are good is what the project is trying to find out.
 
-This is hobbyist discovery work — not academic, not for publication. The goal is to find out what these ideas actually do.
+Hobbyist discovery work — not academic, not for publication.
+
+`dictations/` is the authoritative record of project intent. All other docs are derived working documents.
 
 ## Where to start
 
-- [VISION.md](VISION.md) — what we're exploring and why
+- [VISION.md](VISION.md) — research goals and open questions
+- [PLAN.md](PLAN.md) — what's next right now
 - [PROCESS.md](PROCESS.md) — how the work is done
-- [PLAN.md](PLAN.md) — what's next
 - [AGENTS.md](AGENTS.md) — repo contract for autonomous agents
-- [research/](research/) — experiment outputs, daily/weekly narratives, open question write-ups
-- [dictations/](dictations/) — raw capture of Max's words, unedited
+- [research/](research/) — experiment outputs, narratives, open question write-ups
+- [dictations/](dictations/) — raw unedited capture of Max's words (authoritative)

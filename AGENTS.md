@@ -16,11 +16,33 @@ Periodically — especially after completing a significant task or before starti
 
 ---
 
+## Relevant OpenCode skills
+
+Load these before doing the relevant work:
+
+| Task | Skill to load |
+|---|---|
+| Writing or modifying any checked-in docs/markdown | `information-architecture` |
+| Before implementing or fixing anything | `verifying-work` |
+| Before writing code that will be committed | `code-principles` |
+| Before writing error-handling code | `error-handling` |
+
+---
+
 ## What this project is
 
 Personal hobbyist ML research. **Not academic. Not for publication.** The goal is discovery — finding out what ideas actually do when you run them. Redoing work others have done is fine. Rigor matters; novelty does not.
 
 Read [VISION.md](VISION.md) for what we're exploring. Read [PROCESS.md](PROCESS.md) for how.
+
+## Technical preferences
+
+- **Language:** Python.
+- **Backend:** open. JAX + XLA is preferred for compiled training loops, but PyTorch or other options are acceptable when they make an experiment or integration cleaner.
+- **Tensor readability:** prefer named-dimension / einops-style operations where practical (e.g. `einops.rearrange`, `einops.reduce` with named axes, or equivalent). This is a readability preference, not a mandatory dependency. Indexed dimension juggling should be the exception, not the default.
+- Dependencies managed via UV, local virtualenv.
+
+---
 
 ## File map
 
@@ -55,15 +77,16 @@ Read [VISION.md](VISION.md) for what we're exploring. Read [PROCESS.md](PROCESS.
 ## Handover protocol
 
 When picking up after a handover:
-1. Read `PLAN.md` — find current task and next steps
+1. Read `PLAN.md` — current task and next steps
 2. Check for `TASK-*.ignore.md` in root — read any that exist
-3. Read `VISION.md` briefly to reorient
-4. Do not read all of `research/` unless specifically investigating something
+3. Read `VISION.md` briefly if the direction is unclear
 
 When handing over:
 1. Update `PLAN.md` with current state and clear next step
 2. Write `TASK-current.ignore.md` with any mid-task context that doesn't belong in PLAN
 3. Commit everything
+
+See `PROCESS.md` for harness behavior, experiment workflow, and reporting standards.
 
 ## Report quality
 

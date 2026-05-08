@@ -104,9 +104,23 @@ When two experiments share logic, that logic moves to `core/` immediately.
 
 If an architectural variant produced results (positive or negative), it stays in the codebase as a selectable option. The codebase should be generic enough to support comparison between options. Dead ends that produced nothing informative can be removed.
 
-### Dependencies
+### Dependencies and backend
+
+**Language:** Python. **Backend:** open — JAX + XLA is preferred for compiled training loops, but PyTorch or other libraries are acceptable when they make an experiment or integration cleaner.
 
 UV for Python dependency management, local virtualenv. System dependencies (CUDA version, drivers, etc.) should be pinned and documented in `AGENTS.md` or a setup doc as soon as they're confirmed working.
+
+### Tensor readability
+
+Prefer named-dimension / einops-style tensor operations where practical (e.g. `einops.rearrange`, `einops.reduce` with named axes, or equivalent in whatever library is in use). Indexed dimension juggling should be the exception. This is a readability preference; exact library is open.
+
+### OpenCode skills
+
+Load before the relevant work:
+- `verifying-work` — before implementing or fixing anything
+- `code-principles` — before writing committed code
+- `error-handling` — before writing error-handling code
+- `information-architecture` — before modifying checked-in docs
 
 ---
 
@@ -181,4 +195,6 @@ No free-floating assertions. If a claim can't be backed by something real, eithe
 
 Files must not grow unbounded. Each file has a job. Rewrite sections when information changes — don't append. Remove stale content. A clean repo is faster to navigate than a comprehensive one.
 
-When something doesn't work and you figure out why: create a question folder in `research/questions/`, document it, add a cheap regression test, integrate the fix into `src/`. Don't just move on.
+When something doesn't work and you figure out why: create a question folder in `research/questions/`, document it, add a cheap regression test, integrate the fix into `core/`. Don't just move on.
+
+Question-specific findings and evidence belong in `research/questions/`, not in general process docs. Keep this file about *how* to work, not *what* was found.

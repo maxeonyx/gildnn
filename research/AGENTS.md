@@ -8,6 +8,8 @@ Distilled verified discovery — not reports, not logs. Everything in here that 
 - `weekly/YYYY-MM-DD.md` — weekly synthesis produced at 4pm on Thursdays. Significant findings, evidence, honest assessment.
 - `questions/` — one folder per open question or investigation thread.
 
+This directory is curated, Max-readable output. Transient notes, debug logs, and scratch work do not belong here. Detailed investigation records belong in `questions/<name>/README.md`; daily/weekly narratives should synthesize and point to evidence, not restate the full investigation.
+
 ## Quality standard
 
 Everything in here that Max reads must meet distill.pub standard. See [PROCESS.md](../PROCESS.md#reporting) for the full requirement.

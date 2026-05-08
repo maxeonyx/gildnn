@@ -25,33 +25,10 @@ Project is being set up from scratch. No working code yet.
 - Dynamic depth experiment on standard transformer (Thread 2 — independent of cortical columns)
 - First cortical column prototype — start with synchronous, fixed graph, no async. This is tentative; design depends on resolving open questions first.
 
-## Open questions driving experiments
+## Open questions driving current work
 
-See `research/questions/` for each question's dedicated folder.
+See `research/questions/` for all open question folders. Currently none are actively being investigated (no code yet).
 
-Active questions:
-- What is a column's residual stream?
-- What is the global communication channel? (broadcast router vs all-to-all)
-- What exactly is unhooked from gradients?
-- What triggers a column update? (surprisal semantics)
-- What is the I/O contract for the architecture?
-- What does bidirectional propagation look like?
-- Does the graph structure matter, or does the global channel dominate?
-- How does Mix-Add behave under real conditions?
-- Does dynamic depth work on a standard model before combining with columns?
+## Deferred
 
-## Deferred / stretch
-
-- Bidirectional propagation (open question, not yet designed)
-- True async execution (may not be feasible on GPU — explore semi-async approximation first)
-- Structured prompt-space text dataset
-- Image-text unified model
-- Combining Thread 1 (cortical columns) and Thread 2 (dynamic depth)
-- Noise gate / modularity loss (side quest)
-
-## Standing priorities (always in effect)
-
-- Integrate finished experimental code before starting new experiments
-- Keep `core/` small and clean
-- If `research/` output can't be backed by a real artifact, run the experiment first
-- When something breaks and gets fixed, turn it into a question folder with a regression test
+Longer-horizon ideas live in `VISION.md`. Nothing deferred yet that affects the next few handovers.

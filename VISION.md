@@ -75,15 +75,9 @@ Note: arbitrary-order text (applying the arbitrary-order patch idea to text toke
 
 ## The Mix-Add operation
 
-From [modularity-loss](https://github.com/maxeonyx/modularity-loss):
+A candidate residual update operation from [modularity-loss](https://github.com/maxeonyx/modularity-loss). It aims to be approximately norm-preserving when combining two branch vectors. Max has found it stabilises training in practice, but whether the norm-preservation holds under real conditions is an open question. Worth comparing against plain residual + RMSNorm.
 
-```
-mix(a, b, m) = a * sqrt(σ(m)) + b * sqrt(1 - σ(m))
-```
-
-where σ is sigmoid and m is a learnable scalar (or per-channel). Intended to be norm-preserving when a and b are similarly-scaled and roughly uncorrelated. In practice (with normally-distributed embeddings) it produces stable training. With raw data inputs it behaves less predictably. *Whether it actually preserves norms under real conditions is an open question* — correlation between branches, gate saturation, and feature covariance all affect it.
-
-Use as the residual update operation is one option. Worth comparing against plain residual + RMSNorm. The noise gate extension (see modularity-loss repo) is a side quest — interesting but not core.
+See `research/questions/mix-add/` for the full formula, caveats, and open sub-questions.
 
 ## What good outcomes look like
 
@@ -101,3 +95,10 @@ Not "achieved state of the art." Good outcomes here are:
 - Beating benchmarks
 - A large codebase
 - Architectural decisions made by intuition and never tested
+
+## A note on the research object
+
+The most interesting part of the Thread 1 vision is probably not "graph transformer with columns" by itself. It's the combination of persistent modular state, local predictive learning, event-driven updates, and limited inter-module communication — and whether useful distributed computation and emergent communication protocols can arise from that setup.
+
+A risk worth staying alert to: unrestricted all-to-all attention between columns may bypass the interesting parts entirely. If every column can cheaply read every other's state, the graph becomes decorative and async execution becomes meaningless. Communication channels probably need a bottleneck — or sharply different roles — to preserve the locality the architecture is trying to explore. See `research/questions/broadcast-router/` and `research/questions/graph-vs-global-channel/`.
+

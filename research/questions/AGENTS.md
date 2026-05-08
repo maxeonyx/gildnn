@@ -18,20 +18,15 @@ If an experiment raises a new question that isn't in an existing folder — crea
 
 Each question folder should contain at minimum:
 
-- `README.md` — what the question is, current state of knowledge, open sub-questions
+- `README.md` — what the question is, current best understanding, open sub-questions, and what the next discriminating experiment would be
 - Any relevant experiment configs, output artifacts, or inline result images
 
-When a question is closed: update `README.md` to state the conclusion clearly, with evidence linked.
+Each folder should contain only **that question's** material. Do not restate general project vision or process; those live in the root docs. Keep question folders lean.
 
-## Current questions
+Unresolved conclusions must stay explicitly unresolved until backed by real artifacts. Do not state a question as closed without evidence.
 
-- `mix-add/` — does Mix-Add actually preserve norms? when does it help vs hurt?
-- `broadcast-router/` — what should the global communication channel look like?
-- `async-execution/` — how real can async column updates be on GPU?
-- `gradient-unhooked/` — what should and shouldn't be unhooked? what does unhooking do?
-- `dynamic-depth/` — does adaptive computation depth work on a standard model?
-- `column-residual-stream/` — what is the right definition of a column's internal state?
-- `update-trigger/` — what triggers a column update? surprisal semantics?
-- `io-contract/` — what is the I/O contract for the architecture?
-- `bidirectional-propagation/` — what does bidirectional propagation look like?
-- `graph-vs-global-channel/` — does the graph matter or does the global channel dominate?
+When a question is closed: update `README.md` to state the conclusion clearly, with evidence linked and embedded inline.
+
+## Docs reminder
+
+Load the `information-architecture` OpenCode skill before restructuring or reorganising question write-ups.
