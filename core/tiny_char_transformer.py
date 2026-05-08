@@ -162,9 +162,15 @@ class TinyTransformerCharModel(nn.Module):
         num_layers: int,
         feedforward_dim: int,
         residual_factory: Callable[[], nn.Module],
+        within_token_reuse_depth: int = 1,
     ) -> None:
         super().__init__()
+        if within_token_reuse_depth < 1:
+            raise ValueError(
+                "within_token_reuse_depth must be at least 1 for TinyTransformerCharModel."
+            )
         self.context_size = context_size
+        self.within_token_reuse_depth = within_token_reuse_depth
         self.token_embedding = nn.Embedding(vocab_size, d_model)
         self.position_embedding = nn.Embedding(context_size, d_model)
         self.blocks = nn.ModuleList(
@@ -181,31 +187,44 @@ class TinyTransformerCharModel(nn.Module):
         self.final_norm = nn.LayerNorm(d_model)
         self.output = nn.Linear(d_model, vocab_size)
 
-    def forward(self, tokens: Tensor) -> Tensor:
-        sequence_length = tokens.shape[1]
-        if sequence_length != self.context_size:
-            raise ValueError(
-                f"Expected context length {self.context_size}, got {sequence_length}."
-            )
-
-        positions = torch.arange(sequence_length, device=tokens.device)
-        x = self.token_embedding(tokens) + self.position_embedding(positions).unsqueeze(
-            0
-        )
-        causal_mask = torch.triu(
+    def _causal_mask(self, *, sequence_length: int, device: torch.device) -> Tensor:
+        return torch.triu(
             torch.ones(
                 sequence_length,
                 sequence_length,
-                device=tokens.device,
+                device=device,
                 dtype=torch.bool,
             ),
             diagonal=1,
         )
 
-        for block in self.blocks:
-            x = block(x, causal_mask=causal_mask)
+    def _embedded_tokens(self, tokens: Tensor) -> Tensor:
+        sequence_length = tokens.shape[1]
+        if sequence_length != self.context_size:
+            raise ValueError(
+                f"Expected context length {self.context_size}, got {sequence_length}."
+            )
+        positions = torch.arange(sequence_length, device=tokens.device)
+        return self.token_embedding(tokens) + self.position_embedding(
+            positions
+        ).unsqueeze(0)
 
-        x = self.final_norm(x)
+    def hidden_states(self, tokens: Tensor) -> Tensor:
+        sequence_length = tokens.shape[1]
+        x = self._embedded_tokens(tokens)
+        causal_mask = self._causal_mask(
+            sequence_length=sequence_length,
+            device=tokens.device,
+        )
+
+        for _ in range(self.within_token_reuse_depth):
+            for block in self.blocks:
+                x = block(x, causal_mask=causal_mask)
+
+        return self.final_norm(x)
+
+    def forward(self, tokens: Tensor) -> Tensor:
+        x = self.hidden_states(tokens)
         return self.output(x[:, -1, :])
 
     def residual_observations(self) -> dict[str, dict[str, dict[str, float]]]:
