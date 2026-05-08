@@ -22,7 +22,7 @@ Priority order:
 5. Continue existing experiments
 6. Start new experiments
 
-If a training run is active in the background: do not wait for it. Continue other work (cleanup, reports, integration). Do not start a second training run while one is active.
+If a training run is active in the background (runs/active.lock exists): do not wait for it. Continue other work (cleanup, reports, integration). Do not start a second training run while one is active.
 
 Work in small verified steps. Record what you find as you go so the eventual write-up is easy.
 "@

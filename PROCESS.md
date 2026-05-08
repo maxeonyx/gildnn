@@ -1,6 +1,6 @@
 # Process
 
-How work gets done in this project. Covers the autonomous harness, experiment discipline, code standards, literature practice, and reporting.
+How work gets done in this project. Covers the autonomous loop, experiment discipline, code standards, literature practice, and reporting.
 
 ---
 
@@ -13,11 +13,21 @@ If a training run will take longer than ~5–10 minutes, run it in the backgroun
 - Check run progress by tailing the log file. Do not poll in a tight loop.
 - When a run completes: read the output, update the relevant question folder, update PLAN.md.
 
+**Run lock convention:** when starting a background run, write a file `runs/active.lock` containing the run name and start time. Delete it when the run completes or fails. Check for this file to know whether a run is active.
+
 A suggested pattern (PowerShell):
 ```powershell
+# Before starting:
+New-Item -Force runs/ | Out-Null
+"my-run-name $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Set-Content runs/active.lock
+
 Start-Process python -ArgumentList "experiments/foo/train.py" -RedirectStandardOutput "runs/foo.log" -NoNewWindow
-# then continue working; periodically: Get-Content runs/foo.log -Tail 20
+
+# After completing (in the training script or manually):
+Remove-Item runs/active.lock
 ```
+
+To check if a run is active: `Test-Path runs/active.lock`
 
 ---
 
@@ -36,7 +46,7 @@ The project runs as an outer loop: `loop.ps1` relaunches OpenCode if it ever exi
 
 1. Clean up anything that's broken or half-finished
 2. Make the codebase smaller — delete, simplify, consolidate
-3. Refactor the process (PROCESS.md, AGENTS.md, harness)
+3. Refactor the process (PROCESS.md, AGENTS.md, loop.ps1)
 4. Refactor the repo — integrate experimental code into core
 5. Continue existing experiments
 6. Start new experiments

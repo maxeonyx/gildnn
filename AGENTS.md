@@ -49,22 +49,24 @@ Read [VISION.md](VISION.md) for what we're exploring. Read [PROCESS.md](PROCESS.
 | File/Dir | Purpose | Read when |
 |---|---|---|
 | `VISION.md` | Motivating ideas, open questions, research threads | Starting fresh, orienting on goals |
-| `PROCESS.md` | How work is done — experiment discipline, harness, reporting | Deciding how to proceed |
+| `PROCESS.md` | How work is done — experiment discipline, loop, reporting | Deciding how to proceed |
 | `PLAN.md` | Prioritized next work — rewritten not appended | Picking up after a handover |
 | `loop.ps1` | Outer restart loop — relaunches OpenCode on exit, reuses session ID | Understanding how the loop works |
 | `research/daily/` | Daily output narratives for Max | Reviewing recent progress |
 | `research/weekly/` | Weekly synthesis narratives for Max | Weekly review |
 | `research/questions/` | Per-question investigation folders | Investigating a specific open question |
 | `dictations/` | Raw unedited capture of Max's words | Recovering original intent |
-| `core/` | Integrated, clean, tested code | Writing or reading production code |
+| `core/` | Integrated, clean, tested Python code | Writing or reading production code |
 | `base-experiments/` | Foundational reference experiments | Understanding baseline results |
 | `experiments/` | Experimental code — not yet integrated | Running or reviewing an experiment |
+| `rust-archive/` | Prior Rust implementation — reference only, not active | Historical reference |
+| `runs/` | Training run logs and lock file | Checking on active/recent runs |
 
 ## Core rules
 
 **Check the time on every session start.** If it's after 4pm and no daily report exists for today in `research/daily/`, write it before starting new work. If it's after 4pm Thursday and no weekly report exists for this week in `research/weekly/`, write that too. See `research/AGENTS.md` for the report process.
 
-**Improve the process before delivering results.** If the last session felt wrong — docs were misleading, something was hard to find, the process was awkward — fix it first (update `AGENTS.md`, `PROCESS.md`, `harness.ps1`). Then deliver the result.
+**Improve the process before delivering results.** If the last session felt wrong — docs were misleading, something was hard to find, the process was awkward — fix it first (update `AGENTS.md`, `PROCESS.md`, `loop.ps1`). Then deliver the result.
 
 **Deliver readable outputs before declaring done.** Before calling any experiment complete, produce a clean self-contained narrative with inline artifacts. Max reads these, not the code. See `research/AGENTS.md`.
 
@@ -96,7 +98,7 @@ When handing over:
 3. Commit everything
 4. **Include a time-check reminder** in any handoff note — tell the incoming agent to check whether a report is due
 
-See `PROCESS.md` for harness behavior, experiment workflow, and reporting standards.
+See `PROCESS.md` for loop behavior, experiment workflow, and reporting standards.
 
 ## Report quality
 
