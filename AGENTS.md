@@ -37,7 +37,7 @@ Read [VISION.md](VISION.md) for what we're exploring. Read [PROCESS.md](PROCESS.
 
 ## Technical preferences
 
-- **Language:** Python.
+- **Language:** Python for ML experimentation. Max has a personal preference for Rust but recognises it's probably not the right choice here.
 - **Backend:** open. JAX + XLA is preferred for compiled training loops, but PyTorch or other options are acceptable when they make an experiment or integration cleaner.
 - **Tensor readability:** prefer named-dimension / einops-style operations where practical (e.g. `einops.rearrange`, `einops.reduce` with named axes, or equivalent). This is a readability preference, not a mandatory dependency. Indexed dimension juggling should be the exception, not the default.
 - Dependencies managed via UV, local virtualenv.
