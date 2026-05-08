@@ -65,6 +65,28 @@ The project runs as an outer loop: `loop.ps1` relaunches OpenCode if it ever exi
 
 ## Experiment discipline
 
+### Bounded-unit protocol
+
+Before coding a new bounded unit, freeze these explicitly in writing:
+
+1. **Host surface** — one existing model surface only
+2. **Task surface** — one task only
+3. **Comparator** — one interpretable reference
+4. **Artifact class** — what saved outputs will answer the question
+5. **Non-goals** — what this unit is not trying to settle
+
+If those are not frozen, the unit is not ready for implementation.
+
+For bounded units, treat **artifact completeness** as part of verification. A run that "worked" but did not save the artifacts needed to answer the question is not complete.
+
+For bounded units, **ambiguity is a valid result**. Do not widen the unit just because the first honest result is ambiguous.
+
+Before writing durable conclusions for a bounded unit, explicitly separate:
+
+- **Supported claims** — directly backed by saved artifacts
+- **Unsupported temptations** — stronger interpretations to reject
+- **Next discriminating step** — only if it is narrower than reopening the whole design space
+
 ### The ladder (non-negotiable)
 
 Every experiment climbs this ladder before scaling:
