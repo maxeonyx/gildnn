@@ -1,0 +1,11 @@
+{
+  "git_sha": "892a8aa3a84fed7f5c92a5338bd67d4e6c450e45",
+  "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+  "torch_version": "2.11.0+cu128",
+  "device": "cuda",
+  "cuda_is_available": true,
+  "cuda_device_name": "NVIDIA GeForce RTX 3090",
+  "text_characters": 392,
+  "vocab_size": 19,
+  "window_count": 387
+}

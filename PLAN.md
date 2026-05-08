@@ -14,17 +14,18 @@ One minimal local backend path is verified on this machine: UV + local `.venv` +
 
 The first bounded experiment rung is also now proven on that path: a tiny PyTorch character-level next-token pipeline can overfit one batch, run end to end on tiny data, and produce inspectable saved outputs. See `research/questions/pytorch-char-sanity-check/`.
 
-These are still bounded proofs, not project-wide decisions. The backend/framework choice remains open. No baselines exist yet, and the experiment harness is still only whatever this tiny path genuinely needed.
+An ordinary transformer baseline on the same tiny task is now also proven on that same path, with the task framing held fixed enough that the main changed variable is model family. See `research/questions/pytorch-char-transformer-baseline/`.
+
+These are still bounded proofs, not project-wide decisions. The backend/framework choice remains open. The first ordinary transformer baseline now exists, but no RNN baseline exists yet, and the experiment harness is still only whatever these tiny bounded paths genuinely needed.
 
 ---
 
 ## Immediate priorities
 
-1. **Cleanly checkpoint the first sanity-check result** — keep the claim narrow, preserve the evidence, and avoid accidentally turning this tiny PyTorch path into a backend choice.
-2. **Ordinary transformer baseline** — standard attention + FFN, same task. Reference point for all comparisons.
-3. **Ordinary RNN baseline (or something like it)** — simplest stateful baseline on the same task.
-4. **Experiment harness** — logging, checkpointing, config locking, reproducibility. Tighten this once the first runnable stack exists beyond the current tiny bounded path.
-5. **Another backend probe only if it becomes the sharper uncertainty reducer** — keep backend choice open, but do not branch into it unless it is more discriminating than the next baseline step.
+1. **Ordinary RNN baseline (or something like it)** — simplest stateful baseline on the same tiny character-level next-token task, so the repo has the first three model-family reference points on one bounded problem.
+2. **Compare the tiny bounded references honestly** — feedforward sanity check, ordinary transformer baseline, and then the RNN baseline once it exists. Keep claims narrow and artifact-backed.
+3. **Experiment harness** — logging, checkpointing, config locking, reproducibility. Tighten this once the first few runnable baselines exist beyond the current tiny bounded path.
+4. **Another backend probe only if it becomes the sharper uncertainty reducer** — keep backend choice open, but do not branch into it unless it is more discriminating than the next baseline step.
 
 ## After the first runnable stack exists
 

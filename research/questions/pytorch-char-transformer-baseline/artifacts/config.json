@@ -1,0 +1,15 @@
+{
+  "context_size": 5,
+  "d_model": 24,
+  "feedforward_dim": 112,
+  "num_heads": 4,
+  "num_layers": 1,
+  "overfit_batch_size": 16,
+  "overfit_steps": 2000,
+  "overfit_learning_rate": 0.02,
+  "tiny_batch_size": 64,
+  "tiny_steps": 1500,
+  "tiny_learning_rate": 0.01,
+  "sample_length": 80,
+  "seed": 7
+}
