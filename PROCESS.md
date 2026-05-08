@@ -141,8 +141,13 @@ Do not read papers out of thoroughness or coverage. Read them because they genui
 
 ### Triggers
 
-- Daily narrative: produced at 4pm each day by the harness
-- Weekly narrative: produced at 4pm on Thursdays (in addition to daily)
+Reports are written by the agent, not by the harness on a schedule. On each session start:
+
+- Check the current time.
+- If after 4pm and no daily report exists for today (`research/daily/YYYY-MM-DD.md`): write it.
+- If after 4pm on a Thursday and no weekly report exists for this week (`research/weekly/YYYY-MM-DD.md`): write it too.
+
+Write the report at the **next natural opportunity** — not mid-task, not mid-experiment. Finish the current unit of work cleanly, then write.
 
 ### Quality standard
 

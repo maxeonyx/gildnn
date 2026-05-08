@@ -62,6 +62,12 @@ Read [VISION.md](VISION.md) for what we're exploring. Read [PROCESS.md](PROCESS.
 
 ## Core rules
 
+**Check the time on every session start.** If it's after 4pm and no daily report exists for today in `research/daily/`, write it before starting new work. If it's after 4pm Thursday and no weekly report exists for this week in `research/weekly/`, write that too. See `research/AGENTS.md` for the report process.
+
+**Improve the process before delivering results.** If the last session felt wrong — docs were misleading, something was hard to find, the process was awkward — fix it first (update `AGENTS.md`, `PROCESS.md`, `harness.ps1`). Then deliver the result.
+
+**Deliver readable outputs before declaring done.** Before calling any experiment complete, produce a clean self-contained narrative with inline artifacts. Max reads these, not the code. See `research/AGENTS.md`.
+
 **Integrate before experimenting.** Finishing integration of working experimental code is higher priority than starting new experiments. Code that works and is not integrated is a liability.
 
 **Keep the codebase small.** This is an explicit quality metric. If the code is growing without producing clarity, stop and refactor. Prefer deleting to keeping.
@@ -73,6 +79,8 @@ Read [VISION.md](VISION.md) for what we're exploring. Read [PROCESS.md](PROCESS.
 **Rewrite, don't append.** Every file has a job. When information becomes stale, remove it. Files should shrink over time as things become clear, not grow.
 
 **Open questions stay open.** Do not state architectural decisions as settled unless they have been experimentally verified. If it's not confirmed, mark it as an open question.
+
+**Don't interrupt the desktop.** No popups, notifications, or focus-stealing windows. Max may be doing other things.
 
 ## Handover protocol
 
