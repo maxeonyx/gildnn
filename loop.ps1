@@ -3,6 +3,9 @@
 # Launches OpenCode in a persistent session. If it exits for any reason, relaunches it.
 # OpenCode is the real working environment — this is just the restart wrapper.
 
+# Ensure we're always running from the repo root, regardless of where the script was launched from
+Set-Location $PSScriptRoot
+
 $sessionId = "ses_1fabddbe7ffe56KcM6SP73W55s"
 
 $prompt = @"

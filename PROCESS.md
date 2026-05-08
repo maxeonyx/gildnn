@@ -9,7 +9,7 @@ How work gets done in this project. Covers the autonomous loop, experiment disci
 If a training run will take longer than ~5–10 minutes, run it in the background — do not block on it. Use a background process with log output redirected to a file so you can check progress without waiting.
 
 - Start at most one training run at a time.
-- While a run is active: continue other work — cleanup, integration, reports, doc fixes.
+- While a run is active: **do not wait for it** — continue other work (cleanup, integration, reports, doc fixes). Do not start a second training run while one is active.
 - Check run progress by tailing the log file. Do not poll in a tight loop.
 - When a run completes: read the output, update the relevant question folder, update PLAN.md.
 
@@ -38,7 +38,7 @@ The project runs as an outer loop: `loop.ps1` relaunches OpenCode if it ever exi
 **The agent's job when relaunched:**
 
 1. Read `PLAN.md` and any `TASK-*.ignore.md` files in root — orient on the current task and state.
-2. Check if a training run is active. If yes — sleep until it completes. Do not exit.
+2. Check if a training run is active (`Test-Path runs/active.lock`). If yes — continue other work; do not wait idle, do not start another run.
 3. Pick up the next task. Continue working.
 4. Max may check in during a session. That does not mean he's back. Continue working.
 

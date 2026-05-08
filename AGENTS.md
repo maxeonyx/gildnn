@@ -16,6 +16,16 @@ Periodically — especially after completing a significant task or before starti
 
 ---
 
+## Project constraints
+
+**Timebox:** this project runs until the end of the month when GitHub Copilot changes its billing. Make the most of the remaining time.
+
+**Work sizing:** before starting any significant task, estimate whether it fits in one agent context window. If not, split it deliberately and plan the handovers in advance. Don't drift into a task that can't be finished in one session.
+
+**Writing guidance:** before writing the first daily or weekly narrative, produce a short document on how to write really good explanations for this project — dense, readable, tuned for Max. Then strictly follow it. This doc belongs in `research/AGENTS.md` or a linked file.
+
+---
+
 ## Relevant OpenCode skills
 
 Load these before doing the relevant work:
