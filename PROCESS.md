@@ -77,6 +77,22 @@ Before coding a new bounded unit, freeze these explicitly in writing:
 
 If those are not frozen, the unit is not ready for implementation.
 
+Runnable bounded units remain the default.
+
+Exception: before a first prototype would otherwise smuggle in an open architecture-boundary choice, one **pre-prototype architecture-boundary narrowing unit** is allowed.
+
+This is an exceptional narrowing unit, not a broad second class of work. Use it only to narrow one specific open architecture boundary that cannot yet be asked honestly on a current runnable surface.
+
+It is valid only if all of these are frozen in writing:
+
+1. **Decision surface** — one architecture boundary only
+2. **Comparator** — exactly two explicit candidate options
+3. **Concrete boundary examples** — one or two task-boundary examples that keep the comparison concrete
+4. **Artifact class** — one short comparison memo with worked examples and explicit rejection criteria
+5. **Non-goals** — explicit adjacent questions that remain open
+
+It counts as complete only if it states what downstream prototype choice this narrows, what option is rejected (if any), and what would falsify the provisional front-runner. If it expands into general architectural prose, it fails.
+
 For bounded units, treat **artifact completeness** as part of verification. A run that "worked" but did not save the artifacts needed to answer the question is not complete.
 
 For bounded units, **ambiguity is a valid result**. Do not widen the unit just because the first honest result is ambiguous.
