@@ -22,14 +22,14 @@ These are still bounded proofs, not project-wide decisions. The backend/framewor
 
 ## Immediate priorities
 
-1. **Dynamic depth on a standard model** — the next bounded unit is now the first dynamic-depth question on a standard model, preferably the existing tiny transformer host surface. Keep it to one tiny task, one interpretable comparator, and one artifact-backed feasibility/interpretability question. This is not yet a broad claim that dynamic depth works in general, and it does not reopen Mix-Add. See `research/questions/dynamic-depth/` when scoping the unit.
-2. **Experiment harness only when a later bounded question genuinely needs it** — logging, checkpointing, config locking, and stronger reproducibility work should follow only if the dynamic-depth unit or a later bounded question needs stronger controlled-comparison claims than the current bounded stack supports.
+1. **Choose the next bounded question deliberately again** — the first bounded dynamic-depth unit is now complete. On the existing tiny transformer host surface, depths 1, 2, and 4 produced a readable comparison surface, but the final bounded task outcome stayed effectively unchanged: same saved `final_accuracy`, same eight final mismatches, and same saved prompt continuation, with only tiny final-loss shifts and one transient depth-4 instability spike. This is a narrow near-null result, not a general claim about dynamic depth. See `research/questions/dynamic-depth/`.
+2. **Experiment harness only when a later bounded question genuinely needs it** — logging, checkpointing, config locking, and stronger reproducibility work should follow only if the next real bounded question needs stronger controlled-comparison claims than the current bounded stack supports.
 3. **Backend/runtime follow-up only if it becomes the sharper uncertainty reducer** — the captured NumPy warning is still a documented loose edge, but not yet automatically the next task.
 
 ## After the first runnable stack exists
 
 - A narrower Mix-Add follow-up only if a later question specifically needs it — for example, saving final per-window prediction tables for the same plain-residual vs scalar-Mix-Add pair. Do not reopen Mix-Add by drift.
-- After the first bounded dynamic-depth unit, decide deliberately whether the next step is a tighter dynamic-depth follow-up, a different bounded question, or infrastructure/runtime cleanup. Do not assume a dynamic-depth roadmap by momentum.
+- A narrower dynamic-depth follow-up only if a later bounded question specifically needs it. Do not assume a dynamic-depth roadmap by momentum from the near-null Unit 01 result.
 - A first cortical-column prototype is still tentative. Do not treat the graph/update design as settled before the open questions narrow.
 
 ## Open questions driving current work
