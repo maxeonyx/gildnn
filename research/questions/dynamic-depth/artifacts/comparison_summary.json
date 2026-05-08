@@ -1,0 +1,37 @@
+{
+  "depth_rows": [
+    {
+      "depth": 1,
+      "final_loss": 0.03202458471059799,
+      "final_accuracy": 0.9793282151222229,
+      "mismatch_count": 8,
+      "sample_hello": "hello world.\nsmall text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhello worl",
+      "loss_delta_vs_depth_1": 0.0,
+      "accuracy_delta_vs_depth_1": 0.0,
+      "mismatch_delta_vs_depth_1": 0,
+      "sample_hello_matches_depth_1": true
+    },
+    {
+      "depth": 2,
+      "final_loss": 0.03172789886593819,
+      "final_accuracy": 0.9793282151222229,
+      "mismatch_count": 8,
+      "sample_hello": "hello world.\nsmall text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhello worl",
+      "loss_delta_vs_depth_1": -0.0002966858446598053,
+      "accuracy_delta_vs_depth_1": 0.0,
+      "mismatch_delta_vs_depth_1": 0,
+      "sample_hello_matches_depth_1": true
+    },
+    {
+      "depth": 4,
+      "final_loss": 0.031890515238046646,
+      "final_accuracy": 0.9793282151222229,
+      "mismatch_count": 8,
+      "sample_hello": "hello world.\nsmall text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhello worl",
+      "loss_delta_vs_depth_1": -0.00013406947255134583,
+      "accuracy_delta_vs_depth_1": 0.0,
+      "mismatch_delta_vs_depth_1": 0,
+      "sample_hello_matches_depth_1": true
+    }
+  ]
+}

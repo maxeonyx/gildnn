@@ -1,0 +1,12 @@
+{
+  "bounded_question": "Does repeated within-token reuse of the same tiny-transformer weights produce a readable depth-related outcome surface on the tiny fixed-window character next-token task relative to the ordinary one-pass comparator?",
+  "host_surface": "tiny_transformer_baseline",
+  "bounded_task_surface": "tiny_fixed_window_character_next_token",
+  "primary_comparator": "depth_1_one_pass",
+  "depth_settings": [
+    1,
+    2,
+    4
+  ],
+  "artifact_class": "per-depth bounded outcome artifacts with comparator-readable loss, accuracy, saved samples, and final prediction mismatches"
+}

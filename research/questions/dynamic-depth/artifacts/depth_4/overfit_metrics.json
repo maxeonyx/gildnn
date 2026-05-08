@@ -1,0 +1,17 @@
+{
+  "final_loss": 0.0009477412095293403,
+  "final_accuracy": 1.0,
+  "reached_memorization_bar": true,
+  "trace": [
+    {
+      "step": 0,
+      "loss": 2.873243,
+      "accuracy": 0.0625
+    },
+    {
+      "step": 35,
+      "loss": 0.000948,
+      "accuracy": 1.0
+    }
+  ]
+}

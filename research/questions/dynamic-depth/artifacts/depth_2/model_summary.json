@@ -1,0 +1,12 @@
+{
+  "model_family": "tiny_transformer",
+  "host_surface": "tiny_transformer_baseline",
+  "within_token_reuse_depth": 2,
+  "parameter_count": 9107,
+  "d_model": 24,
+  "feedforward_dim": 112,
+  "num_heads": 4,
+  "num_layers": 1,
+  "context_size": 5,
+  "vocab_size": 19
+}

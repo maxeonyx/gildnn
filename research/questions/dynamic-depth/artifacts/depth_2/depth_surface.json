@@ -1,0 +1,64 @@
+{
+  "final_loss": 0.03172789886593819,
+  "final_accuracy": 0.9793282151222229,
+  "prediction_row_count": 387,
+  "mismatch_count": 8,
+  "mismatches": [
+    {
+      "index": 14,
+      "context": "mall ",
+      "target": "n",
+      "prediction": "t",
+      "correct": false
+    },
+    {
+      "index": 63,
+      "context": "mall ",
+      "target": "n",
+      "prediction": "t",
+      "correct": false
+    },
+    {
+      "index": 112,
+      "context": "mall ",
+      "target": "n",
+      "prediction": "t",
+      "correct": false
+    },
+    {
+      "index": 161,
+      "context": "mall ",
+      "target": "n",
+      "prediction": "t",
+      "correct": false
+    },
+    {
+      "index": 210,
+      "context": "mall ",
+      "target": "n",
+      "prediction": "t",
+      "correct": false
+    },
+    {
+      "index": 259,
+      "context": "mall ",
+      "target": "n",
+      "prediction": "t",
+      "correct": false
+    },
+    {
+      "index": 308,
+      "context": "mall ",
+      "target": "n",
+      "prediction": "t",
+      "correct": false
+    },
+    {
+      "index": 357,
+      "context": "mall ",
+      "target": "n",
+      "prediction": "t",
+      "correct": false
+    }
+  ]
+}
