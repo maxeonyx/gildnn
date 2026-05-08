@@ -51,7 +51,7 @@ The comparison stays narrow because changed variables remain visible rather than
   "feedforward_overfit_learning_rate": 0.05,
   "transformer_overfit_learning_rate": 0.02,
   "rnn_overfit_learning_rate": 0.05,
-  "post_integration_git_sha": "9c40d58...",
+  "post_integration_git_sha": "3fb4477...",
   "feedforward_reference_parameter_count": 9435,
   "transformer_parameter_count": 9107,
   "rnn_parameter_count": 7451,
@@ -63,7 +63,7 @@ The comparison stays narrow because changed variables remain visible rather than
 
 This repo now has a narrow three-way reference comparison on one tiny fixed-window task. Across the saved artifacts, the three references share the same raw text, core task-surface fields, sample prompts, and recorded local PyTorch CUDA environment surface; all three clear the one-batch overfit bar, end with the same saved `final_accuracy` value, and save the same short prompt continuations.
 
-The comparison was rerun after the minimal `core/` integration slice using the supported module-entrypoint contract from repo root (`python -m experiments.<name>`). Those reruns preserved the same bounded evidence surface, but they were captured from a dirty pre-commit working tree rather than an exact committed clean tree, so they are useful as behavior-preservation checks rather than final clean-state provenance.
+The tracked environment artifacts are now internally consistent with one exact post-integration provenance story: all three point at commit `3fb4477...`, and the RNN tracked environment artifact records a clean tree (`git_working_tree_clean: true`, `git_status_short: []`). That tracked provenance was refreshed from a clean no-bytecode rerun of the supported module entrypoints from repo root (`python -m experiments.<name>` with `PYTHONDONTWRITEBYTECODE=1`), which preserved the same bounded behavior surface.
 
 ## What this does not show
 
