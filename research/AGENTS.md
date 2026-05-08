@@ -18,6 +18,10 @@ Curated, Max-readable output only. Transient notes, debug logs, and scratch work
 
 Check the time on every session start. See `AGENTS.md` for the rule. Write at the next natural stopping point — not mid-task.
 
+### Writing guidance
+
+Read [WRITING.md](WRITING.md) when drafting any daily or weekly narrative, especially the first one. It is the project-specific guide for writing explanations that are dense, readable, honest about uncertainty, and tuned for Max.
+
 ### Before writing
 
 Each experiment's question folder (`research/questions/<name>/`) should have been keeping a record as work proceeded: run configs, key metrics, output artifacts (images, example outputs), and a note of what was learned. The daily/weekly narrative draws from these — it does not reconstruct from memory.

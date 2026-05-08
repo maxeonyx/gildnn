@@ -15,7 +15,7 @@ Read PLAN.md and any TASK-*.ignore.md files in the root to orient on current sta
 
 You may have stopped for any reason — error, network issue, task completion, reboot. If you know why, great. If not, read the current state and continue or pick up the next task.
 
-Check the time. If it is after 4pm and no daily report exists for today (research/daily/YYYY-MM-DD.md), write it at the next natural stopping point. If it is also Thursday, write the weekly report too.
+Check the time. If it is after 4pm and no daily report exists for today (research/daily/YYYY-MM-DD.md), write it at the next natural stopping point. If no weekly report exists for this week and it is already past 4pm Thursday local time, write that too.
 
 Priority order:
 1. Improve the process — if docs, files, or the process itself are wrong or unclear, fix them first
@@ -40,7 +40,7 @@ while ($true) {
     $now = Get-Date
     Write-Host "[$($now.ToString('yyyy-MM-dd HH:mm:ss'))] Launching OpenCode (session $sessionId)..."
 
-    opencode run --session $sessionId --no-ephemeral=true $prompt  # NOTE: in newer versions of the opencode fork, --no-ephemeral may be removed (headless sessions stored by default). If this flag breaks, just remove it.
+    opencode run --agent arrange --model github-copilot-max/gpt-5.4 --session $sessionId --no-ephemeral=true $prompt  # NOTE: in newer versions of the opencode fork, --no-ephemeral may be removed (headless sessions stored by default). If this flag breaks, just remove it.
 
     $exitCode = $LASTEXITCODE
     $elapsed = ((Get-Date) - $lastLaunch).TotalSeconds

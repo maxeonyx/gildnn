@@ -1,5 +1,9 @@
 # AGENTS.md — gildnn repo contract
 
+## Git hygiene
+
+**Commit and push early and often.** Keeping work preserved remotely is part of the normal workflow in this repo. Test first when there is something real to test.
+
 ## ⚠ Epistemic status of all files in this repo
 
 **The authoritative source of truth for this project is [`dictations/`](dictations/).** Everything else — this file, VISION.md, PROCESS.md, PLAN.md — is a derived interpretation, written quickly, and likely imperfect. Do not treat them as authoritative.
