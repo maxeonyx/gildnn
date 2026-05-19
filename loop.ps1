@@ -52,7 +52,7 @@ while ($iteration -lt $maxIterations) {
     $now = Get-Date
     Write-Host "[$($now.ToString('yyyy-MM-dd HH:mm:ss'))] Launching OpenCode iteration $iteration/$maxIterations (session $sessionId)..."
 
-    opencode run --agent arrange --model github-copilot-max/claude-opus-4.6 --reasoning high --session $sessionId --no-ephemeral=true $prompt  # NOTE: in newer versions of the opencode fork, --no-ephemeral may be removed (headless sessions stored by default). If this flag breaks, just remove it.
+    opencode run --agent arrange --model github-copilot-max/claude-opus-4.6 --variant high --session $sessionId --no-ephemeral=true $prompt  # NOTE: in newer versions of the opencode fork, --no-ephemeral may be removed (headless sessions stored by default). If this flag breaks, just remove it.
 
     $exitCode = $LASTEXITCODE
     $elapsed = ((Get-Date) - $lastLaunch).TotalSeconds
