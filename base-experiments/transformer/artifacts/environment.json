@@ -1,0 +1,13 @@
+{
+  "git_sha": "1abb3f2f0176befd14a5a1dfad1c46edde4655c1",
+  "git_working_tree_clean": false,
+  "git_status_short": [
+    "?? base-experiments/transformer/",
+    "?? base_experiments/"
+  ],
+  "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+  "torch_version": "2.11.0+cu128",
+  "device": "cuda",
+  "cuda_is_available": true,
+  "cuda_device_name": "NVIDIA GeForce RTX 3090"
+}
