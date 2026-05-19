@@ -62,6 +62,22 @@ Post-punctuation tokens (`\n`, space after `.`) are among the shallowest — the
 
 See `artifacts/improved/depth_analysis/analysis.md` for full tables.
 
+### Seed stability (5 seeds on 100K corpus)
+
+| Metric | Mean | Stdev | Range |
+|---|---|---|---|
+| Fixed-depth-8 val loss | 1.707 | 0.005 | 0.015 |
+| Recommended val loss | 1.719 | 0.006 | 0.019 |
+| Recommended mean depth | 6.11 | 0.66 | 1.72 |
+| Position-in-word η | 0.32 | 0.06 | 0.15 |
+| Recommended threshold | 0.78 | 0.30 | 0.78 |
+
+**Val loss is stable; the operating point is not.** The quality of the trained model (fixed-depth-8 baseline) is consistent across seeds (stdev 0.005). The Pareto-recommended val loss is similarly consistent (stdev 0.006). But the recommended *depth* varies substantially (5.1 to 6.8 across seeds) — the frontier shape changes, so the threshold needed to hit a given quality target is not portable across runs. Position-in-word dominance is robust (η 0.26–0.41) but its magnitude varies.
+
+Implication: the mechanism reliably learns to allocate depth non-uniformly, but the specific frontier and threshold should be calibrated per-model, not assumed from a prior run.
+
+See `artifacts/improved/seed_stability/summary.json`.
+
 ## Key findings
 
 1. **Multi-exit training works stably** — the model trains at all depths simultaneously without instability
