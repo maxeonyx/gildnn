@@ -7,40 +7,31 @@ Working file. Rewrite it as the state changes.
 ## Current state
 
 - Working Python path: UV + `.venv` + CPython 3.12.12 + PyTorch CUDA on RTX 3090.
-- **Thread 1 (Predictive Chain) — well-characterized.** 9 experiments complete. Key conclusion: the architecture works (local predictive learning, detached gradients, multi-hop chain all viable) but its only measurable advantage is a regularization effect that disappears at scale. At 100K chars / 200K params, RNN and transformer match the chain. The chain is also 10-80× slower.
-- Remaining Thread 1 value is in properties that don't show up as val loss: async execution, interpretability, modularity, graceful degradation.
-- All results documented in `research/questions/predictive-chain/README.md`.
+- **Thread 1 (Predictive Chain) — concluded.** 9 experiments, clear answer: the architecture works but its only advantage is regularization that disappears at scale. With 100K chars / 200K params, RNN/transformer match it while being 10-80× faster. See `research/questions/predictive-chain/README.md`.
+- **Thread 2 (Dynamic Depth) — first experiment done, promising.** Multi-exit weight-shared GRU with loss-prediction head. The model learns meaningful depth allocation (harder characters get more compute). Gets near-fixed-8 quality with 1.35 average depth. But halting criterion needs calibration work.
 
-## Active work: Thread 2 — Dynamic Computation Depth
+## Next steps for Thread 2
 
-From VISION.md: "use the same model weights multiple times per output token, iterating on internal state, with a learned halting criterion."
+The dynamic depth mechanism works but the loss-prediction head doesn't generalize to validation. Improvements to try:
 
-The idea: easy tokens need one forward pass, hard tokens need more. A loss-prediction head estimates when additional computation isn't helping. This is well-trodden (ACT, Universal Transformers, PonderNet) — the goal is understanding, not novelty.
+1. **Better halting criterion** — instead of absolute threshold from training loss, try:
+   - Relative improvement: stop when predicted_loss(d+1) / predicted_loss(d) > 0.99
+   - Or: train the predictor on VALIDATION-style data (using a held-out calibration set)
+2. **Larger corpus** — the 7K Shakespeare excerpt may not have enough variety. Try the 100K corpus.
+3. **Compare against standard ACT** — implement Graves-style ACT and compare halting patterns.
+4. **Inspect what "hard" means** — correlate depth with character entropy, word frequency, position-in-word, etc.
 
-### Next steps
+## Bigger picture — what's worth pursuing?
 
-1. **Research existing approaches** — ACT (Graves 2016), Universal Transformer (Dehghani 2018), PonderNet (Banino 2021). Understand what works and what doesn't.
-2. **Implement on standard RNN** — start with the Shakespeare task, a simple GRU that iterates K times per token, with a halting mechanism.
-3. **Train the loss-prediction head** — Max's specific idea: run multiple rollouts per token at different depths, record loss at each depth, train the head to predict those losses.
-4. **Compare** — does adaptive depth beat fixed depth? On what tokens does it choose to think longer?
+Now that Thread 1 is concluded (architecture works, no performance advantage at scale), and Thread 2 is started (dynamic depth works in principle), the project needs a direction decision:
 
-### Why this next
-
-- Explicitly flagged in VISION.md as simpler and independent
-- Well-trodden territory — clear baselines to compare against
-- Eventually composes with Thread 1
-- Clean experiment that can produce a clear result
-
-## Deferred
-
-- Thread 1 remaining questions (async execution, internal specialization analysis)
-- Image patches dataset
-- Mix-Add operation
-- Graph topology experiments (already shown to hurt at this scale)
+- **Double down on Thread 2** — get dynamic depth working well, then combine with the chain
+- **Image patches** — VISION.md's second primary dataset. Completely different task that may exercise different properties
+- **Scaling study** — much larger model + data on the chain to see if the qualitative properties (interpretability, modularity) emerge at scale even without loss advantage
+- **Integration** — clean up what works into `core/`, make it reusable
 
 ## Live constraints
 
-- Integrate before starting broad new branches.
 - Keep the codebase small.
 - Experiment ladder: overfit one batch, tiny end-to-end, inspect outputs, scale.
 - Open questions stay open.
