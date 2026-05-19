@@ -1,0 +1,122 @@
+{
+  "question": "Does detaching message inputs preserve useful local predictive learning and task performance at auxiliary_weight=1.0?",
+  "control_dir": "research/questions/predictive-chain/artifacts/attached_messages",
+  "detached_dir": "research/questions/predictive-chain/artifacts/detached_messages",
+  "control": {
+    "config": {
+      "context_size": 5,
+      "embedding_dim": 24,
+      "hidden_dim": 96,
+      "message_dim": 24,
+      "auxiliary_weight": 1.0,
+      "detach_messages": false,
+      "overfit_batch_size": 16,
+      "overfit_steps": 12000,
+      "overfit_learning_rate": 0.003,
+      "tiny_batch_size": 64,
+      "tiny_steps": 3000,
+      "tiny_learning_rate": 0.01,
+      "gradient_clip_norm": 1.0,
+      "sample_length": 80,
+      "rollout_examples": 3,
+      "seed": 7
+    },
+    "overfit": {
+      "final_total_loss": 0.08492841571569443,
+      "final_task_loss": 1.2665985593685036e-07,
+      "final_auxiliary_total": 0.08492828905582428,
+      "final_auxiliary_a": 0.008626113645732403,
+      "final_auxiliary_b": 0.039173174649477005,
+      "final_auxiliary_c": 0.037129003554582596,
+      "final_accuracy": 1.0
+    },
+    "tiny": {
+      "final_total_loss": 0.16547979414463043,
+      "final_task_loss": 0.032145723700523376,
+      "final_auxiliary_total": 0.13333407044410706,
+      "final_auxiliary_a": 0.039526570588350296,
+      "final_auxiliary_b": 0.04650712013244629,
+      "final_auxiliary_c": 0.04730037972331047,
+      "final_accuracy": 0.9793282151222229
+    },
+    "samples": {
+      "hello": "hello world.\nsmall text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhello worl",
+      "small": "small text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhello world.\nsmall text",
+      " text": " text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhel"
+    }
+  },
+  "detached": {
+    "config": {
+      "context_size": 5,
+      "embedding_dim": 24,
+      "hidden_dim": 96,
+      "message_dim": 24,
+      "auxiliary_weight": 1.0,
+      "detach_messages": true,
+      "overfit_batch_size": 16,
+      "overfit_steps": 12000,
+      "overfit_learning_rate": 0.003,
+      "tiny_batch_size": 64,
+      "tiny_steps": 3000,
+      "tiny_learning_rate": 0.01,
+      "gradient_clip_norm": 1.0,
+      "sample_length": 80,
+      "rollout_examples": 3,
+      "seed": 7
+    },
+    "overfit": {
+      "final_total_loss": 0.1557764708995819,
+      "final_task_loss": 2.9802320611338473e-08,
+      "final_auxiliary_total": 0.15577644109725952,
+      "final_auxiliary_a": 0.01289448793977499,
+      "final_auxiliary_b": 0.07589361816644669,
+      "final_auxiliary_c": 0.06698834151029587,
+      "final_accuracy": 1.0
+    },
+    "tiny": {
+      "final_total_loss": 0.20380795001983643,
+      "final_task_loss": 0.03287544474005699,
+      "final_auxiliary_total": 0.17093250155448914,
+      "final_auxiliary_a": 0.04720544070005417,
+      "final_auxiliary_b": 0.06416535377502441,
+      "final_auxiliary_c": 0.05956170707941055,
+      "final_accuracy": 0.9793282151222229
+    },
+    "samples": {
+      "hello": "hello world.\nsmall text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhello worl",
+      "small": "small text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhello world.\nsmall text",
+      " text": " text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhel"
+    }
+  },
+  "deltas_detached_minus_control": {
+    "overfit": {
+      "final_total_loss": 0.07084805518388748,
+      "final_task_loss": -9.685753532551189e-08,
+      "final_auxiliary_total": 0.07084815204143524,
+      "final_auxiliary_a": 0.004268374294042587,
+      "final_auxiliary_b": 0.03672044351696968,
+      "final_auxiliary_c": 0.029859337955713272,
+      "final_accuracy": 0.0
+    },
+    "tiny": {
+      "final_total_loss": 0.038328155875205994,
+      "final_task_loss": 0.0007297210395336151,
+      "final_auxiliary_total": 0.03759843111038208,
+      "final_auxiliary_a": 0.007678870111703873,
+      "final_auxiliary_b": 0.017658233642578125,
+      "final_auxiliary_c": 0.012261327356100082,
+      "final_accuracy": 0.0
+    }
+  },
+  "sample_outputs_identical": true,
+  "interpretation_flags": {
+    "task_accuracy_preserved_overfit": true,
+    "task_accuracy_preserved_tiny": true,
+    "a_aux_loss_increases_when_detached_overfit": true,
+    "b_aux_loss_increases_when_detached_overfit": true,
+    "c_aux_loss_increases_when_detached_overfit": true,
+    "a_aux_loss_increases_when_detached_tiny": true,
+    "b_aux_loss_increases_when_detached_tiny": true,
+    "c_aux_loss_increases_when_detached_tiny": true
+  }
+}

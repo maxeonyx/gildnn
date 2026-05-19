@@ -1,0 +1,20 @@
+{
+  "model_family": "predictive_chain",
+  "graph": "A_to_B_to_C_line",
+  "node_count": 3,
+  "recurrent_cell": "GRUCell",
+  "parameter_count": 142435,
+  "embedding_dim": 24,
+  "hidden_dim": 96,
+  "message_dim": 24,
+  "context_size": 5,
+  "vocab_size": 19,
+  "task_head_input": "concat(final_hidden_a, final_hidden_b, final_hidden_c)",
+  "auxiliary_targets": {
+    "A": "next_token_embedding",
+    "B": "next_message_from_A",
+    "C": "next_message_from_B"
+  },
+  "message_target_detach": true,
+  "message_input_detach": false
+}

@@ -28,6 +28,7 @@ class RunConfig:
     hidden_dim: int = 96
     message_dim: int = 24
     auxiliary_weight: float = 0.001
+    detach_messages: bool = False
     overfit_batch_size: int = 16
     overfit_steps: int = 12000
     overfit_learning_rate: float = 0.003
@@ -60,6 +61,7 @@ class PredictiveChainCharModel(nn.Module):
         embedding_dim: int,
         hidden_dim: int,
         message_dim: int,
+        detach_messages: bool,
     ) -> None:
         super().__init__()
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
@@ -79,6 +81,7 @@ class PredictiveChainCharModel(nn.Module):
 
         self.hidden_dim = hidden_dim
         self.message_dim = message_dim
+        self.detach_messages = detach_messages
 
     def _bounded_embedding(self, tokens: Tensor) -> Tensor:
         return torch.tanh(self.embedding(tokens))
@@ -130,8 +133,12 @@ class PredictiveChainCharModel(nn.Module):
             predicted_a_message_steps.append(message_b)
             predicted_b_message_steps.append(message_c)
 
-            previous_a_message = message_a
-            previous_b_message = message_b
+            previous_a_message = (
+                message_a.detach() if self.detach_messages else message_a
+            )
+            previous_b_message = (
+                message_b.detach() if self.detach_messages else message_b
+            )
 
         return {
             "embeddings": embeddings,
@@ -476,10 +483,18 @@ def main() -> None:
         type=float,
         default=default_config.auxiliary_weight,
     )
+    parser.add_argument(
+        "--detach-messages",
+        action=argparse.BooleanOptionalAction,
+        default=default_config.detach_messages,
+    )
     parser.add_argument("--device", choices=["cuda", "cpu"], default="cuda")
     args = parser.parse_args()
 
-    config = RunConfig(auxiliary_weight=args.auxiliary_weight)
+    config = RunConfig(
+        auxiliary_weight=args.auxiliary_weight,
+        detach_messages=args.detach_messages,
+    )
     set_seed(config.seed)
     device = resolve_device(args.device)
 
@@ -514,6 +529,7 @@ def main() -> None:
         embedding_dim=config.embedding_dim,
         hidden_dim=config.hidden_dim,
         message_dim=config.message_dim,
+        detach_messages=config.detach_messages,
     ).to(device)
     write_json(
         output_dir / "model_summary.json",
@@ -535,6 +551,7 @@ def main() -> None:
                 "C": "next_message_from_B",
             },
             "message_target_detach": True,
+            "message_input_detach": config.detach_messages,
         },
     )
 
@@ -583,6 +600,7 @@ def main() -> None:
         embedding_dim=config.embedding_dim,
         hidden_dim=config.hidden_dim,
         message_dim=config.message_dim,
+        detach_messages=config.detach_messages,
     ).to(device)
     tiny_inputs = dataset.inputs.to(device)
     tiny_targets = dataset.targets.to(device)
