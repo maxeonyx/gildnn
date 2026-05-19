@@ -62,19 +62,30 @@ Aux losses are moderately higher than the coupled version: overfit total `0.156`
 
 The local prediction task is slightly harder without coupling (aux losses ~2× higher), which makes sense — without B sending gradients back to A, node A has no direct optimization signal to make its messages more predictable. It only learns message structure through its own local loss.
 
+### 8-node detached chain (num_nodes=8, aux_weight=1.0, detach_messages=True)
+
+Scaling from 3 to 8 nodes with the full "vision" configuration (strong aux pressure + detached gradients). Task head still works perfectly: accuracy `1.0` (overfit), `0.9793` (tiny). Generated samples are clean.
+
+Per-node aux losses (overfit): A `0.013`, B `0.076`, C `0.066`, D `0.073`, E `0.064`, F `0.061`, G `0.023`, H `0.0003`.
+
+The pattern: hardest in early-mid chain (B), gradually decreasing, with the deepest node (H) being nearly trivial. Information gets progressively more predictable deeper in the chain — deeper nodes see increasingly constrained signals.
+
+See [`artifacts/8_nodes_detached/`](artifacts/8_nodes_detached/) and [`artifacts/8_nodes_detached/auxiliary_position_summary.json`](artifacts/8_nodes_detached/auxiliary_position_summary.json).
+
 ## What this does not settle
 
 - whether attention between neighbors helps
 - whether async or desynchronized execution is viable
 - whether loss-prediction heads for halting are useful
-- whether this scales or generalizes beyond the tiny task
-- whether the detached-gradient pattern holds at larger scale or with more nodes
+- whether this generalizes to harder tasks or larger models
+- whether the pattern changes with a graph topology (not just a line)
 
 ## Status
 
-Three variants completed (low aux weight, high aux weight, detached messages). Core findings so far:
+Four variants completed. Core findings:
 1. Local predictive learning is compatible with task learning
 2. Aux losses are optimization-driven, not fundamentally hard
 3. Unhooked gradients are viable — nodes learn independently
+4. The pattern holds at 8 nodes — longer chains don't break the architecture
 
-Next natural questions: does this hold with more nodes? Does attention between neighbors add anything? Does the pattern change on a harder task?
+Next natural questions: does attention between neighbors add anything? Does a graph (not line) topology change the picture? Does a harder task reveal differences between variants?
