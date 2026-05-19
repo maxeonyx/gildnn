@@ -1,0 +1,5 @@
+model	params	train_loss	val_loss	val_acc
+rnn	195605	1.5036	1.7269	0.5034
+transformer	186805	1.3124	1.7310	0.4970
+predictive_chain	203461	1.3895	1.7345	0.5063
+feedforward	187445	0.6607	3.7712	0.3514

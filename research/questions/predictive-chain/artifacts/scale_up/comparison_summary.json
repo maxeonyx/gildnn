@@ -1,0 +1,66 @@
+{
+  "models": [
+    {
+      "model_name": "rnn",
+      "parameter_count": 195605,
+      "runtime_seconds": 20.67469409998739,
+      "train_loss": 1.5036140952006498,
+      "train_accuracy": 0.5399927976952625,
+      "val_loss": 1.7268977562586467,
+      "val_accuracy": 0.5034054487179487
+    },
+    {
+      "model_name": "transformer",
+      "parameter_count": 186805,
+      "runtime_seconds": 99.86418359998788,
+      "train_loss": 1.3123902415191318,
+      "train_accuracy": 0.5891385243277849,
+      "val_loss": 1.731048828516251,
+      "val_accuracy": 0.4969951923076923
+    },
+    {
+      "model_name": "predictive_chain",
+      "parameter_count": 203461,
+      "runtime_seconds": 1177.179314299996,
+      "train_loss": 1.389528736414891,
+      "train_accuracy": 0.5786951824583867,
+      "val_loss": 1.7345224343813384,
+      "val_accuracy": 0.5063100961538461,
+      "train_total_loss": 1.58605812743745,
+      "val_total_loss": 1.935020034129803,
+      "train_auxiliary_total": 0.19652939193837926,
+      "val_auxiliary_total": 0.20049759974846473
+    },
+    {
+      "model_name": "feedforward",
+      "parameter_count": 187445,
+      "runtime_seconds": 14.6142203000054,
+      "train_loss": 0.6607204759624642,
+      "train_accuracy": 0.8056678137003841,
+      "val_loss": 3.771187751721113,
+      "val_accuracy": 0.35136217948717946
+    }
+  ],
+  "best_by_val_loss": {
+    "model_name": "rnn",
+    "parameter_count": 195605,
+    "runtime_seconds": 20.67469409998739,
+    "train_loss": 1.5036140952006498,
+    "train_accuracy": 0.5399927976952625,
+    "val_loss": 1.7268977562586467,
+    "val_accuracy": 0.5034054487179487
+  },
+  "best_by_val_accuracy": {
+    "model_name": "predictive_chain",
+    "parameter_count": 203461,
+    "runtime_seconds": 1177.179314299996,
+    "train_loss": 1.389528736414891,
+    "train_accuracy": 0.5786951824583867,
+    "val_loss": 1.7345224343813384,
+    "val_accuracy": 0.5063100961538461,
+    "train_total_loss": 1.58605812743745,
+    "val_total_loss": 1.935020034129803,
+    "train_auxiliary_total": 0.19652939193837926,
+    "val_auxiliary_total": 0.20049759974846473
+  }
+}

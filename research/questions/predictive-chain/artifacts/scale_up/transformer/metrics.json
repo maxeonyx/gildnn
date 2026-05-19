@@ -1,0 +1,148 @@
+{
+  "model_name": "transformer",
+  "parameter_count": 186805,
+  "runtime_seconds": 99.86418359998788,
+  "optimizer": "AdamW",
+  "train_metrics": {
+    "task_loss": 1.3123902415191318,
+    "accuracy": 0.5891385243277849
+  },
+  "val_metrics": {
+    "task_loss": 1.731048828516251,
+    "accuracy": 0.4969951923076923
+  },
+  "train_trace": [
+    {
+      "step": 0,
+      "task_loss": 4.315096,
+      "accuracy": 0.009277,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 250,
+      "task_loss": 1.972873,
+      "accuracy": 0.414062,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 500,
+      "task_loss": 1.798184,
+      "accuracy": 0.4646,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 750,
+      "task_loss": 1.710185,
+      "accuracy": 0.483643,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 1000,
+      "task_loss": 1.643668,
+      "accuracy": 0.510254,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 1250,
+      "task_loss": 1.605898,
+      "accuracy": 0.513428,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 1500,
+      "task_loss": 1.575552,
+      "accuracy": 0.511963,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 1750,
+      "task_loss": 1.548139,
+      "accuracy": 0.525391,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 2000,
+      "task_loss": 1.510427,
+      "accuracy": 0.532959,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 2250,
+      "task_loss": 1.489396,
+      "accuracy": 0.544678,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 2500,
+      "task_loss": 1.463095,
+      "accuracy": 0.545898,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 2750,
+      "task_loss": 1.451774,
+      "accuracy": 0.541748,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 3000,
+      "task_loss": 1.422435,
+      "accuracy": 0.560303,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 3250,
+      "task_loss": 1.410451,
+      "accuracy": 0.572754,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 3500,
+      "task_loss": 1.386391,
+      "accuracy": 0.564453,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 3750,
+      "task_loss": 1.355182,
+      "accuracy": 0.576904,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 4000,
+      "task_loss": 1.367537,
+      "accuracy": 0.572754,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 4250,
+      "task_loss": 1.366663,
+      "accuracy": 0.566162,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 4500,
+      "task_loss": 1.314854,
+      "accuracy": 0.590332,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 4750,
+      "task_loss": 1.305643,
+      "accuracy": 0.594238,
+      "evaluated_examples": 4096
+    },
+    {
+      "step": 5000,
+      "task_loss": 1.302898,
+      "accuracy": 0.594238,
+      "evaluated_examples": 4096
+    }
+  ],
+  "model_config": {
+    "d_model": 72,
+    "feedforward_dim": 256,
+    "num_heads": 4,
+    "num_layers": 3
+  }
+}

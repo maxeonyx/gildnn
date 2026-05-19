@@ -1,0 +1,6 @@
+{
+  "feedforward": 187445,
+  "rnn": 195605,
+  "transformer": 186805,
+  "predictive_chain": 203461
+}
