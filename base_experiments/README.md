@@ -12,6 +12,32 @@ Primary artifacts live in:
 - [`../base-experiments/transformer/artifacts/`](../base-experiments/transformer/artifacts/)
 - [`../base-experiments/rnn/artifacts/`](../base-experiments/rnn/artifacts/)
 
+## Comparison frame (fixed for all future experiments)
+
+All experimental results in this project compare against these anchors using the following fixed frame:
+
+| Dimension | Value |
+|-----------|-------|
+| **Dataset** | TinyShakespeare (`experiments/corpora.ignore/tinyshakespeare_input.txt`) |
+| **Train slice** | first 100,000 characters |
+| **Val slice** | characters [100000, 120000) |
+| **Context length** | 32 characters |
+| **Parameter budget** | ~186K (tolerance: ±10%) |
+| **Primary metric** | Best validation cross-entropy loss (nats/char) |
+| **Secondary metrics** | Final val loss, val accuracy, training time |
+| **Compute metric** | Wall-clock training time on RTX 3090 (indicative, not authoritative) |
+
+**Anchor values:**
+
+| Model | Params | Best Val Loss | Training Time |
+|-------|--------|---------------|---------------|
+| Transformer | 186,805 | **1.632** | 73s |
+| Vanilla RNN | 186,125 | **1.706** | 78s |
+
+Future experiments must report at minimum: parameter count, best val loss, and training time against this frame. Differences in dataset, split, or context length invalidate comparisons.
+
+**External reference gap:** No verified published result exists for this exact setup (~186K params, 32-char context, this split). The nanoGPT README reports 1.4697 val loss for a much larger transformer — useful as a sanity ceiling but not a direct comparison target. This gap is acknowledged, not hidden.
+
 ## Transformer baseline
 
 ## Exact config
