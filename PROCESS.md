@@ -230,6 +230,8 @@ Every factual claim should point to a real artifact: a run log, metric, sample o
 
 No free-floating assertions. Open questions should remain open.
 
+**Include process improvements.** When the development process was improved (gitignore fixes, doc restructuring, new conventions, friction removed), report it. Max wants to see the process getting better, not just experimental results. A day where the only real work was making the project more runnable is still a real day — say exactly what process risk was reduced and why it was the highest-leverage step.
+
 Question READMEs should clearly explain the architecture with implementation-aligned code snippets and diagrams, link the work back to Max's goals or dictations, and make the next steps obvious, including why those next steps have not been pursued yet.
 
 Question-folder notes can be rougher. Daily and weekly narratives should be polished.
