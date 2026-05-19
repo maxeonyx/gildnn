@@ -1,0 +1,17 @@
+context | target | prediction
+hello |   |  
+ello  | w | w
+llo w | o | o
+lo wo | r | r
+o wor | l | l
+ worl | d | d
+world | . | .
+orld. | \n | \n
+rld.\n | s | s
+ld.\ns | m | m
+d.\nsm | a | a
+.\nsma | l | l
+\nsmal | l | l
+small |   |  
+mall  | n | n
+all n | e | e

@@ -459,6 +459,7 @@ def rollout_examples(
 def main() -> None:
     repo_root = Path(__file__).resolve().parents[1]
     default_question_dir = repo_root / "research" / "questions" / "predictive-chain"
+    default_config = RunConfig()
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--text-file",
@@ -470,10 +471,15 @@ def main() -> None:
         type=Path,
         default=default_question_dir / "artifacts",
     )
+    parser.add_argument(
+        "--auxiliary-weight",
+        type=float,
+        default=default_config.auxiliary_weight,
+    )
     parser.add_argument("--device", choices=["cuda", "cpu"], default="cuda")
     args = parser.parse_args()
 
-    config = RunConfig()
+    config = RunConfig(auxiliary_weight=args.auxiliary_weight)
     set_seed(config.seed)
     device = resolve_device(args.device)
 

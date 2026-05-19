@@ -1,0 +1,84 @@
+{
+  "runs": {
+    "aux_weight_0.001": {
+      "auxiliary_weight": 0.001,
+      "overfit": {
+        "final_total_loss": 0.0009983901400119066,
+        "final_task_loss": 0.00025410475791431963,
+        "final_auxiliary_total": 0.7442853450775146,
+        "final_auxiliary_a": 0.5105536580085754,
+        "final_auxiliary_b": 0.1982830911874771,
+        "final_auxiliary_c": 0.03544861823320389,
+        "final_accuracy": 1.0,
+        "reached_memorization_bar": true,
+        "last_logged_step": 599
+      },
+      "tiny": {
+        "final_total_loss": 0.0346519835293293,
+        "final_task_loss": 0.03306654840707779,
+        "final_auxiliary_total": 1.5854344367980957,
+        "final_auxiliary_a": 0.8397178649902344,
+        "final_auxiliary_b": 0.5860521793365479,
+        "final_auxiliary_c": 0.1596643328666687,
+        "final_accuracy": 0.9793282151222229
+      },
+      "samples": {
+        "hello": "hello world.\nsmall text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhello worl",
+        "small": "small text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhello world.\nsmall text",
+        " text": " text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhel"
+      }
+    },
+    "aux_weight_1.0": {
+      "auxiliary_weight": 1.0,
+      "overfit": {
+        "final_total_loss": 0.08492841571569443,
+        "final_task_loss": 1.2665985593685036e-07,
+        "final_auxiliary_total": 0.08492828905582428,
+        "final_auxiliary_a": 0.008626113645732403,
+        "final_auxiliary_b": 0.039173174649477005,
+        "final_auxiliary_c": 0.037129003554582596,
+        "final_accuracy": 1.0,
+        "reached_memorization_bar": false,
+        "last_logged_step": 12000
+      },
+      "tiny": {
+        "final_total_loss": 0.16547979414463043,
+        "final_task_loss": 0.032145723700523376,
+        "final_auxiliary_total": 0.13333407044410706,
+        "final_auxiliary_a": 0.039526570588350296,
+        "final_auxiliary_b": 0.04650712013244629,
+        "final_auxiliary_c": 0.04730037972331047,
+        "final_accuracy": 0.9793282151222229
+      },
+      "samples": {
+        "hello": "hello world.\nsmall text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhello worl",
+        "small": "small text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhello world.\nsmall text",
+        " text": " text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhel"
+      }
+    }
+  },
+  "deltas": {
+    "overfit": {
+      "task_loss_delta_high_minus_low": -0.0002539780980583828,
+      "auxiliary_total_delta_high_minus_low": -0.6593570560216904,
+      "auxiliary_total_ratio_high_over_low": 0.11410716282070461,
+      "auxiliary_a_ratio_high_over_low": 0.01689560638812917,
+      "auxiliary_b_ratio_high_over_low": 0.1975618516681217,
+      "auxiliary_c_ratio_high_over_low": 1.0474034082322772
+    },
+    "tiny": {
+      "task_loss_delta_high_minus_low": -0.0009208247065544128,
+      "accuracy_delta_high_minus_low": 0.0,
+      "auxiliary_total_delta_high_minus_low": -1.4521003663539886,
+      "auxiliary_total_ratio_high_over_low": 0.08409939089842482,
+      "auxiliary_a_ratio_high_over_low": 0.04707125123366284,
+      "auxiliary_b_ratio_high_over_low": 0.079356620062561,
+      "auxiliary_c_ratio_high_over_low": 0.29624887959673324
+    }
+  },
+  "checks": {
+    "tiny_samples_identical": true,
+    "overfit_task_learned_at_high_weight": true,
+    "tiny_task_learned_at_high_weight": true
+  }
+}
