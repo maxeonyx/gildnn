@@ -52,14 +52,29 @@ Node C is the exception — its aux loss was already low and doesn't improve muc
 
 Full comparison: [`artifacts/compare_auxiliary_weights.json`](artifacts/compare_auxiliary_weights.json).
 
-## What this bounded unit does not settle
+### Detached message gradients (aux_weight=1.0, detach_messages=True)
+
+With gradients stopped at message boundaries — each node receives messages but cannot backpropagate into the sender — task performance is identical: accuracy `1.0` (overfit), `0.9793` (tiny). Generated samples are the same.
+
+Aux losses are moderately higher than the coupled version: overfit total `0.156` (vs `0.085`), with the increase spread across all nodes. See [`artifacts/detached_messages/`](artifacts/detached_messages/) and [`artifacts/compare_detached_messages.json`](artifacts/compare_detached_messages.json).
+
+**This means the "unhooked gradients" vision is viable at this scale.** Nodes can learn useful representations from local predictive pressure alone, without receiving gradient signal from downstream consumers of their messages. The downstream task head doesn't care whether the internal communication channel is gradient-coupled or not.
+
+The local prediction task is slightly harder without coupling (aux losses ~2× higher), which makes sense — without B sending gradients back to A, node A has no direct optimization signal to make its messages more predictable. It only learns message structure through its own local loss.
+
+## What this does not settle
 
 - whether attention between neighbors helps
 - whether async or desynchronized execution is viable
 - whether loss-prediction heads for halting are useful
 - whether this scales or generalizes beyond the tiny task
-- whether gradient coupling should be reduced, increased, or handled differently
+- whether the detached-gradient pattern holds at larger scale or with more nodes
 
 ## Status
 
-Two runs completed. The core finding — local predictive learning is compatible with task learning — opens the door to the next question: does forcing predictability change the *representations* in a way that matters when we scale up or add more nodes? This folder is the first experimental unit for Thread 1.
+Three variants completed (low aux weight, high aux weight, detached messages). Core findings so far:
+1. Local predictive learning is compatible with task learning
+2. Aux losses are optimization-driven, not fundamentally hard
+3. Unhooked gradients are viable — nodes learn independently
+
+Next natural questions: does this hold with more nodes? Does attention between neighbors add anything? Does the pattern change on a harder task?
