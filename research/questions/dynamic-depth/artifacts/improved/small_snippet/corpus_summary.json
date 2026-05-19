@@ -1,0 +1,17 @@
+{
+  "corpus_name": "hardcoded_shakespeare_excerpt",
+  "source_file": null,
+  "source_sha256": "ece04df5881dcfaaeb7cd78e52ad1b58af11f364939413b4ba17fe9810dc56f1",
+  "source_total_characters": 7061,
+  "train_characters": 5648,
+  "val_characters": 1413,
+  "train_windows": 5638,
+  "val_windows": 1403,
+  "vocab_size": 60,
+  "split": "train_fraction=0.8",
+  "prompts": [
+    "HAMLET:\\nTo",
+    "s hour upo",
+    " nostril w"
+  ]
+}
