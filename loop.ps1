@@ -42,19 +42,22 @@ Redo from scratch is allowed. Deleting clutter is good. A small clear result is 
 Write-Host "Starting gildnn loop. Press Ctrl+C to stop."
 Write-Host ""
 
+$maxIterations = 10
 $crashCount = 0
+$iteration = 0
 $lastLaunch = Get-Date
 
-while ($true) {
+while ($iteration -lt $maxIterations) {
+    $iteration++
     $now = Get-Date
-    Write-Host "[$($now.ToString('yyyy-MM-dd HH:mm:ss'))] Launching OpenCode (session $sessionId)..."
+    Write-Host "[$($now.ToString('yyyy-MM-dd HH:mm:ss'))] Launching OpenCode iteration $iteration/$maxIterations (session $sessionId)..."
 
     opencode run --agent arrange --model github-copilot-max/gpt-5.4 --session $sessionId --no-ephemeral=true $prompt  # NOTE: in newer versions of the opencode fork, --no-ephemeral may be removed (headless sessions stored by default). If this flag breaks, just remove it.
 
     $exitCode = $LASTEXITCODE
     $elapsed = ((Get-Date) - $lastLaunch).TotalSeconds
     $lastLaunch = Get-Date
-    Write-Host "[$($lastLaunch.ToString('yyyy-MM-dd HH:mm:ss'))] OpenCode exited (code $exitCode, ran ${elapsed}s)"
+    Write-Host "[$($lastLaunch.ToString('yyyy-MM-dd HH:mm:ss'))] OpenCode exited (code $exitCode, ran ${elapsed}s, iteration $iteration/$maxIterations)"
 
     # Back off if it's crashing fast, to avoid a tight crash loop
     if ($elapsed -lt 30) {
@@ -68,3 +71,6 @@ while ($true) {
         Start-Sleep -Seconds 10
     }
 }
+
+Write-Host ""
+Write-Host "Completed $maxIterations iterations. Loop finished."
