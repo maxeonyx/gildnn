@@ -102,7 +102,7 @@ Evidence in question READMEs must be **embedded inline** in the markdown (tables
 
 **Check the time on every session start.** If it's after 4pm and no daily report exists for today in `research/daily/`, write it before starting new work. If it's after 4pm Thursday and no weekly report exists for this week in `research/weekly/`, write that too. See `research/AGENTS.md` for the report process.
 
-**Improve the process before delivering results.** If the last session felt wrong — docs were misleading, something was hard to find, the process was awkward — fix it first (update `AGENTS.md`, `PROCESS.md`, `loop.ps1`). Then deliver the result.
+**Improve the process before delivering results.** If the last session felt wrong — docs were misleading, something was hard to find, the process was awkward — fix it first (update `AGENTS.md`, `PROCESS.md`, `loop.ps1`). Then deliver the result. This includes small niggles: if `__pycache__` is showing up in `git status`, add it to `.gitignore` immediately rather than working around it forever. Don't let friction accumulate.
 
 **Deliver readable outputs before declaring done.** Before calling any experiment complete, produce a clean self-contained narrative with inline artifacts. Max reads these, not the code. See `research/AGENTS.md`.
 
