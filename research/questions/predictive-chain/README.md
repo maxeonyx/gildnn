@@ -30,15 +30,27 @@ Can a tiny 3-node recurrent line on the existing fixed-window character next-tok
   - C predicts B's next message
 - message-target gradients are detached in this bounded unit
 
-## Current result
+## Results
 
-The task head overfits the one-batch memorization check cleanly. In the saved overfit run, accuracy reaches `1.0`, task loss falls to `0.000254`, and the weighted total loss falls to `0.000998` ([`artifacts/overfit_metrics.json`](artifacts/overfit_metrics.json)).
+### Baseline (aux_weight=0.001)
 
-The auxiliary predictive losses do not collapse in the same run. They finish at A `0.510554`, B `0.198283`, and C `0.035449` even after the task is fully memorized ([`artifacts/overfit_metrics.json`](artifacts/overfit_metrics.json)). This is interesting evidence rather than a failure: at this scale, predicting a neighbor's next message appears harder than solving the downstream next-character task itself.
+The task head overfits cleanly: accuracy `1.0`, task loss `0.000254`, total loss `0.000998`. But the auxiliary predictive losses remain non-trivial: A `0.5106`, B `0.1983`, C `0.0354`. See [`artifacts/aux_weight_0.001/`](artifacts/aux_weight_0.001/).
 
-C's auxiliary loss being the lowest is directionally sensible. C receives B's message, which is already somewhat processed, so its local prediction target may be easier than the earlier-node targets.
+Tiny full-dataset run generates clean text (e.g. `hello world.\nsmall text.\nhello world...`). Final accuracy `0.9793`.
 
-The tiny full-dataset run still learns the corpus structure well enough to generate clean repeating samples, for example from the `"hello"` prompt: `hello world.\nsmall text.\nhello world...` ([`artifacts/tiny_samples.json`](artifacts/tiny_samples.json)). Final tiny-run metrics are total loss `0.034652`, task loss `0.033067`, and accuracy `0.979328` ([`artifacts/tiny_run_metrics.json`](artifacts/tiny_run_metrics.json)).
+### Strong aux pressure (aux_weight=1.0)
+
+With equal weighting, aux losses drop dramatically: A `0.0086` (was 0.51), B `0.0392` (was 0.20), C `0.0371` (roughly unchanged). The task head is completely unharmed: accuracy `1.0`, task loss `1.27e-07`. See [`artifacts/aux_weight_1.0/`](artifacts/aux_weight_1.0/).
+
+Tiny run also unharmed: accuracy `0.9793`, task loss slightly better at `0.0322`. Generated samples identical quality.
+
+### Key finding
+
+**Local predictive pressure does not conflict with task performance** at this scale. The aux losses at low weight were high because the optimizer wasn't trying, not because the targets are impossible. When pressured, nodes A and B become highly predictable to their neighbors while still serving the downstream task equally well.
+
+Node C is the exception — its aux loss was already low and doesn't improve much with stronger weighting. This may be because C's prediction target (B's next message) is inherently more variable, or because C's own downstream contribution is less constrained.
+
+Full comparison: [`artifacts/compare_auxiliary_weights.json`](artifacts/compare_auxiliary_weights.json).
 
 ## What this bounded unit does not settle
 
@@ -50,4 +62,4 @@ The tiny full-dataset run still learns the corpus structure well enough to gener
 
 ## Status
 
-This bounded unit succeeded at the narrow implementation goal and produced a useful asymmetry: the task head is easy to overfit here, while the local predictive targets remain materially harder. That makes the auxiliary losses part of the result, not just an optimization nuisance. This folder is still only the first bounded unit for Thread 1.
+Two runs completed. The core finding — local predictive learning is compatible with task learning — opens the door to the next question: does forcing predictability change the *representations* in a way that matters when we scale up or add more nodes? This folder is the first experimental unit for Thread 1.
