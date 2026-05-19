@@ -6,38 +6,30 @@ Working file. Rewrite it as the state changes.
 
 ## Current state
 
-- The repo has a working minimal Python path on this machine: UV + local `.venv` + CPython 3.12.12 + PyTorch CUDA. See `research/questions/backend-validation/`.
-- The tiny character-level sanity stack exists and has working reference experiments, including overfit-style proofs and baseline comparisons. See `research/questions/pytorch-char-sanity-check/` and related question folders.
-- The process became too bureaucratic and started blocking actual research. That is now being simplified.
-- Backend choice is still open.
-- The cortical-column architecture is still an open research thread, not a settled design.
+- Working Python path: UV + `.venv` + CPython 3.12.12 + PyTorch CUDA on RTX 3090.
+- Baseline experiments exist: feedforward, transformer, RNN — all on tiny char next-token task, all hitting ~0.979 accuracy.
+- Mix-Add and dynamic-depth experiments exist but produced near-null results on the tiny task (tied with baselines).
+- **First predictive chain experiment is done.** 3-node recurrent line graph (A→B→C) with local next-input prediction losses. Key finding: task head overfits perfectly, but auxiliary predictive losses remain non-trivial (A: 0.51, B: 0.20, C: 0.04). Predicting a neighbor's next message is harder than the downstream task at this scale.
+- Process simplified. Stale bureaucracy artifacts deleted.
+- Backend choice still open. Cortical-column architecture still open.
 
-## Immediate priorities
+## What the predictive chain result means
 
-1. Clean up stale planning language and remove records of failed selection bureaucracy from the repo.
-2. Integrate or delete any experimental code that is already understood enough to stop living as drift.
-3. Then resume research by picking one small concrete next experiment from the live question folders.
+The aux losses decreasing A→B→C (0.51 → 0.20 → 0.04) suggests information gets progressively easier to predict deeper in the chain — B's output is more predictable from C's state than A's output is from B's state, which makes sense because A faces raw token variation while deeper nodes see increasingly processed signals. But all aux losses remain above zero even at overfit, meaning the local prediction task is genuinely non-trivial.
 
-## How to pick the next experiment
+## Possible next steps (pick one)
 
-Prefer the next step that is:
+- **Vary aux weight / try detached gradients** — does the chain learn different representations when aux weight is higher (forcing nodes to be more predictable to their neighbors)? Or with stop_grad on messages?
+- **Add attention between neighbors** — instead of passing raw hidden state as the message, let B attend over A's recent outputs. Does this help the local prediction tasks?
+- **Increase number of nodes** — go from 3 to 6-8 nodes. Does the pattern (decreasing aux loss deeper in chain) continue?
+- **Try bidirectional messages** — A↔B↔C instead of A→B→C. Does backward information flow help?
+- **Stronger aux weight experiment** — what happens if aux loss is weighted equally with task loss? Does the task head still learn? Do representations become more predictable?
 
-- small
-- runnable now
-- likely to produce inspectable outputs
-- useful for narrowing an open question
-- unlikely to grow the codebase much
-
-Redoing from scratch is allowed if that is cheaper than untangling the current version.
+Prefer whichever is cheapest and most informative about the core question: does local predictive learning produce useful distributed computation?
 
 ## Live constraints
 
-- Integrate before starting broad new branches of experimentation.
+- Integrate before starting broad new branches.
 - Keep the codebase small.
-- Use the experiment ladder: overfit one batch, tiny end-to-end run, inspect outputs, then scale.
-- Reports should stay high quality and evidence-backed.
-- Open questions should stay open until experiments actually narrow them.
-
-## Next handover
-
-If nothing is actively in flight, read the live question folders and pick the cheapest experiment that could produce new evidence without requiring framework work first.
+- Experiment ladder: overfit one batch, tiny end-to-end, inspect outputs, scale.
+- Open questions stay open.
