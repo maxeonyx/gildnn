@@ -1,0 +1,33 @@
+context | target | prediction
+HAMLET:\nTo |   |  
+AMLET:\nTo  | b | b
+MLET:\nTo b | e | e
+LET:\nTo be | , | ,
+ET:\nTo be, |   |  
+T:\nTo be,  | o | o
+:\nTo be, o | r | r
+\nTo be, or |   |  
+To be, or  | n | n
+o be, or n | o | o
+ be, or no | t | t
+be, or not |   |  
+e, or not  | t | t
+, or not t | o | o
+ or not to |   |  
+or not to  | b | b
+r not to b | e | e
+ not to be | : | :
+not to be: |   |  
+ot to be:  | t | t
+t to be: t | h | h
+ to be: th | a | a
+to be: tha | t | t
+o be: that |   |  
+ be: that  | i | i
+be: that i | s | s
+e: that is |   |  
+: that is  | t | t
+ that is t | h | h
+that is th | e | e
+hat is the |   |  
+at is the  | q | q

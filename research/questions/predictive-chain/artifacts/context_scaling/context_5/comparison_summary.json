@@ -1,0 +1,102 @@
+{
+  "models": [
+    {
+      "model_name": "predictive_chain_aux_1_detach",
+      "parameter_count": 13662,
+      "overfit_reached": true,
+      "runtime_seconds": 59.43948349999846,
+      "train_loss": 1.9751296043395996,
+      "train_accuracy": 0.42122983932495117,
+      "val_loss": 2.593513250350952,
+      "val_accuracy": 0.28977274894714355,
+      "train_total_loss": 2.457685947418213,
+      "val_total_loss": 3.1017184257507324,
+      "train_auxiliary_total": 0.4825563430786133,
+      "val_auxiliary_total": 0.5082051157951355,
+      "samples": {
+        "HAMLE": "HAMLET:\nAnd the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have t",
+        "s hou": "s hous and the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have th",
+        " nost": " nostras the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the "
+      }
+    },
+    {
+      "model_name": "transformer_baseline",
+      "parameter_count": 11116,
+      "overfit_reached": true,
+      "runtime_seconds": 8.642898699996294,
+      "train_loss": 1.4503856897354126,
+      "train_accuracy": 0.5589225888252258,
+      "val_loss": 2.8428521156311035,
+      "val_accuracy": 0.29545456171035767,
+      "samples": {
+        "HAMLE": "HAMLET:\nTo seep the breath the breath the breath the breath the breath the breath the breath the breath the breath the breath",
+        "s hou": "s hour the breath the breath the breath the breath the breath the breath the breath the breath the breath the breath the brea",
+        " nost": " nost the breath the breath the breath the breath the breath the breath the breath the breath the breath the breath the breat"
+      }
+    },
+    {
+      "model_name": "rnn_baseline",
+      "parameter_count": 11100,
+      "overfit_reached": true,
+      "runtime_seconds": 2.477070900000399,
+      "train_loss": 1.2361983060836792,
+      "train_accuracy": 0.6257309913635254,
+      "val_loss": 2.9475631713867188,
+      "val_accuracy": 0.3011363744735718,
+      "samples": {
+        "HAMLE": "HAMLET:\nThe unay,\nSome the still the still the still the still the still the still the still the still the still the still th",
+        "s hou": "s hou poor blays me the still the still the still the still the still the still the still the still the still the still the s",
+        " nost": " nost in the still the still the still the still the still the still the still the still the still the still the still the st"
+      }
+    },
+    {
+      "model_name": "feedforward_baseline",
+      "parameter_count": 13084,
+      "overfit_reached": true,
+      "runtime_seconds": 1.7104071000067052,
+      "train_loss": 0.7804142832756042,
+      "train_accuracy": 0.7554492354393005,
+      "val_loss": 4.710479259490967,
+      "val_accuracy": 0.29190340638160706,
+      "samples": {
+        "HAMLE": "HAMLET:\nTo beroinges mills all the rub;\nFor Brutus in Caesar ment;\nNow sehmind him that the rub;\nFor Brutus in Caesar ment;\nN",
+        "s hou": "s hour carser than his a tale,\nAnd then the rub;\nFor Brutus in Caesar ment;\nNow sehmind him that the rub;\nFor Brutus in Caesa",
+        " nost": " nost his a tale,\nAnd then the rub;\nFor Brutus in Caesar ment;\nNow sehmind him that the rub;\nFor Brutus in Caesar ment;\nNow s"
+      }
+    }
+  ],
+  "best_by_val_loss": {
+    "model_name": "predictive_chain_aux_1_detach",
+    "parameter_count": 13662,
+    "overfit_reached": true,
+    "runtime_seconds": 59.43948349999846,
+    "train_loss": 1.9751296043395996,
+    "train_accuracy": 0.42122983932495117,
+    "val_loss": 2.593513250350952,
+    "val_accuracy": 0.28977274894714355,
+    "train_total_loss": 2.457685947418213,
+    "val_total_loss": 3.1017184257507324,
+    "train_auxiliary_total": 0.4825563430786133,
+    "val_auxiliary_total": 0.5082051157951355,
+    "samples": {
+      "HAMLE": "HAMLET:\nAnd the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have t",
+      "s hou": "s hous and the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have th",
+      " nost": " nostras the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the "
+    }
+  },
+  "best_by_val_accuracy": {
+    "model_name": "rnn_baseline",
+    "parameter_count": 11100,
+    "overfit_reached": true,
+    "runtime_seconds": 2.477070900000399,
+    "train_loss": 1.2361983060836792,
+    "train_accuracy": 0.6257309913635254,
+    "val_loss": 2.9475631713867188,
+    "val_accuracy": 0.3011363744735718,
+    "samples": {
+      "HAMLE": "HAMLET:\nThe unay,\nSome the still the still the still the still the still the still the still the still the still the still th",
+      "s hou": "s hou poor blays me the still the still the still the still the still the still the still the still the still the still the s",
+      " nost": " nost in the still the still the still the still the still the still the still the still the still the still the still the st"
+    }
+  }
+}

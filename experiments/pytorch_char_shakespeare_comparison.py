@@ -730,12 +730,15 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output-dir", type=Path, default=default_output_dir)
     parser.add_argument("--device", choices=["cuda", "cpu"], default="cuda")
+    parser.add_argument("--context-size", type=int)
     parser.add_argument("--predictive-message-dim", type=int)
     parser.add_argument("--predictive-aux-weights", type=float, nargs="+", default=[1.0, 0.001])
     parser.add_argument("--skip-baselines", action="store_true")
     args = parser.parse_args()
 
     config = RunConfig()
+    if args.context_size is not None:
+        config = replace(config, context_size=args.context_size)
     if args.predictive_message_dim is not None:
         config = replace(config, predictive_message_dim=args.predictive_message_dim)
     set_seed(config.seed)

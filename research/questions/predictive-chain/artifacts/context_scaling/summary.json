@@ -1,0 +1,301 @@
+{
+  "device": "cuda",
+  "context_sizes": [
+    5,
+    10,
+    20
+  ],
+  "runs": [
+    {
+      "context_size": 5,
+      "output_dir": "research/questions/predictive-chain/artifacts/context_scaling/context_5",
+      "models": [
+        {
+          "model_name": "predictive_chain_aux_1_detach",
+          "parameter_count": 13662,
+          "overfit_reached": true,
+          "runtime_seconds": 59.43948349999846,
+          "train_loss": 1.9751296043395996,
+          "train_accuracy": 0.42122983932495117,
+          "val_loss": 2.593513250350952,
+          "val_accuracy": 0.28977274894714355,
+          "train_total_loss": 2.457685947418213,
+          "val_total_loss": 3.1017184257507324,
+          "train_auxiliary_total": 0.4825563430786133,
+          "val_auxiliary_total": 0.5082051157951355,
+          "samples": {
+            "HAMLE": "HAMLET:\nAnd the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have t",
+            "s hou": "s hous and the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have th",
+            " nost": " nostras the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the "
+          }
+        },
+        {
+          "model_name": "transformer_baseline",
+          "parameter_count": 11116,
+          "overfit_reached": true,
+          "runtime_seconds": 8.642898699996294,
+          "train_loss": 1.4503856897354126,
+          "train_accuracy": 0.5589225888252258,
+          "val_loss": 2.8428521156311035,
+          "val_accuracy": 0.29545456171035767,
+          "samples": {
+            "HAMLE": "HAMLET:\nTo seep the breath the breath the breath the breath the breath the breath the breath the breath the breath the breath",
+            "s hou": "s hour the breath the breath the breath the breath the breath the breath the breath the breath the breath the breath the brea",
+            " nost": " nost the breath the breath the breath the breath the breath the breath the breath the breath the breath the breath the breat"
+          }
+        },
+        {
+          "model_name": "rnn_baseline",
+          "parameter_count": 11100,
+          "overfit_reached": true,
+          "runtime_seconds": 2.477070900000399,
+          "train_loss": 1.2361983060836792,
+          "train_accuracy": 0.6257309913635254,
+          "val_loss": 2.9475631713867188,
+          "val_accuracy": 0.3011363744735718,
+          "samples": {
+            "HAMLE": "HAMLET:\nThe unay,\nSome the still the still the still the still the still the still the still the still the still the still th",
+            "s hou": "s hou poor blays me the still the still the still the still the still the still the still the still the still the still the s",
+            " nost": " nost in the still the still the still the still the still the still the still the still the still the still the still the st"
+          }
+        },
+        {
+          "model_name": "feedforward_baseline",
+          "parameter_count": 13084,
+          "overfit_reached": true,
+          "runtime_seconds": 1.7104071000067052,
+          "train_loss": 0.7804142832756042,
+          "train_accuracy": 0.7554492354393005,
+          "val_loss": 4.710479259490967,
+          "val_accuracy": 0.29190340638160706,
+          "samples": {
+            "HAMLE": "HAMLET:\nTo beroinges mills all the rub;\nFor Brutus in Caesar ment;\nNow sehmind him that the rub;\nFor Brutus in Caesar ment;\nN",
+            "s hou": "s hour carser than his a tale,\nAnd then the rub;\nFor Brutus in Caesar ment;\nNow sehmind him that the rub;\nFor Brutus in Caesa",
+            " nost": " nost his a tale,\nAnd then the rub;\nFor Brutus in Caesar ment;\nNow sehmind him that the rub;\nFor Brutus in Caesar ment;\nNow s"
+          }
+        }
+      ]
+    },
+    {
+      "context_size": 10,
+      "output_dir": "research/questions/predictive-chain/artifacts/context_scaling/context_10",
+      "models": [
+        {
+          "model_name": "predictive_chain_aux_1_detach",
+          "parameter_count": 13662,
+          "overfit_reached": true,
+          "runtime_seconds": 100.42745790000481,
+          "train_loss": 2.002655029296875,
+          "train_accuracy": 0.42213553190231323,
+          "val_loss": 2.565000295639038,
+          "val_accuracy": 0.30506059527397156,
+          "train_total_loss": 2.469531536102295,
+          "val_total_loss": 3.0582149028778076,
+          "train_auxiliary_total": 0.46687647700309753,
+          "val_auxiliary_total": 0.4932146668434143,
+          "samples": {
+            "HAMLET:\\nTo": "HAMLET:\nTo bes and and the wors and and the wors and and the wors and and the wors and and the wors and and the wors and and the w",
+            "s hour upo": "s hour upor and the wors and and the wors and and the wors and and the wors and and the wors and and the wors and and the wors and",
+            " nostril w": " nostril werre hon and and the wors and and the wors and and the wors and and the wors and and the wors and and the wors and and t"
+          }
+        },
+        {
+          "model_name": "transformer_baseline",
+          "parameter_count": 11236,
+          "overfit_reached": true,
+          "runtime_seconds": 8.849396700010402,
+          "train_loss": 1.396159291267395,
+          "train_accuracy": 0.5769776701927185,
+          "val_loss": 2.9224092960357666,
+          "val_accuracy": 0.3114754259586334,
+          "samples": {
+            "HAMLET:\\nTo": "HAMLET:\nTo the was a ter to the with a was a wear and mortun the wortund be the wito arear to menition\nDe armele the woorcerefn me",
+            "s hour upo": "s hour upon the pace and menile the pace and menile the pace and menile the pace and menile the pace and menile the pace and menil",
+            " nostril w": " nostril with a was a wear and mortun the wortund be the wito arear to menition\nDe armele the woorcerefn menomermal woorcy with a "
+          }
+        },
+        {
+          "model_name": "rnn_baseline",
+          "parameter_count": 11100,
+          "overfit_reached": true,
+          "runtime_seconds": 2.908287999991444,
+          "train_loss": 1.3760223388671875,
+          "train_accuracy": 0.5755587220191956,
+          "val_loss": 2.972492218017578,
+          "val_accuracy": 0.29793301224708557,
+          "samples": {
+            "HAMLET:\\nTo": "HAMLET:\nTo Rome,\nThe nats and the nats and the nats and the nats and the nats and the nats and the nats and the nats and the nats ",
+            "s hour upo": "s hour upon the with a fanseling faesan the nats and the nats and the nats and the nats and the nats and the nats and the nats and",
+            " nostril w": " nostril with an we the nate then the gomen\nThe nats and the nats and the nats and the nats and the nats and the nats and the nats"
+          }
+        },
+        {
+          "model_name": "feedforward_baseline",
+          "parameter_count": 20764,
+          "overfit_reached": true,
+          "runtime_seconds": 1.9301070000074105,
+          "train_loss": 0.19608740508556366,
+          "train_accuracy": 0.945193350315094,
+          "val_loss": 8.807756423950195,
+          "val_accuracy": 0.21596579253673553,
+          "samples": {
+            "HAMLET:\\nTo": "HAMLET:\nTo be, or not to be: that is the question: pponinglisedeis duit- inats scowll\nAnd wateaptive how'stil thas scest:\nAnd erme",
+            "s hour upo": "s hour upon the thowk in save hay sopen mightiest: it becomes\nThe throned, ofts beilith: it in the hin whas plutus\nHat rrordste, n",
+            " nostril w": " nostril whis hay no benw hondibl hows in hourand hot  ane quistroon ulin wast of was antinounnr stute to offal ind thousksonst, A"
+          }
+        }
+      ]
+    },
+    {
+      "context_size": 20,
+      "output_dir": "research/questions/predictive-chain/artifacts/context_scaling/context_20",
+      "models": [
+        {
+          "model_name": "predictive_chain_aux_1_detach",
+          "parameter_count": 13662,
+          "overfit_reached": true,
+          "runtime_seconds": 189.16463299999305,
+          "train_loss": 2.003685712814331,
+          "train_accuracy": 0.4264392554759979,
+          "val_loss": 2.634382963180542,
+          "val_accuracy": 0.2849964201450348,
+          "train_total_loss": 2.4855358600616455,
+          "val_total_loss": 3.140967845916748,
+          "train_auxiliary_total": 0.4818502366542816,
+          "val_auxiliary_total": 0.5065849423408508,
+          "samples": {
+            "HAMLET:\\nTo be, or no": "HAMLET:\nTo be, or not the the the the the the the the the the the the the the the the the the the the the the the the the the the the the th",
+            "s hour upon the stag": "s hour upon the stage the the the the the the the the the the the the the the the the the the the the the the the the the the the the the th",
+            " nostril wide,\\nHold ": " nostril wide,\nHold the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the "
+          }
+        },
+        {
+          "model_name": "rnn_baseline",
+          "parameter_count": 11100,
+          "overfit_reached": true,
+          "runtime_seconds": 2.9953487000020687,
+          "train_loss": 1.3942562341690063,
+          "train_accuracy": 0.5708955526351929,
+          "val_loss": 2.9151291847229004,
+          "val_accuracy": 0.3058147728443146,
+          "samples": {
+            "HAMLET:\\nTo be, or no": "HAMLET:\nTo be, or not the the so ean a worth and the the so ean a worth and the the so ean a worth and the the so ean a worth and the the so",
+            "s hour upon the stag": "s hour upon the stage,\nAnd sear and the the so ean a worth and the the so ean a worth and the the so ean a worth and the the so ean a worth ",
+            " nostril wide,\\nHold ": " nostril wide,\nHold so he have the the so ean a worth and the the so ean a worth and the the so ean a worth and the the so ean a worth and t"
+          }
+        },
+        {
+          "model_name": "transformer_baseline",
+          "parameter_count": 11476,
+          "overfit_reached": true,
+          "runtime_seconds": 9.348827099995106,
+          "train_loss": 1.4306930303573608,
+          "train_accuracy": 0.5641435980796814,
+          "val_loss": 2.9536640644073486,
+          "val_accuracy": 0.2871500253677368,
+          "samples": {
+            "HAMLET:\\nTo be, or no": "HAMLET:\nTo be, or not the the the the the the the the the the the the the the the the the the the the the the the the the the the the the th",
+            "s hour upon the stag": "s hour upon the stage the the the the the the the the the the the the the the the the the the the the the the the the the the the the the th",
+            " nostril wide,\\nHold ": " nostril wide,\nHold the the the ar and the to the ther sear and the to the ther sear and the to the ther sear and the to the ther sear and t"
+          }
+        },
+        {
+          "model_name": "feedforward_baseline",
+          "parameter_count": 36124,
+          "overfit_reached": true,
+          "runtime_seconds": 2.002676000003703,
+          "train_loss": 0.008815729059278965,
+          "train_accuracy": 0.9989339113235474,
+          "val_loss": 9.745423316955566,
+          "val_accuracy": 0.19382627308368683,
+          "samples": {
+            "HAMLET:\\nTo be, or no": "HAMLET:\nTo be, or not to be: that is the question:\nWhether 'tis nobler in the mind to suffer\nThe slings and arrows of outrageous fortune,\nOr",
+            "s hour upon the stag": "s hour upon the stage,\nAnd then is heard no more: it is a tale\nTold by an idiot, full of sound and fury,\nSignifying nothing.\n\nMARK ANTONY:\nF",
+            " nostril wide,\\nHold ": " nostril wide,\nHold oftresaceceleyeamd y yis owyey jotut s:\nhea bis he at se abdeo theic?\nMgearrelskrit so comel oud by sos artind and me in"
+          }
+        }
+      ]
+    }
+  ],
+  "val_loss_table": {
+    "feedforward_baseline": {
+      "5": 4.710479259490967,
+      "10": 8.807756423950195,
+      "20": 9.745423316955566
+    },
+    "rnn_baseline": {
+      "5": 2.9475631713867188,
+      "10": 2.972492218017578,
+      "20": 2.9151291847229004
+    },
+    "transformer_baseline": {
+      "5": 2.8428521156311035,
+      "10": 2.9224092960357666,
+      "20": 2.9536640644073486
+    },
+    "predictive_chain_aux_1_detach": {
+      "5": 2.593513250350952,
+      "10": 2.565000295639038,
+      "20": 2.634382963180542
+    }
+  },
+  "best_by_context": {
+    "5": {
+      "model_name": "predictive_chain_aux_1_detach",
+      "parameter_count": 13662,
+      "overfit_reached": true,
+      "runtime_seconds": 59.43948349999846,
+      "train_loss": 1.9751296043395996,
+      "train_accuracy": 0.42122983932495117,
+      "val_loss": 2.593513250350952,
+      "val_accuracy": 0.28977274894714355,
+      "train_total_loss": 2.457685947418213,
+      "val_total_loss": 3.1017184257507324,
+      "train_auxiliary_total": 0.4825563430786133,
+      "val_auxiliary_total": 0.5082051157951355,
+      "samples": {
+        "HAMLE": "HAMLET:\nAnd the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have t",
+        "s hou": "s hous and the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have th",
+        " nost": " nostras the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the "
+      }
+    },
+    "10": {
+      "model_name": "predictive_chain_aux_1_detach",
+      "parameter_count": 13662,
+      "overfit_reached": true,
+      "runtime_seconds": 100.42745790000481,
+      "train_loss": 2.002655029296875,
+      "train_accuracy": 0.42213553190231323,
+      "val_loss": 2.565000295639038,
+      "val_accuracy": 0.30506059527397156,
+      "train_total_loss": 2.469531536102295,
+      "val_total_loss": 3.0582149028778076,
+      "train_auxiliary_total": 0.46687647700309753,
+      "val_auxiliary_total": 0.4932146668434143,
+      "samples": {
+        "HAMLET:\\nTo": "HAMLET:\nTo bes and and the wors and and the wors and and the wors and and the wors and and the wors and and the wors and and the w",
+        "s hour upo": "s hour upor and the wors and and the wors and and the wors and and the wors and and the wors and and the wors and and the wors and",
+        " nostril w": " nostril werre hon and and the wors and and the wors and and the wors and and the wors and and the wors and and the wors and and t"
+      }
+    },
+    "20": {
+      "model_name": "predictive_chain_aux_1_detach",
+      "parameter_count": 13662,
+      "overfit_reached": true,
+      "runtime_seconds": 189.16463299999305,
+      "train_loss": 2.003685712814331,
+      "train_accuracy": 0.4264392554759979,
+      "val_loss": 2.634382963180542,
+      "val_accuracy": 0.2849964201450348,
+      "train_total_loss": 2.4855358600616455,
+      "val_total_loss": 3.140967845916748,
+      "train_auxiliary_total": 0.4818502366542816,
+      "val_auxiliary_total": 0.5065849423408508,
+      "samples": {
+        "HAMLET:\\nTo be, or no": "HAMLET:\nTo be, or not the the the the the the the the the the the the the the the the the the the the the the the the the the the the the th",
+        "s hour upon the stag": "s hour upon the stage the the the the the the the the the the the the the the the the the the the the the the the the the the the the the th",
+        " nostril wide,\\nHold ": " nostril wide,\nHold the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the "
+      }
+    }
+  }
+}

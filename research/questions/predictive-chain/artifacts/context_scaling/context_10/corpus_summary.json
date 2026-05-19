@@ -1,0 +1,18 @@
+{
+  "corpus_name": "hardcoded_shakespeare_excerpt",
+  "corpus_sha256": "ece04df5881dcfaaeb7cd78e52ad1b58af11f364939413b4ba17fe9810dc56f1",
+  "total_characters": 7061,
+  "vocab_size": 60,
+  "split_index": 5648,
+  "train_characters": 5648,
+  "val_characters": 1413,
+  "train_windows": 5638,
+  "val_windows": 1403,
+  "prompts": [
+    "HAMLET:\\nTo",
+    "s hour upo",
+    " nostril w"
+  ],
+  "train_text_preview": "HAMLET:\\nTo be, or not to be: that is the question:\\nWhether 'tis nobler in the mind to suffer\\nThe slings and arrows of outrageous fortune,\\nOr to take arms against a sea of troubles,\\nAnd by opposing end them? To die: to sleep;\\nNo more; and by a sleep t",
+  "val_text_preview": " nostril wide,\\nHold hard the breath and bend up every spirit\\nTo his full height. On, on, you noblest English,\\nWhose blood is fet from fathers of war-proof!\\n\\nLEAR:\\nBlow, winds, and crack your cheeks! rage! blow!\\nYou cataracts and hurricanoes, spout\\nTi"
+}

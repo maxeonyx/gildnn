@@ -1,0 +1,33 @@
+context | target | prediction
+ nostril w | i | e
+nostril wi | d | t
+ostril wid | e | e
+stril wide | , |  
+tril wide, | \n | \n
+ril wide,\n | H | A
+il wide,\nH | o | e
+l wide,\nHo | l | u
+ wide,\nHol | d | s
+wide,\nHold |   |  
+ide,\nHold  | h | a
+de,\nHold h | a | o
+e,\nHold ha | r | n
+,\nHold har | d | s
+\nHold hard |   |  
+Hold hard  | t | a
+old hard t | h | h
+ld hard th | e | e
+d hard the |   |  
+ hard the  | b | w
+hard the b | r | e
+ard the br | e | o
+rd the bre | a |  
+d the brea | t | t
+ the breat | h | h
+the breath |   |  
+he breath  | a | a
+e breath a | n | n
+ breath an | d | d
+breath and |   |  
+reath and  | b | a
+eath and b | e | e

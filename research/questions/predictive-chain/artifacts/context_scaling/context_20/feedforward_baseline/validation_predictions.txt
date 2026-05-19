@@ -1,0 +1,33 @@
+context | target | prediction
+ nostril wide,\nHold  | h | o
+nostril wide,\nHold h | a | o
+ostril wide,\nHold ha | r | t
+stril wide,\nHold har | d |  
+tril wide,\nHold hard |   |  
+ril wide,\nHold hard  | t | l
+il wide,\nHold hard t | h | h
+l wide,\nHold hard th | e | e
+ wide,\nHold hard the |   |  
+wide,\nHold hard the  | b | p
+ide,\nHold hard the b | r | e
+de,\nHold hard the br | e | l
+e,\nHold hard the bre | a | s
+,\nHold hard the brea | t | n
+\nHold hard the breat | h | h
+Hold hard the breath |   | o
+old hard the breath  | a | t
+ld hard the breath a | n | t
+d hard the breath an | d | e
+ hard the breath and |   | i
+hard the breath and  | b | r
+ard the breath and b | e | u
+rd the breath and be | n |  
+d the breath and ben | d | t
+ the breath and bend |   | i
+the breath and bend  | u | w
+he breath and bend u | p | n
+e breath and bend up |   | d
+ breath and bend up  | e | t
+breath and bend up e | v | c
+reath and bend up ev | e | e
+eath and bend up eve | r |  
