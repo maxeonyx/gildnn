@@ -43,13 +43,24 @@ Pareto frontier (threshold → val_loss, avg_depth):
 
 ### What the model thinks is "hard"
 
-On the large corpus, deeper computation is allocated to:
-- Rare words and unusual letter combinations
-- Transitions between dialogue and description
-- Characters after punctuation (beginning of new clauses)
-- Uncommon character bigrams
+Systematic feature correlation analysis (η = correlation ratio, ρ = Spearman rank):
 
-See `artifacts/improved/large_100k/recommended_threshold_analysis/depth_annotation.txt`.
+| Rank | Feature | Effect Size | Direction |
+|---|---|---|---|
+| 1 | Position in word | η = 0.46 | Word-initial chars get max depth |
+| 2 | Character identity | η = 0.37 | Uppercase rare letters deepest |
+| 3 | After punctuation | r = −0.23 | Post-punctuation is *shallow* |
+| 4 | Bigram novelty | ρ = −0.19 | Novel bigrams are shallower |
+| 5 | Word frequency | ρ = 0.16 | Rare words slightly deeper |
+| 6 | Local entropy | ρ = −0.12 | High-entropy regions shallower |
+
+**The dominant signal is position in word.** First character after a space gets depth 8.0 uniformly. Middle/end of words get depth 3.8–4.5. The model concentrates compute at word boundaries where it must commit to a word identity, then coasts through predictable continuations.
+
+Post-punctuation tokens (`\n`, space after `.`) are among the shallowest — the opposite of the initial qualitative impression. These positions have low uncertainty (new line = likely a character name in Shakespeare).
+
+⚠️ **Reproducibility note:** The analysis ran on a retrained model (same hyperparams, different random seed). Qualitative patterns differ from the first run's depth annotations, suggesting the depth routing is not fully stable across seeds. The position-in-word effect is robust; finer-grained character-level patterns may not be.
+
+See `artifacts/improved/depth_analysis/analysis.md` for full tables.
 
 ## Key findings
 
@@ -57,7 +68,7 @@ See `artifacts/improved/large_100k/recommended_threshold_analysis/depth_annotati
 2. **Deeper is better, up to a point** — loss improves monotonically from depth 1 to depth ~7, then plateaus
 3. **The loss-prediction head works when given enough data** — poor calibration on 7K chars, good calibration on 100K chars
 4. **Adaptive compute is practical** — 43% savings for 1% quality degradation at the recommended operating point
-5. **Depth allocation is semantically meaningful** — harder tokens genuinely get more computation
+5. **Depth allocation is structured but seed-dependent** — word-initial positions robustly get more depth; finer patterns vary across seeds
 
 ## What this does not settle
 
@@ -66,6 +77,7 @@ See `artifacts/improved/large_100k/recommended_threshold_analysis/depth_annotati
 - Whether PonderNet-style probabilistic halting is better than threshold-based
 - Whether this works for a deeper base model (e.g., transformer layers)
 - What the optimal max_depth is (we only tried 8)
+- Whether depth routing is stable across random seeds (evidence suggests it's not at fine grain)
 
 ## Artifacts
 
@@ -73,3 +85,4 @@ See `artifacts/improved/large_100k/recommended_threshold_analysis/depth_annotati
 - Improved (Pareto + large corpus): `artifacts/improved/`
   - Small corpus: `artifacts/improved/small_7k/`
   - Large corpus: `artifacts/improved/large_100k/`
+- Feature analysis: `artifacts/improved/depth_analysis/`
