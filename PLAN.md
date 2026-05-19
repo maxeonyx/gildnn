@@ -7,28 +7,28 @@ Working file. Rewrite it as the state changes.
 ## Current state
 
 - Working Python path: UV + `.venv` + CPython 3.12.12 + PyTorch CUDA on RTX 3090.
-- **First real positive signal for the predictive chain architecture.** On Shakespeare text (7k chars, context_size=5, 80/20 train/val split), the 8-node detached predictive chain achieves the best validation loss (2.59) of all models tested, despite the highest training loss. It generalizes better than transformer (2.80), RNN (3.05), and feedforward (4.87) baselines.
-- The aux weight (0.001 vs 1.0) makes little difference to val performance.
-- Detached gradients work — nodes learn independently without harming task performance.
-- The tiny repetitive corpus experiments all hit a ceiling (0.9793) and no longer discriminate.
+- **Predictive chain architecture shows real generalization advantage.** On Shakespeare (7k chars, context=5, 80/20 split), the 8-node detached chain gets val loss 2.56-2.59, beating transformer (2.80), RNN (3.05), feedforward (4.87).
+- **Why it generalizes:** ablations show it's the multi-hop recurrent structure itself — not aux pressure (aux weight doesn't matter) and not message bottleneck (removing it doesn't hurt). The architecture's structural constraint provides implicit regularization.
+- **Unhooked gradients work** — detached messages don't harm performance.
+- All experiments run in minutes on the RTX 3090.
 
-## Key open question
+## Next experiment
 
-**Why does the predictive chain generalize better?** Hypotheses:
-- The message bottleneck between nodes acts as an information bottleneck / regularizer
-- The multi-step processing forces more distributed representations
-- The auxiliary losses provide implicit regularization pressure
-- Some combination of the above
+**Attention between neighbors.** Max's vision specifically describes attention as the aggregation mechanism: "how do inputs get aggregated by a node? They use attention." Currently each node receives a single message vector from its predecessor. The next step is to let each node attend over its neighbor's recent output history (last K messages).
 
-## Possible next experiments (pick one)
+This is a meaningful structural change:
+- Nodes would maintain a buffer of recent messages
+- Each node attends over its neighbor's buffer rather than just receiving the latest single message
+- This enables the "predict attention for the next timestep" idea from Max's dictation
 
-1. **Ablate the message bottleneck** — try message_dim = hidden_dim (no bottleneck). If val loss gets worse, the bottleneck is doing the regularization work.
-2. **Add attention between neighbors** — Max's vision has nodes attending over neighbor history rather than receiving single messages. Does this help the architecture further?
-3. **Increase context size** — go from 5 to 20 on Shakespeare. Does the predictive chain's advantage grow with longer dependencies?
-4. **Graph topology** — instead of a line, try a small grid or tree. Does connectivity pattern matter?
-5. **Coupled vs detached on Shakespeare** — run the comparison with gradient coupling enabled to see if it matters on the harder task.
+Start small: try K=3-5 message history, single-head attention, on the Shakespeare comparison.
 
-Prefer whichever is cheapest and most likely to explain *why* the architecture works.
+## Possible future directions
+
+- Increase context size (5 → 20-50) to test longer-range dependency handling
+- Graph topology (grid, tree) instead of line
+- Loss-prediction heads for dynamic halting
+- Larger model / more training to see if advantage grows or shrinks
 
 ## Live constraints
 
