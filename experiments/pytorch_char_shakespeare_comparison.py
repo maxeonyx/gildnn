@@ -6,7 +6,7 @@ import json
 import subprocess
 import sys
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
 import torch
@@ -261,6 +261,10 @@ class DatasetSplit:
     split_index: int
     train_text: str
     val_text: str
+
+
+def format_float_token(value: float) -> str:
+    return format(value, "g").replace("-", "neg").replace(".", "p")
 
 
 def current_git_sha() -> str:
@@ -726,9 +730,14 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output-dir", type=Path, default=default_output_dir)
     parser.add_argument("--device", choices=["cuda", "cpu"], default="cuda")
+    parser.add_argument("--predictive-message-dim", type=int)
+    parser.add_argument("--predictive-aux-weights", type=float, nargs="+", default=[1.0, 0.001])
+    parser.add_argument("--skip-baselines", action="store_true")
     args = parser.parse_args()
 
     config = RunConfig()
+    if args.predictive_message_dim is not None:
+        config = replace(config, predictive_message_dim=args.predictive_message_dim)
     set_seed(config.seed)
     device = resolve_device(args.device)
 
@@ -749,7 +758,14 @@ def main() -> None:
     output_dir = args.output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    write_json(output_dir / "config.json", asdict(config))
+    write_json(
+        output_dir / "config.json",
+        {
+            **asdict(config),
+            "predictive_aux_weights": args.predictive_aux_weights,
+            "skip_baselines": args.skip_baselines,
+        },
+    )
     git_status_short = current_git_status_short()
     write_json(
         output_dir / "environment.json",
@@ -790,84 +806,39 @@ def main() -> None:
     val_targets = split.val_targets.to(device)
 
     results = []
-    results.append(
-        save_predictive_chain_run(
-            model_name="predictive_chain_aux_1p0_detach",
-            output_dir=output_dir,
-            dataset=dataset,
-            train_inputs=train_inputs,
-            train_targets=train_targets,
-            val_inputs=val_inputs,
-            val_targets=val_targets,
-            vocab_size=dataset.vocab_size,
-            embedding_dim=config.embedding_dim,
-            hidden_dim=config.predictive_hidden_dim,
-            message_dim=config.predictive_message_dim,
-            num_nodes=config.predictive_num_nodes,
-            detach_messages=config.predictive_detach_messages,
-            auxiliary_weight=1.0,
-            overfit_batch_size=config.overfit_batch_size,
-            overfit_steps=config.overfit_steps,
-            overfit_learning_rate=config.overfit_learning_rate,
-            train_batch_size=config.train_batch_size,
-            train_steps=config.train_steps,
-            train_learning_rate=config.train_learning_rate,
-            gradient_clip_norm=config.predictive_gradient_clip_norm,
-            prompts=prompts,
-            sample_length=config.sample_length,
-            device=device,
+    for auxiliary_weight in args.predictive_aux_weights:
+        results.append(
+            save_predictive_chain_run(
+                model_name=f"predictive_chain_aux_{format_float_token(auxiliary_weight)}_detach",
+                output_dir=output_dir,
+                dataset=dataset,
+                train_inputs=train_inputs,
+                train_targets=train_targets,
+                val_inputs=val_inputs,
+                val_targets=val_targets,
+                vocab_size=dataset.vocab_size,
+                embedding_dim=config.embedding_dim,
+                hidden_dim=config.predictive_hidden_dim,
+                message_dim=config.predictive_message_dim,
+                num_nodes=config.predictive_num_nodes,
+                detach_messages=config.predictive_detach_messages,
+                auxiliary_weight=auxiliary_weight,
+                overfit_batch_size=config.overfit_batch_size,
+                overfit_steps=config.overfit_steps,
+                overfit_learning_rate=config.overfit_learning_rate,
+                train_batch_size=config.train_batch_size,
+                train_steps=config.train_steps,
+                train_learning_rate=config.train_learning_rate,
+                gradient_clip_norm=config.predictive_gradient_clip_norm,
+                prompts=prompts,
+                sample_length=config.sample_length,
+                device=device,
+            )
         )
-    )
-    results.append(
-        save_predictive_chain_run(
-            model_name="predictive_chain_aux_0p001_detach",
-            output_dir=output_dir,
-            dataset=dataset,
-            train_inputs=train_inputs,
-            train_targets=train_targets,
-            val_inputs=val_inputs,
-            val_targets=val_targets,
-            vocab_size=dataset.vocab_size,
-            embedding_dim=config.embedding_dim,
-            hidden_dim=config.predictive_hidden_dim,
-            message_dim=config.predictive_message_dim,
-            num_nodes=config.predictive_num_nodes,
-            detach_messages=config.predictive_detach_messages,
-            auxiliary_weight=0.001,
-            overfit_batch_size=config.overfit_batch_size,
-            overfit_steps=config.overfit_steps,
-            overfit_learning_rate=config.overfit_learning_rate,
-            train_batch_size=config.train_batch_size,
-            train_steps=config.train_steps,
-            train_learning_rate=config.train_learning_rate,
-            gradient_clip_norm=config.predictive_gradient_clip_norm,
-            prompts=prompts,
-            sample_length=config.sample_length,
-            device=device,
-        )
-    )
 
-    transformer_parameter_count = count_parameters(
-        TinyTransformerCharModel(
-            vocab_size=dataset.vocab_size,
-            context_size=config.context_size,
-            d_model=config.transformer_d_model,
-            num_heads=config.transformer_num_heads,
-            num_layers=config.transformer_num_layers,
-            feedforward_dim=config.transformer_feedforward_dim,
-            residual_factory=PlainResidualCombine,
-        )
-    )
-    results.append(
-        save_standard_model_run(
-            model_name="transformer_baseline",
-            output_dir=output_dir,
-            dataset=dataset,
-            train_inputs=train_inputs,
-            train_targets=train_targets,
-            val_inputs=val_inputs,
-            val_targets=val_targets,
-            build_model=lambda: TinyTransformerCharModel(
+    if not args.skip_baselines:
+        transformer_parameter_count = count_parameters(
+            TinyTransformerCharModel(
                 vocab_size=dataset.vocab_size,
                 context_size=config.context_size,
                 d_model=config.transformer_d_model,
@@ -875,93 +846,112 @@ def main() -> None:
                 num_layers=config.transformer_num_layers,
                 feedforward_dim=config.transformer_feedforward_dim,
                 residual_factory=PlainResidualCombine,
-            ),
-            parameter_count=transformer_parameter_count,
-            overfit_batch_size=config.overfit_batch_size,
-            overfit_steps=config.overfit_steps,
-            overfit_learning_rate=config.overfit_learning_rate,
-            train_batch_size=config.train_batch_size,
-            train_steps=config.train_steps,
-            train_learning_rate=config.train_learning_rate,
-            prompts=prompts,
-            sample_length=config.sample_length,
-            device=device,
+            )
         )
-    )
+        results.append(
+            save_standard_model_run(
+                model_name="transformer_baseline",
+                output_dir=output_dir,
+                dataset=dataset,
+                train_inputs=train_inputs,
+                train_targets=train_targets,
+                val_inputs=val_inputs,
+                val_targets=val_targets,
+                build_model=lambda: TinyTransformerCharModel(
+                    vocab_size=dataset.vocab_size,
+                    context_size=config.context_size,
+                    d_model=config.transformer_d_model,
+                    num_heads=config.transformer_num_heads,
+                    num_layers=config.transformer_num_layers,
+                    feedforward_dim=config.transformer_feedforward_dim,
+                    residual_factory=PlainResidualCombine,
+                ),
+                parameter_count=transformer_parameter_count,
+                overfit_batch_size=config.overfit_batch_size,
+                overfit_steps=config.overfit_steps,
+                overfit_learning_rate=config.overfit_learning_rate,
+                train_batch_size=config.train_batch_size,
+                train_steps=config.train_steps,
+                train_learning_rate=config.train_learning_rate,
+                prompts=prompts,
+                sample_length=config.sample_length,
+                device=device,
+            )
+        )
 
-    rnn_parameter_count = count_parameters(
-        TinyRnnCharModel(
-            vocab_size=dataset.vocab_size,
-            embedding_dim=config.embedding_dim,
-            hidden_dim=config.rnn_hidden_dim,
-            num_layers=1,
-            nonlinearity="tanh",
-        )
-    )
-    results.append(
-        save_standard_model_run(
-            model_name="rnn_baseline",
-            output_dir=output_dir,
-            dataset=dataset,
-            train_inputs=train_inputs,
-            train_targets=train_targets,
-            val_inputs=val_inputs,
-            val_targets=val_targets,
-            build_model=lambda: TinyRnnCharModel(
+        rnn_parameter_count = count_parameters(
+            TinyRnnCharModel(
                 vocab_size=dataset.vocab_size,
                 embedding_dim=config.embedding_dim,
                 hidden_dim=config.rnn_hidden_dim,
                 num_layers=1,
                 nonlinearity="tanh",
-            ),
-            parameter_count=rnn_parameter_count,
-            overfit_batch_size=config.overfit_batch_size,
-            overfit_steps=config.overfit_steps,
-            overfit_learning_rate=config.overfit_learning_rate,
-            train_batch_size=config.train_batch_size,
-            train_steps=config.train_steps,
-            train_learning_rate=config.train_learning_rate,
-            prompts=prompts,
-            sample_length=config.sample_length,
-            device=device,
+            )
         )
-    )
+        results.append(
+            save_standard_model_run(
+                model_name="rnn_baseline",
+                output_dir=output_dir,
+                dataset=dataset,
+                train_inputs=train_inputs,
+                train_targets=train_targets,
+                val_inputs=val_inputs,
+                val_targets=val_targets,
+                build_model=lambda: TinyRnnCharModel(
+                    vocab_size=dataset.vocab_size,
+                    embedding_dim=config.embedding_dim,
+                    hidden_dim=config.rnn_hidden_dim,
+                    num_layers=1,
+                    nonlinearity="tanh",
+                ),
+                parameter_count=rnn_parameter_count,
+                overfit_batch_size=config.overfit_batch_size,
+                overfit_steps=config.overfit_steps,
+                overfit_learning_rate=config.overfit_learning_rate,
+                train_batch_size=config.train_batch_size,
+                train_steps=config.train_steps,
+                train_learning_rate=config.train_learning_rate,
+                prompts=prompts,
+                sample_length=config.sample_length,
+                device=device,
+            )
+        )
 
-    feedforward_parameter_count = count_parameters(
-        FeedForwardCharModel(
-            vocab_size=dataset.vocab_size,
-            context_size=config.context_size,
-            embedding_dim=config.embedding_dim,
-            hidden_dim=config.feedforward_hidden_dim,
-        )
-    )
-    results.append(
-        save_standard_model_run(
-            model_name="feedforward_baseline",
-            output_dir=output_dir,
-            dataset=dataset,
-            train_inputs=train_inputs,
-            train_targets=train_targets,
-            val_inputs=val_inputs,
-            val_targets=val_targets,
-            build_model=lambda: FeedForwardCharModel(
+        feedforward_parameter_count = count_parameters(
+            FeedForwardCharModel(
                 vocab_size=dataset.vocab_size,
                 context_size=config.context_size,
                 embedding_dim=config.embedding_dim,
                 hidden_dim=config.feedforward_hidden_dim,
-            ),
-            parameter_count=feedforward_parameter_count,
-            overfit_batch_size=config.overfit_batch_size,
-            overfit_steps=config.overfit_steps,
-            overfit_learning_rate=config.overfit_learning_rate,
-            train_batch_size=config.train_batch_size,
-            train_steps=config.train_steps,
-            train_learning_rate=config.train_learning_rate,
-            prompts=prompts,
-            sample_length=config.sample_length,
-            device=device,
+            )
         )
-    )
+        results.append(
+            save_standard_model_run(
+                model_name="feedforward_baseline",
+                output_dir=output_dir,
+                dataset=dataset,
+                train_inputs=train_inputs,
+                train_targets=train_targets,
+                val_inputs=val_inputs,
+                val_targets=val_targets,
+                build_model=lambda: FeedForwardCharModel(
+                    vocab_size=dataset.vocab_size,
+                    context_size=config.context_size,
+                    embedding_dim=config.embedding_dim,
+                    hidden_dim=config.feedforward_hidden_dim,
+                ),
+                parameter_count=feedforward_parameter_count,
+                overfit_batch_size=config.overfit_batch_size,
+                overfit_steps=config.overfit_steps,
+                overfit_learning_rate=config.overfit_learning_rate,
+                train_batch_size=config.train_batch_size,
+                train_steps=config.train_steps,
+                train_learning_rate=config.train_learning_rate,
+                prompts=prompts,
+                sample_length=config.sample_length,
+                device=device,
+            )
+        )
 
     write_json(
         output_dir / "comparison_summary.json",

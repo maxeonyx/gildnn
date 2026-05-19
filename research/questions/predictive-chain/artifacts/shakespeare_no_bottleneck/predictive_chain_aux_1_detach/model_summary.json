@@ -1,0 +1,9 @@
+{
+  "parameter_count": 35118,
+  "num_nodes": 8,
+  "embedding_dim": 24,
+  "hidden_dim": 10,
+  "message_dim": 96,
+  "detach_messages": true,
+  "auxiliary_weight": 1.0
+}

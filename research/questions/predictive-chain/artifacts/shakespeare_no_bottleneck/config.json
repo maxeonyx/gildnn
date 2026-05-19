@@ -1,0 +1,28 @@
+{
+  "context_size": 5,
+  "train_fraction": 0.8,
+  "embedding_dim": 24,
+  "feedforward_hidden_dim": 64,
+  "rnn_hidden_dim": 64,
+  "transformer_d_model": 24,
+  "transformer_feedforward_dim": 112,
+  "transformer_num_heads": 4,
+  "transformer_num_layers": 1,
+  "predictive_num_nodes": 8,
+  "predictive_hidden_dim": 10,
+  "predictive_message_dim": 96,
+  "predictive_detach_messages": true,
+  "overfit_batch_size": 32,
+  "overfit_steps": 3000,
+  "overfit_learning_rate": 0.02,
+  "train_batch_size": 128,
+  "train_steps": 1200,
+  "train_learning_rate": 0.01,
+  "predictive_gradient_clip_norm": 1.0,
+  "sample_length": 120,
+  "seed": 7,
+  "predictive_aux_weights": [
+    1.0
+  ],
+  "skip_baselines": true
+}

@@ -197,6 +197,26 @@ def full_tokens(inputs: Tensor, targets: Tensor) -> Tensor:
     return torch.cat([inputs, targets.unsqueeze(1)], dim=1)
 
 
+def align_embedding_target_to_message_dim(
+    target_embeddings: Tensor,
+    *,
+    message_dim: int,
+) -> Tensor:
+    embedding_dim = target_embeddings.shape[-1]
+    if embedding_dim == message_dim:
+        return target_embeddings
+    if embedding_dim > message_dim:
+        return target_embeddings[..., :message_dim]
+
+    padding_shape = (*target_embeddings.shape[:-1], message_dim - embedding_dim)
+    padding = torch.zeros(
+        padding_shape,
+        device=target_embeddings.device,
+        dtype=target_embeddings.dtype,
+    )
+    return torch.cat((target_embeddings, padding), dim=-1)
+
+
 def compute_losses(
     model: PredictiveChainCharModel,
     inputs: Tensor,
@@ -214,7 +234,10 @@ def compute_losses(
     logits = model.task_head(task_state)
 
     auxiliary_by_node: dict[str, Tensor] = {}
-    next_embeddings = rollout.embeddings[:, 1:, :].detach()
+    next_embeddings = align_embedding_target_to_message_dim(
+        rollout.embeddings[:, 1:, :].detach(),
+        message_dim=model.message_dim,
+    )
     auxiliary_by_node[model.labels[0]] = F.mse_loss(
         rollout.messages[0][:, :-1, :],
         next_embeddings,
