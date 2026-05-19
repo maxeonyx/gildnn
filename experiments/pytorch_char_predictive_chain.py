@@ -24,6 +24,7 @@ from core.tiny_char_transformer import count_parameters
 @dataclass(frozen=True)
 class RunConfig:
     context_size: int = 5
+    num_nodes: int = 3
     embedding_dim: int = 24
     hidden_dim: int = 96
     message_dim: int = 24
@@ -46,11 +47,27 @@ class LossBreakdown:
     total_loss: Tensor
     task_loss: Tensor
     auxiliary_total: Tensor
-    auxiliary_a: Tensor
-    auxiliary_b: Tensor
-    auxiliary_c: Tensor
+    auxiliary_by_node: dict[str, Tensor]
     logits: Tensor
     accuracy: float
+
+
+@dataclass(frozen=True)
+class ModelRollout:
+    embeddings: Tensor
+    hidden_states: list[Tensor]
+    messages: list[Tensor]
+
+
+def node_label(index: int) -> str:
+    letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    if index < len(letters):
+        return letters[index]
+    return f"node_{index + 1}"
+
+
+def node_labels(count: int) -> list[str]:
+    return [node_label(index) for index in range(count)]
 
 
 class PredictiveChainCharModel(nn.Module):
@@ -58,27 +75,38 @@ class PredictiveChainCharModel(nn.Module):
         self,
         *,
         vocab_size: int,
+        num_nodes: int,
         embedding_dim: int,
         hidden_dim: int,
         message_dim: int,
         detach_messages: bool,
     ) -> None:
         super().__init__()
-        self.embedding = nn.Embedding(vocab_size, embedding_dim)
-        self.node_a = nn.GRUCell(embedding_dim, hidden_dim)
-        self.node_b = nn.GRUCell(message_dim, hidden_dim)
-        self.node_c = nn.GRUCell(message_dim, hidden_dim)
+        if num_nodes < 1:
+            raise ValueError(f"num_nodes must be at least 1, got {num_nodes}")
 
-        self.message_a_head = nn.Linear(hidden_dim, message_dim)
-        self.message_b_head = nn.Linear(hidden_dim, message_dim)
-        self.message_c_head = nn.Linear(hidden_dim, message_dim)
+        self.embedding = nn.Embedding(vocab_size, embedding_dim)
+        self.nodes = nn.ModuleList(
+            [
+                nn.GRUCell(
+                    embedding_dim if node_index == 0 else message_dim,
+                    hidden_dim,
+                )
+                for node_index in range(num_nodes)
+            ]
+        )
+        self.message_heads = nn.ModuleList(
+            [nn.Linear(hidden_dim, message_dim) for _ in range(num_nodes)]
+        )
 
         self.task_head = nn.Sequential(
-            nn.Linear(hidden_dim * 3, hidden_dim),
+            nn.Linear(hidden_dim * num_nodes, hidden_dim),
             nn.Tanh(),
             nn.Linear(hidden_dim, vocab_size),
         )
 
+        self.num_nodes = num_nodes
+        self.labels = node_labels(num_nodes)
         self.hidden_dim = hidden_dim
         self.message_dim = message_dim
         self.detach_messages = detach_messages
@@ -89,78 +117,53 @@ class PredictiveChainCharModel(nn.Module):
     def _predictive_message(self, projection: nn.Linear, hidden: Tensor) -> Tensor:
         return torch.tanh(projection(hidden))
 
-    def rollout(self, tokens: Tensor) -> dict[str, Tensor]:
+    def rollout(self, tokens: Tensor) -> ModelRollout:
         batch_size, sequence_length = tokens.shape
         embeddings = self._bounded_embedding(tokens)
 
-        hidden_a = torch.zeros(batch_size, self.hidden_dim, device=tokens.device)
-        hidden_b = torch.zeros(batch_size, self.hidden_dim, device=tokens.device)
-        hidden_c = torch.zeros(batch_size, self.hidden_dim, device=tokens.device)
-        previous_a_message = torch.zeros(
-            batch_size, self.message_dim, device=tokens.device
-        )
-        previous_b_message = torch.zeros(
-            batch_size, self.message_dim, device=tokens.device
-        )
+        hidden_states = [
+            torch.zeros(batch_size, self.hidden_dim, device=tokens.device)
+            for _ in range(self.num_nodes)
+        ]
+        previous_messages = [
+            torch.zeros(batch_size, self.message_dim, device=tokens.device)
+            for _ in range(self.num_nodes - 1)
+        ]
 
-        hidden_a_steps = []
-        hidden_b_steps = []
-        hidden_c_steps = []
-        message_a_steps = []
-        message_b_steps = []
-        message_c_steps = []
-        predicted_embedding_steps = []
-        predicted_a_message_steps = []
-        predicted_b_message_steps = []
+        hidden_steps = [[] for _ in range(self.num_nodes)]
+        message_steps = [[] for _ in range(self.num_nodes)]
 
         for step in range(sequence_length):
-            hidden_a = self.node_a(embeddings[:, step, :], hidden_a)
-            message_a = self._predictive_message(self.message_a_head, hidden_a)
+            current_messages = []
+            for node_index, (node, message_head) in enumerate(
+                zip(self.nodes, self.message_heads, strict=True)
+            ):
+                node_input = (
+                    embeddings[:, step, :]
+                    if node_index == 0
+                    else previous_messages[node_index - 1]
+                )
+                hidden_states[node_index] = node(node_input, hidden_states[node_index])
+                message = self._predictive_message(message_head, hidden_states[node_index])
+                hidden_steps[node_index].append(hidden_states[node_index])
+                message_steps[node_index].append(message)
+                current_messages.append(message)
 
-            hidden_b = self.node_b(previous_a_message, hidden_b)
-            message_b = self._predictive_message(self.message_b_head, hidden_b)
+            previous_messages = [
+                message.detach() if self.detach_messages else message
+                for message in current_messages[:-1]
+            ]
 
-            hidden_c = self.node_c(previous_b_message, hidden_c)
-            message_c = self._predictive_message(self.message_c_head, hidden_c)
-
-            hidden_a_steps.append(hidden_a)
-            hidden_b_steps.append(hidden_b)
-            hidden_c_steps.append(hidden_c)
-            message_a_steps.append(message_a)
-            message_b_steps.append(message_b)
-            message_c_steps.append(message_c)
-            predicted_embedding_steps.append(message_a)
-            predicted_a_message_steps.append(message_b)
-            predicted_b_message_steps.append(message_c)
-
-            previous_a_message = (
-                message_a.detach() if self.detach_messages else message_a
-            )
-            previous_b_message = (
-                message_b.detach() if self.detach_messages else message_b
-            )
-
-        return {
-            "embeddings": embeddings,
-            "hidden_a": torch.stack(hidden_a_steps, dim=1),
-            "hidden_b": torch.stack(hidden_b_steps, dim=1),
-            "hidden_c": torch.stack(hidden_c_steps, dim=1),
-            "message_a": torch.stack(message_a_steps, dim=1),
-            "message_b": torch.stack(message_b_steps, dim=1),
-            "message_c": torch.stack(message_c_steps, dim=1),
-            "predicted_embedding": torch.stack(predicted_embedding_steps, dim=1),
-            "predicted_a_message": torch.stack(predicted_a_message_steps, dim=1),
-            "predicted_b_message": torch.stack(predicted_b_message_steps, dim=1),
-        }
+        return ModelRollout(
+            embeddings=embeddings,
+            hidden_states=[torch.stack(steps, dim=1) for steps in hidden_steps],
+            messages=[torch.stack(steps, dim=1) for steps in message_steps],
+        )
 
     def forward(self, tokens: Tensor) -> Tensor:
         rollout = self.rollout(tokens)
         final_state = torch.cat(
-            [
-                rollout["hidden_a"][:, -1, :],
-                rollout["hidden_b"][:, -1, :],
-                rollout["hidden_c"][:, -1, :],
-            ],
+            [hidden_state[:, -1, :] for hidden_state in rollout.hidden_states],
             dim=-1,
         )
         return self.task_head(final_state)
@@ -205,27 +208,24 @@ def compute_losses(
     rollout = model.rollout(sequence)
     task_step = inputs.shape[1] - 1
     task_state = torch.cat(
-        [
-            rollout["hidden_a"][:, task_step, :],
-            rollout["hidden_b"][:, task_step, :],
-            rollout["hidden_c"][:, task_step, :],
-        ],
+        [hidden_state[:, task_step, :] for hidden_state in rollout.hidden_states],
         dim=-1,
     )
     logits = model.task_head(task_state)
 
-    next_embeddings = rollout["embeddings"][:, 1:, :].detach()
-    current_a_messages = rollout["message_a"].detach()
-    current_b_messages = rollout["message_b"].detach()
+    auxiliary_by_node: dict[str, Tensor] = {}
+    next_embeddings = rollout.embeddings[:, 1:, :].detach()
+    auxiliary_by_node[model.labels[0]] = F.mse_loss(
+        rollout.messages[0][:, :-1, :],
+        next_embeddings,
+    )
+    for node_index in range(1, model.num_nodes):
+        auxiliary_by_node[model.labels[node_index]] = F.mse_loss(
+            rollout.messages[node_index],
+            rollout.messages[node_index - 1].detach(),
+        )
 
-    auxiliary_a = F.mse_loss(rollout["predicted_embedding"][:, :-1, :], next_embeddings)
-    auxiliary_b = F.mse_loss(
-        rollout["predicted_a_message"], current_a_messages
-    )
-    auxiliary_c = F.mse_loss(
-        rollout["predicted_b_message"], current_b_messages
-    )
-    auxiliary_total = auxiliary_a + auxiliary_b + auxiliary_c
+    auxiliary_total = torch.stack(tuple(auxiliary_by_node.values())).sum()
     task_loss = F.cross_entropy(logits, targets)
     total_loss = task_loss + auxiliary_weight * auxiliary_total
     accuracy = (logits.argmax(dim=1) == targets).float().mean().item()
@@ -233,25 +233,28 @@ def compute_losses(
         total_loss=total_loss,
         task_loss=task_loss,
         auxiliary_total=auxiliary_total,
-        auxiliary_a=auxiliary_a,
-        auxiliary_b=auxiliary_b,
-        auxiliary_c=auxiliary_c,
+        auxiliary_by_node=auxiliary_by_node,
         logits=logits,
         accuracy=accuracy,
     )
 
 
 def rounded_metric_row(step: int, losses: LossBreakdown) -> dict[str, float | int]:
-    return {
+    row: dict[str, float | int | dict[str, float]] = {
         "step": step,
         "total_loss": round(losses.total_loss.item(), 6),
         "task_loss": round(losses.task_loss.item(), 6),
         "auxiliary_total": round(losses.auxiliary_total.item(), 6),
-        "auxiliary_a": round(losses.auxiliary_a.item(), 6),
-        "auxiliary_b": round(losses.auxiliary_b.item(), 6),
-        "auxiliary_c": round(losses.auxiliary_c.item(), 6),
         "accuracy": round(losses.accuracy, 6),
     }
+    auxiliary_by_node = {
+        label: round(value.item(), 6)
+        for label, value in losses.auxiliary_by_node.items()
+    }
+    row["auxiliary_by_node"] = auxiliary_by_node
+    for label, value in auxiliary_by_node.items():
+        row[f"auxiliary_{label.lower()}"] = value
+    return row
 
 
 def train_on_fixed_batch(
@@ -354,16 +357,19 @@ def write_metrics(
     losses: LossBreakdown,
     reached_memorization_bar: bool | None = None,
 ) -> None:
+    auxiliary_by_node = {
+        label: value.item() for label, value in losses.auxiliary_by_node.items()
+    }
     payload: dict[str, object] = {
         "final_total_loss": losses.total_loss.item(),
         "final_task_loss": losses.task_loss.item(),
         "final_auxiliary_total": losses.auxiliary_total.item(),
-        "final_auxiliary_a": losses.auxiliary_a.item(),
-        "final_auxiliary_b": losses.auxiliary_b.item(),
-        "final_auxiliary_c": losses.auxiliary_c.item(),
+        "final_auxiliary_by_node": auxiliary_by_node,
         "final_accuracy": losses.accuracy,
         "trace": trace,
     }
+    for label, value in auxiliary_by_node.items():
+        payload[f"final_auxiliary_{label.lower()}"] = value
     if reached_memorization_bar is not None:
         payload["reached_memorization_bar"] = reached_memorization_bar
     write_json(path, payload)
@@ -372,14 +378,48 @@ def write_metrics(
 def write_auxiliary_traces(
     path: Path, trace: list[dict[str, float | int]]
 ) -> None:
+    labels = list(trace[0]["auxiliary_by_node"].keys()) if trace else []
+    payload: dict[str, object] = {
+        "steps": [row["step"] for row in trace],
+        "auxiliary_total": [row["auxiliary_total"] for row in trace],
+        "auxiliary_by_node": {
+            label: [row[f"auxiliary_{label.lower()}"] for row in trace] for label in labels
+        },
+    }
+    for label in labels:
+        payload[f"auxiliary_{label.lower()}"] = [
+            row[f"auxiliary_{label.lower()}"] for row in trace
+        ]
+    write_json(path, payload)
+
+
+def write_auxiliary_position_summary(
+    path: Path,
+    *,
+    overfit_losses: LossBreakdown,
+    tiny_losses: LossBreakdown,
+) -> None:
+    labels = list(overfit_losses.auxiliary_by_node.keys())
+    overfit_values = {
+        label: overfit_losses.auxiliary_by_node[label].item() for label in labels
+    }
+    tiny_values = {label: tiny_losses.auxiliary_by_node[label].item() for label in labels}
     write_json(
         path,
         {
-            "steps": [row["step"] for row in trace],
-            "auxiliary_a": [row["auxiliary_a"] for row in trace],
-            "auxiliary_b": [row["auxiliary_b"] for row in trace],
-            "auxiliary_c": [row["auxiliary_c"] for row in trace],
-            "auxiliary_total": [row["auxiliary_total"] for row in trace],
+            "node_labels": labels,
+            "overfit_final_auxiliary_by_node": overfit_values,
+            "tiny_final_auxiliary_by_node": tiny_values,
+            "overfit_nodes_sorted_by_auxiliary": sorted(
+                overfit_values,
+                key=overfit_values.__getitem__,
+                reverse=True,
+            ),
+            "tiny_nodes_sorted_by_auxiliary": sorted(
+                tiny_values,
+                key=tiny_values.__getitem__,
+                reverse=True,
+            ),
         },
     )
 
@@ -404,6 +444,7 @@ def rollout_examples(
     predictions = logits.argmax(dim=1)
 
     examples = []
+    labels = model.labels
     for example_index in range(sample_inputs.shape[0]):
         steps = []
         for step_index in range(sequence.shape[1]):
@@ -421,27 +462,14 @@ def rollout_examples(
                     "step": step_index,
                     "token": token,
                     "next_token_target": next_token,
-                    "message_a": _round_vector(rollout["message_a"][example_index, step_index]),
-                    "message_b": _round_vector(rollout["message_b"][example_index, step_index]),
-                    "message_c": _round_vector(rollout["message_c"][example_index, step_index]),
-                    "predicted_next_token_embedding": _round_vector(
-                        rollout["predicted_embedding"][example_index, step_index]
-                    ),
-                    "predicted_next_a_message": _round_vector(
-                        rollout["predicted_a_message"][example_index, step_index]
-                    ),
-                    "predicted_next_b_message": _round_vector(
-                        rollout["predicted_b_message"][example_index, step_index]
-                    ),
-                    "message_a_norm": round(
-                        rollout["message_a"][example_index, step_index].norm().item(), 6
-                    ),
-                    "message_b_norm": round(
-                        rollout["message_b"][example_index, step_index].norm().item(), 6
-                    ),
-                    "message_c_norm": round(
-                        rollout["message_c"][example_index, step_index].norm().item(), 6
-                    ),
+                    "messages": {
+                        label: _round_vector(message[example_index, step_index])
+                        for label, message in zip(labels, rollout.messages, strict=True)
+                    },
+                    "message_norms": {
+                        label: round(message[example_index, step_index].norm().item(), 6)
+                        for label, message in zip(labels, rollout.messages, strict=True)
+                    },
                 }
             )
 
@@ -484,6 +512,11 @@ def main() -> None:
         default=default_config.auxiliary_weight,
     )
     parser.add_argument(
+        "--num-nodes",
+        type=int,
+        default=default_config.num_nodes,
+    )
+    parser.add_argument(
         "--detach-messages",
         action=argparse.BooleanOptionalAction,
         default=default_config.detach_messages,
@@ -492,6 +525,7 @@ def main() -> None:
     args = parser.parse_args()
 
     config = RunConfig(
+        num_nodes=args.num_nodes,
         auxiliary_weight=args.auxiliary_weight,
         detach_messages=args.detach_messages,
     )
@@ -526,17 +560,29 @@ def main() -> None:
 
     overfit_model = PredictiveChainCharModel(
         vocab_size=dataset.vocab_size,
+        num_nodes=config.num_nodes,
         embedding_dim=config.embedding_dim,
         hidden_dim=config.hidden_dim,
         message_dim=config.message_dim,
         detach_messages=config.detach_messages,
     ).to(device)
+    task_head_input = ", ".join(
+        f"final_hidden_{label}" for label in overfit_model.labels
+    )
+    auxiliary_targets = {
+        overfit_model.labels[0]: "next_token_embedding",
+        **{
+            label: f"next_message_from_{overfit_model.labels[index - 1]}"
+            for index, label in enumerate(overfit_model.labels[1:], start=1)
+        },
+    }
     write_json(
         output_dir / "model_summary.json",
         {
             "model_family": "predictive_chain",
-            "graph": "A_to_B_to_C_line",
-            "node_count": 3,
+            "graph": "_to_".join(overfit_model.labels) + "_line",
+            "node_count": config.num_nodes,
+            "node_labels": overfit_model.labels,
             "recurrent_cell": "GRUCell",
             "parameter_count": count_parameters(overfit_model),
             "embedding_dim": config.embedding_dim,
@@ -544,12 +590,8 @@ def main() -> None:
             "message_dim": config.message_dim,
             "context_size": config.context_size,
             "vocab_size": dataset.vocab_size,
-            "task_head_input": "concat(final_hidden_a, final_hidden_b, final_hidden_c)",
-            "auxiliary_targets": {
-                "A": "next_token_embedding",
-                "B": "next_message_from_A",
-                "C": "next_message_from_B",
-            },
+            "task_head_input": f"concat({task_head_input})",
+            "auxiliary_targets": auxiliary_targets,
             "message_target_detach": True,
             "message_input_detach": config.detach_messages,
         },
@@ -597,6 +639,7 @@ def main() -> None:
 
     tiny_model = PredictiveChainCharModel(
         vocab_size=dataset.vocab_size,
+        num_nodes=config.num_nodes,
         embedding_dim=config.embedding_dim,
         hidden_dim=config.hidden_dim,
         message_dim=config.message_dim,
@@ -616,6 +659,11 @@ def main() -> None:
     )
     write_metrics(output_dir / "tiny_run_metrics.json", trace=tiny_trace, losses=tiny_losses)
     write_auxiliary_traces(output_dir / "tiny_auxiliary_traces.json", tiny_trace)
+    write_auxiliary_position_summary(
+        output_dir / "auxiliary_position_summary.json",
+        overfit_losses=overfit_losses,
+        tiny_losses=tiny_losses,
+    )
 
     prompts = ["hello", "small", " text"]
     samples = {

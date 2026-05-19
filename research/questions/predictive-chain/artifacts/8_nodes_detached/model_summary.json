@@ -1,0 +1,35 @@
+{
+  "model_family": "predictive_chain",
+  "graph": "A_to_B_to_C_to_D_to_E_to_F_to_G_to_H_line",
+  "node_count": 8,
+  "node_labels": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H"
+  ],
+  "recurrent_cell": "GRUCell",
+  "parameter_count": 375835,
+  "embedding_dim": 24,
+  "hidden_dim": 96,
+  "message_dim": 24,
+  "context_size": 5,
+  "vocab_size": 19,
+  "task_head_input": "concat(final_hidden_A, final_hidden_B, final_hidden_C, final_hidden_D, final_hidden_E, final_hidden_F, final_hidden_G, final_hidden_H)",
+  "auxiliary_targets": {
+    "A": "next_token_embedding",
+    "B": "next_message_from_A",
+    "C": "next_message_from_B",
+    "D": "next_message_from_C",
+    "E": "next_message_from_D",
+    "F": "next_message_from_E",
+    "G": "next_message_from_F",
+    "H": "next_message_from_G"
+  },
+  "message_target_detach": true,
+  "message_input_detach": true
+}
