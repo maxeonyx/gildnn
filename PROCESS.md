@@ -153,6 +153,18 @@ Keep selectable variants only when they produced an informative comparison or ar
 
 ---
 
+## Experiment visibility
+
+**Before running any experiment expected to take more than ~30 seconds, the subagent must stop and report back to the orchestrating agent.** The report must include:
+
+- What experiment is about to run
+- Expected duration (estimate from corpus size, step count, prior runs)
+- What it will produce
+
+The orchestrator then logs a visibility note (so Max can see what's happening if he checks the loop) and resumes the subagent to proceed.
+
+This prevents silent multi-hour waits where Max has no idea what's happening. The loop output should always show what we're doing and how long it's expected to take.
+
 ## Background training runs
 
 If a run will take longer than about 5–10 minutes, run it in the background.

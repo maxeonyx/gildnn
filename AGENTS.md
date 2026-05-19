@@ -109,6 +109,8 @@ Read [VISION.md](VISION.md) for what we're exploring. Read [PROCESS.md](PROCESS.
 
 **Don't interrupt the desktop.** No popups, notifications, or focus-stealing windows. Max may be doing other things.
 
+**Experiment visibility.** Before running any experiment expected to take more than ~30 seconds, subagents must stop and report back with what they're about to run and how long it's expected to take. The orchestrator logs a visibility note before resuming them. See `PROCESS.md` for details. This keeps the loop output informative for Max.
+
 ## Handover protocol
 
 When picking up after a handover:
