@@ -60,6 +60,22 @@ Every experiment climbs this ladder before scaling:
 
 This ladder is non-negotiable.
 
+### Report-first experiment protocol
+
+Every experiment starts by writing the report first in `research/questions/<question>/README.md`.
+
+Create or update the question README with:
+
+- which dictation or `VISION.md` goal the experiment serves, with a link to the specific dictation when there is one
+- the simplification chosen and why it is a legitimate cut
+- a clear architecture explanation, using real code snippets and diagrams where that helps
+- the hypotheses being tested
+- the planned evidence: what artifacts the run will produce and why those artifacts answer the question
+- placeholder sections for results, next steps, and deferrals
+- explicit non-goals: what this experiment will not settle
+
+Fill in results, next steps, and reasons for deferral as the experiment proceeds, not only at the end.
+
 ### Before starting a new experiment
 
 Do not do a formal selection ritual.
@@ -133,13 +149,14 @@ Delete aggressively. Consolidate shared logic early. Do not let experiments pile
 
 ### Integrate before experimenting
 
-Working experimental code that is understood should move into `core/` promptly. Unintegrated working code is a liability.
+Integrate understood, verified components before starting new experiment threads. But do not promote one-session-old code into `core/` just because it worked once; wait for stability evidence.
 
 Directory roles:
 
-- `core/` — integrated, clean, tested code
-- `base-experiments/` — foundational reference experiments
-- `experiments/` — new or provisional work
+- `experiments/<experiment-name>/` — per-experiment directories containing scripts, configs, and grungy local artifacts such as prediction dumps, raw outputs, and debug files
+- `research/questions/<question>/README.md` — Max-readable reports with inline evidence; embed tables, code snippets, and diagrams directly in markdown instead of scattering standalone text artifacts
+- `base-experiments/<model>/` — reproducible standard-model training that reaches the expected validation loss on the primary dataset
+- `core/` — shared reusable dataset, model, and training components used by both `base-experiments/` and `experiments/`
 
 If two experiments share logic, move that logic into `core/`.
 
@@ -212,6 +229,8 @@ Daily and weekly reports are for Max. They should be dense, readable, and eviden
 Every factual claim should point to a real artifact: a run log, metric, sample output, saved image, or concrete file.
 
 No free-floating assertions. Open questions should remain open.
+
+Question READMEs should clearly explain the architecture with implementation-aligned code snippets and diagrams, link the work back to Max's goals or dictations, and make the next steps obvious, including why those next steps have not been pursued yet.
 
 Question-folder notes can be rougher. Daily and weekly narratives should be polished.
 
