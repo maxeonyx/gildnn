@@ -1,0 +1,33 @@
+context | target | prediction
+HAMLE | T | T
+AMLET | : | :
+MLET: | \n | \n
+LET:\n | T | T
+ET:\nT | o | o
+T:\nTo |   |  
+:\nTo  | b | b
+\nTo b | e | e
+To be | , | ,
+o be, |   |  
+ be,  | o | o
+be, o | r | r
+e, or |   |  
+, or  | n | n
+ or n | o | o
+or no | t | t
+r not |   |  
+ not  | t | t
+not t | o | o
+ot to |   |  
+t to  | b | b
+ to b | e | e
+to be | : | :
+o be: |   |  
+ be:  | t | t
+be: t | h | h
+e: th | a | a
+: tha | t | t
+ that |   |  
+that  | i | i
+hat i | s | s
+at is |   |  

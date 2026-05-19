@@ -1,0 +1,33 @@
+context | target | prediction
+ nost | r |  
+nostr | i | o
+ostri | l | n
+stril |   | e
+tril  | w | t
+ril w | i | o
+il wi | d | t
+l wid | e | e
+ wide | , |  
+wide, | \n | \n
+ide,\n | H | B
+de,\nH | o | a
+e,\nHo | l | w
+,\nHol | d | e
+\nHold |   |  
+Hold  | h | a
+old h | a | a
+ld ha | r | v
+d har | d | l
+ hard |   | h
+hard  | t | a
+ard t | h | h
+rd th | e | e
+d the |   |  
+ the  | b | s
+the b | r | e
+he br | e | o
+e bre | a | a
+ brea | t | s
+breat | h | h
+reath |   | ,
+eath  | a | a

@@ -1,0 +1,1689 @@
+{
+  "historical_chain": {
+    "model_name": "predictive_chain_aux_1p0_detach",
+    "parameter_count": 13662,
+    "val_loss": 2.593513250350952
+  },
+  "models": [
+    {
+      "model_name": "graph_skip2_uniform_aux_1_detach",
+      "aggregation_mode": "uniform_mean",
+      "parameter_count": 36387,
+      "overfit_reached": true,
+      "attention_nontrivial_overfit": false,
+      "runtime_seconds": 67.84212479999405,
+      "train_loss": 1.5561329126358032,
+      "train_accuracy": 0.5403154492378235,
+      "val_loss": 2.7937986850738525,
+      "val_accuracy": 0.29616478085517883,
+      "train_total_loss": 2.0203962326049805,
+      "val_total_loss": 3.2863430976867676,
+      "train_auxiliary_total": 0.4642632305622101,
+      "val_auxiliary_total": 0.4925443232059479,
+      "samples": {
+        "HAMLE": "HAMLET:\nAC the the the the the the the the the the the the the the the the the the the the the the the the the the the the th",
+        "s hou": "s hould and the the the the the the the the the the the the the the the the the the the the the the the the the the the the t",
+        " nost": " nostund befar so the the the the the the the the the the the the the the the the the the the the the the the the the the the"
+      },
+      "attention_weight_summary": {
+        "aggregation_mode": "uniform_mean",
+        "overfit": {
+          "B": {
+            "predecessors": [
+              "A"
+            ],
+            "mean_weight_by_predecessor": {
+              "A": 1.0
+            },
+            "std_weight_by_predecessor": {
+              "A": 0.0
+            },
+            "entropy_mean": 0.0,
+            "entropy_std": 0.0,
+            "uniform_weight": 1.0,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "C": {
+            "predecessors": [
+              "A",
+              "B"
+            ],
+            "mean_weight_by_predecessor": {
+              "A": 0.5,
+              "B": 0.5
+            },
+            "std_weight_by_predecessor": {
+              "A": 0.0,
+              "B": 0.0
+            },
+            "entropy_mean": 0.693147,
+            "entropy_std": 0.0,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "D": {
+            "predecessors": [
+              "B",
+              "C"
+            ],
+            "mean_weight_by_predecessor": {
+              "B": 0.5,
+              "C": 0.5
+            },
+            "std_weight_by_predecessor": {
+              "B": 0.0,
+              "C": 0.0
+            },
+            "entropy_mean": 0.693147,
+            "entropy_std": 0.0,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "E": {
+            "predecessors": [
+              "C",
+              "D"
+            ],
+            "mean_weight_by_predecessor": {
+              "C": 0.5,
+              "D": 0.5
+            },
+            "std_weight_by_predecessor": {
+              "C": 0.0,
+              "D": 0.0
+            },
+            "entropy_mean": 0.693147,
+            "entropy_std": 0.0,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "F": {
+            "predecessors": [
+              "D",
+              "E"
+            ],
+            "mean_weight_by_predecessor": {
+              "D": 0.5,
+              "E": 0.5
+            },
+            "std_weight_by_predecessor": {
+              "D": 0.0,
+              "E": 0.0
+            },
+            "entropy_mean": 0.693147,
+            "entropy_std": 0.0,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "G": {
+            "predecessors": [
+              "E",
+              "F"
+            ],
+            "mean_weight_by_predecessor": {
+              "E": 0.5,
+              "F": 0.5
+            },
+            "std_weight_by_predecessor": {
+              "E": 0.0,
+              "F": 0.0
+            },
+            "entropy_mean": 0.693147,
+            "entropy_std": 0.0,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "H": {
+            "predecessors": [
+              "F",
+              "G"
+            ],
+            "mean_weight_by_predecessor": {
+              "F": 0.5,
+              "G": 0.5
+            },
+            "std_weight_by_predecessor": {
+              "F": 0.0,
+              "G": 0.0
+            },
+            "entropy_mean": 0.693147,
+            "entropy_std": 0.0,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          }
+        },
+        "train": {
+          "B": {
+            "predecessors": [
+              "A"
+            ],
+            "mean_weight_by_predecessor": {
+              "A": 1.0
+            },
+            "std_weight_by_predecessor": {
+              "A": 0.0
+            },
+            "entropy_mean": 0.0,
+            "entropy_std": 0.0,
+            "uniform_weight": 1.0,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "C": {
+            "predecessors": [
+              "A",
+              "B"
+            ],
+            "mean_weight_by_predecessor": {
+              "A": 0.5,
+              "B": 0.5
+            },
+            "std_weight_by_predecessor": {
+              "A": 0.0,
+              "B": 0.0
+            },
+            "entropy_mean": 0.693147,
+            "entropy_std": 0.0,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "D": {
+            "predecessors": [
+              "B",
+              "C"
+            ],
+            "mean_weight_by_predecessor": {
+              "B": 0.5,
+              "C": 0.5
+            },
+            "std_weight_by_predecessor": {
+              "B": 0.0,
+              "C": 0.0
+            },
+            "entropy_mean": 0.693147,
+            "entropy_std": 0.0,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "E": {
+            "predecessors": [
+              "C",
+              "D"
+            ],
+            "mean_weight_by_predecessor": {
+              "C": 0.5,
+              "D": 0.5
+            },
+            "std_weight_by_predecessor": {
+              "C": 0.0,
+              "D": 0.0
+            },
+            "entropy_mean": 0.693147,
+            "entropy_std": 0.0,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "F": {
+            "predecessors": [
+              "D",
+              "E"
+            ],
+            "mean_weight_by_predecessor": {
+              "D": 0.5,
+              "E": 0.5
+            },
+            "std_weight_by_predecessor": {
+              "D": 0.0,
+              "E": 0.0
+            },
+            "entropy_mean": 0.693147,
+            "entropy_std": 0.0,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "G": {
+            "predecessors": [
+              "E",
+              "F"
+            ],
+            "mean_weight_by_predecessor": {
+              "E": 0.5,
+              "F": 0.5
+            },
+            "std_weight_by_predecessor": {
+              "E": 0.0,
+              "F": 0.0
+            },
+            "entropy_mean": 0.693147,
+            "entropy_std": 0.0,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "H": {
+            "predecessors": [
+              "F",
+              "G"
+            ],
+            "mean_weight_by_predecessor": {
+              "F": 0.5,
+              "G": 0.5
+            },
+            "std_weight_by_predecessor": {
+              "F": 0.0,
+              "G": 0.0
+            },
+            "entropy_mean": 0.693147,
+            "entropy_std": 0.0,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          }
+        },
+        "val": {
+          "B": {
+            "predecessors": [
+              "A"
+            ],
+            "mean_weight_by_predecessor": {
+              "A": 1.0
+            },
+            "std_weight_by_predecessor": {
+              "A": 0.0
+            },
+            "entropy_mean": 0.0,
+            "entropy_std": 0.0,
+            "uniform_weight": 1.0,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "C": {
+            "predecessors": [
+              "A",
+              "B"
+            ],
+            "mean_weight_by_predecessor": {
+              "A": 0.5,
+              "B": 0.5
+            },
+            "std_weight_by_predecessor": {
+              "A": 0.0,
+              "B": 0.0
+            },
+            "entropy_mean": 0.693147,
+            "entropy_std": 0.0,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "D": {
+            "predecessors": [
+              "B",
+              "C"
+            ],
+            "mean_weight_by_predecessor": {
+              "B": 0.5,
+              "C": 0.5
+            },
+            "std_weight_by_predecessor": {
+              "B": 0.0,
+              "C": 0.0
+            },
+            "entropy_mean": 0.693147,
+            "entropy_std": 0.0,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "E": {
+            "predecessors": [
+              "C",
+              "D"
+            ],
+            "mean_weight_by_predecessor": {
+              "C": 0.5,
+              "D": 0.5
+            },
+            "std_weight_by_predecessor": {
+              "C": 0.0,
+              "D": 0.0
+            },
+            "entropy_mean": 0.693147,
+            "entropy_std": 0.0,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "F": {
+            "predecessors": [
+              "D",
+              "E"
+            ],
+            "mean_weight_by_predecessor": {
+              "D": 0.5,
+              "E": 0.5
+            },
+            "std_weight_by_predecessor": {
+              "D": 0.0,
+              "E": 0.0
+            },
+            "entropy_mean": 0.693147,
+            "entropy_std": 0.0,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "G": {
+            "predecessors": [
+              "E",
+              "F"
+            ],
+            "mean_weight_by_predecessor": {
+              "E": 0.5,
+              "F": 0.5
+            },
+            "std_weight_by_predecessor": {
+              "E": 0.0,
+              "F": 0.0
+            },
+            "entropy_mean": 0.693147,
+            "entropy_std": 0.0,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "H": {
+            "predecessors": [
+              "F",
+              "G"
+            ],
+            "mean_weight_by_predecessor": {
+              "F": 0.5,
+              "G": 0.5
+            },
+            "std_weight_by_predecessor": {
+              "F": 0.0,
+              "G": 0.0
+            },
+            "entropy_mean": 0.693147,
+            "entropy_std": 0.0,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          }
+        }
+      }
+    },
+    {
+      "model_name": "graph_skip2_attention_aux_1_detach",
+      "aggregation_mode": "attention",
+      "parameter_count": 36387,
+      "overfit_reached": true,
+      "attention_nontrivial_overfit": true,
+      "runtime_seconds": 116.89237590000266,
+      "train_loss": 1.5262012481689453,
+      "train_accuracy": 0.5456317663192749,
+      "val_loss": 2.842390537261963,
+      "val_accuracy": 0.3089488744735718,
+      "train_total_loss": 2.0012006759643555,
+      "val_total_loss": 3.341613531112671,
+      "train_auxiliary_total": 0.4749995470046997,
+      "val_auxiliary_total": 0.4992229640483856,
+      "samples": {
+        "HAMLE": "HAMLET:\nIs the sof art and bleas the sof art and bleas the sof art and bleas the sof art and bleas the sof art and bleas the ",
+        "s hou": "s houth and bleas the sof art and bleas the sof art and bleas the sof art and bleas the sof art and bleas the sof art and ble",
+        " nost": " nost and bleas the sof art and bleas the sof art and bleas the sof art and bleas the sof art and bleas the sof art and bleas"
+      },
+      "attention_weight_summary": {
+        "aggregation_mode": "attention",
+        "overfit": {
+          "B": {
+            "predecessors": [
+              "A"
+            ],
+            "mean_weight_by_predecessor": {
+              "A": 1.0
+            },
+            "std_weight_by_predecessor": {
+              "A": 0.0
+            },
+            "entropy_mean": 0.0,
+            "entropy_std": 0.0,
+            "uniform_weight": 1.0,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "C": {
+            "predecessors": [
+              "A",
+              "B"
+            ],
+            "mean_weight_by_predecessor": {
+              "A": 0.502443,
+              "B": 0.497557
+            },
+            "std_weight_by_predecessor": {
+              "A": 0.174058,
+              "B": 0.174058
+            },
+            "entropy_mean": 0.627088,
+            "entropy_std": 0.105203,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.4712,
+            "shows_nontrivial_attention": true
+          },
+          "D": {
+            "predecessors": [
+              "B",
+              "C"
+            ],
+            "mean_weight_by_predecessor": {
+              "B": 0.498043,
+              "C": 0.501957
+            },
+            "std_weight_by_predecessor": {
+              "B": 0.156532,
+              "C": 0.156532
+            },
+            "entropy_mean": 0.639211,
+            "entropy_std": 0.103943,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.487265,
+            "shows_nontrivial_attention": true
+          },
+          "E": {
+            "predecessors": [
+              "C",
+              "D"
+            ],
+            "mean_weight_by_predecessor": {
+              "C": 0.518083,
+              "D": 0.481917
+            },
+            "std_weight_by_predecessor": {
+              "C": 0.144523,
+              "D": 0.144523
+            },
+            "entropy_mean": 0.647953,
+            "entropy_std": 0.076923,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.408534,
+            "shows_nontrivial_attention": true
+          },
+          "F": {
+            "predecessors": [
+              "D",
+              "E"
+            ],
+            "mean_weight_by_predecessor": {
+              "D": 0.518974,
+              "E": 0.481026
+            },
+            "std_weight_by_predecessor": {
+              "D": 0.194111,
+              "E": 0.194111
+            },
+            "entropy_mean": 0.603982,
+            "entropy_std": 0.164858,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.499991,
+            "shows_nontrivial_attention": true
+          },
+          "G": {
+            "predecessors": [
+              "E",
+              "F"
+            ],
+            "mean_weight_by_predecessor": {
+              "E": 0.511796,
+              "F": 0.488204
+            },
+            "std_weight_by_predecessor": {
+              "E": 0.092002,
+              "F": 0.092002
+            },
+            "entropy_mean": 0.675052,
+            "entropy_std": 0.04733,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.396719,
+            "shows_nontrivial_attention": true
+          },
+          "H": {
+            "predecessors": [
+              "F",
+              "G"
+            ],
+            "mean_weight_by_predecessor": {
+              "F": 0.529294,
+              "G": 0.470706
+            },
+            "std_weight_by_predecessor": {
+              "F": 0.142289,
+              "G": 0.142289
+            },
+            "entropy_mean": 0.64543,
+            "entropy_std": 0.112708,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.499714,
+            "shows_nontrivial_attention": true
+          }
+        },
+        "train": {
+          "B": {
+            "predecessors": [
+              "A"
+            ],
+            "mean_weight_by_predecessor": {
+              "A": 1.0
+            },
+            "std_weight_by_predecessor": {
+              "A": 0.0
+            },
+            "entropy_mean": 0.0,
+            "entropy_std": 0.0,
+            "uniform_weight": 1.0,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "C": {
+            "predecessors": [
+              "A",
+              "B"
+            ],
+            "mean_weight_by_predecessor": {
+              "A": 0.49678,
+              "B": 0.50322
+            },
+            "std_weight_by_predecessor": {
+              "A": 0.200417,
+              "B": 0.200417
+            },
+            "entropy_mean": 0.600594,
+            "entropy_std": 0.15604,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.5,
+            "shows_nontrivial_attention": true
+          },
+          "D": {
+            "predecessors": [
+              "B",
+              "C"
+            ],
+            "mean_weight_by_predecessor": {
+              "B": 0.499544,
+              "C": 0.500456
+            },
+            "std_weight_by_predecessor": {
+              "B": 0.041418,
+              "C": 0.041418
+            },
+            "entropy_mean": 0.689657,
+            "entropy_std": 0.012695,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.356056,
+            "shows_nontrivial_attention": true
+          },
+          "E": {
+            "predecessors": [
+              "C",
+              "D"
+            ],
+            "mean_weight_by_predecessor": {
+              "C": 0.556736,
+              "D": 0.443264
+            },
+            "std_weight_by_predecessor": {
+              "C": 0.130739,
+              "D": 0.130739
+            },
+            "entropy_mean": 0.649107,
+            "entropy_std": 0.087623,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.499401,
+            "shows_nontrivial_attention": true
+          },
+          "F": {
+            "predecessors": [
+              "D",
+              "E"
+            ],
+            "mean_weight_by_predecessor": {
+              "D": 0.504069,
+              "E": 0.495931
+            },
+            "std_weight_by_predecessor": {
+              "D": 0.004539,
+              "E": 0.004539
+            },
+            "entropy_mean": 0.693073,
+            "entropy_std": 0.000277,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.093408,
+            "shows_nontrivial_attention": true
+          },
+          "G": {
+            "predecessors": [
+              "E",
+              "F"
+            ],
+            "mean_weight_by_predecessor": {
+              "E": 0.500456,
+              "F": 0.499544
+            },
+            "std_weight_by_predecessor": {
+              "E": 0.001611,
+              "F": 0.001611
+            },
+            "entropy_mean": 0.693142,
+            "entropy_std": 1.2e-05,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.013814,
+            "shows_nontrivial_attention": false
+          },
+          "H": {
+            "predecessors": [
+              "F",
+              "G"
+            ],
+            "mean_weight_by_predecessor": {
+              "F": 0.507493,
+              "G": 0.492507
+            },
+            "std_weight_by_predecessor": {
+              "F": 0.003363,
+              "G": 0.003363
+            },
+            "entropy_mean": 0.693012,
+            "entropy_std": 6.1e-05,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.00933,
+            "shows_nontrivial_attention": false
+          }
+        },
+        "val": {
+          "B": {
+            "predecessors": [
+              "A"
+            ],
+            "mean_weight_by_predecessor": {
+              "A": 1.0
+            },
+            "std_weight_by_predecessor": {
+              "A": 0.0
+            },
+            "entropy_mean": 0.0,
+            "entropy_std": 0.0,
+            "uniform_weight": 1.0,
+            "max_abs_deviation_from_uniform": 0.0,
+            "shows_nontrivial_attention": false
+          },
+          "C": {
+            "predecessors": [
+              "A",
+              "B"
+            ],
+            "mean_weight_by_predecessor": {
+              "A": 0.491704,
+              "B": 0.508296
+            },
+            "std_weight_by_predecessor": {
+              "A": 0.19797,
+              "B": 0.19797
+            },
+            "entropy_mean": 0.602981,
+            "entropy_std": 0.152842,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.5,
+            "shows_nontrivial_attention": true
+          },
+          "D": {
+            "predecessors": [
+              "B",
+              "C"
+            ],
+            "mean_weight_by_predecessor": {
+              "B": 0.499741,
+              "C": 0.50026
+            },
+            "std_weight_by_predecessor": {
+              "B": 0.04179,
+              "C": 0.04179
+            },
+            "entropy_mean": 0.689597,
+            "entropy_std": 0.012527,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.323918,
+            "shows_nontrivial_attention": true
+          },
+          "E": {
+            "predecessors": [
+              "C",
+              "D"
+            ],
+            "mean_weight_by_predecessor": {
+              "C": 0.559834,
+              "D": 0.440166
+            },
+            "std_weight_by_predecessor": {
+              "C": 0.125027,
+              "D": 0.125027
+            },
+            "entropy_mean": 0.651761,
+            "entropy_std": 0.081537,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.493035,
+            "shows_nontrivial_attention": true
+          },
+          "F": {
+            "predecessors": [
+              "D",
+              "E"
+            ],
+            "mean_weight_by_predecessor": {
+              "D": 0.504048,
+              "E": 0.495952
+            },
+            "std_weight_by_predecessor": {
+              "D": 0.004328,
+              "E": 0.004328
+            },
+            "entropy_mean": 0.693077,
+            "entropy_std": 0.00011,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.031448,
+            "shows_nontrivial_attention": false
+          },
+          "G": {
+            "predecessors": [
+              "E",
+              "F"
+            ],
+            "mean_weight_by_predecessor": {
+              "E": 0.500436,
+              "F": 0.499564
+            },
+            "std_weight_by_predecessor": {
+              "E": 0.001643,
+              "F": 0.001643
+            },
+            "entropy_mean": 0.693141,
+            "entropy_std": 1.1e-05,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.008915,
+            "shows_nontrivial_attention": false
+          },
+          "H": {
+            "predecessors": [
+              "F",
+              "G"
+            ],
+            "mean_weight_by_predecessor": {
+              "F": 0.507492,
+              "G": 0.492508
+            },
+            "std_weight_by_predecessor": {
+              "F": 0.003362,
+              "G": 0.003362
+            },
+            "entropy_mean": 0.693012,
+            "entropy_std": 6.1e-05,
+            "uniform_weight": 0.5,
+            "max_abs_deviation_from_uniform": 0.00933,
+            "shows_nontrivial_attention": false
+          }
+        }
+      }
+    }
+  ],
+  "best_by_val_loss": {
+    "model_name": "graph_skip2_uniform_aux_1_detach",
+    "aggregation_mode": "uniform_mean",
+    "parameter_count": 36387,
+    "overfit_reached": true,
+    "attention_nontrivial_overfit": false,
+    "runtime_seconds": 67.84212479999405,
+    "train_loss": 1.5561329126358032,
+    "train_accuracy": 0.5403154492378235,
+    "val_loss": 2.7937986850738525,
+    "val_accuracy": 0.29616478085517883,
+    "train_total_loss": 2.0203962326049805,
+    "val_total_loss": 3.2863430976867676,
+    "train_auxiliary_total": 0.4642632305622101,
+    "val_auxiliary_total": 0.4925443232059479,
+    "samples": {
+      "HAMLE": "HAMLET:\nAC the the the the the the the the the the the the the the the the the the the the the the the the the the the the th",
+      "s hou": "s hould and the the the the the the the the the the the the the the the the the the the the the the the the the the the the t",
+      " nost": " nostund befar so the the the the the the the the the the the the the the the the the the the the the the the the the the the"
+    },
+    "attention_weight_summary": {
+      "aggregation_mode": "uniform_mean",
+      "overfit": {
+        "B": {
+          "predecessors": [
+            "A"
+          ],
+          "mean_weight_by_predecessor": {
+            "A": 1.0
+          },
+          "std_weight_by_predecessor": {
+            "A": 0.0
+          },
+          "entropy_mean": 0.0,
+          "entropy_std": 0.0,
+          "uniform_weight": 1.0,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "C": {
+          "predecessors": [
+            "A",
+            "B"
+          ],
+          "mean_weight_by_predecessor": {
+            "A": 0.5,
+            "B": 0.5
+          },
+          "std_weight_by_predecessor": {
+            "A": 0.0,
+            "B": 0.0
+          },
+          "entropy_mean": 0.693147,
+          "entropy_std": 0.0,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "D": {
+          "predecessors": [
+            "B",
+            "C"
+          ],
+          "mean_weight_by_predecessor": {
+            "B": 0.5,
+            "C": 0.5
+          },
+          "std_weight_by_predecessor": {
+            "B": 0.0,
+            "C": 0.0
+          },
+          "entropy_mean": 0.693147,
+          "entropy_std": 0.0,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "E": {
+          "predecessors": [
+            "C",
+            "D"
+          ],
+          "mean_weight_by_predecessor": {
+            "C": 0.5,
+            "D": 0.5
+          },
+          "std_weight_by_predecessor": {
+            "C": 0.0,
+            "D": 0.0
+          },
+          "entropy_mean": 0.693147,
+          "entropy_std": 0.0,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "F": {
+          "predecessors": [
+            "D",
+            "E"
+          ],
+          "mean_weight_by_predecessor": {
+            "D": 0.5,
+            "E": 0.5
+          },
+          "std_weight_by_predecessor": {
+            "D": 0.0,
+            "E": 0.0
+          },
+          "entropy_mean": 0.693147,
+          "entropy_std": 0.0,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "G": {
+          "predecessors": [
+            "E",
+            "F"
+          ],
+          "mean_weight_by_predecessor": {
+            "E": 0.5,
+            "F": 0.5
+          },
+          "std_weight_by_predecessor": {
+            "E": 0.0,
+            "F": 0.0
+          },
+          "entropy_mean": 0.693147,
+          "entropy_std": 0.0,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "H": {
+          "predecessors": [
+            "F",
+            "G"
+          ],
+          "mean_weight_by_predecessor": {
+            "F": 0.5,
+            "G": 0.5
+          },
+          "std_weight_by_predecessor": {
+            "F": 0.0,
+            "G": 0.0
+          },
+          "entropy_mean": 0.693147,
+          "entropy_std": 0.0,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        }
+      },
+      "train": {
+        "B": {
+          "predecessors": [
+            "A"
+          ],
+          "mean_weight_by_predecessor": {
+            "A": 1.0
+          },
+          "std_weight_by_predecessor": {
+            "A": 0.0
+          },
+          "entropy_mean": 0.0,
+          "entropy_std": 0.0,
+          "uniform_weight": 1.0,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "C": {
+          "predecessors": [
+            "A",
+            "B"
+          ],
+          "mean_weight_by_predecessor": {
+            "A": 0.5,
+            "B": 0.5
+          },
+          "std_weight_by_predecessor": {
+            "A": 0.0,
+            "B": 0.0
+          },
+          "entropy_mean": 0.693147,
+          "entropy_std": 0.0,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "D": {
+          "predecessors": [
+            "B",
+            "C"
+          ],
+          "mean_weight_by_predecessor": {
+            "B": 0.5,
+            "C": 0.5
+          },
+          "std_weight_by_predecessor": {
+            "B": 0.0,
+            "C": 0.0
+          },
+          "entropy_mean": 0.693147,
+          "entropy_std": 0.0,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "E": {
+          "predecessors": [
+            "C",
+            "D"
+          ],
+          "mean_weight_by_predecessor": {
+            "C": 0.5,
+            "D": 0.5
+          },
+          "std_weight_by_predecessor": {
+            "C": 0.0,
+            "D": 0.0
+          },
+          "entropy_mean": 0.693147,
+          "entropy_std": 0.0,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "F": {
+          "predecessors": [
+            "D",
+            "E"
+          ],
+          "mean_weight_by_predecessor": {
+            "D": 0.5,
+            "E": 0.5
+          },
+          "std_weight_by_predecessor": {
+            "D": 0.0,
+            "E": 0.0
+          },
+          "entropy_mean": 0.693147,
+          "entropy_std": 0.0,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "G": {
+          "predecessors": [
+            "E",
+            "F"
+          ],
+          "mean_weight_by_predecessor": {
+            "E": 0.5,
+            "F": 0.5
+          },
+          "std_weight_by_predecessor": {
+            "E": 0.0,
+            "F": 0.0
+          },
+          "entropy_mean": 0.693147,
+          "entropy_std": 0.0,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "H": {
+          "predecessors": [
+            "F",
+            "G"
+          ],
+          "mean_weight_by_predecessor": {
+            "F": 0.5,
+            "G": 0.5
+          },
+          "std_weight_by_predecessor": {
+            "F": 0.0,
+            "G": 0.0
+          },
+          "entropy_mean": 0.693147,
+          "entropy_std": 0.0,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        }
+      },
+      "val": {
+        "B": {
+          "predecessors": [
+            "A"
+          ],
+          "mean_weight_by_predecessor": {
+            "A": 1.0
+          },
+          "std_weight_by_predecessor": {
+            "A": 0.0
+          },
+          "entropy_mean": 0.0,
+          "entropy_std": 0.0,
+          "uniform_weight": 1.0,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "C": {
+          "predecessors": [
+            "A",
+            "B"
+          ],
+          "mean_weight_by_predecessor": {
+            "A": 0.5,
+            "B": 0.5
+          },
+          "std_weight_by_predecessor": {
+            "A": 0.0,
+            "B": 0.0
+          },
+          "entropy_mean": 0.693147,
+          "entropy_std": 0.0,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "D": {
+          "predecessors": [
+            "B",
+            "C"
+          ],
+          "mean_weight_by_predecessor": {
+            "B": 0.5,
+            "C": 0.5
+          },
+          "std_weight_by_predecessor": {
+            "B": 0.0,
+            "C": 0.0
+          },
+          "entropy_mean": 0.693147,
+          "entropy_std": 0.0,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "E": {
+          "predecessors": [
+            "C",
+            "D"
+          ],
+          "mean_weight_by_predecessor": {
+            "C": 0.5,
+            "D": 0.5
+          },
+          "std_weight_by_predecessor": {
+            "C": 0.0,
+            "D": 0.0
+          },
+          "entropy_mean": 0.693147,
+          "entropy_std": 0.0,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "F": {
+          "predecessors": [
+            "D",
+            "E"
+          ],
+          "mean_weight_by_predecessor": {
+            "D": 0.5,
+            "E": 0.5
+          },
+          "std_weight_by_predecessor": {
+            "D": 0.0,
+            "E": 0.0
+          },
+          "entropy_mean": 0.693147,
+          "entropy_std": 0.0,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "G": {
+          "predecessors": [
+            "E",
+            "F"
+          ],
+          "mean_weight_by_predecessor": {
+            "E": 0.5,
+            "F": 0.5
+          },
+          "std_weight_by_predecessor": {
+            "E": 0.0,
+            "F": 0.0
+          },
+          "entropy_mean": 0.693147,
+          "entropy_std": 0.0,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "H": {
+          "predecessors": [
+            "F",
+            "G"
+          ],
+          "mean_weight_by_predecessor": {
+            "F": 0.5,
+            "G": 0.5
+          },
+          "std_weight_by_predecessor": {
+            "F": 0.0,
+            "G": 0.0
+          },
+          "entropy_mean": 0.693147,
+          "entropy_std": 0.0,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        }
+      }
+    }
+  },
+  "best_by_val_accuracy": {
+    "model_name": "graph_skip2_attention_aux_1_detach",
+    "aggregation_mode": "attention",
+    "parameter_count": 36387,
+    "overfit_reached": true,
+    "attention_nontrivial_overfit": true,
+    "runtime_seconds": 116.89237590000266,
+    "train_loss": 1.5262012481689453,
+    "train_accuracy": 0.5456317663192749,
+    "val_loss": 2.842390537261963,
+    "val_accuracy": 0.3089488744735718,
+    "train_total_loss": 2.0012006759643555,
+    "val_total_loss": 3.341613531112671,
+    "train_auxiliary_total": 0.4749995470046997,
+    "val_auxiliary_total": 0.4992229640483856,
+    "samples": {
+      "HAMLE": "HAMLET:\nIs the sof art and bleas the sof art and bleas the sof art and bleas the sof art and bleas the sof art and bleas the ",
+      "s hou": "s houth and bleas the sof art and bleas the sof art and bleas the sof art and bleas the sof art and bleas the sof art and ble",
+      " nost": " nost and bleas the sof art and bleas the sof art and bleas the sof art and bleas the sof art and bleas the sof art and bleas"
+    },
+    "attention_weight_summary": {
+      "aggregation_mode": "attention",
+      "overfit": {
+        "B": {
+          "predecessors": [
+            "A"
+          ],
+          "mean_weight_by_predecessor": {
+            "A": 1.0
+          },
+          "std_weight_by_predecessor": {
+            "A": 0.0
+          },
+          "entropy_mean": 0.0,
+          "entropy_std": 0.0,
+          "uniform_weight": 1.0,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "C": {
+          "predecessors": [
+            "A",
+            "B"
+          ],
+          "mean_weight_by_predecessor": {
+            "A": 0.502443,
+            "B": 0.497557
+          },
+          "std_weight_by_predecessor": {
+            "A": 0.174058,
+            "B": 0.174058
+          },
+          "entropy_mean": 0.627088,
+          "entropy_std": 0.105203,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.4712,
+          "shows_nontrivial_attention": true
+        },
+        "D": {
+          "predecessors": [
+            "B",
+            "C"
+          ],
+          "mean_weight_by_predecessor": {
+            "B": 0.498043,
+            "C": 0.501957
+          },
+          "std_weight_by_predecessor": {
+            "B": 0.156532,
+            "C": 0.156532
+          },
+          "entropy_mean": 0.639211,
+          "entropy_std": 0.103943,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.487265,
+          "shows_nontrivial_attention": true
+        },
+        "E": {
+          "predecessors": [
+            "C",
+            "D"
+          ],
+          "mean_weight_by_predecessor": {
+            "C": 0.518083,
+            "D": 0.481917
+          },
+          "std_weight_by_predecessor": {
+            "C": 0.144523,
+            "D": 0.144523
+          },
+          "entropy_mean": 0.647953,
+          "entropy_std": 0.076923,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.408534,
+          "shows_nontrivial_attention": true
+        },
+        "F": {
+          "predecessors": [
+            "D",
+            "E"
+          ],
+          "mean_weight_by_predecessor": {
+            "D": 0.518974,
+            "E": 0.481026
+          },
+          "std_weight_by_predecessor": {
+            "D": 0.194111,
+            "E": 0.194111
+          },
+          "entropy_mean": 0.603982,
+          "entropy_std": 0.164858,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.499991,
+          "shows_nontrivial_attention": true
+        },
+        "G": {
+          "predecessors": [
+            "E",
+            "F"
+          ],
+          "mean_weight_by_predecessor": {
+            "E": 0.511796,
+            "F": 0.488204
+          },
+          "std_weight_by_predecessor": {
+            "E": 0.092002,
+            "F": 0.092002
+          },
+          "entropy_mean": 0.675052,
+          "entropy_std": 0.04733,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.396719,
+          "shows_nontrivial_attention": true
+        },
+        "H": {
+          "predecessors": [
+            "F",
+            "G"
+          ],
+          "mean_weight_by_predecessor": {
+            "F": 0.529294,
+            "G": 0.470706
+          },
+          "std_weight_by_predecessor": {
+            "F": 0.142289,
+            "G": 0.142289
+          },
+          "entropy_mean": 0.64543,
+          "entropy_std": 0.112708,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.499714,
+          "shows_nontrivial_attention": true
+        }
+      },
+      "train": {
+        "B": {
+          "predecessors": [
+            "A"
+          ],
+          "mean_weight_by_predecessor": {
+            "A": 1.0
+          },
+          "std_weight_by_predecessor": {
+            "A": 0.0
+          },
+          "entropy_mean": 0.0,
+          "entropy_std": 0.0,
+          "uniform_weight": 1.0,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "C": {
+          "predecessors": [
+            "A",
+            "B"
+          ],
+          "mean_weight_by_predecessor": {
+            "A": 0.49678,
+            "B": 0.50322
+          },
+          "std_weight_by_predecessor": {
+            "A": 0.200417,
+            "B": 0.200417
+          },
+          "entropy_mean": 0.600594,
+          "entropy_std": 0.15604,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.5,
+          "shows_nontrivial_attention": true
+        },
+        "D": {
+          "predecessors": [
+            "B",
+            "C"
+          ],
+          "mean_weight_by_predecessor": {
+            "B": 0.499544,
+            "C": 0.500456
+          },
+          "std_weight_by_predecessor": {
+            "B": 0.041418,
+            "C": 0.041418
+          },
+          "entropy_mean": 0.689657,
+          "entropy_std": 0.012695,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.356056,
+          "shows_nontrivial_attention": true
+        },
+        "E": {
+          "predecessors": [
+            "C",
+            "D"
+          ],
+          "mean_weight_by_predecessor": {
+            "C": 0.556736,
+            "D": 0.443264
+          },
+          "std_weight_by_predecessor": {
+            "C": 0.130739,
+            "D": 0.130739
+          },
+          "entropy_mean": 0.649107,
+          "entropy_std": 0.087623,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.499401,
+          "shows_nontrivial_attention": true
+        },
+        "F": {
+          "predecessors": [
+            "D",
+            "E"
+          ],
+          "mean_weight_by_predecessor": {
+            "D": 0.504069,
+            "E": 0.495931
+          },
+          "std_weight_by_predecessor": {
+            "D": 0.004539,
+            "E": 0.004539
+          },
+          "entropy_mean": 0.693073,
+          "entropy_std": 0.000277,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.093408,
+          "shows_nontrivial_attention": true
+        },
+        "G": {
+          "predecessors": [
+            "E",
+            "F"
+          ],
+          "mean_weight_by_predecessor": {
+            "E": 0.500456,
+            "F": 0.499544
+          },
+          "std_weight_by_predecessor": {
+            "E": 0.001611,
+            "F": 0.001611
+          },
+          "entropy_mean": 0.693142,
+          "entropy_std": 1.2e-05,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.013814,
+          "shows_nontrivial_attention": false
+        },
+        "H": {
+          "predecessors": [
+            "F",
+            "G"
+          ],
+          "mean_weight_by_predecessor": {
+            "F": 0.507493,
+            "G": 0.492507
+          },
+          "std_weight_by_predecessor": {
+            "F": 0.003363,
+            "G": 0.003363
+          },
+          "entropy_mean": 0.693012,
+          "entropy_std": 6.1e-05,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.00933,
+          "shows_nontrivial_attention": false
+        }
+      },
+      "val": {
+        "B": {
+          "predecessors": [
+            "A"
+          ],
+          "mean_weight_by_predecessor": {
+            "A": 1.0
+          },
+          "std_weight_by_predecessor": {
+            "A": 0.0
+          },
+          "entropy_mean": 0.0,
+          "entropy_std": 0.0,
+          "uniform_weight": 1.0,
+          "max_abs_deviation_from_uniform": 0.0,
+          "shows_nontrivial_attention": false
+        },
+        "C": {
+          "predecessors": [
+            "A",
+            "B"
+          ],
+          "mean_weight_by_predecessor": {
+            "A": 0.491704,
+            "B": 0.508296
+          },
+          "std_weight_by_predecessor": {
+            "A": 0.19797,
+            "B": 0.19797
+          },
+          "entropy_mean": 0.602981,
+          "entropy_std": 0.152842,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.5,
+          "shows_nontrivial_attention": true
+        },
+        "D": {
+          "predecessors": [
+            "B",
+            "C"
+          ],
+          "mean_weight_by_predecessor": {
+            "B": 0.499741,
+            "C": 0.50026
+          },
+          "std_weight_by_predecessor": {
+            "B": 0.04179,
+            "C": 0.04179
+          },
+          "entropy_mean": 0.689597,
+          "entropy_std": 0.012527,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.323918,
+          "shows_nontrivial_attention": true
+        },
+        "E": {
+          "predecessors": [
+            "C",
+            "D"
+          ],
+          "mean_weight_by_predecessor": {
+            "C": 0.559834,
+            "D": 0.440166
+          },
+          "std_weight_by_predecessor": {
+            "C": 0.125027,
+            "D": 0.125027
+          },
+          "entropy_mean": 0.651761,
+          "entropy_std": 0.081537,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.493035,
+          "shows_nontrivial_attention": true
+        },
+        "F": {
+          "predecessors": [
+            "D",
+            "E"
+          ],
+          "mean_weight_by_predecessor": {
+            "D": 0.504048,
+            "E": 0.495952
+          },
+          "std_weight_by_predecessor": {
+            "D": 0.004328,
+            "E": 0.004328
+          },
+          "entropy_mean": 0.693077,
+          "entropy_std": 0.00011,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.031448,
+          "shows_nontrivial_attention": false
+        },
+        "G": {
+          "predecessors": [
+            "E",
+            "F"
+          ],
+          "mean_weight_by_predecessor": {
+            "E": 0.500436,
+            "F": 0.499564
+          },
+          "std_weight_by_predecessor": {
+            "E": 0.001643,
+            "F": 0.001643
+          },
+          "entropy_mean": 0.693141,
+          "entropy_std": 1.1e-05,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.008915,
+          "shows_nontrivial_attention": false
+        },
+        "H": {
+          "predecessors": [
+            "F",
+            "G"
+          ],
+          "mean_weight_by_predecessor": {
+            "F": 0.507492,
+            "G": 0.492508
+          },
+          "std_weight_by_predecessor": {
+            "F": 0.003362,
+            "G": 0.003362
+          },
+          "entropy_mean": 0.693012,
+          "entropy_std": 6.1e-05,
+          "uniform_weight": 0.5,
+          "max_abs_deviation_from_uniform": 0.00933,
+          "shows_nontrivial_attention": false
+        }
+      }
+    }
+  }
+}

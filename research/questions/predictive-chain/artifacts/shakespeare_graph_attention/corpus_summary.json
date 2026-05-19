@@ -1,0 +1,16 @@
+{
+  "corpus_name": "hardcoded_shakespeare_excerpt",
+  "corpus_sha256": "ece04df5881dcfaaeb7cd78e52ad1b58af11f364939413b4ba17fe9810dc56f1",
+  "total_characters": 7061,
+  "vocab_size": 60,
+  "split_index": 5648,
+  "train_characters": 5648,
+  "val_characters": 1413,
+  "train_windows": 5643,
+  "val_windows": 1408,
+  "prompts": [
+    "HAMLE",
+    "s hou",
+    " nost"
+  ]
+}

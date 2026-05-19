@@ -1,0 +1,20 @@
+{
+  "context_size": 5,
+  "train_fraction": 0.8,
+  "embedding_dim": 24,
+  "message_dim": 24,
+  "hidden_dim": 19,
+  "attention_dim": 24,
+  "auxiliary_weight": 1.0,
+  "detach_messages": true,
+  "overfit_batch_size": 32,
+  "overfit_steps": 3000,
+  "overfit_learning_rate": 0.02,
+  "train_batch_size": 128,
+  "train_steps": 1200,
+  "train_learning_rate": 0.01,
+  "gradient_clip_norm": 1.0,
+  "sample_length": 120,
+  "rollout_examples": 3,
+  "seed": 7
+}
