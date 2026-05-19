@@ -1,0 +1,768 @@
+{
+  "config": {
+    "context_size": 32,
+    "hidden_dim": 128,
+    "max_depth": 8,
+    "train_batch_size": 256,
+    "train_steps": 3000,
+    "train_learning_rate": 0.003,
+    "embedding_dim": 32,
+    "loss_pred_weight": 0.1,
+    "overfit_batch_size": 128,
+    "overfit_steps": 1500,
+    "overfit_learning_rate": 0.01,
+    "sample_length": 120,
+    "seed": 7,
+    "depth_eval_batch_size": 512,
+    "val_analysis_chars": 320,
+    "threshold_quantiles": 15,
+    "epsilon_quantiles": 15,
+    "recommendation_loss_tolerance": 0.01,
+    "device": "cuda",
+    "local_entropy_radius": 64
+  },
+  "reproduction": {
+    "threshold": 1.39723,
+    "validation_token_count": 19968,
+    "mean_depth": 4.726462339743589,
+    "task_loss": 1.731690764427185,
+    "reference_mean_depth": 4.561949253082275,
+    "reference_task_loss": 1.7380722761154175,
+    "depth_histogram": {
+      "1": 7805,
+      "2": 1276,
+      "3": 352,
+      "4": 204,
+      "5": 110,
+      "6": 57,
+      "7": 55,
+      "8": 10109
+    },
+    "training_runtime_seconds": 898.0603209000255
+  },
+  "effect_ranking": [
+    {
+      "feature": "position_in_word",
+      "effect_metric": "correlation_ratio_eta",
+      "effect_size": 0.46108773300401285,
+      "signed_effect_size": 0.46108773300401285,
+      "notes": "word starts/ends vs middle/non-word"
+    },
+    {
+      "feature": "character_identity",
+      "effect_metric": "correlation_ratio_eta",
+      "effect_size": 0.37448402912846457,
+      "signed_effect_size": 0.37448402912846457,
+      "notes": "depth spread across target characters"
+    },
+    {
+      "feature": "after_punctuation",
+      "effect_metric": "point_biserial_r",
+      "effect_size": 0.23121843197178732,
+      "signed_effect_size": -0.23121843197178732,
+      "notes": "immediate post-punctuation positions are shallower here"
+    },
+    {
+      "feature": "bigram_novelty",
+      "effect_metric": "spearman_rho",
+      "effect_size": 0.18993608153365218,
+      "signed_effect_size": -0.18993608153365218,
+      "notes": "higher novelty is shallower in this reproduction"
+    },
+    {
+      "feature": "word_frequency",
+      "effect_metric": "spearman_rho",
+      "effect_size": 0.16065065606337361,
+      "signed_effect_size": 0.16065065606337361,
+      "notes": "rarer words get slightly deeper compute"
+    },
+    {
+      "feature": "local_entropy",
+      "effect_metric": "spearman_rho",
+      "effect_size": 0.11707582496386278,
+      "signed_effect_size": -0.11707582496386278,
+      "notes": "nearby next-character entropy"
+    }
+  ],
+  "character_identity": {
+    "effect_metric": "correlation_ratio_eta",
+    "effect_size": 0.37448402912846457,
+    "by_character": [
+      {
+        "char": "B",
+        "mean_depth": 8.0,
+        "count": 30
+      },
+      {
+        "char": "V",
+        "mean_depth": 8.0,
+        "count": 22
+      },
+      {
+        "char": "Y",
+        "mean_depth": 8.0,
+        "count": 16
+      },
+      {
+        "char": "q",
+        "mean_depth": 8.0,
+        "count": 6
+      },
+      {
+        "char": "j",
+        "mean_depth": 8.0,
+        "count": 5
+      },
+      {
+        "char": "J",
+        "mean_depth": 8.0,
+        "count": 3
+      },
+      {
+        "char": "K",
+        "mean_depth": 8.0,
+        "count": 1
+      },
+      {
+        "char": "b",
+        "mean_depth": 7.891191709844559,
+        "count": 193
+      },
+      {
+        "char": "W",
+        "mean_depth": 7.833333333333333,
+        "count": 66
+      },
+      {
+        "char": "H",
+        "mean_depth": 7.535714285714286,
+        "count": 28
+      },
+      {
+        "char": "P",
+        "mean_depth": 7.222222222222222,
+        "count": 9
+      },
+      {
+        "char": "w",
+        "mean_depth": 7.219814241486068,
+        "count": 323
+      },
+      {
+        "char": "p",
+        "mean_depth": 7.125,
+        "count": 168
+      },
+      {
+        "char": "x",
+        "mean_depth": 7.076923076923077,
+        "count": 13
+      },
+      {
+        "char": "f",
+        "mean_depth": 6.9728682170542635,
+        "count": 258
+      },
+      {
+        "char": "T",
+        "mean_depth": 6.97196261682243,
+        "count": 107
+      },
+      {
+        "char": "M",
+        "mean_depth": 6.788461538461538,
+        "count": 52
+      },
+      {
+        "char": "y",
+        "mean_depth": 6.612244897959184,
+        "count": 343
+      },
+      {
+        "char": "F",
+        "mean_depth": 6.5588235294117645,
+        "count": 34
+      },
+      {
+        "char": "k",
+        "mean_depth": 6.450980392156863,
+        "count": 102
+      },
+      {
+        "char": "C",
+        "mean_depth": 6.342105263157895,
+        "count": 76
+      },
+      {
+        "char": "G",
+        "mean_depth": 6.25,
+        "count": 8
+      },
+      {
+        "char": "A",
+        "mean_depth": 6.1,
+        "count": 110
+      },
+      {
+        "char": ".",
+        "mean_depth": 6.08641975308642,
+        "count": 162
+      },
+      {
+        "char": "t",
+        "mean_depth": 5.995805369127517,
+        "count": 1192
+      },
+      {
+        "char": "g",
+        "mean_depth": 5.959016393442623,
+        "count": 244
+      },
+      {
+        "char": "c",
+        "mean_depth": 5.866920152091255,
+        "count": 263
+      },
+      {
+        "char": "s",
+        "mean_depth": 5.688352570828961,
+        "count": 953
+      },
+      {
+        "char": ";",
+        "mean_depth": 5.677966101694915,
+        "count": 59
+      },
+      {
+        "char": "a",
+        "mean_depth": 5.575642245480495,
+        "count": 1051
+      },
+      {
+        "char": "m",
+        "mean_depth": 5.478935698447893,
+        "count": 451
+      },
+      {
+        "char": "l",
+        "mean_depth": 5.384905660377359,
+        "count": 530
+      },
+      {
+        "char": ",",
+        "mean_depth": 5.25,
+        "count": 336
+      },
+      {
+        "char": "n",
+        "mean_depth": 5.102642276422764,
+        "count": 984
+      },
+      {
+        "char": "S",
+        "mean_depth": 5.044444444444444,
+        "count": 180
+      },
+      {
+        "char": "v",
+        "mean_depth": 4.909090909090909,
+        "count": 198
+      },
+      {
+        "char": "i",
+        "mean_depth": 4.849598163030999,
+        "count": 871
+      },
+      {
+        "char": "r",
+        "mean_depth": 4.696045197740113,
+        "count": 885
+      },
+      {
+        "char": "'",
+        "mean_depth": 4.653225806451613,
+        "count": 124
+      },
+      {
+        "char": "d",
+        "mean_depth": 4.535508637236084,
+        "count": 521
+      },
+      {
+        "char": "D",
+        "mean_depth": 4.5,
+        "count": 14
+      },
+      {
+        "char": "!",
+        "mean_depth": 4.461538461538462,
+        "count": 39
+      },
+      {
+        "char": "o",
+        "mean_depth": 4.403693931398417,
+        "count": 1137
+      },
+      {
+        "char": "R",
+        "mean_depth": 4.393939393939394,
+        "count": 66
+      },
+      {
+        "char": ":",
+        "mean_depth": 4.254385964912281,
+        "count": 228
+      },
+      {
+        "char": "-",
+        "mean_depth": 4.204545454545454,
+        "count": 44
+      },
+      {
+        "char": "I",
+        "mean_depth": 4.093023255813954,
+        "count": 215
+      },
+      {
+        "char": "?",
+        "mean_depth": 4.0588235294117645,
+        "count": 51
+      },
+      {
+        "char": "e",
+        "mean_depth": 4.0490523968784835,
+        "count": 1794
+      },
+      {
+        "char": "h",
+        "mean_depth": 3.9988974641675856,
+        "count": 907
+      },
+      {
+        "char": "u",
+        "mean_depth": 3.946067415730337,
+        "count": 445
+      },
+      {
+        "char": "<space>",
+        "mean_depth": 3.3120909404064762,
+        "count": 2903
+      },
+      {
+        "char": "O",
+        "mean_depth": 2.891891891891892,
+        "count": 74
+      },
+      {
+        "char": "L",
+        "mean_depth": 2.7948717948717947,
+        "count": 39
+      },
+      {
+        "char": "z",
+        "mean_depth": 2.75,
+        "count": 8
+      },
+      {
+        "char": "N",
+        "mean_depth": 2.1666666666666665,
+        "count": 90
+      },
+      {
+        "char": "\\n",
+        "mean_depth": 2.130434782608696,
+        "count": 805
+      },
+      {
+        "char": "U",
+        "mean_depth": 1.3592233009708738,
+        "count": 103
+      },
+      {
+        "char": "E",
+        "mean_depth": 1.3103448275862069,
+        "count": 29
+      }
+    ],
+    "top_characters": [
+      {
+        "char": "B",
+        "mean_depth": 8.0,
+        "count": 30
+      },
+      {
+        "char": "V",
+        "mean_depth": 8.0,
+        "count": 22
+      },
+      {
+        "char": "Y",
+        "mean_depth": 8.0,
+        "count": 16
+      },
+      {
+        "char": "q",
+        "mean_depth": 8.0,
+        "count": 6
+      },
+      {
+        "char": "j",
+        "mean_depth": 8.0,
+        "count": 5
+      },
+      {
+        "char": "J",
+        "mean_depth": 8.0,
+        "count": 3
+      },
+      {
+        "char": "K",
+        "mean_depth": 8.0,
+        "count": 1
+      },
+      {
+        "char": "b",
+        "mean_depth": 7.891191709844559,
+        "count": 193
+      },
+      {
+        "char": "W",
+        "mean_depth": 7.833333333333333,
+        "count": 66
+      },
+      {
+        "char": "H",
+        "mean_depth": 7.535714285714286,
+        "count": 28
+      }
+    ],
+    "bottom_characters": [
+      {
+        "char": "E",
+        "mean_depth": 1.3103448275862069,
+        "count": 29
+      },
+      {
+        "char": "U",
+        "mean_depth": 1.3592233009708738,
+        "count": 103
+      },
+      {
+        "char": "\\n",
+        "mean_depth": 2.130434782608696,
+        "count": 805
+      },
+      {
+        "char": "N",
+        "mean_depth": 2.1666666666666665,
+        "count": 90
+      },
+      {
+        "char": "z",
+        "mean_depth": 2.75,
+        "count": 8
+      },
+      {
+        "char": "L",
+        "mean_depth": 2.7948717948717947,
+        "count": 39
+      },
+      {
+        "char": "O",
+        "mean_depth": 2.891891891891892,
+        "count": 74
+      },
+      {
+        "char": "<space>",
+        "mean_depth": 3.3120909404064762,
+        "count": 2903
+      },
+      {
+        "char": "u",
+        "mean_depth": 3.946067415730337,
+        "count": 445
+      },
+      {
+        "char": "h",
+        "mean_depth": 3.9988974641675856,
+        "count": 907
+      }
+    ]
+  },
+  "bigram_novelty": {
+    "effect_metric": "spearman_rho",
+    "effect_size": -0.18993608153365218,
+    "mean_depth_by_bucket": [
+      {
+        "bucket": "Q1",
+        "mean_novelty": 1.8181488429327515,
+        "mean_depth": 5.50471128291858,
+        "count": 4139,
+        "min_novelty": 1.5630426693305504,
+        "max_novelty": 2.0078885122130505
+      },
+      {
+        "bucket": "Q2",
+        "mean_novelty": 2.129374339056485,
+        "mean_depth": 5.277145811789039,
+        "count": 3868,
+        "min_novelty": 2.0141246426916064,
+        "max_novelty": 2.239577516576788
+      },
+      {
+        "bucket": "Q3",
+        "mean_novelty": 2.3758879439598437,
+        "mean_depth": 4.75776397515528,
+        "count": 4025,
+        "min_novelty": 2.24184537803261,
+        "max_novelty": 2.5272435506827877
+      },
+      {
+        "bucket": "Q4",
+        "mean_novelty": 2.6994343901461293,
+        "mean_depth": 4.406430545089173,
+        "count": 3981,
+        "min_novelty": 2.5316526695878427,
+        "max_novelty": 2.8927900303521317
+      },
+      {
+        "bucket": "Q5",
+        "mean_novelty": 3.337444138385986,
+        "mean_depth": 3.663716814159292,
+        "count": 3955,
+        "min_novelty": 2.896196279044043,
+        "max_novelty": 5.0
+      }
+    ],
+    "top_novel_bigrams": [
+      {
+        "bigram": "Ba",
+        "count_in_training": 0,
+        "novelty": 5.0,
+        "mean_depth": 8
+      },
+      {
+        "bigram": "Ni",
+        "count_in_training": 0,
+        "novelty": 5.0,
+        "mean_depth": 8
+      },
+      {
+        "bigram": "Ba",
+        "count_in_training": 0,
+        "novelty": 5.0,
+        "mean_depth": 8
+      },
+      {
+        "bigram": "Ni",
+        "count_in_training": 0,
+        "novelty": 5.0,
+        "mean_depth": 8
+      },
+      {
+        "bigram": "rj",
+        "count_in_training": 0,
+        "novelty": 5.0,
+        "mean_depth": 8
+      },
+      {
+        "bigram": "h-",
+        "count_in_training": 0,
+        "novelty": 5.0,
+        "mean_depth": 8
+      },
+      {
+        "bigram": "py",
+        "count_in_training": 0,
+        "novelty": 5.0,
+        "mean_depth": 8
+      },
+      {
+        "bigram": "py",
+        "count_in_training": 0,
+        "novelty": 5.0,
+        "mean_depth": 8
+      },
+      {
+        "bigram": " K",
+        "count_in_training": 0,
+        "novelty": 5.0,
+        "mean_depth": 8
+      },
+      {
+        "bigram": "mt",
+        "count_in_training": 0,
+        "novelty": 5.0,
+        "mean_depth": 8
+      }
+    ]
+  },
+  "position_in_word": {
+    "effect_metric": "correlation_ratio_eta",
+    "effect_size": 0.46108773300401285,
+    "categories": [
+      {
+        "category": "first_after_space",
+        "mean_depth": 8.0,
+        "count": 2903
+      },
+      {
+        "category": "other_word_start",
+        "mean_depth": 7.824193548387097,
+        "count": 620
+      },
+      {
+        "category": "middle_of_word",
+        "mean_depth": 4.467647410596818,
+        "count": 8361
+      },
+      {
+        "category": "end_before_boundary",
+        "mean_depth": 3.7599074341914953,
+        "count": 3457
+      },
+      {
+        "category": "non_word",
+        "mean_depth": 3.4473741084936242,
+        "count": 4627
+      }
+    ]
+  },
+  "local_entropy": {
+    "effect_metric": "spearman_rho",
+    "effect_size": -0.11707582496386278,
+    "window_radius": 64,
+    "mean_depth_by_bucket": [
+      {
+        "bucket": "Q1",
+        "mean_entropy_bits": 4.157006222052063,
+        "mean_depth": 5.188282423635453,
+        "count": 3994,
+        "min_entropy_bits": 3.926003040081696,
+        "max_entropy_bits": 4.244852958010085
+      },
+      {
+        "bucket": "Q2",
+        "mean_entropy_bits": 4.296366727561488,
+        "mean_depth": 5.071339173967459,
+        "count": 3995,
+        "min_entropy_bits": 4.244893969864014,
+        "max_entropy_bits": 4.347940231365356
+      },
+      {
+        "bucket": "Q3",
+        "mean_entropy_bits": 4.405377955600004,
+        "mean_depth": 4.73872745490982,
+        "count": 3992,
+        "min_entropy_bits": 4.347981652599705,
+        "max_entropy_bits": 4.473865342806689
+      },
+      {
+        "bucket": "Q4",
+        "mean_entropy_bits": 4.5546010656689955,
+        "mean_depth": 4.428893340010015,
+        "count": 3994,
+        "min_entropy_bits": 4.473875921436929,
+        "max_entropy_bits": 4.632199671103037
+      },
+      {
+        "bucket": "Q5",
+        "mean_entropy_bits": 4.717866791383048,
+        "mean_depth": 4.204858502379164,
+        "count": 3993,
+        "min_entropy_bits": 4.632258451582058,
+        "max_entropy_bits": 4.89624763702251
+      }
+    ]
+  },
+  "after_punctuation": {
+    "effect_metric": "point_biserial_r",
+    "effect_size": -0.23121843197178732,
+    "after_punctuation_mean_depth": 1.078857142857143,
+    "other_mean_depth": 4.893625936206987,
+    "mean_depth_difference": -3.8147687933498435,
+    "after_punctuation_count": 875,
+    "other_count": 19093
+  },
+  "word_frequency": {
+    "effect_metric": "spearman_rho",
+    "effect_size": 0.16065065606337361,
+    "word_character_count": 15341,
+    "mean_depth_by_bucket": [
+      {
+        "bucket": "Q1",
+        "mean_rarity": 2.6258929233991677,
+        "mean_depth": 4.543095161807113,
+        "count": 3121,
+        "min_rarity": 2.140261433802853,
+        "max_rarity": 2.9430951486635273
+      },
+      {
+        "bucket": "Q2",
+        "mean_rarity": 3.2295213324238508,
+        "mean_depth": 4.335787451984635,
+        "count": 3124,
+        "min_rarity": 2.9746941347352296,
+        "max_rarity": 3.537602002101044
+      },
+      {
+        "bucket": "Q3",
+        "mean_rarity": 3.820623456623146,
+        "mean_depth": 5.23995983935743,
+        "count": 2988,
+        "min_rarity": 3.5528419686577806,
+        "max_rarity": 4.096910013008056
+      },
+      {
+        "bucket": "Q4",
+        "mean_rarity": 4.752278001640002,
+        "mean_depth": 5.737721021611002,
+        "count": 6108,
+        "min_rarity": 4.154901959985743,
+        "max_rarity": 5.0
+      }
+    ],
+    "rarest_words": [
+      {
+        "word": "'aged",
+        "count_in_training": 1
+      },
+      {
+        "word": "'bout",
+        "count_in_training": 1
+      },
+      {
+        "word": "'brutus",
+        "count_in_training": 1
+      },
+      {
+        "word": "'come",
+        "count_in_training": 1
+      },
+      {
+        "word": "'coriolanus",
+        "count_in_training": 1
+      },
+      {
+        "word": "'death",
+        "count_in_training": 1
+      },
+      {
+        "word": "'fine",
+        "count_in_training": 1
+      },
+      {
+        "word": "'fore",
+        "count_in_training": 1
+      },
+      {
+        "word": "'good",
+        "count_in_training": 1
+      },
+      {
+        "word": "'head",
+        "count_in_training": 1
+      }
+    ]
+  }
+}
