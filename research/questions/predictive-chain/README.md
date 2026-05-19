@@ -1,204 +1,203 @@
-# Question: Predictive Chain
+# Predictive Chain
 
-## What this bounded unit asks
+## 1. Origin — which part of the vision this tests
 
-Can a tiny 3-node recurrent line on the existing fixed-window character next-token task learn both the main task and local next-input prediction targets, with saved message rollouts that make the internal chain inspectable?
+Max's core architectural idea (dictation 3, 2025-05-08-1) is a graph of many small recurrent blocks — cortical columns — each predicting its own next state, communicating via messages, with gradients unhooked at message boundaries so each block learns locally. The latest elaboration (2026-05-19-1) adds: blocks use attention to aggregate from neighbors, and there's a family of small predictive heads — including heads that predict loss — enabling dynamic halting and parallel token sampling at inference time.
 
-## Artifacts
+This experiment does not implement that architecture. It implements a deliberate simplification: a **linear chain** of GRU cells, no attention, no graph, no async execution. The justification for the simplification is: before building the async graph, it's worth asking whether local predictive pressure and unhooked gradients can work *at all* — whether the signal is strong enough to learn useful representations when gradient flow is severed at node boundaries. That's a prerequisite question. If the answer were no, the full architecture would be pointless.
 
-- Dataset: [`raw_text.txt`](raw_text.txt)
-- Run config: [`artifacts/config.json`](artifacts/config.json)
-- Environment proof: [`artifacts/environment.json`](artifacts/environment.json)
-- Model summary: [`artifacts/model_summary.json`](artifacts/model_summary.json)
-- One-batch overfit metrics: [`artifacts/overfit_metrics.json`](artifacts/overfit_metrics.json)
-- One-batch overfit predictions: [`artifacts/overfit_predictions.txt`](artifacts/overfit_predictions.txt)
-- One-batch auxiliary traces: [`artifacts/overfit_auxiliary_traces.json`](artifacts/overfit_auxiliary_traces.json)
-- One-batch rollout examples: [`artifacts/overfit_rollout_examples.json`](artifacts/overfit_rollout_examples.json)
-- Tiny-data run metrics: [`artifacts/tiny_run_metrics.json`](artifacts/tiny_run_metrics.json)
-- Tiny-data auxiliary traces: [`artifacts/tiny_auxiliary_traces.json`](artifacts/tiny_auxiliary_traces.json)
-- Tiny-data generated samples: [`artifacts/tiny_samples.json`](artifacts/tiny_samples.json)
-- Tiny-data rollout examples: [`artifacts/tiny_rollout_examples.json`](artifacts/tiny_rollout_examples.json)
+What this experiment leaves open, explicitly: what the full graph structure should be, what async execution looks like concretely, whether attention-based aggregation adds value, whether loss-prediction heads are useful for halting — all of these remain open questions per Max's own words (2025-05-08-2): *"This is a good question. It's an open question... All of these should be explored."*
 
-## Scope
+---
 
-- 3 nodes in a line: `A -> B -> C`
-- recurrent cell: `GRUCell`
-- task head: next-character classification from the final hidden states of all three nodes
-- auxiliary heads:
-  - A predicts the next token embedding
-  - B predicts A's next message
-  - C predicts B's next message
-- message-target gradients are detached in this bounded unit
+## 2. Architecture
 
-## Results
+### The chain
 
-### Baseline (aux_weight=0.001)
+Each node is a `GRUCell`. Node A receives the character embedding. Each subsequent node receives the *message* from the previous node — a low-dimensional projection of the previous node's hidden state. All nodes' final hidden states are concatenated and fed to a task head that predicts the next character.
 
-The task head overfits cleanly: accuracy `1.0`, task loss `0.000254`, total loss `0.000998`. But the auxiliary predictive losses remain non-trivial: A `0.5106`, B `0.1983`, C `0.0354`. See [`artifacts/aux_weight_0.001/`](artifacts/aux_weight_0.001/).
+```
+Input embedding
+      │
+   [Node A]  ──── h_A ──── message_A ──►  [Node B]  ──── h_B ──── message_B ──►  [Node C]  ──── h_C
+                                                                                                    │
+task head ◄────────────────────────────── concat(h_A, h_B, h_C) ──────────────────────────────────┘
+```
 
-Tiny full-dataset run generates clean text (e.g. `hello world.\nsmall text.\nhello world...`). Final accuracy `0.9793`.
+Each node also has a **predictive aux head**: A predicts the next token embedding; B predicts A's next message; C predicts B's next message. These auxiliary losses are weighted by `aux_weight` and added to the total loss. With `detach_messages=True`, gradient is stopped at message boundaries — each node cannot backprop into its upstream neighbor.
 
-### Strong aux pressure (aux_weight=1.0)
+The 8-node version extends this pattern: A through H in a line, each receiving the previous node's message, each carrying an aux head targeting the upstream neighbor's next output.
 
-With equal weighting, aux losses drop dramatically: A `0.0086` (was 0.51), B `0.0392` (was 0.20), C `0.0371` (roughly unchanged). The task head is completely unharmed: accuracy `1.0`, task loss `1.27e-07`. See [`artifacts/aux_weight_1.0/`](artifacts/aux_weight_1.0/).
+```
+[A]──msg──►[B]──msg──►[C]──msg──►[D]──msg──►[E]──msg──►[F]──msg──►[G]──msg──►[H]
+ ↑pred       ↑pred       ↑pred       ↑pred       ↑pred       ↑pred       ↑pred   ↑pred
+(embed)      (A msg)     (B msg)     (C msg)     (D msg)     (E msg)     (F msg) (G msg)
+                                       └──────── task head ◄── concat(h_A…h_H) ──┘
+```
 
-Tiny run also unharmed: accuracy `0.9793`, task loss slightly better at `0.0322`. Generated samples identical quality.
+### Core forward pass (simplified from [`experiments/pytorch_char_predictive_chain.py`](../../../experiments/pytorch_char_predictive_chain.py))
 
-### Key finding
+```python
+# At each sequence step:
+for node_index, (node, message_head) in enumerate(zip(self.nodes, self.message_heads)):
+    node_input = (
+        embeddings[:, step, :]          # character embedding for node A
+        if node_index == 0
+        else previous_messages[node_index - 1]  # upstream message for B, C, ...
+    )
+    hidden = node(node_input, hidden)   # GRUCell update
+    message = tanh(message_head(hidden))  # low-dim projection
 
-**Local predictive pressure does not conflict with task performance** at this scale. The aux losses at low weight were high because the optimizer wasn't trying, not because the targets are impossible. When pressured, nodes A and B become highly predictable to their neighbors while still serving the downstream task equally well.
+# Detach messages at boundaries if configured:
+previous_messages = [
+    msg.detach() if self.detach_messages else msg
+    for msg in current_messages[:-1]
+]
 
-Node C is the exception — its aux loss was already low and doesn't improve much with stronger weighting. This may be because C's prediction target (B's next message) is inherently more variable, or because C's own downstream contribution is less constrained.
+# After all steps, predict next character from all final hidden states:
+logits = task_head(concat(h_A_final, h_B_final, ..., h_N_final))
+```
 
-Full comparison: [`artifacts/compare_auxiliary_weights.json`](artifacts/compare_auxiliary_weights.json).
+Default dims: embedding 24, hidden 96, message 24 (a bottleneck). The message bottleneck was explicitly ablated — see results.
 
-### Detached message gradients (aux_weight=1.0, detach_messages=True)
+---
 
-With gradients stopped at message boundaries — each node receives messages but cannot backpropagate into the sender — task performance is identical: accuracy `1.0` (overfit), `0.9793` (tiny). Generated samples are the same.
+## 3. Hypotheses
 
-Aux losses are moderately higher than the coupled version: overfit total `0.156` (vs `0.085`), with the increase spread across all nodes. See [`artifacts/detached_messages/`](artifacts/detached_messages/) and [`artifacts/compare_detached_messages.json`](artifacts/compare_detached_messages.json).
+**H1: Local predictive pressure can coexist with downstream task learning.**
+Adding auxiliary prediction targets to each node won't hurt the task head. The model can pursue both objectives simultaneously.
 
-**This means the "unhooked gradients" vision is viable at this scale.** Nodes can learn useful representations from local predictive pressure alone, without receiving gradient signal from downstream consumers of their messages. The downstream task head doesn't care whether the internal communication channel is gradient-coupled or not.
+**H2: Unhooked gradients don't kill the chain.**
+With `detach_messages=True`, each node receives no gradient from its downstream neighbors. It learns only from its own aux loss plus indirect signal through the task head (via its hidden state only — the message is detached). The question is whether this is still enough to learn useful representations.
 
-The local prediction task is slightly harder without coupling (aux losses ~2× higher), which makes sense — without B sending gradients back to A, node A has no direct optimization signal to make its messages more predictable. It only learns message structure through its own local loss.
+**H3: The chain generalizes better than flat architectures on real text.**
+The sequential bottleneck forces information through multiple recurrent stages. Hypothesis: this provides implicit regularization that reduces overfitting on small datasets.
 
-### 8-node detached chain (num_nodes=8, aux_weight=1.0, detach_messages=True)
+**H4: Adding graph connectivity (skip connections, attention over predecessors) improves on the chain.**
+If the linear chain is good, a richer graph should be better — each node can selectively route information from multiple predecessors.
 
-Scaling from 3 to 8 nodes with the full "vision" configuration (strong aux pressure + detached gradients). Task head still works perfectly: accuracy `1.0` (overfit), `0.9793` (tiny). Generated samples are clean.
+**H5: The chain's advantage scales.**
+More data, more parameters — does the chain's structural advantage persist, or is it only a small-data regularization effect?
 
-Per-node aux losses (overfit): A `0.013`, B `0.076`, C `0.066`, D `0.073`, E `0.064`, F `0.061`, G `0.023`, H `0.0003`.
+---
 
-The pattern: hardest in early-mid chain (B), gradually decreasing, with the deepest node (H) being nearly trivial. Information gets progressively more predictable deeper in the chain — deeper nodes see increasingly constrained signals.
+## 4. Results
 
-See [`artifacts/8_nodes_detached/`](artifacts/8_nodes_detached/) and [`artifacts/8_nodes_detached/auxiliary_position_summary.json`](artifacts/8_nodes_detached/auxiliary_position_summary.json).
+### H1: Local predictive pressure — confirmed
 
-### Shakespeare comparison (real English, context_size=5, train/val split)
+On a tiny repetitive dataset (overfit regime), task head accuracy hits 1.0 with both `aux_weight=0.001` and `aux_weight=1.0`. Adding strong auxiliary pressure does not harm the task head.
 
-All prior experiments hit the same 0.9793 accuracy ceiling on trivially repetitive text. Switching to a 7k-char Shakespeare excerpt with an 80/20 train/val split reveals genuine architectural differences.
+At low weight, aux losses are high (A: 0.51, B: 0.20, C: 0.035) — not because the targets are hard, but because the optimizer wasn't trying. With `aux_weight=1.0`, they drop sharply (A: 0.0086, B: 0.039) while task loss hits 1.27e-07. The optimizer can serve both objectives without conflict.
 
-Results (all models, same hyperparameters, ~matched params):
+### H2: Unhooked gradients — confirmed, with a cost
+
+With `detach_messages=True` (gradients stopped at message boundaries), task performance is identical: accuracy 1.0 (overfit), 0.9793 (tiny dataset). Aux losses are moderately higher (overfit total: 0.156 vs 0.085), which makes sense — without downstream gradient pressure, each node only has its own aux loss to structure its messages. It works, but learning is harder.
+
+This is the clearest result for the vision: nodes can learn independently via local prediction alone, without global gradient propagation, and the downstream task head doesn't care.
+
+### H3: Chain generalizes better than flat architectures — confirmed at small scale
+
+Switching to a 7K-char Shakespeare excerpt with an 80/20 train/val split:
 
 | Model | Train Loss | Val Loss | Val Acc |
 |-------|-----------|----------|---------|
 | Feedforward | 0.79 | 4.87 | 0.282 |
 | RNN | 1.23 | 3.05 | 0.292 |
 | Transformer | 1.48 | 2.80 | 0.311 |
-| **Pred Chain (aux 0.001, detached)** | 2.04 | **2.59** | 0.281 |
-| **Pred Chain (aux 1.0, detached)** | 1.98 | **2.59** | 0.290 |
+| Pred Chain (aux 0.001, detached) | 2.04 | **2.59** | 0.281 |
+| Pred Chain (aux 1.0, detached) | 1.98 | **2.59** | 0.290 |
 
-**The predictive chain generalizes best.** Despite the highest training loss (learns slowest), it has the lowest validation loss — it overfits least. The baselines all overfit severely (feedforward worst at 6× generalization gap; RNN and transformer also bad).
+The chain has the highest training loss (learns slowly) but the lowest validation loss. The baselines overfit badly — feedforward 6×, RNN and transformer 2–3×. The chain is structurally constrained in a way that prevents this.
 
-The aux weight makes little difference to validation performance (2.59 vs 2.59), though strong aux slightly helps training speed and val accuracy.
+Two ablations ruled out the obvious explanations:
+- **Aux weight doesn't matter** (both aux settings give val loss 2.59) → generalization advantage is not from aux regularization
+- **Message bottleneck doesn't matter** (expanding message_dim from 24 to 96 gives val loss 2.564, slightly *better*) → not from information compression
 
-See [`artifacts/shakespeare_comparison/`](artifacts/shakespeare_comparison/).
+The advantage is from the multi-hop recurrent structure itself. Information must flow through a strict sequential path; the architecture can't skip steps.
 
-### Message bottleneck ablation (message_dim=96 vs 24)
-
-Hypothesis: the narrow message channel (24 dims vs 96 hidden dims) acts as an information bottleneck that forces regularization.
-
-Result: removing the bottleneck (message_dim=96) gives val loss `2.564`, slightly BETTER than the bottlenecked version (2.592). **The bottleneck is NOT the key regularizer.**
-
-See [`artifacts/shakespeare_no_bottleneck/`](artifacts/shakespeare_no_bottleneck/).
-
-### Why does it generalize better?
-
-The aux weight ablation (0.001 vs 1.0 → same val loss) and the bottleneck ablation (no bottleneck → same/better val loss) together suggest the generalization advantage comes from the **multi-hop recurrent structure itself** — not from aux regularization pressure and not from message compression. The architecture forces information to flow through multiple small recurrent steps, and that structural constraint provides implicit regularization that prevents overfitting.
-
-### Graph topology with attention (order-2 skip DAG, 8 nodes)
-
-Hypothesis: giving nodes multiple predecessors with learned attention enables selective information routing and improves generalization further.
-
-Topology: 8-node DAG where each node (C through H) has 2 predecessors — its immediate chain predecessor plus one skip connection. Tested with:
-- `uniform_mean`: simple average of predecessor messages
-- `attention`: learned single-head attention over predecessors (per-receiver Q/K projections)
-
-Results (36.4K params each, same Shakespeare protocol):
-
-| Model | Val Loss | Val Acc |
-|-------|----------|---------|
-| Historical chain (13.7K) | **2.59** | 0.290 |
-| Graph uniform_mean (36.4K) | 2.79 | 0.296 |
-| Graph attention (36.4K) | 2.84 | 0.309 |
-
-**Both graph variants are worse than the linear chain.** The attention mechanism works (is non-trivial during overfit; deeper nodes C/D/E show non-uniform weights) but does not help on this task. Adding connectivity dilutes the sequential bottleneck that provides the chain's generalization advantage.
-
-Note: the graph models have ~2.5× more parameters than the chain, making the comparison somewhat unfair — the chain does better with less.
-
-See [`artifacts/shakespeare_graph_attention/`](artifacts/shakespeare_graph_attention/).
-
-### Interpretation: the sequential bottleneck IS the inductive bias
-
-Across all ablations:
-- Aux weight doesn't matter → not aux regularization
-- Message bottleneck doesn't matter → not information compression
-- Adding graph shortcuts hurts → the strict sequential processing IS the advantage
-
-The linear chain forces information through a single narrow path of recurrent steps. This structural constraint prevents the model from taking shortcuts that lead to overfitting. When we add skip connections, we give the model those shortcuts back — and it overfits more.
-
-### Context size scaling (5 → 10 → 20)
-
-Does the chain's advantage grow with longer dependencies?
-
-Results (val loss, all architectures, same training protocol):
+Context size scaling (ctx=5, 10, 20) confirms the advantage is robust:
 
 | Architecture | ctx=5 | ctx=10 | ctx=20 |
 |---|---|---|---|
-| **Predictive chain** | **2.59** | **2.57** | **2.63** |
+| Predictive chain | **2.59** | **2.57** | **2.63** |
 | Transformer | 2.84 | 2.92 | 2.95 |
 | RNN | 2.95 | 2.97 | 2.92 |
 | Feedforward | 4.71 | 8.81 | 9.75 |
 
-**The chain is consistently best at all context sizes.** Its advantage over the transformer grows from 0.25 (ctx=5) to 0.36 (ctx=10) then shrinks to 0.28 (ctx=20). The advantage is robust but doesn't clearly grow monotonically.
+The advantage doesn't monotonically grow with longer dependencies, but it's consistent.
 
-See [`artifacts/context_scaling/`](artifacts/context_scaling/).
+### H4: Graph connectivity improves on chain — refuted
 
-### Scale-up (100K chars, 200K params, context=32, 5000 steps)
+An 8-node DAG where nodes C–H each attend over their immediate predecessor plus one skip connection:
 
-**Critical test:** does the advantage hold with more data and larger models?
+| Model | Val Loss | Val Acc |
+|-------|----------|---------|
+| Linear chain (13.7K params) | **2.59** | 0.290 |
+| Graph uniform_mean (36.4K params) | 2.79 | 0.296 |
+| Graph attention (36.4K params) | 2.84 | 0.309 |
+
+Both graph variants are worse than the linear chain — and they have 2.5× more parameters. Adding skip connections gives the model shortcuts around the sequential bottleneck, and it uses them in ways that increase overfitting. The attention mechanism is non-trivial (non-uniform weights at deeper nodes) but doesn't help.
+
+This is the most surprising result. It suggests the chain's advantage *is* the sequential bottleneck, and adding connectivity actively hurts by undoing that constraint.
+
+### H5: Advantage scales — refuted
+
+Scale-up to 100K chars, 200K params, context=32, 5000 steps:
 
 | Architecture | Params | Train Loss | Val Loss | Val Acc |
 |---|---|---|---|---|
 | RNN | 196K | 1.504 | **1.727** | 0.503 |
 | Transformer | 187K | 1.312 | 1.731 | 0.497 |
-| **Predictive chain** | 203K | 1.390 | 1.735 | **0.506** |
+| Predictive chain | 203K | 1.390 | 1.735 | **0.506** |
 | Feedforward | 187K | 0.661 | 3.771 | 0.351 |
 
-**The chain's advantage disappears at scale.** All three recurrent architectures converge to near-identical val loss (~1.73). The chain is no longer best — it's within noise of the RNN and transformer.
+All three recurrent architectures converge to ~1.73 val loss. The chain is no longer best — within noise of the RNN and transformer. With enough data, baselines don't overfit, so the chain's regularization effect becomes irrelevant.
 
-Additional observation: the chain is **dramatically slower** — 1177s vs 15-100s for baselines (10-80× overhead from sequential 8-node processing).
+Additional cost: the chain is **10–80× slower** than baselines (1177s vs 15–100s) due to sequential node processing that can't be batched.
 
-See [`artifacts/scale_up/`](artifacts/scale_up/).
+---
 
-### What the scale-up tells us
+## 5. What this means for the vision
 
-The chain's small-scale advantage was **specifically a regularization effect**. With only 7K chars and 14K params, baselines overfit badly; the chain's sequential bottleneck prevents this. With 100K chars and 200K params, baselines have enough data that overfitting is no longer the dominant problem — and the chain's structural constraint becomes neutral, offering no representational advantage while adding massive computational overhead.
+The preliminary viability question is answered: local predictive learning works, unhooked gradients work, the structural principle is sound. That's a real result.
 
-## What this does not settle
+The regularization finding (H3) is interesting but shouldn't be over-read. It's a small-dataset effect — at scale it disappears. Max's vision is not primarily justified as a regularizer; it's justified by the *practical benefits of asynchronous execution* and the potential interpretability/modularity properties. Those were never tested here.
 
-- whether async or desynchronized execution is viable (the key practical benefit from the vision)
-- whether loss-prediction heads for halting are useful
-- whether the architecture has qualitative advantages beyond loss (interpretability, modularity, graceful degradation)
-- whether temporal attention over message history from one predecessor adds value
-- whether a different task (not character prediction) reveals different properties
-- whether the computational overhead can be reduced (parallel execution of independent nodes)
+The graph connectivity result (H4) is worth sitting with. The chain beats the graph at this scale. But the chain is also a much simpler graph — a strictly sequential one. The result may be saying: on a small dataset with simple sequential dependencies (character prediction), learned graph connectivity adds noise more than signal. This doesn't generalize to what Max is actually building — a graph over async computation that can model long-range dependencies across a 2D or higher-dimensional structure. The refutation is real, but it's a refutation of this specific configuration on this specific task, not of the graph idea generally.
 
-## Status
+The sequential bottleneck interpretation (information must flow through a strict path → implicit regularization) may itself be a confound. The chain also has more recurrent steps than a single-layer RNN, which could independently explain the generalization gap. These weren't separately controlled.
 
-Nine experiment variants completed. Core findings:
-1. Local predictive learning is compatible with task learning
-2. Aux losses are optimization-driven, not fundamentally hard
-3. Unhooked gradients are viable — nodes learn independently
-4. The pattern holds at 8 nodes
-5. **On small-scale English text, the chain generalizes better** — sequential bottleneck as regularization
-6. Adding graph connectivity hurts — dilutes the inductive bias
-7. The advantage is robust across context sizes (5, 10, 20)
-8. **⚠️ The advantage disappears at larger scale** — with enough data, baselines catch up
-9. The chain is 10-80× slower than baselines due to sequential processing
+What's *not* settled, per Max's own framing: whether the architecture has qualitative advantages that don't show up in val loss — interpretability, modularity, graceful degradation under node failure. These are potentially more important than the loss numbers.
 
-**Overall assessment:** The predictive chain architecture is *viable* — local predictive learning works, unhooked gradients work, the structure is sound. But its only measurable advantage over existing architectures (generalization) is a regularization effect that disappears with more data. It does not appear to offer a representational advantage over standard RNNs/transformers at the scales tested.
+---
 
-The remaining potential value may be in properties that don't show up as val loss:
-- Asynchronous execution (no global backprop needed)
-- Interpretability (can inspect per-node representations and predictions)
-- Modularity (can add/remove/replace individual nodes)
-- Graceful degradation (if nodes fail, others may compensate)
+## 6. Next steps — not pursued yet, and why
+
+**Async execution** — the key practical benefit Max described. Not tested because the prerequisite question (does the learning even work?) needed to come first. Now that it does, the natural next experiment would be to implement true async: nodes run on different schedules, communicating via a shared memory structure with staleness. This requires a different execution model, not just a hyperparameter change.
+
+**Larger-scale qualitative study** — interpretability of per-node representations, modularity (can nodes be added/removed/replaced without retraining others?), graceful degradation. Deferred because: (a) the loss advantage disappeared at scale, making it harder to justify large compute, and (b) the chain is already 10–80× slower — running it at meaningful scale for qualitative study is expensive.
+
+**Different tasks (image patches)** — Max explicitly mentioned arbitrary-order image patch prediction (dictation 4). The chain structure has different inductive biases on 2D spatial inputs than on sequential text. Not started — the image pipeline doesn't exist yet.
+
+**Dynamic depth / self-referential loss prediction** — Max described this separately (dictations 2025-05-08-3 and 2026-05-19-1): a prediction head that predicts the loss of the main head, enabling dynamic halting at inference. This was implemented and verified as a standalone experiment in `research/questions/dynamic-depth/`. The natural next combination is dynamic depth *inside* the chain — each node could decide how many recurrent steps to take before passing its message. That combination hasn't been attempted.
+
+**Loss-prediction heads for async triggering** — Max's latest thinking (2026-05-19-1) includes prediction heads that predict the loss of other prediction heads, used to decide *whether to run* a node at the next step. This is the mechanism for async execution. Not modeled here at all.
+
+**Graph attention at scale, on different tasks** — the H4 result (graph connectivity hurts on small Shakespeare) should be revisited with more data and a task where spatial connectivity genuinely matters (e.g., image patches, where skip connections across spatial positions make semantic sense).
+
+---
+
+## Artifacts
+
+- [`artifacts/config.json`](artifacts/config.json) — baseline run config
+- [`artifacts/overfit_metrics.json`](artifacts/overfit_metrics.json) — one-batch overfit metrics
+- [`artifacts/aux_weight_0.001/`](artifacts/aux_weight_0.001/) — low aux weight run
+- [`artifacts/aux_weight_1.0/`](artifacts/aux_weight_1.0/) — strong aux pressure run
+- [`artifacts/detached_messages/`](artifacts/detached_messages/) — unhooked gradients run
+- [`artifacts/compare_detached_messages.json`](artifacts/compare_detached_messages.json)
+- [`artifacts/8_nodes_detached/`](artifacts/8_nodes_detached/) — 8-node chain, detached
+- [`artifacts/shakespeare_comparison/`](artifacts/shakespeare_comparison/) — baseline comparison on Shakespeare
+- [`artifacts/shakespeare_no_bottleneck/`](artifacts/shakespeare_no_bottleneck/) — message bottleneck ablation
+- [`artifacts/shakespeare_graph_attention/`](artifacts/shakespeare_graph_attention/) — DAG with learned attention
+- [`artifacts/context_scaling/`](artifacts/context_scaling/) — ctx=5,10,20 sweep
+- [`artifacts/scale_up/`](artifacts/scale_up/) — 100K chars, 200K params
