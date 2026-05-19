@@ -1,0 +1,20 @@
+{
+  "git_sha": "f94eae14591b3bda8d7023fbcfb9afa1ee7b82a2",
+  "git_working_tree_clean": false,
+  "git_status_short": [
+    " M loop.ps1",
+    " M research/questions/io-contract/README.md",
+    "?? core/__pycache__/",
+    "?? experiments/__pycache__/",
+    "?? experiments/pytorch_char_predictive_chain.py",
+    "?? research/questions/predictive-chain/"
+  ],
+  "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+  "torch_version": "2.11.0+cu128",
+  "device": "cuda",
+  "cuda_is_available": true,
+  "cuda_device_name": "NVIDIA GeForce RTX 3090",
+  "text_characters": 392,
+  "vocab_size": 19,
+  "window_count": 387
+}
