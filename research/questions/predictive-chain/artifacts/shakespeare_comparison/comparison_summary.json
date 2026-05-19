@@ -1,0 +1,121 @@
+{
+  "models": [
+    {
+      "model_name": "predictive_chain_aux_0p001_detach",
+      "parameter_count": 13662,
+      "overfit_reached": true,
+      "runtime_seconds": 59.876542900005006,
+      "train_loss": 2.0397346019744873,
+      "train_accuracy": 0.4026227295398712,
+      "val_loss": 2.5922396183013916,
+      "val_accuracy": 0.28125,
+      "train_total_loss": 2.0401816368103027,
+      "val_total_loss": 2.5926930904388428,
+      "train_auxiliary_total": 0.44701439142227173,
+      "val_auxiliary_total": 0.45339134335517883,
+      "samples": {
+        "HAMLE": "HAMLET\nMAnd and the the the the the the the the the the the the the the the the the the the the the the the the the the the t",
+        "s hou": "s hout and the the the the the the the the the the the the the the the the the the the the the the the the the the the the th",
+        " nost": " nost and the the the the the the the the the the the the the the the the the the the the the the the the the the the the the"
+      }
+    },
+    {
+      "model_name": "predictive_chain_aux_1p0_detach",
+      "parameter_count": 13662,
+      "overfit_reached": true,
+      "runtime_seconds": 59.031298400004744,
+      "train_loss": 1.9751296043395996,
+      "train_accuracy": 0.42122983932495117,
+      "val_loss": 2.593513250350952,
+      "val_accuracy": 0.28977274894714355,
+      "train_total_loss": 2.457685947418213,
+      "val_total_loss": 3.1017184257507324,
+      "train_auxiliary_total": 0.4825563430786133,
+      "val_auxiliary_total": 0.5082051157951355,
+      "samples": {
+        "HAMLE": "HAMLET:\nAnd the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have t",
+        "s hou": "s hous and the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have th",
+        " nost": " nostras the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the ble: have the "
+      }
+    },
+    {
+      "model_name": "transformer_baseline",
+      "parameter_count": 11116,
+      "overfit_reached": true,
+      "runtime_seconds": 9.918286300002364,
+      "train_loss": 1.4761627912521362,
+      "train_accuracy": 0.5429735779762268,
+      "val_loss": 2.804570198059082,
+      "val_accuracy": 0.31107956171035767,
+      "samples": {
+        "HAMLE": "HAMLET:\nTo deing form and fools a the which in how is a the which in how is a the which in how is a the which in how is a the",
+        "s hou": "s hountry siest sifen the which in how is a the which in how is a the which in how is a the which in how is a the which in ho",
+        " nost": " nost sifen the which in how is a the which in how is a the which in how is a the which in how is a the which in how is a the"
+      }
+    },
+    {
+      "model_name": "rnn_baseline",
+      "parameter_count": 11100,
+      "overfit_reached": true,
+      "runtime_seconds": 2.5789675999985775,
+      "train_loss": 1.2254045009613037,
+      "train_accuracy": 0.624667763710022,
+      "val_loss": 3.052241325378418,
+      "val_accuracy": 0.29190340638160706,
+      "samples": {
+        "HAMLE": "HAMLET:\nWherit thing the whing the whing the whing the whing the whing the whing the whing the whing the whing the whing the ",
+        "s hou": "s hour there's the whing the whing the whing the whing the whing the whing the whing the whing the whing the whing the whing ",
+        " nost": " nost--\nFor in the whing the whing the whing the whing the whing the whing the whing the whing the whing the whing the whing "
+      }
+    },
+    {
+      "model_name": "feedforward_baseline",
+      "parameter_count": 13084,
+      "overfit_reached": true,
+      "runtime_seconds": 1.8206330000102753,
+      "train_loss": 0.7874529957771301,
+      "train_accuracy": 0.7579302191734314,
+      "val_loss": 4.869598388671875,
+      "val_accuracy": 0.28196024894714355,
+      "samples": {
+        "HAMLE": "HAMLET:\nWhat men doth the whining mortion noth the whining mortion noth the whining mortion noth the whining mortion noth the",
+        "s hou": "s hour gaterul so more;\nOr cliged\nCyens mer with his quintess the whining mortion noth the whining mortion noth the whining m",
+        " nost": " nost fyien s, in farshny have this quintess the whining mortion noth the whining mortion noth the whining mortion noth the w"
+      }
+    }
+  ],
+  "best_by_val_loss": {
+    "model_name": "predictive_chain_aux_0p001_detach",
+    "parameter_count": 13662,
+    "overfit_reached": true,
+    "runtime_seconds": 59.876542900005006,
+    "train_loss": 2.0397346019744873,
+    "train_accuracy": 0.4026227295398712,
+    "val_loss": 2.5922396183013916,
+    "val_accuracy": 0.28125,
+    "train_total_loss": 2.0401816368103027,
+    "val_total_loss": 2.5926930904388428,
+    "train_auxiliary_total": 0.44701439142227173,
+    "val_auxiliary_total": 0.45339134335517883,
+    "samples": {
+      "HAMLE": "HAMLET\nMAnd and the the the the the the the the the the the the the the the the the the the the the the the the the the the t",
+      "s hou": "s hout and the the the the the the the the the the the the the the the the the the the the the the the the the the the the th",
+      " nost": " nost and the the the the the the the the the the the the the the the the the the the the the the the the the the the the the"
+    }
+  },
+  "best_by_val_accuracy": {
+    "model_name": "transformer_baseline",
+    "parameter_count": 11116,
+    "overfit_reached": true,
+    "runtime_seconds": 9.918286300002364,
+    "train_loss": 1.4761627912521362,
+    "train_accuracy": 0.5429735779762268,
+    "val_loss": 2.804570198059082,
+    "val_accuracy": 0.31107956171035767,
+    "samples": {
+      "HAMLE": "HAMLET:\nTo deing form and fools a the which in how is a the which in how is a the which in how is a the which in how is a the",
+      "s hou": "s hountry siest sifen the which in how is a the which in how is a the which in how is a the which in how is a the which in ho",
+      " nost": " nost sifen the which in how is a the which in how is a the which in how is a the which in how is a the which in how is a the"
+    }
+  }
+}

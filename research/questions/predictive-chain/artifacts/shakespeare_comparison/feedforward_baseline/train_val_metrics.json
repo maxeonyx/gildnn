@@ -1,0 +1,141 @@
+{
+  "parameter_count": 13084,
+  "runtime_seconds": 1.8206330000102753,
+  "train_metrics": {
+    "train_or_eval_loss": 0.7874529957771301,
+    "task_loss": 0.7874529957771301,
+    "accuracy": 0.7579302191734314
+  },
+  "val_metrics": {
+    "train_or_eval_loss": 4.869598388671875,
+    "task_loss": 4.869598388671875,
+    "accuracy": 0.28196024894714355
+  },
+  "train_trace": [
+    {
+      "step": 0,
+      "loss": 4.172569,
+      "accuracy": 0.017189
+    },
+    {
+      "step": 50,
+      "loss": 2.348729,
+      "accuracy": 0.350168
+    },
+    {
+      "step": 100,
+      "loss": 2.04566,
+      "accuracy": 0.404926
+    },
+    {
+      "step": 150,
+      "loss": 1.86181,
+      "accuracy": 0.452419
+    },
+    {
+      "step": 200,
+      "loss": 1.7144,
+      "accuracy": 0.482545
+    },
+    {
+      "step": 250,
+      "loss": 1.605639,
+      "accuracy": 0.518519
+    },
+    {
+      "step": 300,
+      "loss": 1.473793,
+      "accuracy": 0.553606
+    },
+    {
+      "step": 350,
+      "loss": 1.401728,
+      "accuracy": 0.583909
+    },
+    {
+      "step": 400,
+      "loss": 1.314306,
+      "accuracy": 0.604111
+    },
+    {
+      "step": 450,
+      "loss": 1.2503,
+      "accuracy": 0.623427
+    },
+    {
+      "step": 500,
+      "loss": 1.195652,
+      "accuracy": 0.637604
+    },
+    {
+      "step": 550,
+      "loss": 1.122926,
+      "accuracy": 0.649654
+    },
+    {
+      "step": 600,
+      "loss": 1.099242,
+      "accuracy": 0.659578
+    },
+    {
+      "step": 650,
+      "loss": 1.051877,
+      "accuracy": 0.676413
+    },
+    {
+      "step": 700,
+      "loss": 1.008467,
+      "accuracy": 0.690236
+    },
+    {
+      "step": 750,
+      "loss": 0.985668,
+      "accuracy": 0.692539
+    },
+    {
+      "step": 800,
+      "loss": 0.960872,
+      "accuracy": 0.706362
+    },
+    {
+      "step": 850,
+      "loss": 0.955772,
+      "accuracy": 0.706894
+    },
+    {
+      "step": 900,
+      "loss": 0.918294,
+      "accuracy": 0.710261
+    },
+    {
+      "step": 950,
+      "loss": 0.869018,
+      "accuracy": 0.730463
+    },
+    {
+      "step": 1000,
+      "loss": 0.858502,
+      "accuracy": 0.734007
+    },
+    {
+      "step": 1050,
+      "loss": 0.835958,
+      "accuracy": 0.740741
+    },
+    {
+      "step": 1100,
+      "loss": 0.846636,
+      "accuracy": 0.73064
+    },
+    {
+      "step": 1150,
+      "loss": 0.828446,
+      "accuracy": 0.738083
+    },
+    {
+      "step": 1200,
+      "loss": 0.787453,
+      "accuracy": 0.75793
+    }
+  ]
+}
