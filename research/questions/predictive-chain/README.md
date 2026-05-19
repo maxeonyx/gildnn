@@ -150,28 +150,55 @@ Results (val loss, all architectures, same training protocol):
 
 **The chain is consistently best at all context sizes.** Its advantage over the transformer grows from 0.25 (ctx=5) to 0.36 (ctx=10) then shrinks to 0.28 (ctx=20). The advantage is robust but doesn't clearly grow monotonically.
 
-Notable: feedforward completely collapses at longer contexts (expected — no memory). RNN is the only architecture that slightly improves with longer context (2.95→2.92). The chain slightly worsens at ctx=20, possibly needing more training steps for the longer sequences.
-
 See [`artifacts/context_scaling/`](artifacts/context_scaling/).
+
+### Scale-up (100K chars, 200K params, context=32, 5000 steps)
+
+**Critical test:** does the advantage hold with more data and larger models?
+
+| Architecture | Params | Train Loss | Val Loss | Val Acc |
+|---|---|---|---|---|
+| RNN | 196K | 1.504 | **1.727** | 0.503 |
+| Transformer | 187K | 1.312 | 1.731 | 0.497 |
+| **Predictive chain** | 203K | 1.390 | 1.735 | **0.506** |
+| Feedforward | 187K | 0.661 | 3.771 | 0.351 |
+
+**The chain's advantage disappears at scale.** All three recurrent architectures converge to near-identical val loss (~1.73). The chain is no longer best — it's within noise of the RNN and transformer.
+
+Additional observation: the chain is **dramatically slower** — 1177s vs 15-100s for baselines (10-80× overhead from sequential 8-node processing).
+
+See [`artifacts/scale_up/`](artifacts/scale_up/).
+
+### What the scale-up tells us
+
+The chain's small-scale advantage was **specifically a regularization effect**. With only 7K chars and 14K params, baselines overfit badly; the chain's sequential bottleneck prevents this. With 100K chars and 200K params, baselines have enough data that overfitting is no longer the dominant problem — and the chain's structural constraint becomes neutral, offering no representational advantage while adding massive computational overhead.
 
 ## What this does not settle
 
-- whether async or desynchronized execution is viable
+- whether async or desynchronized execution is viable (the key practical benefit from the vision)
 - whether loss-prediction heads for halting are useful
-- whether the advantage holds at significantly larger scale (more data, bigger models)
-- whether temporal attention (over message HISTORY from one neighbor) helps differently than spatial attention
-- whether deeper chains (16, 32 nodes) continue to improve or hit diminishing returns
+- whether the architecture has qualitative advantages beyond loss (interpretability, modularity, graceful degradation)
+- whether temporal attention over message history from one predecessor adds value
+- whether a different task (not character prediction) reveals different properties
+- whether the computational overhead can be reduced (parallel execution of independent nodes)
 
 ## Status
 
-Eight experiment variants completed. Core findings:
+Nine experiment variants completed. Core findings:
 1. Local predictive learning is compatible with task learning
 2. Aux losses are optimization-driven, not fundamentally hard
 3. Unhooked gradients are viable — nodes learn independently
 4. The pattern holds at 8 nodes
-5. **On real English text, the predictive chain generalizes better than all baselines**
-6. The generalization advantage comes from the **sequential bottleneck** — strict single-path recurrent structure
-7. **Adding graph connectivity hurts** — dilutes the inductive bias
-8. **The advantage is robust across context sizes** (5, 10, 20) — consistently best
+5. **On small-scale English text, the chain generalizes better** — sequential bottleneck as regularization
+6. Adding graph connectivity hurts — dilutes the inductive bias
+7. The advantage is robust across context sizes (5, 10, 20)
+8. **⚠️ The advantage disappears at larger scale** — with enough data, baselines catch up
+9. The chain is 10-80× slower than baselines due to sequential processing
 
-The mechanism is well-characterized: it's the depth of sequential recurrent processing that matters, not aux pressure, not message compression, not selective routing. The chain forces information through many small steps, and that structural constraint prevents overfitting.
+**Overall assessment:** The predictive chain architecture is *viable* — local predictive learning works, unhooked gradients work, the structure is sound. But its only measurable advantage over existing architectures (generalization) is a regularization effect that disappears with more data. It does not appear to offer a representational advantage over standard RNNs/transformers at the scales tested.
+
+The remaining potential value may be in properties that don't show up as val loss:
+- Asynchronous execution (no global backprop needed)
+- Interpretability (can inspect per-node representations and predictions)
+- Modularity (can add/remove/replace individual nodes)
+- Graceful degradation (if nodes fail, others may compensate)
