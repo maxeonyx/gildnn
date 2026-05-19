@@ -1,42 +1,43 @@
 # Plan
 
-Working file. Rewritten as state changes — not a changelog.
+Working file. Rewrite it as the state changes.
 
 ---
 
 ## Current state
 
-Rust codebase archived to `rust-archive/`. Python work has now started in `experiments/`, with one minimal sanity-check script and evidence folder.
-
-Process scaffolding exists: root docs, `loop.ps1`, and question-folder structure under `research/questions/`.
-
-One minimal local backend path is verified on this machine: UV + local `.venv` + CPython 3.12.12 + `torch==2.11.0+cu128`, with a tiny tensor op succeeding on CUDA. See `research/questions/backend-validation/`.
-
-The first bounded experiment rung is also now proven on that path: a tiny PyTorch character-level next-token pipeline can overfit one batch, run end to end on tiny data, and produce inspectable saved outputs. See `research/questions/pytorch-char-sanity-check/`.
-
-An ordinary transformer baseline on the same tiny task is now also proven on that same path. Together with the feedforward and ordinary RNN references, the repo now has a narrow three-way comparison on the same tiny fixed-window task. Across the saved references, the raw text, core task-surface fields, sample prompts, and recorded environment fields match; the tracked post-integration environment artifacts now also point consistently at commit `3fb4477...`. Learning rates and observed parameter counts still do not all match, so this is not a controlled or matched-capacity comparison. See `research/questions/pytorch-char-reference-comparison/` when deciding what these three references jointly show.
-
-These are still bounded proofs, not project-wide decisions. The backend/framework choice remains open. The experiment harness is still only whatever these tiny bounded paths genuinely needed.
-
----
+- The repo has a working minimal Python path on this machine: UV + local `.venv` + CPython 3.12.12 + PyTorch CUDA. See `research/questions/backend-validation/`.
+- The tiny character-level sanity stack exists and has working reference experiments, including overfit-style proofs and baseline comparisons. See `research/questions/pytorch-char-sanity-check/` and related question folders.
+- The process became too bureaucratic and started blocking actual research. That is now being simplified.
+- Backend choice is still open.
+- The cortical-column architecture is still an open research thread, not a settled design.
 
 ## Immediate priorities
 
-1. **I/O contract** — the next bounded unit is now a tightly scoped pre-prototype architecture-boundary narrowing unit for the first cortical-column prototype's I/O boundary. It should compare exactly two candidate contracts, keep exactly two concrete task-boundary examples, and produce one short comparison memo with rejection criteria and falsifiers. This is a local next-step choice only; it does not settle the broader Thread 1 architecture. See `research/questions/io-contract/` when framing the unit.
-2. **Experiment harness only when a later bounded question genuinely needs it** — logging, checkpointing, config locking, and stronger reproducibility work should follow only if the I/O-contract unit or a later bounded question needs stronger controlled-comparison claims than the current bounded stack supports.
-3. **Backend/runtime follow-up only if it becomes the sharper uncertainty reducer** — the captured NumPy warning is still a documented loose edge, but not yet automatically the next task.
+1. Clean up stale planning language and remove records of failed selection bureaucracy from the repo.
+2. Integrate or delete any experimental code that is already understood enough to stop living as drift.
+3. Then resume research by picking one small concrete next experiment from the live question folders.
 
-## After the first runnable stack exists
+## How to pick the next experiment
 
-- A narrower Mix-Add follow-up only if a later question specifically needs it — for example, saving final per-window prediction tables for the same plain-residual vs scalar-Mix-Add pair. Do not reopen Mix-Add by drift.
-- A narrower dynamic-depth follow-up only if a later bounded question specifically needs it. Do not assume a dynamic-depth roadmap by momentum from the near-null Unit 01 result.
-- A standard-model arbitrary-order image-patch sanity check remains live, but not next. Reconsider it if the I/O-contract unit leaves it as the sharper runnable next step.
-- A first cortical-column prototype is still tentative. Do not treat the graph/update design as settled before the open questions narrow.
+Prefer the next step that is:
 
-## Open questions driving current work
+- small
+- runnable now
+- likely to produce inspectable outputs
+- useful for narrowing an open question
+- unlikely to grow the codebase much
 
-See `research/questions/` for the open question folders and current write-ups. Their existence does not mean those threads are experimentally active yet; right now they are scoping and hypothesis documents, not result folders.
+Redoing from scratch is allowed if that is cheaper than untangling the current version.
 
-## Deferred
+## Live constraints
 
-Longer-horizon ideas live in `VISION.md`. Nothing deferred yet that affects the next few handovers.
+- Integrate before starting broad new branches of experimentation.
+- Keep the codebase small.
+- Use the experiment ladder: overfit one batch, tiny end-to-end run, inspect outputs, then scale.
+- Reports should stay high quality and evidence-backed.
+- Open questions should stay open until experiments actually narrow them.
+
+## Next handover
+
+If nothing is actively in flight, read the live question folders and pick the cheapest experiment that could produce new evidence without requiring framework work first.

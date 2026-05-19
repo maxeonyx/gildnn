@@ -1,272 +1,212 @@
 # Process
 
-How work gets done in this project. Covers the autonomous loop, experiment discipline, code standards, literature practice, and reporting.
+How work gets done in this project.
 
----
-
-## Background training runs
-
-If a training run will take longer than ~5–10 minutes, run it in the background — do not block on it. Use a background process with log output redirected to a file so you can check progress without waiting.
-
-- Start at most one training run at a time.
-- While a run is active: **do not wait for it** — continue other work (cleanup, integration, reports, doc fixes). Do not start a second training run while one is active.
-- Check run progress by tailing the log file. Do not poll in a tight loop.
-- When a run completes: read the output, update the relevant question folder, update PLAN.md.
-
-**Run lock convention:** when starting a background run, write a file `runs/active.lock` containing the run name and start time. Delete it when the run completes or fails. Check for this file to know whether a run is active.
-
-A suggested pattern (PowerShell):
-```powershell
-# Before starting:
-New-Item -Force runs/ | Out-Null
-"my-run-name $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Set-Content runs/active.lock
-
-Start-Process python -ArgumentList "-m","experiments.foo.train" -RedirectStandardOutput "runs/foo.log" -NoNewWindow
-
-# After completing (in the training script or manually):
-Remove-Item runs/active.lock
-```
-
-To check if a run is active: `Test-Path runs/active.lock`
+This is personal hobbyist ML research. The goal is discovery: try ideas, run experiments, look at outputs, and learn what actually happens. Keep the codebase small. Keep conclusions honest. Redo from scratch is always an option.
 
 ---
 
 ## The autonomous loop
 
-The project runs as an outer loop: `loop.ps1` relaunches OpenCode if it ever exits. OpenCode is the real working environment — `loop.ps1` is just the restart wrapper. The loop reuses a persistent session ID so context carries across restarts.
+`loop.ps1` relaunches OpenCode if it exits. On relaunch, the agent should reorient quickly and continue.
 
-**The agent's job when relaunched:**
+On session start:
 
-1. Read `PLAN.md` and any `TASK-*.ignore.md` files in root — orient on the current task and state.
-2. Check if a training run is active (`Test-Path runs/active.lock`). If yes — continue other work; do not wait idle, do not start another run.
-3. Pick up the next task. Continue working.
-4. Max may check in during a session. That does not mean he's back. Continue working.
+1. Read `PLAN.md` and any `TASK-*.ignore.md` files in the repo root.
+2. Check the time and whether a daily or weekly report is due.
+3. Check whether a background run is active (`runs/active.lock`).
+4. Continue the current task if there is one. Otherwise pick the cheapest useful next step.
 
-**Priority order when choosing what to work on:**
+Max may speak during a session, but do not assume that means he is back and available. Keep working unless he clearly takes over.
 
-1. Clean up anything that's broken or half-finished
-2. Make the codebase smaller — delete, simplify, consolidate
-3. Refactor the process (PROCESS.md, AGENTS.md, loop.ps1)
-4. Refactor the repo — integrate experimental code into core
-5. Continue existing experiments
-6. Start new experiments
+If the last session felt wrong, fix the process first. Bad process compounds.
 
-**Redo from scratch is always an option.** If something is tangled and unclear, starting fresh is cheaper than untangling.
+### How to choose what to do next
 
-**Common exit failure modes to account for in the prompt:**
-- Agent exits to "wait" for a training run — wrong. Sleep instead.
-- Agent gets confused mid-task and gives up — wrong. Read PLAN.md and any TASK files, continue.
-- Agent hits a wall and starts a new experiment instead of integrating — wrong. Integrate first.
-- Agent produces a half-finished thing under context pressure — wrong. Say you can't finish it and leave a clear handoff.
+Use judgment, not ceremony.
 
-**The best outcome** when a task is infeasible in one session: say so clearly, produce a clean handoff, do not deliver something broken.
+Priority order:
+
+1. Fix broken or misleading process/docs
+2. Write any due reports
+3. Clean up half-finished or confusing work
+4. Integrate finished experimental code into `core/`
+5. Continue an existing experiment thread
+6. Start a new experiment
+
+When choosing between possible next steps, prefer the one that is:
+
+- cheapest to run honestly
+- most likely to produce inspectable evidence
+- least likely to bloat the codebase
+- most useful for narrowing an open question
+
+If the work feels tangled, restart from a smaller simpler version instead of protecting the tangled version.
 
 ---
 
 ## Experiment discipline
 
-### Bounded-unit protocol
-
-Before coding a new bounded unit, freeze these explicitly in writing:
-
-1. **Host surface** — one existing model surface only
-2. **Task surface** — one task only
-3. **Comparator** — one interpretable reference
-4. **Artifact class** — what saved outputs will answer the question
-5. **Non-goals** — what this unit is not trying to settle
-
-If those are not frozen, the unit is not ready for implementation.
-
-Runnable bounded units remain the default.
-
-Exception: before a first prototype would otherwise smuggle in an open architecture-boundary choice, one **pre-prototype architecture-boundary narrowing unit** is allowed.
-
-This is an exceptional narrowing unit, not a broad second class of work. Use it only to narrow one specific open architecture boundary that cannot yet be asked honestly on a current runnable surface.
-
-It is valid only if all of these are frozen in writing:
-
-1. **Decision surface** — one architecture boundary only
-2. **Comparator** — exactly two explicit candidate options
-3. **Concrete boundary examples** — one or two task-boundary examples that keep the comparison concrete
-4. **Artifact class** — one short comparison memo with worked examples and explicit rejection criteria
-5. **Non-goals** — explicit adjacent questions that remain open
-
-It counts as complete only if it states what downstream prototype choice this narrows, what option is rejected (if any), and what would falsify the provisional front-runner. If it expands into general architectural prose, it fails.
-
-For bounded units, treat **artifact completeness** as part of verification. A run that "worked" but did not save the artifacts needed to answer the question is not complete.
-
-For bounded units, **ambiguity is a valid result**. Do not widen the unit just because the first honest result is ambiguous.
-
-Before writing durable conclusions for a bounded unit, explicitly separate:
-
-- **Supported claims** — directly backed by saved artifacts
-- **Unsupported temptations** — stronger interpretations to reject
-- **Next discriminating step** — only if it is narrower than reopening the whole design space
-
-### The ladder (non-negotiable)
+### The ladder
 
 Every experiment climbs this ladder before scaling:
 
-1. **Overfit one batch.** Model memorizes a single batch to near-zero loss. If it can't, nothing else matters.
-2. **Tiny model, tiny data.** Full pipeline end-to-end on something trivial.
-3. **Inspect actual outputs.** Not just loss curves — look at what the model is producing.
-4. **Verify on multiple datasets before scaling.** Gradually build up to more datasets of increasing complexity. Don't scale on a single dataset.
-5. **Scale in steps.** Tiny → small → medium. Verify at each step. Never jump.
-6. **One variable at a time.** Don't change architecture AND data AND hyperparams simultaneously.
+1. **Overfit one batch.** If it cannot memorize one batch to near-zero loss, nothing else matters.
+2. **Tiny model, tiny data.** Run the full pipeline end to end on something trivial.
+3. **Inspect actual outputs.** Look at what the model produces, not just loss curves.
+4. **Verify on multiple datasets before scaling.** Do not draw broad conclusions from one tiny dataset.
+5. **Scale in steps.** Tiny → small → medium. Verify at each step.
+6. **Change one thing at a time.** Do not change architecture, data, and training setup all at once.
 
-### Starting point for every new capability
+This ladder is non-negotiable.
 
-The very first experiment is always the most basic version: e.g. 5-character context, feedforward network, next-token prediction. Prove that works. Then build up.
+### Before starting a new experiment
+
+Do not do a formal selection ritual.
+
+Just make sure you can answer, briefly:
+
+- What question am I trying to answer?
+- What is the cheapest experiment that could teach me something about it?
+- What evidence do I need to save?
+- What will this experiment **not** settle?
+
+If those answers are obvious from context, just proceed. If they are not obvious, write 3–6 bullets in the relevant question folder, task file, or commit message and move on.
+
+### Honest scope
+
+Keep experiments narrow enough that the result is interpretable, but not so narrow that you spend all your time selecting instead of running.
+
+Good outcomes:
+
+- a working result
+- a negative result
+- an ambiguous result with saved artifacts
+- discovering that the current framing was wrong and replacing it with a simpler one
+
+Ambiguity is allowed. Failure is allowed. Needing to restart from a simpler version is allowed.
+
+### Starting point for any new capability
+
+Start with the simplest version that could possibly work. For example: tiny context, tiny model, next-token prediction, minimal dataset, inspectable outputs.
+
+Do not smuggle in architectural complexity "for later." Add complexity only after the simpler version genuinely works.
 
 ### Reproducibility
 
-- Fixed seeds, git SHA, full hyperparams logged per run.
-- Every run locked to a committed config file.
-- Results must be reproducible from config alone.
+- Record git SHA, hyperparameters, and seed for meaningful runs.
+- Save enough config that a result can be recreated without guesswork.
+- Match the level of rigor to the claim. Tiny exploratory probes can be light; comparison claims need stronger control.
 
-### Checkpointing
+### Checkpointing and artifacts
 
-- Always checkpoint during runs.
-- Keep: last N checkpoints + best + periodic milestones. Delete the rest.
-- Never keep weights long-term after an experiment is finished. Retraining in reasonable time is acceptable.
-- No model weights committed to git. Ever.
+- Checkpoint during longer runs.
+- Keep only what is useful: latest, best, and a few milestones.
+- Do not keep old weights forever.
+- Never commit model weights or datasets to git.
+- Save the artifacts that actually answer the question: sample outputs, tables, plots, example failures, short notes.
 
-### Monitoring
-
-Principled logging — high quality, not high quantity. When debugging: log many signals, but not much data per signal. When running normally: log what you actually look at.
-
-Always monitor: loss (train + val), gradient norms, NaN/explosion, GPU memory, disk usage, wall-clock time. Set explicit time limits per run — do not let a run go forever.
+A run that "worked" but produced no useful evidence is only half done.
 
 ### Dead-end detection
 
-After a few failed attempts at the same thing: step back and question the approach before trying another variation. Is the idea wrong, or is the implementation wrong?
+After a few failed attempts at the same idea, stop varying knobs blindly.
+
+Ask:
+
+- Is the implementation broken?
+- Is the task badly framed?
+- Is the idea itself weak?
+- Is there a smaller version that would answer this faster?
+
+Then either simplify, reframe, or drop it.
 
 ---
 
-## Code standards
+## Integration and code shape
 
-### Small is a success metric
+### Keep the codebase small
 
-The size and cleanliness of the codebase is an explicit quality metric for this project. A sprawling mess is a failure mode, not a neutral outcome.
+Small is a success metric.
 
-### Integration over experimentation
+Delete aggressively. Consolidate shared logic early. Do not let experiments pile up as parallel mini-frameworks.
 
-**Integrating finished experimental code is higher priority than starting new experiments.** Working code that is not integrated is a liability — it creates divergence, confusion, and maintenance burden.
+### Integrate before experimenting
 
-### Code structure
+Working experimental code that is understood should move into `core/` promptly. Unintegrated working code is a liability.
 
-```
-core/             # integrated, clean, tested code
-base-experiments/ # foundational reference experiments
-experiments/      # experimental code — not yet integrated or proven
-```
+Directory roles:
 
-New code starts in `experiments/`. Once it works and is understood, it gets refactored into `core/` and the experiment version is either removed or kept as a thin wrapper that uses `core/`.
+- `core/` — integrated, clean, tested code
+- `base-experiments/` — foundational reference experiments
+- `experiments/` — new or provisional work
 
-Supported execution contract for experiment entrypoints: run from the repo root via `python -m experiments.<name>`. Do not rely on direct file-path execution for integrated experiment wrappers.
+If two experiments share logic, move that logic into `core/`.
 
-When two experiments share logic, that logic moves to `core/` immediately.
+If an experimental branch taught nothing and is only clutter, delete it.
 
 ### Architectural options
 
-If an architectural variant produced results (positive or negative), it stays in the codebase as a selectable option. The codebase should be generic enough to support comparison between options. Dead ends that produced nothing informative can be removed.
+Open questions stay open.
 
-### Dependencies and backend
+Keep selectable variants only when they produced an informative comparison or are still actively useful. Do not keep every dead path forever.
 
-**Language:** Python. **Backend:** open — PyTorch, JAX, or other libraries are acceptable when they make an experiment or integration cleaner.
+---
 
-UV for Python dependency management, local virtualenv. System dependencies (CUDA version, drivers, etc.) should be pinned and documented in `AGENTS.md` or a setup doc as soon as they're confirmed working.
+## Background training runs
 
-### Tensor readability
+If a run will take longer than about 5–10 minutes, run it in the background.
 
-Prefer named-dimension / einops-style tensor operations where practical (e.g. `einops.rearrange`, `einops.reduce` with named axes, or equivalent in whatever library is in use). Indexed dimension juggling should be the exception. This is a readability preference; exact library is open.
+Rules:
 
-### OpenCode skills
+- Start at most one training run at a time.
+- While a run is active, do not wait idly.
+- Do cleanup, integration, reporting, or analysis while it runs.
+- Check progress from logs without tight polling.
 
-Load before the relevant work:
-- `verifying-work` — before implementing or fixing anything
-- `code-principles` — before writing committed code
-- `error-handling` — before writing error-handling code
-- `information-architecture` — before modifying checked-in docs
+Use `runs/active.lock` to record the active run. Remove it when the run ends or fails.
 
 ---
 
 ## Literature practice
 
-Not an academic literature review. The goal is genuine knowledge discovery.
+This is not an academic literature review.
 
-Criteria for a paper being worth reading:
-- Someone has tried the exact same idea, or
-- Someone has a result that directly refutes a core assumption, or
-- Someone has a strictly better solution to the same problem
+Read papers only when they would genuinely change what you do next, for example:
 
-Do not read papers out of thoroughness or coverage. Read them because they genuinely change what you would do next. Write up what was found in `research/questions/` under the relevant question folder.
+- someone tried almost the same idea
+- someone has evidence against a key assumption
+- someone has a clearly better solution to the same problem
+
+Write up relevant findings in the appropriate `research/questions/` folder.
 
 ---
 
 ## Reporting
 
-### Triggers
+### When reports are due
 
-Reports are written by the agent, not by the harness on a schedule. On each session start:
+On session start, check whether a report is due.
 
-- Check the current time.
-- If after 4pm and no daily report exists for today (`research/daily/YYYY-MM-DD.md`): write it.
-- If after 4pm on a Thursday and no weekly report exists for this week (`research/weekly/YYYY-MM-DD.md`): write it too.
+- If it is after 4pm and there is no daily report for today, write one at the next natural stopping point.
+- If it is after 4pm Thursday and there is no weekly report for this week, write that too.
 
-Write the report at the **next natural opportunity** — not mid-task, not mid-experiment. Finish the current unit of work cleanly, then write.
+Do not stop mid-experiment just to report. Finish the current small unit cleanly, then write before starting something substantial.
 
 ### Quality standard
 
-These are not reports. They are narratives Max will read. The standard is distill.pub — dense, precise, readable, zero padding, no unverified claims stated as facts.
+Daily and weekly reports are for Max. They should be dense, readable, and evidence-backed.
 
-Before writing any narrative:
-1. Draft it
-2. Revise it — cut everything that isn't load-bearing
-3. Revise again — is every claim backed by something real?
-4. Revise again — is the writing actually good?
-5. Revise again — read it as Max would. Is it interesting? Does it waste his time?
-6. Final pass — does it meet the standard?
+Every factual claim should point to a real artifact: a run log, metric, sample output, saved image, or concrete file.
 
-Iterate heavily. The first draft is never the output.
+No free-floating assertions. Open questions should remain open.
 
-### Inline references — mandatory
-
-Every factual claim in a narrative must link to a real artifact:
-- A specific run's output file, or
-- An example image embedded inline, or
-- A concrete metric from a logged experiment
-
-**Artifacts must be embedded inline, not just linked.** Include the content directly in the markdown — the link is there to prove it's real, but Max should be able to read the file without clicking anything. Link + inline block, not link alone.
-
-No free-floating assertions. If a claim can't be backed by something real, either run the experiment or don't make the claim.
-
-### What goes in a daily
-
-- What ran today
-- What it produced (with inline artifacts)
-- What it means — one honest sentence per result
-- What changed in understanding
-- What's next
-
-### What goes in a weekly
-
-- The week's most significant findings, each with evidence
-- What open questions narrowed (or opened)
-- What the code looks like now vs last week
-- Honest assessment: are we making progress?
-
-### Blob policy
-
-**Commit:** small output images, example input/output pairs, embedded in markdown.
-**Do not commit:** model weights, datasets, large binary files of any kind.
+Question-folder notes can be rougher. Daily and weekly narratives should be polished.
 
 ---
 
 ## Information architecture
 
-Files must not grow unbounded. Each file has a job. Rewrite sections when information changes — don't append. Remove stale content. A clean repo is faster to navigate than a comprehensive one.
+Files should have clear jobs. Rewrite them when reality changes; do not append stale process sediment forever.
 
-When something doesn't work and you figure out why: create a question folder in `research/questions/`, document it, add a cheap regression test, integrate the fix into `core/`. Don't just move on.
-
-Question-specific findings and evidence belong in `research/questions/`, not in general process docs. Keep this file about *how* to work, not *what* was found.
+Keep this file about how to work, not about the current state of specific research threads. Current state belongs in `PLAN.md` and `research/questions/`.

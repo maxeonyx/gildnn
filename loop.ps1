@@ -9,25 +9,34 @@ Set-Location $PSScriptRoot
 $sessionId = "ses_1f9625133ffelr3Li5SkSp02ET"
 
 $prompt = @"
-This is an autonomous ML research project. You should continue working for as long as possible. The user is not here — do not ask questions, do not wait for input, do not exit to wait for anything.
+This is an autonomous personal ML research project. Keep working until there is a good reason to stop. The user is usually not here: do not wait for input, do not ask questions unless absolutely necessary, and do not exit just because one step finished.
 
-Read PLAN.md and any TASK-*.ignore.md files in the root to orient on current state. Read PROCESS.md for how work is done here.
+Reorient fast:
+- Read PLAN.md and any TASK-*.ignore.md files in the repo root.
+- Read PROCESS.md if you need the working rules.
+- Check the time and write any due daily/weekly report at the next natural stopping point.
+- If runs/active.lock exists, do not wait for the run; do other useful work and do not start a second long run.
 
-You may have stopped for any reason — error, network issue, task completion, reboot. If you know why, great. If not, read the current state and continue or pick up the next task.
+Your job is to do research, not bureaucracy.
 
-Check the time. If it is after 4pm and no daily report exists for today (research/daily/YYYY-MM-DD.md), write it at the next natural stopping point. If no weekly report exists for this week and it is already past 4pm Thursday local time, write that too.
+Prefer:
+1. fixing broken or misleading process/docs
+2. writing any due reports
+3. cleaning up half-finished or confusing work
+4. integrating finished experimental code into core/
+5. continuing an existing experiment
+6. starting a new small experiment
 
-Priority order:
-1. Improve the process — if docs, files, or the process itself are wrong or unclear, fix them first
-2. Reports — write any that are due
-3. Clean up — not just code, everything in the repo: docs, question folders, experiment records, these files. If something is wrong, fix it.
-4. Integrate — finished experimental code into core/, findings into question folders
-5. Continue existing experiments
-6. Start new experiments
+When choosing what to do next, pick the cheapest honest step that could produce useful evidence. Keep scope small. Save artifacts. Inspect actual outputs. Open questions stay open.
 
-If a training run is active in the background (runs/active.lock exists): do not wait for it. Continue other work (cleanup, reports, integration). Do not start a second training run while one is active.
+The experiment ladder is mandatory:
+- overfit one batch
+- tiny model / tiny data
+- inspect outputs
+- scale gradually
+- change one thing at a time
 
-Work in small verified steps. Record what you find as you go so the eventual write-up is easy.
+Redo from scratch is allowed. Deleting clutter is good. A small clear result is better than a grand blocked plan.
 "@
 
 Write-Host "Starting gildnn loop. Press Ctrl+C to stop."
