@@ -241,3 +241,5 @@ Question-folder notes can be rougher. Daily and weekly narratives should be poli
 Files should have clear jobs. Rewrite them when reality changes; do not append stale process sediment forever.
 
 Keep this file about how to work, not about the current state of specific research threads. Current state belongs in `PLAN.md` and `research/questions/`.
+
+**Process changes must propagate to AGENTS.md files.** This file (PROCESS.md) is primarily read by the orchestrating agent. But subagents read `AGENTS.md` files — the root one and the per-directory ones. When the process changes in ways that affect how subagents work in specific directories (file layout conventions, experiment protocols, what goes where), those rules must be reflected in the relevant `AGENTS.md` files, not just here. PROCESS.md defines the process; AGENTS.md files enforce it at the point of work.

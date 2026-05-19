@@ -16,16 +16,36 @@ If an experiment raises a new question that isn't in an existing folder — crea
 
 ## Folder structure
 
-Each question folder should contain at minimum:
+Each question folder contains:
 
-- `README.md` — what the question is, current best understanding, open sub-questions, and what the next discriminating experiment would be
-- Any relevant experiment configs, output artifacts, or inline result images
+- `README.md` — the Max-readable report. This is the primary artifact.
 
-Each folder should contain only **that question's** material. Do not restate general project vision or process; those live in the root docs. Keep question folders lean.
+That's it. The README is the output. It should be self-contained.
+
+## What goes IN the README
+
+- Which dictation/VISION goal this question serves (link to the specific dictation)
+- The simplification chosen and why it's legitimate
+- Architecture explanation with code snippets and/or diagrams aligned to real code
+- Hypotheses being tested
+- Results with **inline evidence** — tables, code blocks, small images embedded directly in the markdown
+- What this does not settle (explicit non-goals)
+- Obvious next steps with reasons they haven't been pursued yet
+
+The link proves the evidence is real; the inline content means Max doesn't have to click anything.
+
+## What does NOT go here
+
+- Standalone .txt files, raw JSON dumps, prediction logs, debug outputs
+- Any artifact that exists only to be referenced by a link
+
+Those belong in `experiments/<experiment-name>/` as grungy experiment artifacts. If an artifact is worth showing Max, embed it inline in the README. If it's not worth showing inline, it doesn't belong in this directory.
+
+## Quality standard
 
 Unresolved conclusions must stay explicitly unresolved until backed by real artifacts. Do not state a question as closed without evidence.
 
-When a question is closed: update `README.md` to state the conclusion clearly, with evidence linked and embedded inline.
+Reports should link back to Max's goals, explain the path the experiment took, and end with discriminating next steps. See `PROCESS.md` for the report-first experiment protocol.
 
 ## Docs reminder
 

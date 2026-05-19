@@ -67,6 +67,19 @@ Read [VISION.md](VISION.md) for what we're exploring. Read [PROCESS.md](PROCESS.
 
 ---
 
+## Directory conventions
+
+Each directory has its own AGENTS.md explaining its role. The key boundaries:
+
+| Directory | Contains | Does NOT contain |
+|---|---|---|
+| `experiments/<name>/` | Per-experiment scripts, configs, raw outputs, debug artifacts | Polished reports |
+| `research/questions/<name>/` | Max-readable reports (README.md) with inline evidence | Standalone artifact files (no .txt dumps, no raw JSON tables) |
+| `base-experiments/<model>/` | Standard model training that reproduces expected published results | Custom/experimental architectures |
+| `core/` | Shared reusable components (datasets, models, training loops) | Experiment-specific scripts |
+
+Evidence in question READMEs must be **embedded inline** in the markdown (tables, code blocks, small images). The link proves it's real; the inline content means Max doesn't have to click anything. Standalone .txt or .json files that exist only to be referenced belong in `experiments/`, not in `research/questions/`.
+
 ## File map
 
 | File/Dir | Purpose | Read when |
@@ -77,11 +90,11 @@ Read [VISION.md](VISION.md) for what we're exploring. Read [PROCESS.md](PROCESS.
 | `loop.ps1` | Outer restart loop — relaunches OpenCode on exit, reuses session ID | Understanding how the loop works |
 | `research/daily/` | Daily output narratives for Max | Reviewing recent progress |
 | `research/weekly/` | Weekly synthesis narratives for Max | Weekly review |
-| `research/questions/` | Per-question investigation folders | Investigating a specific open question |
+| `research/questions/` | Per-question reports — Max-readable, inline evidence only | Investigating a specific open question |
 | `dictations/` | Raw unedited capture of Max's words | Recovering original intent |
 | `core/` | Integrated, clean, tested Python code | Writing or reading production code |
-| `base-experiments/` | Foundational reference experiments | Understanding baseline results |
-| `experiments/` | Experimental code — not yet integrated; run entrypoints from repo root via `python -m experiments.<name>` | Running or reviewing an experiment |
+| `base-experiments/` | Standard model baselines achieving expected published results | Understanding baseline results |
+| `experiments/` | Per-experiment directories with scripts and grungy artifacts | Running or reviewing an experiment |
 | `rust-archive/` | Prior Rust implementation — reference only, not active | Historical reference |
 | `runs/` | Training run logs and lock file | Checking on active/recent runs |
 

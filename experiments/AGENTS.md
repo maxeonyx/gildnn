@@ -1,0 +1,35 @@
+# experiments/
+
+Per-experiment directories with scripts, configs, and all grungy local artifacts.
+
+## Structure
+
+Each experiment gets its own subdirectory: `experiments/<experiment-name>/`. The directory contains:
+
+- Python scripts (the experiment entry point and any helpers)
+- Configs/hyperparameters
+- Raw outputs: prediction dumps, loss logs, debug traces, text samples
+- Any artifact that is too messy or verbose for the Max-readable report
+
+Run experiments from the repo root: `python -m experiments.<dir-name>.<script>` or `python -m experiments.<script>` for legacy flat scripts.
+
+## What does NOT go here
+
+- Polished reports (those go in `research/questions/<name>/README.md`)
+- Shared reusable code (that goes in `core/`)
+- Standard baseline training (that goes in `base-experiments/`)
+
+## Conventions
+
+- Record git SHA, hyperparameters, and seed for meaningful runs
+- Save enough config that a result can be recreated without guesswork
+- Delete dead experiments that taught nothing and are only clutter
+- If two experiments share logic, move that logic into `core/`
+
+## Legacy flat layout
+
+Some older experiments exist as flat `.py` files directly in this directory (not in subdirectories). New experiments should use subdirectories. Flat scripts will be migrated as those threads are revisited.
+
+## Experiment visibility
+
+Before running any experiment expected to take more than ~30 seconds, stop and report back to the orchestrating agent with: what you're about to run, expected duration, what it will produce. Wait to be resumed before proceeding.
