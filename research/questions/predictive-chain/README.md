@@ -135,24 +135,43 @@ Across all ablations:
 
 The linear chain forces information through a single narrow path of recurrent steps. This structural constraint prevents the model from taking shortcuts that lead to overfitting. When we add skip connections, we give the model those shortcuts back — and it overfits more.
 
+### Context size scaling (5 → 10 → 20)
+
+Does the chain's advantage grow with longer dependencies?
+
+Results (val loss, all architectures, same training protocol):
+
+| Architecture | ctx=5 | ctx=10 | ctx=20 |
+|---|---|---|---|
+| **Predictive chain** | **2.59** | **2.57** | **2.63** |
+| Transformer | 2.84 | 2.92 | 2.95 |
+| RNN | 2.95 | 2.97 | 2.92 |
+| Feedforward | 4.71 | 8.81 | 9.75 |
+
+**The chain is consistently best at all context sizes.** Its advantage over the transformer grows from 0.25 (ctx=5) to 0.36 (ctx=10) then shrinks to 0.28 (ctx=20). The advantage is robust but doesn't clearly grow monotonically.
+
+Notable: feedforward completely collapses at longer contexts (expected — no memory). RNN is the only architecture that slightly improves with longer context (2.95→2.92). The chain slightly worsens at ctx=20, possibly needing more training steps for the longer sequences.
+
+See [`artifacts/context_scaling/`](artifacts/context_scaling/).
+
 ## What this does not settle
 
-- whether the chain advantage grows with context size (5 → 20+)
 - whether async or desynchronized execution is viable
 - whether loss-prediction heads for halting are useful
-- whether the advantage holds at larger scale / more data
-- whether temporal attention (over message HISTORY from one neighbor) helps differently than spatial attention (over multiple neighbors)
-- whether a different graph topology (e.g., wider layers that converge) would work better than skip connections
+- whether the advantage holds at significantly larger scale (more data, bigger models)
+- whether temporal attention (over message HISTORY from one neighbor) helps differently than spatial attention
+- whether deeper chains (16, 32 nodes) continue to improve or hit diminishing returns
 
 ## Status
 
-Seven variants completed across two corpora. Core findings:
+Eight experiment variants completed. Core findings:
 1. Local predictive learning is compatible with task learning
 2. Aux losses are optimization-driven, not fundamentally hard
 3. Unhooked gradients are viable — nodes learn independently
 4. The pattern holds at 8 nodes
 5. **On real English text, the predictive chain generalizes better than all baselines**
-6. The generalization advantage comes from the **sequential bottleneck** — the strict single-path recurrent structure
-7. **Adding graph connectivity (skip connections + attention) hurts** — dilutes the inductive bias
+6. The generalization advantage comes from the **sequential bottleneck** — strict single-path recurrent structure
+7. **Adding graph connectivity hurts** — dilutes the inductive bias
+8. **The advantage is robust across context sizes** (5, 10, 20) — consistently best
 
-Next natural questions: does the advantage grow with longer context? Would temporal attention (over message history from one predecessor) help without diluting the sequential path? Does the advantage hold at larger scale?
+The mechanism is well-characterized: it's the depth of sequential recurrent processing that matters, not aux pressure, not message compression, not selective routing. The chain forces information through many small steps, and that structural constraint prevents overfitting.
