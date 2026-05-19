@@ -92,6 +92,18 @@ The aux weight makes little difference to validation performance (2.59 vs 2.59),
 
 See [`artifacts/shakespeare_comparison/`](artifacts/shakespeare_comparison/).
 
+### Message bottleneck ablation (message_dim=96 vs 24)
+
+Hypothesis: the narrow message channel (24 dims vs 96 hidden dims) acts as an information bottleneck that forces regularization.
+
+Result: removing the bottleneck (message_dim=96) gives val loss `2.564`, slightly BETTER than the bottlenecked version (2.592). **The bottleneck is NOT the key regularizer.**
+
+See [`artifacts/shakespeare_no_bottleneck/`](artifacts/shakespeare_no_bottleneck/).
+
+### Why does it generalize better?
+
+The aux weight ablation (0.001 vs 1.0 → same val loss) and the bottleneck ablation (no bottleneck → same/better val loss) together suggest the generalization advantage comes from the **multi-hop recurrent structure itself** — not from aux regularization pressure and not from message compression. The architecture forces information to flow through multiple small recurrent steps, and that structural constraint provides implicit regularization that prevents overfitting.
+
 ## What this does not settle
 
 - whether attention between neighbors helps further
