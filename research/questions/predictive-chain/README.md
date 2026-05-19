@@ -1,12 +1,16 @@
 # Predictive Chain
 
+> ⚠️ **Important caveat:** This experiment tests a feedforward pipeline (input → chain → global task head → output). That is **not** Max's actual predictive processing vision. In the real architecture, node A is both input and output — it receives the input and predicts the next input. Deeper nodes have no direct connection to inputs/outputs; they help only through message passing to their neighbors. The global task head used here sidesteps the hard question: can deeper nodes learn to be useful without any direct ground-truth signal? See [dictation 2026-05-20-4](../../../dictations/2026-05-20-4.md). The results below are still informative (local predictive pressure works, unhooked gradients are viable), but the core architectural hypothesis remains untested.
+
 ## 1. Origin — which part of the vision this tests
 
 Max's core architectural idea (dictation 3, 2025-05-08-1) is a graph of many small recurrent blocks — cortical columns — each predicting its own next state, communicating via messages, with gradients unhooked at message boundaries so each block learns locally. The latest elaboration (2026-05-19-1) adds: blocks use attention to aggregate from neighbors, and there's a family of small predictive heads — including heads that predict loss — enabling dynamic halting and parallel token sampling at inference time.
 
-This experiment does not implement that architecture. It implements a deliberate simplification: a **linear chain** of GRU cells, no attention, no graph, no async execution. The justification for the simplification is: before building the async graph, it's worth asking whether local predictive pressure and unhooked gradients can work *at all* — whether the signal is strong enough to learn useful representations when gradient flow is severed at node boundaries. That's a prerequisite question. If the answer were no, the full architecture would be pointless.
+The fundamental predictive processing model (dictation 2026-05-20-5): a swath of inputs at time step A, and the immediate internal neighbors predict those inputs at time step B. Deeper nodes are not directly connected to inputs or outputs but still help somehow — that entire space is the hypothesis to explore.
 
-What this experiment leaves open, explicitly: what the full graph structure should be, what async execution looks like concretely, whether attention-based aggregation adds value, whether loss-prediction heads are useful for halting — all of these remain open questions per Max's own words (2025-05-08-2): *"This is a good question. It's an open question... All of these should be explored."*
+This experiment does not implement that architecture. It implements a deliberate simplification: a **linear chain** of GRU cells with a **global task head that reads all nodes**. The justification for the simplification is: before building the true predictive processing model, it's worth asking whether local predictive pressure and unhooked gradients can work *at all*. That's a prerequisite question. But the simplification also means this experiment doesn't test the hard part — whether deeper nodes can learn useful representations purely through neighbor pressure, without a global readout giving them gradient signal.
+
+What this experiment leaves open, explicitly: what the full graph structure should be, what async execution looks like concretely, whether attention-based aggregation adds value, whether loss-prediction heads are useful for halting, and crucially — whether the architecture works at all without the global task head. All of these remain open questions per Max's own words (2025-05-08-2): *"This is a good question. It's an open question... All of these should be explored."*
 
 ---
 
