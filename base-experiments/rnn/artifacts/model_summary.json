@@ -1,0 +1,12 @@
+{
+  "model_family": "ordinary_rnn",
+  "rnn_type": "nn.RNN",
+  "parameter_count": 186125,
+  "context_size": 32,
+  "embedding_dim": 64,
+  "hidden_dim": 368,
+  "num_layers": 1,
+  "nonlinearity": "tanh",
+  "vocab_size": 61,
+  "hidden_state_handling": "reset_to_zero_per_forward_call_no_carry_between_windows_or_batches"
+}

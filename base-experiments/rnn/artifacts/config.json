@@ -1,0 +1,19 @@
+{
+  "context_size": 32,
+  "train_characters": 100000,
+  "val_characters": 20000,
+  "batch_size": 256,
+  "epochs": 13,
+  "learning_rate": 0.003,
+  "gradient_clip_norm": 1.0,
+  "eval_batch_size": 512,
+  "embedding_dim": 64,
+  "hidden_dim": 368,
+  "num_layers": 1,
+  "sample_length": 320,
+  "seed": 42,
+  "check_batch_size": 8,
+  "memorization_batch_size": 32,
+  "memorization_steps": 200,
+  "memorization_learning_rate": 0.02
+}

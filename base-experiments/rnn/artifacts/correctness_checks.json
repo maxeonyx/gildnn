@@ -1,0 +1,91 @@
+[
+  {
+    "name": "dataset_round_trip",
+    "ok": true,
+    "sample": "First Citizen:\\nBefore we proceed"
+  },
+  {
+    "name": "forward_shape",
+    "ok": true,
+    "expected_shape": [
+      8,
+      61
+    ],
+    "actual_shape": [
+      8,
+      61
+    ]
+  },
+  {
+    "name": "known_tiny_batch_loss",
+    "ok": true,
+    "loss": 4.19972038269043,
+    "expected_range": [
+      3.1108738641733114,
+      5.110873864173311
+    ]
+  },
+  {
+    "name": "one_batch_memorization",
+    "ok": true,
+    "final_loss": 2.7499507268657908e-05,
+    "final_accuracy": 1.0,
+    "trace": [
+      {
+        "step": 0,
+        "loss": 4.168292,
+        "accuracy": 0.0
+      },
+      {
+        "step": 20,
+        "loss": 0.001507,
+        "accuracy": 1.0
+      },
+      {
+        "step": 40,
+        "loss": 0.000143,
+        "accuracy": 1.0
+      },
+      {
+        "step": 60,
+        "loss": 6.9e-05,
+        "accuracy": 1.0
+      },
+      {
+        "step": 80,
+        "loss": 5.1e-05,
+        "accuracy": 1.0
+      },
+      {
+        "step": 100,
+        "loss": 4.3e-05,
+        "accuracy": 1.0
+      },
+      {
+        "step": 120,
+        "loss": 3.8e-05,
+        "accuracy": 1.0
+      },
+      {
+        "step": 140,
+        "loss": 3.5e-05,
+        "accuracy": 1.0
+      },
+      {
+        "step": 160,
+        "loss": 3.2e-05,
+        "accuracy": 1.0
+      },
+      {
+        "step": 180,
+        "loss": 2.9e-05,
+        "accuracy": 1.0
+      },
+      {
+        "step": 200,
+        "loss": 2.7e-05,
+        "accuracy": 1.0
+      }
+    ]
+  }
+]
