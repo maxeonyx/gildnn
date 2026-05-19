@@ -1,4 +1,4 @@
-# Dynamic depth on Shakespeare
+# Dynamic Computation Depth
 
 ## Question
 
@@ -6,26 +6,70 @@ Does a weight-shared recurrent model trained with losses at every depth learn a 
 
 ## Setup
 
-- Corpus and split follow `experiments/pytorch_char_shakespeare_comparison.py`
-- Model: shared `GRUCell`, task head, loss-prediction head
-- Training depth: 8
-- Comparators: fixed depth 1, fixed depth 8, dynamic depth halting at inference
+- Model: single `GRUCell` applied repeatedly (weight-shared across depth), task head at every depth, loss-prediction head
+- Training: compute loss at all depths 1–8, sum task losses + loss-prediction MSE
+- Loss-prediction head: predicts what the task loss would be at the current depth
+- Halting: at inference, stop when predicted loss drops below threshold
 
-## Main result
+## Results
 
-- Fixed depth 1 val loss: 4.3479
-- Fixed depth 8 val loss: 4.0664
-- Dynamic val loss: 4.3849
-- Dynamic mean used depth: 1.354
+### Small corpus (7K chars, 72K params)
 
-## Depth allocation
+| Variant | Val Loss | Avg Depth |
+|---|---|---|
+| Fixed depth 1 | 4.348 | 1.0 |
+| Fixed depth 8 | 4.066 | 8.0 |
+| Dynamic (initial) | 4.385 | 1.35 |
 
-Dynamic inference used this histogram: `{'1': 1042, '2': 274, '3': 58, '4': 16, '5': 7, '6': 6}`
+The model allocates different depths to different characters — rare/hard tokens get more compute ("cataracts" → depth 6, "war-proof" → depth 5). But the loss-prediction head is poorly calibrated on validation (correlation 0.08, MSE 33.2). The halting threshold, calibrated on training loss, doesn't transfer well.
 
-Hardest examples saved in `artifacts/depth_analysis.json`. Annotated text saved in `artifacts/depth_annotation.txt`.
+### Large corpus (100K chars train, 20K val, context=32)
+
+Scaling up dramatically improves loss-prediction calibration:
+- Correlation: 0.08 → **0.50**
+- MSE: 33.2 → **1.92**
+
+Pareto frontier (threshold → val_loss, avg_depth):
+
+| Val Loss | Avg Depth | Compute Savings |
+|---|---|---|
+| 1.722 | 8.0 | 0% (baseline) |
+| 1.730 | 5.7 | 29% |
+| **1.738** | **4.56** | **43%** |
+| 1.755 | 3.16 | 60% |
+| 1.786 | 1.30 | 84% |
+
+**Practical operating point: 43% compute reduction for 1% quality loss.** The tradeoff is smooth and continuous — you can dial compute vs quality to any desired point.
+
+### What the model thinks is "hard"
+
+On the large corpus, deeper computation is allocated to:
+- Rare words and unusual letter combinations
+- Transitions between dialogue and description
+- Characters after punctuation (beginning of new clauses)
+- Uncommon character bigrams
+
+See `artifacts/improved/large_100k/recommended_threshold_analysis/depth_annotation.txt`.
+
+## Key findings
+
+1. **Multi-exit training works stably** — the model trains at all depths simultaneously without instability
+2. **Deeper is better, up to a point** — loss improves monotonically from depth 1 to depth ~7, then plateaus
+3. **The loss-prediction head works when given enough data** — poor calibration on 7K chars, good calibration on 100K chars
+4. **Adaptive compute is practical** — 43% savings for 1% quality degradation at the recommended operating point
+5. **Depth allocation is semantically meaningful** — harder tokens genuinely get more computation
+
+## What this does not settle
+
+- Whether combining dynamic depth with the predictive chain adds value
+- Whether the loss-prediction head can be improved (e.g., predict improvement rather than absolute loss)
+- Whether PonderNet-style probabilistic halting is better than threshold-based
+- Whether this works for a deeper base model (e.g., transformer layers)
+- What the optimal max_depth is (we only tried 8)
 
 ## Artifacts
 
-- Metrics summary: `artifacts/comparison_summary.json`
-- Dynamic depth analysis: `artifacts/depth_analysis.json`
-- Annotated validation text: `artifacts/depth_annotation.txt`
+- First experiment: `artifacts/comparison_summary.json`, `artifacts/depth_annotation.txt`
+- Improved (Pareto + large corpus): `artifacts/improved/`
+  - Small corpus: `artifacts/improved/small_7k/`
+  - Large corpus: `artifacts/improved/large_100k/`
