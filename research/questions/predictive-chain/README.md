@@ -104,22 +104,55 @@ See [`artifacts/shakespeare_no_bottleneck/`](artifacts/shakespeare_no_bottleneck
 
 The aux weight ablation (0.001 vs 1.0 → same val loss) and the bottleneck ablation (no bottleneck → same/better val loss) together suggest the generalization advantage comes from the **multi-hop recurrent structure itself** — not from aux regularization pressure and not from message compression. The architecture forces information to flow through multiple small recurrent steps, and that structural constraint provides implicit regularization that prevents overfitting.
 
+### Graph topology with attention (order-2 skip DAG, 8 nodes)
+
+Hypothesis: giving nodes multiple predecessors with learned attention enables selective information routing and improves generalization further.
+
+Topology: 8-node DAG where each node (C through H) has 2 predecessors — its immediate chain predecessor plus one skip connection. Tested with:
+- `uniform_mean`: simple average of predecessor messages
+- `attention`: learned single-head attention over predecessors (per-receiver Q/K projections)
+
+Results (36.4K params each, same Shakespeare protocol):
+
+| Model | Val Loss | Val Acc |
+|-------|----------|---------|
+| Historical chain (13.7K) | **2.59** | 0.290 |
+| Graph uniform_mean (36.4K) | 2.79 | 0.296 |
+| Graph attention (36.4K) | 2.84 | 0.309 |
+
+**Both graph variants are worse than the linear chain.** The attention mechanism works (is non-trivial during overfit; deeper nodes C/D/E show non-uniform weights) but does not help on this task. Adding connectivity dilutes the sequential bottleneck that provides the chain's generalization advantage.
+
+Note: the graph models have ~2.5× more parameters than the chain, making the comparison somewhat unfair — the chain does better with less.
+
+See [`artifacts/shakespeare_graph_attention/`](artifacts/shakespeare_graph_attention/).
+
+### Interpretation: the sequential bottleneck IS the inductive bias
+
+Across all ablations:
+- Aux weight doesn't matter → not aux regularization
+- Message bottleneck doesn't matter → not information compression
+- Adding graph shortcuts hurts → the strict sequential processing IS the advantage
+
+The linear chain forces information through a single narrow path of recurrent steps. This structural constraint prevents the model from taking shortcuts that lead to overfitting. When we add skip connections, we give the model those shortcuts back — and it overfits more.
+
 ## What this does not settle
 
-- whether attention between neighbors helps further
+- whether the chain advantage grows with context size (5 → 20+)
 - whether async or desynchronized execution is viable
 - whether loss-prediction heads for halting are useful
-- whether the generalization advantage holds at larger scale
-- whether the pattern changes with a graph topology (not just a line)
-- why the predictive chain generalizes better — is it the message bottleneck, the aux regularization, or something else?
+- whether the advantage holds at larger scale / more data
+- whether temporal attention (over message HISTORY from one neighbor) helps differently than spatial attention (over multiple neighbors)
+- whether a different graph topology (e.g., wider layers that converge) would work better than skip connections
 
 ## Status
 
-Five variants completed across two corpora. Core findings:
+Seven variants completed across two corpora. Core findings:
 1. Local predictive learning is compatible with task learning
 2. Aux losses are optimization-driven, not fundamentally hard
 3. Unhooked gradients are viable — nodes learn independently
 4. The pattern holds at 8 nodes
-5. **On real English text, the predictive chain generalizes better than all baselines** — lower val loss despite higher train loss
+5. **On real English text, the predictive chain generalizes better than all baselines**
+6. The generalization advantage comes from the **sequential bottleneck** — the strict single-path recurrent structure
+7. **Adding graph connectivity (skip connections + attention) hurts** — dilutes the inductive bias
 
-Next natural questions: why does it generalize better? Is it the message bottleneck acting as regularization? Would attention between neighbors help further? Does the advantage persist at larger context/model size?
+Next natural questions: does the advantage grow with longer context? Would temporal attention (over message history from one predecessor) help without diluting the sequential path? Does the advantage hold at larger scale?
