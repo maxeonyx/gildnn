@@ -6,7 +6,7 @@
 # Ensure we're always running from the repo root, regardless of where the script was launched from
 Set-Location $PSScriptRoot
 
-$sessionId = "ses_1f9625133ffelr3Li5SkSp02ET"
+$sessionId = "ses_1c007665effen45IK4eRb2NBcn"
 
 $prompt = @"
 This is an autonomous personal ML research project. Keep working until there is a good reason to stop. The user is usually not here: do not wait for input, do not ask questions unless absolutely necessary, and do not exit just because one step finished.
@@ -52,7 +52,7 @@ while ($iteration -lt $maxIterations) {
     $now = Get-Date
     Write-Host "[$($now.ToString('yyyy-MM-dd HH:mm:ss'))] Launching OpenCode iteration $iteration/$maxIterations (session $sessionId)..."
 
-    opencode run --agent arrange --model github-copilot-max/gpt-5.4 --session $sessionId --no-ephemeral=true $prompt  # NOTE: in newer versions of the opencode fork, --no-ephemeral may be removed (headless sessions stored by default). If this flag breaks, just remove it.
+    opencode run --agent arrange --model github-copilot-max/claude-opus-4.6 --reasoning high --session $sessionId --no-ephemeral=true $prompt  # NOTE: in newer versions of the opencode fork, --no-ephemeral may be removed (headless sessions stored by default). If this flag breaks, just remove it.
 
     $exitCode = $LASTEXITCODE
     $elapsed = ((Get-Date) - $lastLaunch).TotalSeconds
