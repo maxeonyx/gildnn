@@ -1,0 +1,129 @@
+context | target | prediction
+HAMLET:\nTo |   |  
+AMLET:\nTo  | b | b
+MLET:\nTo b | e | e
+LET:\nTo be | , | ,
+ET:\nTo be, |   |  
+T:\nTo be,  | o | o
+:\nTo be, o | r | r
+\nTo be, or |   |  
+To be, or  | n | n
+o be, or n | o | o
+ be, or no | t | t
+be, or not |   |  
+e, or not  | t | t
+, or not t | o | o
+ or not to |   |  
+or not to  | b | b
+r not to b | e | e
+ not to be | : | :
+not to be: |   |  
+ot to be:  | t | t
+t to be: t | h | h
+ to be: th | a | a
+to be: tha | t | t
+o be: that |   |  
+ be: that  | i | i
+be: that i | s | s
+e: that is |   |  
+: that is  | t | t
+ that is t | h | h
+that is th | e | e
+hat is the |   |  
+at is the  | q | q
+t is the q | u | u
+ is the qu | e | e
+is the que | s | s
+s the ques | t | t
+ the quest | i | i
+the questi | o | o
+he questio | n | n
+e question | : | :
+ question: | \n | \n
+question:\n | W | W
+uestion:\nW | h | h
+estion:\nWh | e | e
+stion:\nWhe | t | t
+tion:\nWhet | h | h
+ion:\nWheth | e | e
+on:\nWhethe | r | r
+n:\nWhether |   |  
+:\nWhether  | ' | '
+\nWhether ' | t | t
+Whether 't | i | i
+hether 'ti | s | s
+ether 'tis |   |  
+ther 'tis  | n | n
+her 'tis n | o | o
+er 'tis no | b | b
+r 'tis nob | l | l
+ 'tis nobl | e | e
+'tis noble | r | r
+tis nobler |   |  
+is nobler  | i | i
+s nobler i | n | n
+ nobler in |   |  
+nobler in  | t | t
+obler in t | h | h
+bler in th | e | e
+ler in the |   |  
+er in the  | m | m
+r in the m | i | i
+ in the mi | n | n
+in the min | d | d
+n the mind |   |  
+ the mind  | t | t
+the mind t | o | o
+he mind to |   |  
+e mind to  | s | s
+ mind to s | u | u
+mind to su | f | f
+ind to suf | f | f
+nd to suff | e | e
+d to suffe | r | r
+ to suffer | \n | \n
+to suffer\n | T | T
+o suffer\nT | h | h
+ suffer\nTh | e | e
+suffer\nThe |   |  
+uffer\nThe  | s | s
+ffer\nThe s | l | l
+fer\nThe sl | i | i
+er\nThe sli | n | n
+r\nThe slin | g | g
+\nThe sling | s | s
+The slings |   |  
+he slings  | a | a
+e slings a | n | n
+ slings an | d | d
+slings and |   |  
+lings and  | a | a
+ings and a | r | r
+ngs and ar | r | r
+gs and arr | o | o
+s and arro | w | w
+ and arrow | s | s
+and arrows |   |  
+nd arrows  | o | o
+d arrows o | f | f
+ arrows of |   |  
+arrows of  | o | o
+rrows of o | u | u
+rows of ou | t | t
+ows of out | r | r
+ws of outr | a | a
+s of outra | g | g
+ of outrag | e | e
+of outrage | o | o
+f outrageo | u | u
+ outrageou | s | s
+outrageous |   |  
+utrageous  | f | f
+trageous f | o | o
+rageous fo | r | r
+ageous for | t | t
+geous fort | u | u
+eous fortu | n | n
+ous fortun | e | e
+us fortune | , | ,
+s fortune, | \n | \n

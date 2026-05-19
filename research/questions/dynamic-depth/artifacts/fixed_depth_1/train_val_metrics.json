@@ -1,0 +1,572 @@
+{
+  "runtime_seconds": 29.724616999999853,
+  "train_metrics": {
+    "total_loss": 0.027322884649038315,
+    "task_loss": 0.023259207606315613,
+    "loss_prediction_loss": 0.04063676670193672,
+    "accuracy": 0.9939695000648499,
+    "per_depth_task_loss": [
+      0.023259207606315613
+    ],
+    "per_depth_accuracy": [
+      0.9939695000648499
+    ],
+    "mean_used_depth": 1.0,
+    "depth_histogram": {
+      "1": 5638
+    }
+  },
+  "val_metrics": {
+    "total_loss": 7.7672038078308105,
+    "task_loss": 4.347914695739746,
+    "loss_prediction_loss": 34.19289016723633,
+    "accuracy": 0.29793301224708557,
+    "per_depth_task_loss": [
+      4.347914695739746
+    ],
+    "per_depth_accuracy": [
+      0.29793301224708557
+    ],
+    "mean_used_depth": 1.0,
+    "depth_histogram": {
+      "1": 1403
+    }
+  },
+  "train_trace": [
+    {
+      "step": 0,
+      "total_loss": 5.726056,
+      "task_loss": 4.093026,
+      "loss_prediction_loss": 16.330297,
+      "accuracy": 0.025364,
+      "per_depth_task_loss": [
+        4.093026
+      ],
+      "per_depth_accuracy": [
+        0.025364
+      ]
+    },
+    {
+      "step": 50,
+      "total_loss": 2.712465,
+      "task_loss": 2.565469,
+      "loss_prediction_loss": 1.469963,
+      "accuracy": 0.280951,
+      "per_depth_task_loss": [
+        2.565469
+      ],
+      "per_depth_accuracy": [
+        0.280951
+      ]
+    },
+    {
+      "step": 100,
+      "total_loss": 2.442663,
+      "task_loss": 2.278071,
+      "loss_prediction_loss": 1.645924,
+      "accuracy": 0.363249,
+      "per_depth_task_loss": [
+        2.278071
+      ],
+      "per_depth_accuracy": [
+        0.363249
+      ]
+    },
+    {
+      "step": 150,
+      "total_loss": 2.216229,
+      "task_loss": 2.066783,
+      "loss_prediction_loss": 1.494467,
+      "accuracy": 0.399255,
+      "per_depth_task_loss": [
+        2.066783
+      ],
+      "per_depth_accuracy": [
+        0.399255
+      ]
+    },
+    {
+      "step": 200,
+      "total_loss": 2.042962,
+      "task_loss": 1.89146,
+      "loss_prediction_loss": 1.51502,
+      "accuracy": 0.45016,
+      "per_depth_task_loss": [
+        1.89146
+      ],
+      "per_depth_accuracy": [
+        0.45016
+      ]
+    },
+    {
+      "step": 250,
+      "total_loss": 1.828734,
+      "task_loss": 1.69067,
+      "loss_prediction_loss": 1.380645,
+      "accuracy": 0.508159,
+      "per_depth_task_loss": [
+        1.69067
+      ],
+      "per_depth_accuracy": [
+        0.508159
+      ]
+    },
+    {
+      "step": 300,
+      "total_loss": 1.637896,
+      "task_loss": 1.50867,
+      "loss_prediction_loss": 1.292258,
+      "accuracy": 0.564739,
+      "per_depth_task_loss": [
+        1.50867
+      ],
+      "per_depth_accuracy": [
+        0.564739
+      ]
+    },
+    {
+      "step": 350,
+      "total_loss": 1.456677,
+      "task_loss": 1.33411,
+      "loss_prediction_loss": 1.225668,
+      "accuracy": 0.621674,
+      "per_depth_task_loss": [
+        1.33411
+      ],
+      "per_depth_accuracy": [
+        0.621674
+      ]
+    },
+    {
+      "step": 400,
+      "total_loss": 1.275941,
+      "task_loss": 1.162255,
+      "loss_prediction_loss": 1.136857,
+      "accuracy": 0.666016,
+      "per_depth_task_loss": [
+        1.162255
+      ],
+      "per_depth_accuracy": [
+        0.666016
+      ]
+    },
+    {
+      "step": 450,
+      "total_loss": 1.084557,
+      "task_loss": 0.981925,
+      "loss_prediction_loss": 1.026324,
+      "accuracy": 0.731288,
+      "per_depth_task_loss": [
+        0.981925
+      ],
+      "per_depth_accuracy": [
+        0.731288
+      ]
+    },
+    {
+      "step": 500,
+      "total_loss": 0.929094,
+      "task_loss": 0.834339,
+      "loss_prediction_loss": 0.947546,
+      "accuracy": 0.775807,
+      "per_depth_task_loss": [
+        0.834339
+      ],
+      "per_depth_accuracy": [
+        0.775807
+      ]
+    },
+    {
+      "step": 550,
+      "total_loss": 0.769097,
+      "task_loss": 0.692104,
+      "loss_prediction_loss": 0.769932,
+      "accuracy": 0.828485,
+      "per_depth_task_loss": [
+        0.692104
+      ],
+      "per_depth_accuracy": [
+        0.828485
+      ]
+    },
+    {
+      "step": 600,
+      "total_loss": 0.620414,
+      "task_loss": 0.557557,
+      "loss_prediction_loss": 0.628573,
+      "accuracy": 0.863604,
+      "per_depth_task_loss": [
+        0.557557
+      ],
+      "per_depth_accuracy": [
+        0.863604
+      ]
+    },
+    {
+      "step": 650,
+      "total_loss": 0.489295,
+      "task_loss": 0.442533,
+      "loss_prediction_loss": 0.467621,
+      "accuracy": 0.896062,
+      "per_depth_task_loss": [
+        0.442533
+      ],
+      "per_depth_accuracy": [
+        0.896062
+      ]
+    },
+    {
+      "step": 700,
+      "total_loss": 0.39784,
+      "task_loss": 0.360219,
+      "loss_prediction_loss": 0.376215,
+      "accuracy": 0.921781,
+      "per_depth_task_loss": [
+        0.360219
+      ],
+      "per_depth_accuracy": [
+        0.921781
+      ]
+    },
+    {
+      "step": 750,
+      "total_loss": 0.330751,
+      "task_loss": 0.299036,
+      "loss_prediction_loss": 0.317152,
+      "accuracy": 0.940227,
+      "per_depth_task_loss": [
+        0.299036
+      ],
+      "per_depth_accuracy": [
+        0.940227
+      ]
+    },
+    {
+      "step": 800,
+      "total_loss": 0.246343,
+      "task_loss": 0.226628,
+      "loss_prediction_loss": 0.197151,
+      "accuracy": 0.959205,
+      "per_depth_task_loss": [
+        0.226628
+      ],
+      "per_depth_accuracy": [
+        0.959205
+      ]
+    },
+    {
+      "step": 850,
+      "total_loss": 0.203119,
+      "task_loss": 0.188733,
+      "loss_prediction_loss": 0.143856,
+      "accuracy": 0.968783,
+      "per_depth_task_loss": [
+        0.188733
+      ],
+      "per_depth_accuracy": [
+        0.968783
+      ]
+    },
+    {
+      "step": 900,
+      "total_loss": 0.158752,
+      "task_loss": 0.148509,
+      "loss_prediction_loss": 0.102433,
+      "accuracy": 0.978539,
+      "per_depth_task_loss": [
+        0.148509
+      ],
+      "per_depth_accuracy": [
+        0.978539
+      ]
+    },
+    {
+      "step": 950,
+      "total_loss": 0.117453,
+      "task_loss": 0.110753,
+      "loss_prediction_loss": 0.066997,
+      "accuracy": 0.984746,
+      "per_depth_task_loss": [
+        0.110753
+      ],
+      "per_depth_accuracy": [
+        0.984746
+      ]
+    },
+    {
+      "step": 1000,
+      "total_loss": 0.096236,
+      "task_loss": 0.089516,
+      "loss_prediction_loss": 0.0672,
+      "accuracy": 0.989535,
+      "per_depth_task_loss": [
+        0.089516
+      ],
+      "per_depth_accuracy": [
+        0.989535
+      ]
+    },
+    {
+      "step": 1050,
+      "total_loss": 0.079459,
+      "task_loss": 0.073811,
+      "loss_prediction_loss": 0.056484,
+      "accuracy": 0.991486,
+      "per_depth_task_loss": [
+        0.073811
+      ],
+      "per_depth_accuracy": [
+        0.991486
+      ]
+    },
+    {
+      "step": 1100,
+      "total_loss": 0.063127,
+      "task_loss": 0.058534,
+      "loss_prediction_loss": 0.045926,
+      "accuracy": 0.992728,
+      "per_depth_task_loss": [
+        0.058534
+      ],
+      "per_depth_accuracy": [
+        0.992728
+      ]
+    },
+    {
+      "step": 1150,
+      "total_loss": 0.055727,
+      "task_loss": 0.050403,
+      "loss_prediction_loss": 0.053241,
+      "accuracy": 0.99326,
+      "per_depth_task_loss": [
+        0.050403
+      ],
+      "per_depth_accuracy": [
+        0.99326
+      ]
+    },
+    {
+      "step": 1200,
+      "total_loss": 0.046187,
+      "task_loss": 0.042617,
+      "loss_prediction_loss": 0.0357,
+      "accuracy": 0.993792,
+      "per_depth_task_loss": [
+        0.042617
+      ],
+      "per_depth_accuracy": [
+        0.993792
+      ]
+    },
+    {
+      "step": 1250,
+      "total_loss": 0.043482,
+      "task_loss": 0.038825,
+      "loss_prediction_loss": 0.046567,
+      "accuracy": 0.99397,
+      "per_depth_task_loss": [
+        0.038825
+      ],
+      "per_depth_accuracy": [
+        0.99397
+      ]
+    },
+    {
+      "step": 1300,
+      "total_loss": 0.040952,
+      "task_loss": 0.036481,
+      "loss_prediction_loss": 0.044718,
+      "accuracy": 0.994147,
+      "per_depth_task_loss": [
+        0.036481
+      ],
+      "per_depth_accuracy": [
+        0.994147
+      ]
+    },
+    {
+      "step": 1350,
+      "total_loss": 0.046951,
+      "task_loss": 0.040239,
+      "loss_prediction_loss": 0.067126,
+      "accuracy": 0.993792,
+      "per_depth_task_loss": [
+        0.040239
+      ],
+      "per_depth_accuracy": [
+        0.993792
+      ]
+    },
+    {
+      "step": 1400,
+      "total_loss": 0.032941,
+      "task_loss": 0.029763,
+      "loss_prediction_loss": 0.031774,
+      "accuracy": 0.994324,
+      "per_depth_task_loss": [
+        0.029763
+      ],
+      "per_depth_accuracy": [
+        0.994324
+      ]
+    },
+    {
+      "step": 1450,
+      "total_loss": 0.034412,
+      "task_loss": 0.029992,
+      "loss_prediction_loss": 0.044206,
+      "accuracy": 0.994324,
+      "per_depth_task_loss": [
+        0.029992
+      ],
+      "per_depth_accuracy": [
+        0.994324
+      ]
+    },
+    {
+      "step": 1500,
+      "total_loss": 0.033528,
+      "task_loss": 0.029228,
+      "loss_prediction_loss": 0.043002,
+      "accuracy": 0.994324,
+      "per_depth_task_loss": [
+        0.029228
+      ],
+      "per_depth_accuracy": [
+        0.994324
+      ]
+    },
+    {
+      "step": 1550,
+      "total_loss": 0.029611,
+      "task_loss": 0.026424,
+      "loss_prediction_loss": 0.031867,
+      "accuracy": 0.994147,
+      "per_depth_task_loss": [
+        0.026424
+      ],
+      "per_depth_accuracy": [
+        0.994147
+      ]
+    },
+    {
+      "step": 1600,
+      "total_loss": 0.031164,
+      "task_loss": 0.027361,
+      "loss_prediction_loss": 0.038031,
+      "accuracy": 0.99397,
+      "per_depth_task_loss": [
+        0.027361
+      ],
+      "per_depth_accuracy": [
+        0.99397
+      ]
+    },
+    {
+      "step": 1650,
+      "total_loss": 0.030914,
+      "task_loss": 0.026832,
+      "loss_prediction_loss": 0.040825,
+      "accuracy": 0.99397,
+      "per_depth_task_loss": [
+        0.026832
+      ],
+      "per_depth_accuracy": [
+        0.99397
+      ]
+    },
+    {
+      "step": 1700,
+      "total_loss": 0.028617,
+      "task_loss": 0.025048,
+      "loss_prediction_loss": 0.035692,
+      "accuracy": 0.99397,
+      "per_depth_task_loss": [
+        0.025048
+      ],
+      "per_depth_accuracy": [
+        0.99397
+      ]
+    },
+    {
+      "step": 1750,
+      "total_loss": 0.028789,
+      "task_loss": 0.024924,
+      "loss_prediction_loss": 0.038656,
+      "accuracy": 0.994324,
+      "per_depth_task_loss": [
+        0.024924
+      ],
+      "per_depth_accuracy": [
+        0.994324
+      ]
+    },
+    {
+      "step": 1800,
+      "total_loss": 0.026459,
+      "task_loss": 0.023058,
+      "loss_prediction_loss": 0.034007,
+      "accuracy": 0.994147,
+      "per_depth_task_loss": [
+        0.023058
+      ],
+      "per_depth_accuracy": [
+        0.994147
+      ]
+    },
+    {
+      "step": 1850,
+      "total_loss": 0.027675,
+      "task_loss": 0.023956,
+      "loss_prediction_loss": 0.037193,
+      "accuracy": 0.994147,
+      "per_depth_task_loss": [
+        0.023956
+      ],
+      "per_depth_accuracy": [
+        0.994147
+      ]
+    },
+    {
+      "step": 1900,
+      "total_loss": 0.027166,
+      "task_loss": 0.023386,
+      "loss_prediction_loss": 0.037807,
+      "accuracy": 0.994147,
+      "per_depth_task_loss": [
+        0.023386
+      ],
+      "per_depth_accuracy": [
+        0.994147
+      ]
+    },
+    {
+      "step": 1950,
+      "total_loss": 0.029071,
+      "task_loss": 0.024498,
+      "loss_prediction_loss": 0.045726,
+      "accuracy": 0.99397,
+      "per_depth_task_loss": [
+        0.024498
+      ],
+      "per_depth_accuracy": [
+        0.99397
+      ]
+    },
+    {
+      "step": 2000,
+      "total_loss": 0.027323,
+      "task_loss": 0.023259,
+      "loss_prediction_loss": 0.040637,
+      "accuracy": 0.99397,
+      "per_depth_task_loss": [
+        0.023259
+      ],
+      "per_depth_accuracy": [
+        0.99397
+      ]
+    }
+  ],
+  "halting_threshold": null,
+  "improvement_epsilon": null
+}

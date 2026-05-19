@@ -1,0 +1,412 @@
+{
+  "final_total_loss": 0.0001398823078488931,
+  "final_task_loss": 0.0001398244930896908,
+  "final_loss_prediction_loss": 5.780925107501389e-07,
+  "final_accuracy": 1.0,
+  "reached_memorization_bar": true,
+  "trace": [
+    {
+      "step": 0,
+      "total_loss": 5.761807,
+      "task_loss": 4.058567,
+      "loss_prediction_loss": 17.032398,
+      "accuracy": 0.046875,
+      "per_depth_task_loss": [
+        4.058567
+      ],
+      "per_depth_accuracy": [
+        0.046875
+      ]
+    },
+    {
+      "step": 50,
+      "total_loss": 0.076477,
+      "task_loss": 0.072338,
+      "loss_prediction_loss": 0.041395,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.072338
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 100,
+      "total_loss": 0.005479,
+      "task_loss": 0.005267,
+      "loss_prediction_loss": 0.002123,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.005267
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 150,
+      "total_loss": 0.002986,
+      "task_loss": 0.002929,
+      "loss_prediction_loss": 0.00057,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.002929
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 200,
+      "total_loss": 0.002026,
+      "task_loss": 0.001998,
+      "loss_prediction_loss": 0.000278,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.001998
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 250,
+      "total_loss": 0.001498,
+      "task_loss": 0.001481,
+      "loss_prediction_loss": 0.000161,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.001481
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 300,
+      "total_loss": 0.001165,
+      "task_loss": 0.001156,
+      "loss_prediction_loss": 9.2e-05,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.001156
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 350,
+      "total_loss": 0.000943,
+      "task_loss": 0.000937,
+      "loss_prediction_loss": 5.9e-05,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000937
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 400,
+      "total_loss": 0.000783,
+      "task_loss": 0.000779,
+      "loss_prediction_loss": 4e-05,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000779
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 450,
+      "total_loss": 0.000665,
+      "task_loss": 0.000662,
+      "loss_prediction_loss": 2.8e-05,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000662
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 500,
+      "total_loss": 0.000577,
+      "task_loss": 0.000575,
+      "loss_prediction_loss": 1.9e-05,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000575
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 550,
+      "total_loss": 0.000507,
+      "task_loss": 0.000506,
+      "loss_prediction_loss": 1.4e-05,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000506
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 600,
+      "total_loss": 0.000451,
+      "task_loss": 0.00045,
+      "loss_prediction_loss": 1.2e-05,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.00045
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 650,
+      "total_loss": 0.000406,
+      "task_loss": 0.000405,
+      "loss_prediction_loss": 8e-06,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000405
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 700,
+      "total_loss": 0.000368,
+      "task_loss": 0.000368,
+      "loss_prediction_loss": 6e-06,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000368
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 750,
+      "total_loss": 0.000337,
+      "task_loss": 0.000336,
+      "loss_prediction_loss": 5e-06,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000336
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 800,
+      "total_loss": 0.00031,
+      "task_loss": 0.000309,
+      "loss_prediction_loss": 4e-06,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000309
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 850,
+      "total_loss": 0.000287,
+      "task_loss": 0.000287,
+      "loss_prediction_loss": 4e-06,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000287
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 900,
+      "total_loss": 0.000267,
+      "task_loss": 0.000267,
+      "loss_prediction_loss": 3e-06,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000267
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 950,
+      "total_loss": 0.000249,
+      "task_loss": 0.000249,
+      "loss_prediction_loss": 2e-06,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000249
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 1000,
+      "total_loss": 0.000234,
+      "task_loss": 0.000233,
+      "loss_prediction_loss": 2e-06,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000233
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 1050,
+      "total_loss": 0.00022,
+      "task_loss": 0.00022,
+      "loss_prediction_loss": 2e-06,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.00022
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 1100,
+      "total_loss": 0.000207,
+      "task_loss": 0.000207,
+      "loss_prediction_loss": 2e-06,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000207
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 1150,
+      "total_loss": 0.000196,
+      "task_loss": 0.000196,
+      "loss_prediction_loss": 1e-06,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000196
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 1200,
+      "total_loss": 0.000186,
+      "task_loss": 0.000186,
+      "loss_prediction_loss": 1e-06,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000186
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 1250,
+      "total_loss": 0.000176,
+      "task_loss": 0.000176,
+      "loss_prediction_loss": 1e-06,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000176
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 1300,
+      "total_loss": 0.000168,
+      "task_loss": 0.000168,
+      "loss_prediction_loss": 1e-06,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000168
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 1350,
+      "total_loss": 0.00016,
+      "task_loss": 0.00016,
+      "loss_prediction_loss": 1e-06,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.00016
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 1400,
+      "total_loss": 0.000153,
+      "task_loss": 0.000153,
+      "loss_prediction_loss": 1e-06,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000153
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 1450,
+      "total_loss": 0.000146,
+      "task_loss": 0.000146,
+      "loss_prediction_loss": 1e-06,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.000146
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    },
+    {
+      "step": 1500,
+      "total_loss": 0.00014,
+      "task_loss": 0.00014,
+      "loss_prediction_loss": 1e-06,
+      "accuracy": 1.0,
+      "per_depth_task_loss": [
+        0.00014
+      ],
+      "per_depth_accuracy": [
+        1.0
+      ]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "parameter_count": 71997,
+  "embedding_dim": 32,
+  "hidden_dim": 128,
+  "max_depth": 8,
+  "training_depth": 1,
+  "inference_mode": "fixed"
+}

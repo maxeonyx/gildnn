@@ -1,0 +1,6898 @@
+{
+  "threshold": 0.4011310040950775,
+  "improvement_epsilon": 0.01,
+  "depth_histogram": {
+    "1": 165,
+    "2": 53,
+    "3": 14,
+    "4": 4,
+    "5": 3,
+    "6": 1,
+    "7": 0,
+    "8": 0
+  },
+  "top_hard_examples": [
+    {
+      "char": "n",
+      "used_depth": 6,
+      "actual_loss_at_used_depth": 0.217061,
+      "context": "ataracts a",
+      "target": "n",
+      "prediction": "n"
+    },
+    {
+      "char": "s",
+      "used_depth": 5,
+      "actual_loss_at_used_depth": 5.822916,
+      "context": "se blood i",
+      "target": "s",
+      "prediction": "n"
+    },
+    {
+      "char": "e",
+      "used_depth": 5,
+      "actual_loss_at_used_depth": 5.766298,
+      "context": "ard the br",
+      "target": "e",
+      "prediction": "o"
+    },
+    {
+      "char": "c",
+      "used_depth": 5,
+      "actual_loss_at_used_depth": 1.767331,
+      "context": "s, and cra",
+      "target": "c",
+      "prediction": "e"
+    },
+    {
+      "char": "d",
+      "used_depth": 4,
+      "actual_loss_at_used_depth": 2.761347,
+      "context": " wide,\\nHol",
+      "target": "d",
+      "prediction": "l"
+    },
+    {
+      "char": "p",
+      "used_depth": 4,
+      "actual_loss_at_used_depth": 2.534371,
+      "context": "rs of war-",
+      "target": "p",
+      "prediction": "b"
+    },
+    {
+      "char": "e",
+      "used_depth": 4,
+      "actual_loss_at_used_depth": 0.049088,
+      "context": "eath and b",
+      "target": "e",
+      "prediction": "e"
+    },
+    {
+      "char": "s",
+      "used_depth": 4,
+      "actual_loss_at_used_depth": 0.000104,
+      "context": "irit\\nTo hi",
+      "target": "s",
+      "prediction": "s"
+    },
+    {
+      "char": "b",
+      "used_depth": 3,
+      "actual_loss_at_used_depth": 13.092803,
+      "context": "ks! rage! ",
+      "target": "b",
+      "prediction": "h"
+    },
+    {
+      "char": "E",
+      "used_depth": 3,
+      "actual_loss_at_used_depth": 12.935317,
+      "context": "u noblest ",
+      "target": "E",
+      "prediction": "i"
+    },
+    {
+      "char": "e",
+      "used_depth": 3,
+      "actual_loss_at_used_depth": 6.679129,
+      "context": "his full h",
+      "target": "e",
+      "prediction": "a"
+    },
+    {
+      "char": "i",
+      "used_depth": 3,
+      "actual_loss_at_used_depth": 6.383655,
+      "context": "ose blood ",
+      "target": "i",
+      "prediction": "c"
+    },
+    {
+      "char": "f",
+      "used_depth": 3,
+      "actual_loss_at_used_depth": 6.285617,
+      "context": "od is fet ",
+      "target": "f",
+      "prediction": "t"
+    },
+    {
+      "char": "a",
+      "used_depth": 3,
+      "actual_loss_at_used_depth": 5.84543,
+      "context": "cataracts ",
+      "target": "a",
+      "prediction": "o"
+    },
+    {
+      "char": "c",
+      "used_depth": 3,
+      "actual_loss_at_used_depth": 5.80594,
+      "context": "rack your ",
+      "target": "c",
+      "prediction": "g"
+    },
+    {
+      "char": "r",
+      "used_depth": 3,
+      "actual_loss_at_used_depth": 4.818484,
+      "context": "cts and hu",
+      "target": "r",
+      "prediction": "m"
+    },
+    {
+      "char": "n",
+      "used_depth": 3,
+      "actual_loss_at_used_depth": 4.335856,
+      "context": "ath and be",
+      "target": "n",
+      "prediction": "a"
+    },
+    {
+      "char": "w",
+      "used_depth": 3,
+      "actual_loss_at_used_depth": 2.926204,
+      "context": "AR:\\nBlow, ",
+      "target": "w",
+      "prediction": "i"
+    },
+    {
+      "char": "l",
+      "used_depth": 3,
+      "actual_loss_at_used_depth": 2.544983,
+      "context": "h,\\nWhose b",
+      "target": "l",
+      "prediction": "e"
+    },
+    {
+      "char": "t",
+      "used_depth": 3,
+      "actual_loss_at_used_depth": 2.336043,
+      "context": "ow!\\nYou ca",
+      "target": "t",
+      "prediction": "r"
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "context": " nostril w",
+      "target": "i",
+      "prediction": "h",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.640739,
+        0.275761,
+        0.233059,
+        0.231132,
+        0.221735,
+        0.2104,
+        0.200881,
+        0.192533
+      ],
+      "actual_losses": [
+        0.187545,
+        1.117879,
+        2.28015,
+        1.405008,
+        0.69713,
+        0.333936,
+        0.17765,
+        0.11535
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 1,
+      "context": "nostril wi",
+      "target": "d",
+      "prediction": "t",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.195398,
+        0.223713,
+        0.214609,
+        0.21604,
+        0.217756,
+        0.218869,
+        0.219579,
+        0.219984
+      ],
+      "actual_losses": [
+        10.261312,
+        12.432358,
+        11.900126,
+        11.895811,
+        11.881997,
+        11.870251,
+        11.854606,
+        11.832442
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 2,
+      "context": "ostril wid",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.111939,
+        0.104127,
+        0.095048,
+        0.091941,
+        0.064744,
+        0.063896,
+        0.068424,
+        0.070941
+      ],
+      "actual_losses": [
+        0.664901,
+        2.29792,
+        1.550071,
+        0.823033,
+        1.255262,
+        1.521274,
+        1.692888,
+        1.788291
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 3,
+      "context": "stril wide",
+      "target": ",",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.316483,
+        0.2017,
+        0.19254,
+        0.22272,
+        0.227293,
+        0.229549,
+        0.231978,
+        0.234236
+      ],
+      "actual_losses": [
+        6.932833,
+        6.993847,
+        5.662237,
+        4.784916,
+        4.744105,
+        4.76378,
+        4.795439,
+        4.831017
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 4,
+      "context": "tril wide,",
+      "target": "\\n",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.320361,
+        0.208495,
+        0.226695,
+        0.200131,
+        0.188843,
+        0.184618,
+        0.181102,
+        0.179511
+      ],
+      "actual_losses": [
+        2.350749,
+        1.851991,
+        0.919536,
+        0.631872,
+        0.655935,
+        0.688278,
+        0.738026,
+        0.796562
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 5,
+      "context": "ril wide,\\n",
+      "target": "H",
+      "prediction": "I",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.205415,
+        0.260562,
+        0.248273,
+        0.255982,
+        0.266724,
+        0.269908,
+        0.268494,
+        0.263592
+      ],
+      "actual_losses": [
+        3.601611,
+        5.736135,
+        3.419928,
+        2.246021,
+        1.964047,
+        1.77403,
+        1.491769,
+        1.253137
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 6,
+      "context": "il wide,\\nH",
+      "target": "o",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.199881,
+        0.314058,
+        0.370843,
+        0.384115,
+        0.40845,
+        0.423714,
+        0.434827,
+        0.442709
+      ],
+      "actual_losses": [
+        7.811182,
+        13.237129,
+        13.061363,
+        12.540474,
+        12.026992,
+        11.647552,
+        11.356461,
+        11.133545
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 7,
+      "context": "l wide,\\nHo",
+      "target": "l",
+      "prediction": "s",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.053947,
+        0.297628,
+        0.386017,
+        0.408718,
+        0.420744,
+        0.422104,
+        0.422626,
+        0.422653
+      ],
+      "actual_losses": [
+        5.08161,
+        3.919205,
+        2.922867,
+        2.789856,
+        2.434335,
+        2.263698,
+        2.1498,
+        2.068357
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 8,
+      "context": " wide,\\nHol",
+      "target": "d",
+      "prediction": "l",
+      "used_depth": 4,
+      "predicted_losses": [
+        0.572717,
+        0.500207,
+        0.425801,
+        0.345583,
+        0.284122,
+        0.234974,
+        0.186924,
+        0.138104
+      ],
+      "actual_losses": [
+        3.69994,
+        2.200607,
+        2.46099,
+        2.761347,
+        3.254944,
+        3.71044,
+        4.344191,
+        5.125925
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 9,
+      "context": "wide,\\nHold",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.053364,
+        0.153077,
+        0.163198,
+        0.170963,
+        0.184885,
+        0.18954,
+        0.18412,
+        0.173077
+      ],
+      "actual_losses": [
+        0.284126,
+        0.949197,
+        2.653488,
+        3.052296,
+        2.871263,
+        2.829318,
+        2.86483,
+        2.82979
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 10,
+      "context": "ide,\\nHold ",
+      "target": "h",
+      "prediction": "t",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.684378,
+        0.59734,
+        0.602194,
+        0.598523,
+        0.59705,
+        0.596771,
+        0.597086,
+        0.597745
+      ],
+      "actual_losses": [
+        6.276493,
+        5.753903,
+        4.966682,
+        4.836521,
+        4.849914,
+        4.854771,
+        4.841052,
+        4.81605
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 11,
+      "context": "de,\\nHold h",
+      "target": "a",
+      "prediction": "i",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.124131,
+        0.225243,
+        0.281602,
+        0.286553,
+        0.284099,
+        0.281609,
+        0.280143,
+        0.279547
+      ],
+      "actual_losses": [
+        4.923361,
+        3.393051,
+        2.870446,
+        2.743557,
+        2.6273,
+        2.542179,
+        2.474257,
+        2.414974
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 12,
+      "context": "e,\\nHold ha",
+      "target": "r",
+      "prediction": "t",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.521484,
+        0.331533,
+        0.210561,
+        0.174492,
+        0.16141,
+        0.148046,
+        0.138314,
+        0.130817
+      ],
+      "actual_losses": [
+        2.301541,
+        3.422569,
+        2.380948,
+        2.446348,
+        2.397292,
+        2.30486,
+        2.29795,
+        2.325722
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 13,
+      "context": ",\\nHold har",
+      "target": "d",
+      "prediction": "t",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.281963,
+        0.374991,
+        0.369415,
+        0.358629,
+        0.353671,
+        0.351179,
+        0.349554,
+        0.348201
+      ],
+      "actual_losses": [
+        1.764312,
+        1.384481,
+        2.734177,
+        3.650216,
+        4.172913,
+        4.393736,
+        4.408731,
+        4.360363
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 14,
+      "context": "\\nHold hard",
+      "target": " ",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.25763,
+        0.041333,
+        0.127179,
+        0.102601,
+        0.114821,
+        0.124178,
+        0.145002,
+        0.148774
+      ],
+      "actual_losses": [
+        3.374833,
+        0.853959,
+        1.373795,
+        2.131207,
+        2.750021,
+        3.109519,
+        3.247802,
+        3.227948
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 15,
+      "context": "Hold hard ",
+      "target": "t",
+      "prediction": "o",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.630491,
+        0.540198,
+        0.555646,
+        0.568335,
+        0.568933,
+        0.570595,
+        0.57244,
+        0.574358
+      ],
+      "actual_losses": [
+        7.433751,
+        5.638184,
+        6.133247,
+        6.214602,
+        6.406173,
+        6.584645,
+        6.75872,
+        6.924162
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 16,
+      "context": "old hard t",
+      "target": "h",
+      "prediction": "h",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.349016,
+        0.237701,
+        0.250503,
+        0.245587,
+        0.236299,
+        0.230462,
+        0.225504,
+        0.220935
+      ],
+      "actual_losses": [
+        0.0038,
+        0.003204,
+        0.007046,
+        0.013893,
+        0.013785,
+        0.011747,
+        0.010185,
+        0.008926
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 17,
+      "context": "ld hard th",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.198032,
+        0.322463,
+        0.289405,
+        0.279294,
+        0.282019,
+        0.285861,
+        0.287616,
+        0.287428
+      ],
+      "actual_losses": [
+        0.091754,
+        0.016199,
+        0.020315,
+        0.017465,
+        0.016898,
+        0.016323,
+        0.015751,
+        0.015305
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 18,
+      "context": "d hard the",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.282382,
+        0.142581,
+        0.190507,
+        0.192692,
+        0.209051,
+        0.215387,
+        0.215272,
+        0.215464
+      ],
+      "actual_losses": [
+        0.019818,
+        0.011793,
+        0.01634,
+        0.010499,
+        0.006624,
+        0.004741,
+        0.003784,
+        0.00332
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 19,
+      "context": " hard the ",
+      "target": "b",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.977507,
+        0.985387,
+        1.005954,
+        1.0079,
+        1.004994,
+        1.001584,
+        0.998573,
+        0.995949
+      ],
+      "actual_losses": [
+        4.354157,
+        2.694021,
+        2.898436,
+        3.243344,
+        3.270179,
+        3.210919,
+        3.15124,
+        3.10535
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 20,
+      "context": "hard the b",
+      "target": "r",
+      "prediction": "e",
+      "used_depth": 3,
+      "predicted_losses": [
+        0.634639,
+        0.502845,
+        0.4028,
+        0.412816,
+        0.41931,
+        0.424331,
+        0.420209,
+        0.413722
+      ],
+      "actual_losses": [
+        3.731887,
+        2.092141,
+        2.076431,
+        1.867483,
+        1.663906,
+        1.683125,
+        1.739698,
+        1.815416
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 21,
+      "context": "ard the br",
+      "target": "e",
+      "prediction": "o",
+      "used_depth": 5,
+      "predicted_losses": [
+        0.601049,
+        0.589074,
+        0.524158,
+        0.445474,
+        0.398704,
+        0.384123,
+        0.388785,
+        0.399219
+      ],
+      "actual_losses": [
+        3.681298,
+        3.52345,
+        5.18192,
+        5.572106,
+        5.766298,
+        5.097013,
+        3.605887,
+        2.260452
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 22,
+      "context": "rd the bre",
+      "target": "a",
+      "prediction": "a",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.338838,
+        0.235397,
+        0.245981,
+        0.254436,
+        0.261292,
+        0.260848,
+        0.258028,
+        0.262977
+      ],
+      "actual_losses": [
+        0.092657,
+        0.116171,
+        0.265221,
+        0.38011,
+        0.31917,
+        0.221352,
+        0.184488,
+        0.17229
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 23,
+      "context": "d the brea",
+      "target": "t",
+      "prediction": "r",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.555474,
+        0.498825,
+        0.497426,
+        0.460131,
+        0.439535,
+        0.432929,
+        0.43903,
+        0.443886
+      ],
+      "actual_losses": [
+        3.194588,
+        3.397074,
+        3.32653,
+        2.927957,
+        2.769997,
+        2.889202,
+        3.024147,
+        3.101824
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 24,
+      "context": " the breat",
+      "target": "h",
+      "prediction": "h",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.496891,
+        0.372601,
+        0.389768,
+        0.345997,
+        0.288822,
+        0.256648,
+        0.247944,
+        0.248802
+      ],
+      "actual_losses": [
+        1.095678,
+        0.250556,
+        0.169902,
+        0.107598,
+        0.104683,
+        0.120191,
+        0.122897,
+        0.120781
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 25,
+      "context": "the breath",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.172816,
+        0.349683,
+        0.327115,
+        0.334092,
+        0.346423,
+        0.355151,
+        0.357112,
+        0.35494
+      ],
+      "actual_losses": [
+        0.037169,
+        0.01887,
+        0.025488,
+        0.039645,
+        0.074158,
+        0.13851,
+        0.227749,
+        0.333285
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 26,
+      "context": "he breath ",
+      "target": "a",
+      "prediction": "i",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.830447,
+        0.752479,
+        0.74998,
+        0.755175,
+        0.75809,
+        0.759821,
+        0.760977,
+        0.761808
+      ],
+      "actual_losses": [
+        6.766181,
+        6.812973,
+        7.626006,
+        7.657247,
+        7.724298,
+        7.813014,
+        7.904524,
+        7.992519
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 27,
+      "context": "e breath a",
+      "target": "n",
+      "prediction": "n",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.736756,
+        0.497351,
+        0.509281,
+        0.494693,
+        0.495307,
+        0.493399,
+        0.490655,
+        0.487443
+      ],
+      "actual_losses": [
+        0.496302,
+        0.153223,
+        0.305604,
+        0.238486,
+        0.181433,
+        0.174042,
+        0.157063,
+        0.144696
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 28,
+      "context": " breath an",
+      "target": "d",
+      "prediction": "s",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.441209,
+        0.33807,
+        0.37968,
+        0.365928,
+        0.349266,
+        0.343218,
+        0.33984,
+        0.336066
+      ],
+      "actual_losses": [
+        3.612548,
+        3.475925,
+        2.120248,
+        1.479628,
+        1.329382,
+        1.259897,
+        1.186294,
+        1.127617
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 29,
+      "context": "breath and",
+      "target": " ",
+      "prediction": "i",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.498453,
+        0.324133,
+        0.182616,
+        0.16619,
+        0.158049,
+        0.155109,
+        0.151904,
+        0.149342
+      ],
+      "actual_losses": [
+        5.768756,
+        5.97255,
+        4.178626,
+        3.435588,
+        3.307523,
+        3.326668,
+        3.364068,
+        3.392529
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 30,
+      "context": "reath and ",
+      "target": "b",
+      "prediction": "b",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.58471,
+        0.651375,
+        0.695714,
+        0.696985,
+        0.695701,
+        0.694047,
+        0.692473,
+        0.691054
+      ],
+      "actual_losses": [
+        0.396073,
+        0.10112,
+        0.118448,
+        0.135639,
+        0.138962,
+        0.14174,
+        0.143929,
+        0.145934
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 31,
+      "context": "eath and b",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 4,
+      "predicted_losses": [
+        0.629493,
+        0.557533,
+        0.482376,
+        0.459007,
+        0.455077,
+        0.462124,
+        0.470188,
+        0.475761
+      ],
+      "actual_losses": [
+        0.06799,
+        0.053998,
+        0.071779,
+        0.049088,
+        0.045205,
+        0.049978,
+        0.054659,
+        0.056953
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 32,
+      "context": "ath and be",
+      "target": "n",
+      "prediction": "a",
+      "used_depth": 3,
+      "predicted_losses": [
+        0.593334,
+        0.529508,
+        0.486663,
+        0.483095,
+        0.470438,
+        0.447801,
+        0.43187,
+        0.420663
+      ],
+      "actual_losses": [
+        1.708447,
+        2.893217,
+        4.335856,
+        5.666659,
+        6.305295,
+        6.79983,
+        7.006211,
+        7.155338
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 33,
+      "context": "th and ben",
+      "target": "d",
+      "prediction": "a",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.37057,
+        0.353709,
+        0.318152,
+        0.327187,
+        0.333339,
+        0.33444,
+        0.333825,
+        0.332777
+      ],
+      "actual_losses": [
+        4.53183,
+        1.906515,
+        2.379742,
+        2.211517,
+        2.041819,
+        1.978591,
+        1.982789,
+        2.015201
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 34,
+      "context": "h and bend",
+      "target": " ",
+      "prediction": "e",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.409233,
+        0.348133,
+        0.293606,
+        0.222972,
+        0.208691,
+        0.198385,
+        0.192243,
+        0.188641
+      ],
+      "actual_losses": [
+        1.625792,
+        1.325219,
+        0.718329,
+        0.639717,
+        0.6699,
+        0.639354,
+        0.548951,
+        0.477028
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 35,
+      "context": " and bend ",
+      "target": "u",
+      "prediction": "a",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.479319,
+        0.416422,
+        0.428055,
+        0.447273,
+        0.449467,
+        0.447213,
+        0.443432,
+        0.440234
+      ],
+      "actual_losses": [
+        12.446803,
+        12.390453,
+        12.488294,
+        12.614155,
+        12.921544,
+        13.169115,
+        13.323589,
+        13.387428
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 36,
+      "context": "and bend u",
+      "target": "p",
+      "prediction": "t",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.346965,
+        0.403506,
+        0.342223,
+        0.299802,
+        0.274601,
+        0.259141,
+        0.247078,
+        0.236226
+      ],
+      "actual_losses": [
+        5.80888,
+        5.477665,
+        5.580781,
+        6.226993,
+        6.777194,
+        7.312573,
+        7.828858,
+        8.296282
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 37,
+      "context": "nd bend up",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.21879,
+        0.086031,
+        0.067837,
+        0.087321,
+        0.10483,
+        0.11188,
+        0.112888,
+        0.113457
+      ],
+      "actual_losses": [
+        0.338535,
+        0.182682,
+        0.884384,
+        1.305245,
+        1.685001,
+        1.966733,
+        2.159334,
+        2.289157
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 38,
+      "context": "d bend up ",
+      "target": "e",
+      "prediction": "t",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.373314,
+        0.3241,
+        0.316416,
+        0.3126,
+        0.310128,
+        0.308851,
+        0.308292,
+        0.308155
+      ],
+      "actual_losses": [
+        9.935791,
+        8.247272,
+        7.08077,
+        6.919832,
+        6.939395,
+        6.959683,
+        6.971098,
+        6.976083
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 39,
+      "context": " bend up e",
+      "target": "v",
+      "prediction": "a",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.299865,
+        0.165243,
+        0.172583,
+        0.193456,
+        0.208342,
+        0.217077,
+        0.221615,
+        0.223486
+      ],
+      "actual_losses": [
+        5.491316,
+        4.591395,
+        4.251865,
+        4.352673,
+        4.049085,
+        3.886678,
+        3.888546,
+        3.916731
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 40,
+      "context": "bend up ev",
+      "target": "e",
+      "prediction": "i",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.336289,
+        0.071975,
+        0.062359,
+        0.0708,
+        0.086309,
+        0.090416,
+        0.088404,
+        0.088858
+      ],
+      "actual_losses": [
+        5.730878,
+        2.229286,
+        2.740837,
+        4.011904,
+        4.252502,
+        3.838817,
+        3.652821,
+        3.59939
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 41,
+      "context": "end up eve",
+      "target": "r",
+      "prediction": "r",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.27233,
+        0.310422,
+        0.301823,
+        0.2951,
+        0.279316,
+        0.271929,
+        0.269795,
+        0.266409
+      ],
+      "actual_losses": [
+        0.61758,
+        1.793518,
+        1.398995,
+        1.355885,
+        0.552291,
+        0.521333,
+        0.404523,
+        0.355834
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 42,
+      "context": "nd up ever",
+      "target": "y",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.164561,
+        0.251023,
+        0.164325,
+        0.168017,
+        0.184069,
+        0.197425,
+        0.203552,
+        0.207325
+      ],
+      "actual_losses": [
+        9.376901,
+        11.610662,
+        11.142595,
+        10.918819,
+        10.97539,
+        10.916482,
+        10.692335,
+        10.401561
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 43,
+      "context": "d up every",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.134526,
+        -0.01422,
+        -0.00997,
+        -0.020338,
+        -0.024863,
+        -0.033394,
+        -0.036192,
+        -0.034959
+      ],
+      "actual_losses": [
+        0.311731,
+        0.463967,
+        0.59053,
+        0.709284,
+        0.77611,
+        0.786021,
+        0.746541,
+        0.674684
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 44,
+      "context": " up every ",
+      "target": "s",
+      "prediction": "w",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.721465,
+        0.59175,
+        0.599212,
+        0.604865,
+        0.610689,
+        0.614313,
+        0.616858,
+        0.618819
+      ],
+      "actual_losses": [
+        6.727936,
+        7.053321,
+        7.052857,
+        7.399364,
+        7.532947,
+        7.602358,
+        7.648965,
+        7.681968
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 45,
+      "context": "up every s",
+      "target": "p",
+      "prediction": "t",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.412105,
+        0.320677,
+        0.313989,
+        0.331782,
+        0.335196,
+        0.337366,
+        0.339069,
+        0.340386
+      ],
+      "actual_losses": [
+        9.93555,
+        9.001287,
+        8.261961,
+        8.276273,
+        8.311336,
+        8.35475,
+        8.396903,
+        8.438041
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 46,
+      "context": "p every sp",
+      "target": "i",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.388976,
+        0.41135,
+        0.36953,
+        0.331181,
+        0.310151,
+        0.29757,
+        0.287961,
+        0.280175
+      ],
+      "actual_losses": [
+        6.249106,
+        3.960651,
+        4.222009,
+        4.506312,
+        4.578841,
+        4.507013,
+        4.426845,
+        4.335131
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 47,
+      "context": " every spi",
+      "target": "r",
+      "prediction": "k",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.367998,
+        0.482626,
+        0.425436,
+        0.370811,
+        0.346963,
+        0.35115,
+        0.352829,
+        0.351912
+      ],
+      "actual_losses": [
+        5.979119,
+        5.339187,
+        4.984869,
+        5.947943,
+        6.639459,
+        7.119609,
+        7.28804,
+        7.283634
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 48,
+      "context": "every spir",
+      "target": "i",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.331945,
+        0.195413,
+        0.187643,
+        0.165634,
+        0.172416,
+        0.194132,
+        0.215315,
+        0.229327
+      ],
+      "actual_losses": [
+        6.421565,
+        5.086142,
+        5.921118,
+        7.650086,
+        7.840399,
+        6.969407,
+        6.342822,
+        6.088619
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 49,
+      "context": "very spiri",
+      "target": "t",
+      "prediction": "n",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.196143,
+        0.338994,
+        0.344059,
+        0.333967,
+        0.323791,
+        0.319929,
+        0.319158,
+        0.31905
+      ],
+      "actual_losses": [
+        8.732851,
+        8.268248,
+        7.951876,
+        7.74769,
+        7.744246,
+        7.745022,
+        7.74714,
+        7.74904
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 50,
+      "context": "ery spirit",
+      "target": "\\n",
+      "prediction": "h",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.318407,
+        0.177246,
+        0.215118,
+        0.236155,
+        0.231307,
+        0.227771,
+        0.232356,
+        0.249292
+      ],
+      "actual_losses": [
+        8.124805,
+        11.046482,
+        11.798283,
+        12.202164,
+        12.956946,
+        12.976331,
+        12.919621,
+        12.731684
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 51,
+      "context": "ry spirit\\n",
+      "target": "T",
+      "prediction": "i",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.118322,
+        0.09038,
+        0.088738,
+        0.074305,
+        0.115747,
+        0.130962,
+        0.16099,
+        0.17167
+      ],
+      "actual_losses": [
+        4.674693,
+        3.784266,
+        2.677682,
+        2.478942,
+        2.60771,
+        2.818614,
+        3.003809,
+        3.236814
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 52,
+      "context": "y spirit\\nT",
+      "target": "o",
+      "prediction": "h",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.119549,
+        0.027994,
+        -0.014569,
+        -0.013419,
+        -0.005818,
+        -0.002337,
+        -0.000646,
+        0.000983
+      ],
+      "actual_losses": [
+        1.958765,
+        3.323235,
+        2.640841,
+        2.316568,
+        1.782048,
+        1.344444,
+        1.07328,
+        0.904877
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 53,
+      "context": " spirit\\nTo",
+      "target": " ",
+      "prediction": "m",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.43909,
+        0.472206,
+        0.555597,
+        0.57583,
+        0.582754,
+        0.581846,
+        0.582035,
+        0.581421
+      ],
+      "actual_losses": [
+        3.130379,
+        3.354275,
+        0.850934,
+        0.339914,
+        0.210543,
+        0.149988,
+        0.122868,
+        0.108623
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 54,
+      "context": "spirit\\nTo ",
+      "target": "h",
+      "prediction": "d",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.971105,
+        1.000722,
+        1.026919,
+        1.01417,
+        1.001329,
+        0.992135,
+        0.985772,
+        0.981586
+      ],
+      "actual_losses": [
+        1.379714,
+        2.82814,
+        4.029559,
+        4.477448,
+        4.561869,
+        4.62105,
+        4.666659,
+        4.682285
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 55,
+      "context": "pirit\\nTo h",
+      "target": "i",
+      "prediction": "e",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.589216,
+        0.548581,
+        0.583298,
+        0.596561,
+        0.572232,
+        0.557008,
+        0.55382,
+        0.555972
+      ],
+      "actual_losses": [
+        1.320732,
+        0.754777,
+        0.436143,
+        0.248664,
+        0.168323,
+        0.122511,
+        0.106085,
+        0.11121
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 56,
+      "context": "irit\\nTo hi",
+      "target": "s",
+      "prediction": "s",
+      "used_depth": 4,
+      "predicted_losses": [
+        0.553707,
+        0.492477,
+        0.401149,
+        0.386606,
+        0.376213,
+        0.378028,
+        0.382495,
+        0.385344
+      ],
+      "actual_losses": [
+        0.011335,
+        6.3e-05,
+        7.2e-05,
+        0.000104,
+        0.000116,
+        0.000135,
+        0.00015,
+        0.000163
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 57,
+      "context": "rit\\nTo his",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.149566,
+        -0.026728,
+        -0.005962,
+        0.017672,
+        0.020301,
+        0.022032,
+        0.02271,
+        0.023088
+      ],
+      "actual_losses": [
+        0.034738,
+        0.001525,
+        0.011413,
+        0.004388,
+        0.002142,
+        0.001481,
+        0.001322,
+        0.001267
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 58,
+      "context": "it\\nTo his ",
+      "target": "f",
+      "prediction": "h",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.891184,
+        0.876775,
+        0.931584,
+        0.940248,
+        0.942086,
+        0.941861,
+        0.940579,
+        0.939273
+      ],
+      "actual_losses": [
+        8.196892,
+        7.177007,
+        7.244977,
+        7.123525,
+        7.006571,
+        6.95573,
+        6.968577,
+        7.008662
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 59,
+      "context": "t\\nTo his f",
+      "target": "u",
+      "prediction": "r",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.630563,
+        0.286153,
+        0.228542,
+        0.225975,
+        0.171415,
+        0.154406,
+        0.162417,
+        0.177663
+      ],
+      "actual_losses": [
+        3.787595,
+        5.672624,
+        4.875548,
+        3.292511,
+        2.955456,
+        3.056132,
+        3.140111,
+        3.138
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 60,
+      "context": "\\nTo his fu",
+      "target": "l",
+      "prediction": "r",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.426144,
+        0.279644,
+        0.307701,
+        0.333329,
+        0.336202,
+        0.337983,
+        0.338801,
+        0.340554
+      ],
+      "actual_losses": [
+        9.884306,
+        11.406688,
+        11.209256,
+        11.515895,
+        11.34591,
+        11.215279,
+        11.091176,
+        10.925927
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 61,
+      "context": "To his ful",
+      "target": "l",
+      "prediction": "e",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.530672,
+        0.375932,
+        0.339051,
+        0.378557,
+        0.399615,
+        0.400121,
+        0.395018,
+        0.393444
+      ],
+      "actual_losses": [
+        11.319985,
+        9.081482,
+        8.262134,
+        8.380842,
+        8.539399,
+        8.579966,
+        8.581577,
+        8.550691
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 62,
+      "context": "o his full",
+      "target": " ",
+      "prediction": ",",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.613135,
+        0.6059,
+        0.599089,
+        0.592781,
+        0.587006,
+        0.581735,
+        0.576906,
+        0.572461
+      ],
+      "actual_losses": [
+        6.709882,
+        6.728383,
+        6.748322,
+        6.764831,
+        6.777807,
+        6.78782,
+        6.795035,
+        6.799236
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 63,
+      "context": " his full ",
+      "target": "h",
+      "prediction": "c",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.866153,
+        0.768183,
+        0.787924,
+        0.794737,
+        0.797695,
+        0.801174,
+        0.804351,
+        0.807099
+      ],
+      "actual_losses": [
+        5.399357,
+        7.883611,
+        7.710669,
+        7.500158,
+        7.314842,
+        7.177482,
+        7.060061,
+        6.95489
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 64,
+      "context": "his full h",
+      "target": "e",
+      "prediction": "a",
+      "used_depth": 3,
+      "predicted_losses": [
+        0.46488,
+        0.430768,
+        0.392916,
+        0.356621,
+        0.36508,
+        0.364763,
+        0.364223,
+        0.363627
+      ],
+      "actual_losses": [
+        6.181589,
+        5.284792,
+        6.679129,
+        6.403105,
+        6.317429,
+        6.20032,
+        6.038545,
+        5.893916
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 65,
+      "context": "is full he",
+      "target": "i",
+      "prediction": "a",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.303429,
+        0.211499,
+        0.266099,
+        0.30985,
+        0.361127,
+        0.403682,
+        0.415704,
+        0.414142
+      ],
+      "actual_losses": [
+        6.500907,
+        6.199792,
+        5.077102,
+        4.532861,
+        4.621509,
+        5.332367,
+        6.360747,
+        7.022212
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 66,
+      "context": "s full hei",
+      "target": "g",
+      "prediction": "r",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.465354,
+        0.313066,
+        0.193474,
+        0.205309,
+        0.202742,
+        0.204511,
+        0.206156,
+        0.207179
+      ],
+      "actual_losses": [
+        10.515184,
+        11.940471,
+        13.50278,
+        13.376476,
+        13.35146,
+        13.309112,
+        13.264256,
+        13.223638
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 67,
+      "context": " full heig",
+      "target": "h",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.107903,
+        -0.243162,
+        -0.245827,
+        -0.262767,
+        -0.255004,
+        -0.24988,
+        -0.240073,
+        -0.230971
+      ],
+      "actual_losses": [
+        2.654343,
+        2.646198,
+        1.912238,
+        1.879003,
+        1.739452,
+        1.717839,
+        1.655283,
+        1.57237
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 68,
+      "context": "full heigh",
+      "target": "t",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.123418,
+        0.121036,
+        0.106912,
+        0.14027,
+        0.169756,
+        0.190422,
+        0.208778,
+        0.207497
+      ],
+      "actual_losses": [
+        3.099132,
+        2.125568,
+        1.529454,
+        0.690708,
+        0.292789,
+        0.248663,
+        0.195895,
+        0.163901
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 69,
+      "context": "ull height",
+      "target": ".",
+      "prediction": "?",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.162058,
+        0.16423,
+        0.193999,
+        0.19125,
+        0.182017,
+        0.173422,
+        0.167324,
+        0.163557
+      ],
+      "actual_losses": [
+        4.060667,
+        4.033284,
+        4.689593,
+        4.981155,
+        5.209255,
+        5.421255,
+        5.590361,
+        5.711632
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 70,
+      "context": "ll height.",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.146769,
+        -0.024179,
+        -0.045605,
+        -0.047723,
+        -0.065681,
+        -0.068087,
+        -0.06621,
+        -0.068643
+      ],
+      "actual_losses": [
+        0.016042,
+        0.24093,
+        0.031649,
+        0.017128,
+        0.019837,
+        0.024904,
+        0.024327,
+        0.023948
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 71,
+      "context": "l height. ",
+      "target": "O",
+      "prediction": "T",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.405502,
+        0.513626,
+        0.4665,
+        0.450783,
+        0.448756,
+        0.450645,
+        0.454706,
+        0.45957
+      ],
+      "actual_losses": [
+        1.300716,
+        1.369643,
+        1.497944,
+        1.529207,
+        1.529451,
+        1.514966,
+        1.506051,
+        1.503189
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 72,
+      "context": " height. O",
+      "target": "n",
+      "prediction": "n",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.041312,
+        0.154667,
+        0.11134,
+        0.099821,
+        0.103964,
+        0.199052,
+        0.286747,
+        0.289148
+      ],
+      "actual_losses": [
+        1.015113,
+        0.517309,
+        0.621526,
+        0.632905,
+        1.169112,
+        2.084561,
+        3.589294,
+        4.292315
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 73,
+      "context": "height. On",
+      "target": ",",
+      "prediction": "t",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.389841,
+        0.25454,
+        0.223907,
+        0.223608,
+        0.226699,
+        0.225952,
+        0.223494,
+        0.221185
+      ],
+      "actual_losses": [
+        1.584874,
+        3.275965,
+        3.886187,
+        3.864902,
+        3.463085,
+        3.101,
+        2.808748,
+        2.553776
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 74,
+      "context": "eight. On,",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.405765,
+        0.177101,
+        0.058032,
+        -0.023158,
+        -0.06896,
+        -0.095338,
+        -0.105395,
+        -0.106673
+      ],
+      "actual_losses": [
+        1.900351,
+        0.520647,
+        0.126525,
+        0.115445,
+        0.068854,
+        0.04961,
+        0.037936,
+        0.031688
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 75,
+      "context": "ight. On, ",
+      "target": "o",
+      "prediction": "h",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.49447,
+        0.42069,
+        0.436713,
+        0.44446,
+        0.446339,
+        0.446266,
+        0.44598,
+        0.445925
+      ],
+      "actual_losses": [
+        3.052454,
+        3.253576,
+        3.152498,
+        3.839628,
+        4.06901,
+        4.120505,
+        4.121845,
+        4.110901
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 76,
+      "context": "ght. On, o",
+      "target": "n",
+      "prediction": "u",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.433302,
+        0.299039,
+        0.442703,
+        0.496613,
+        0.518961,
+        0.507978,
+        0.498574,
+        0.487458
+      ],
+      "actual_losses": [
+        1.794279,
+        2.18772,
+        4.370999,
+        4.414176,
+        4.341638,
+        3.952529,
+        3.551978,
+        3.254107
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 77,
+      "context": "ht. On, on",
+      "target": ",",
+      "prediction": "c",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.459914,
+        0.277937,
+        0.266445,
+        0.284505,
+        0.296071,
+        0.303415,
+        0.308491,
+        0.311992
+      ],
+      "actual_losses": [
+        2.978523,
+        6.526594,
+        7.606351,
+        7.96527,
+        8.277439,
+        8.522701,
+        8.6966,
+        8.822064
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 78,
+      "context": "t. On, on,",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.130886,
+        0.159214,
+        0.138994,
+        0.117396,
+        0.108226,
+        0.097592,
+        0.08372,
+        0.06527
+      ],
+      "actual_losses": [
+        0.00151,
+        3e-05,
+        1.7e-05,
+        1.7e-05,
+        1.7e-05,
+        1.7e-05,
+        1.6e-05,
+        1.5e-05
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 79,
+      "context": ". On, on, ",
+      "target": "y",
+      "prediction": "i",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.759258,
+        0.701704,
+        0.7051,
+        0.712044,
+        0.713611,
+        0.713385,
+        0.712498,
+        0.711338
+      ],
+      "actual_losses": [
+        8.472507,
+        9.416998,
+        10.032877,
+        10.046595,
+        10.068637,
+        10.089146,
+        10.107157,
+        10.122552
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 80,
+      "context": " On, on, y",
+      "target": "o",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.203881,
+        -0.089176,
+        -0.02689,
+        0.009994,
+        0.03329,
+        0.047922,
+        0.057506,
+        0.062475
+      ],
+      "actual_losses": [
+        2.357278,
+        1.661825,
+        1.852427,
+        2.632568,
+        3.454221,
+        4.064767,
+        4.349881,
+        4.393425
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 81,
+      "context": "On, on, yo",
+      "target": "u",
+      "prediction": "u",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.063001,
+        0.072043,
+        0.077501,
+        0.128958,
+        0.153617,
+        0.171292,
+        0.184712,
+        0.194801
+      ],
+      "actual_losses": [
+        0.014542,
+        0.00243,
+        0.0129,
+        0.015505,
+        0.020919,
+        0.02772,
+        0.036479,
+        0.047134
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 82,
+      "context": "n, on, you",
+      "target": " ",
+      "prediction": "r",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.274471,
+        0.226514,
+        0.26479,
+        0.271176,
+        0.275813,
+        0.286164,
+        0.293627,
+        0.298787
+      ],
+      "actual_losses": [
+        6.48065,
+        3.47873,
+        3.981553,
+        5.193923,
+        6.111163,
+        6.530729,
+        6.629838,
+        6.737936
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 83,
+      "context": ", on, you ",
+      "target": "n",
+      "prediction": "r",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.696814,
+        0.58647,
+        0.633751,
+        0.653226,
+        0.665155,
+        0.67811,
+        0.686456,
+        0.691448
+      ],
+      "actual_losses": [
+        5.115892,
+        4.496353,
+        4.015529,
+        4.635829,
+        4.748278,
+        4.713893,
+        4.77713,
+        4.89127
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 84,
+      "context": " on, you n",
+      "target": "o",
+      "prediction": "o",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.423958,
+        0.086974,
+        0.048425,
+        0.028723,
+        0.023974,
+        0.024539,
+        0.024952,
+        0.024824
+      ],
+      "actual_losses": [
+        0.790321,
+        0.517994,
+        0.334231,
+        0.304637,
+        0.338846,
+        0.364307,
+        0.392702,
+        0.418735
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 85,
+      "context": "on, you no",
+      "target": "b",
+      "prediction": "t",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.525682,
+        0.544595,
+        0.487869,
+        0.524772,
+        0.553602,
+        0.564756,
+        0.576726,
+        0.58571
+      ],
+      "actual_losses": [
+        9.618295,
+        10.319623,
+        9.174999,
+        8.883088,
+        8.228295,
+        7.630229,
+        7.232552,
+        7.018232
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 86,
+      "context": "n, you nob",
+      "target": "l",
+      "prediction": "l",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.488463,
+        0.265112,
+        0.195297,
+        0.183687,
+        0.167521,
+        0.154445,
+        0.141934,
+        0.131289
+      ],
+      "actual_losses": [
+        0.312805,
+        0.005718,
+        0.000227,
+        0.000113,
+        5.2e-05,
+        2.7e-05,
+        1.6e-05,
+        1.1e-05
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 87,
+      "context": ", you nobl",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.008794,
+        -0.06058,
+        -0.037065,
+        -0.052294,
+        -0.050355,
+        -0.055475,
+        -0.061494,
+        -0.073499
+      ],
+      "actual_losses": [
+        0.0087,
+        0.016354,
+        0.039906,
+        0.03268,
+        0.032601,
+        0.018869,
+        0.012459,
+        0.008988
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 88,
+      "context": " you noble",
+      "target": "s",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.140753,
+        0.184339,
+        0.170655,
+        0.126181,
+        0.114925,
+        0.108722,
+        0.103234,
+        0.09907
+      ],
+      "actual_losses": [
+        6.727085,
+        6.852639,
+        5.968038,
+        5.986747,
+        5.851286,
+        5.832842,
+        5.844948,
+        5.859299
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 89,
+      "context": "you nobles",
+      "target": "t",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.140691,
+        -0.053894,
+        -0.017538,
+        -0.013908,
+        -0.009047,
+        -0.006417,
+        -0.005808,
+        -0.006014
+      ],
+      "actual_losses": [
+        9.992482,
+        7.503349,
+        6.322405,
+        5.972364,
+        5.665537,
+        5.481216,
+        5.327175,
+        5.179081
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 90,
+      "context": "ou noblest",
+      "target": " ",
+      "prediction": "-",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.167565,
+        0.16804,
+        0.157216,
+        0.15525,
+        0.155549,
+        0.156058,
+        0.156381,
+        0.156473
+      ],
+      "actual_losses": [
+        1.994417,
+        3.406214,
+        3.376997,
+        3.390909,
+        3.322578,
+        3.231094,
+        3.145981,
+        3.073396
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 91,
+      "context": "u noblest ",
+      "target": "E",
+      "prediction": "i",
+      "used_depth": 3,
+      "predicted_losses": [
+        0.794831,
+        0.662765,
+        0.626456,
+        0.621811,
+        0.618268,
+        0.615378,
+        0.613592,
+        0.612773
+      ],
+      "actual_losses": [
+        14.415998,
+        13.899445,
+        12.935317,
+        12.46629,
+        12.271447,
+        12.053684,
+        11.834197,
+        11.652887
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 92,
+      "context": " noblest E",
+      "target": "n",
+      "prediction": "n",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.228093,
+        0.149842,
+        0.248226,
+        0.268721,
+        0.25033,
+        0.223599,
+        0.216499,
+        0.219595
+      ],
+      "actual_losses": [
+        0.491218,
+        0.0634,
+        0.033198,
+        0.050963,
+        0.210497,
+        0.211509,
+        0.137637,
+        0.11417
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 93,
+      "context": "noblest En",
+      "target": "g",
+      "prediction": "g",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.039673,
+        -0.001413,
+        0.037602,
+        0.050793,
+        0.047049,
+        0.039948,
+        0.034896,
+        0.032981
+      ],
+      "actual_losses": [
+        0.928512,
+        3.161816,
+        3.43303,
+        3.910903,
+        4.27284,
+        4.419449,
+        4.404466,
+        4.314775
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 94,
+      "context": "oblest Eng",
+      "target": "l",
+      "prediction": "l",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.030149,
+        -0.0461,
+        -0.094699,
+        -0.147764,
+        -0.114609,
+        -0.076982,
+        -0.057903,
+        -0.043581
+      ],
+      "actual_losses": [
+        0.411852,
+        0.035209,
+        0.044103,
+        0.067864,
+        0.086832,
+        0.120554,
+        0.145887,
+        0.162193
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 95,
+      "context": "blest Engl",
+      "target": "i",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.170837,
+        0.110549,
+        -0.017127,
+        -0.054007,
+        -0.082691,
+        -0.105942,
+        -0.112756,
+        -0.102727
+      ],
+      "actual_losses": [
+        3.987656,
+        2.205899,
+        2.377626,
+        2.206862,
+        2.391398,
+        2.903879,
+        3.465359,
+        3.678967
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 96,
+      "context": "lest Engli",
+      "target": "s",
+      "prediction": "s",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.215275,
+        0.342053,
+        0.324477,
+        0.273511,
+        0.248238,
+        0.24271,
+        0.242988,
+        0.245402
+      ],
+      "actual_losses": [
+        0.821939,
+        2.578246,
+        2.671097,
+        2.091441,
+        1.872945,
+        1.762334,
+        1.645517,
+        1.541193
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 97,
+      "context": "est Englis",
+      "target": "h",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.183566,
+        0.223874,
+        0.221092,
+        0.197981,
+        0.199657,
+        0.202532,
+        0.203258,
+        0.202255
+      ],
+      "actual_losses": [
+        2.682654,
+        0.436295,
+        0.336361,
+        0.381479,
+        0.5098,
+        0.671911,
+        0.840488,
+        1.043474
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 98,
+      "context": "st English",
+      "target": ",",
+      "prediction": " ",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.43889,
+        0.374489,
+        0.376703,
+        0.322,
+        0.31844,
+        0.32465,
+        0.331733,
+        0.333672
+      ],
+      "actual_losses": [
+        13.91149,
+        12.163685,
+        11.009952,
+        11.387794,
+        11.641263,
+        11.57329,
+        11.385111,
+        11.168035
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 99,
+      "context": "t English,",
+      "target": "\\n",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.217255,
+        0.04872,
+        0.006594,
+        -0.001032,
+        0.002599,
+        0.008164,
+        0.014529,
+        0.020759
+      ],
+      "actual_losses": [
+        6.153405,
+        7.515885,
+        8.092689,
+        8.147494,
+        8.134521,
+        8.100808,
+        8.04987,
+        7.987057
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 100,
+      "context": " English,\\n",
+      "target": "W",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.147404,
+        0.262159,
+        0.266843,
+        0.189026,
+        0.128355,
+        0.121357,
+        0.115649,
+        0.102506
+      ],
+      "actual_losses": [
+        1.690703,
+        1.034685,
+        1.007884,
+        0.972748,
+        0.970866,
+        1.23168,
+        1.508227,
+        1.690618
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 101,
+      "context": "English,\\nW",
+      "target": "h",
+      "prediction": "h",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.089288,
+        0.173447,
+        0.123611,
+        0.100204,
+        0.102609,
+        0.091526,
+        0.094089,
+        0.10601
+      ],
+      "actual_losses": [
+        0.004667,
+        0.002658,
+        0.00062,
+        0.00072,
+        0.000517,
+        0.000338,
+        0.00019,
+        0.000111
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 102,
+      "context": "nglish,\\nWh",
+      "target": "o",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.007676,
+        0.047926,
+        0.100466,
+        0.122132,
+        0.127025,
+        0.128595,
+        0.129236,
+        0.129772
+      ],
+      "actual_losses": [
+        11.704596,
+        10.51948,
+        9.555684,
+        9.208609,
+        9.129653,
+        9.083802,
+        9.055705,
+        9.036218
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 103,
+      "context": "glish,\\nWho",
+      "target": "s",
+      "prediction": "t",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.295884,
+        0.26705,
+        0.280955,
+        0.275887,
+        0.301236,
+        0.307232,
+        0.309913,
+        0.311548
+      ],
+      "actual_losses": [
+        2.475471,
+        1.495394,
+        1.69672,
+        1.16524,
+        0.816711,
+        0.83784,
+        0.871225,
+        0.88604
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 104,
+      "context": "lish,\\nWhos",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.302014,
+        0.263447,
+        0.240911,
+        0.220897,
+        0.203188,
+        0.190501,
+        0.180647,
+        0.172768
+      ],
+      "actual_losses": [
+        0.021829,
+        0.00133,
+        0.00122,
+        0.001475,
+        0.00162,
+        0.001818,
+        0.002093,
+        0.00244
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 105,
+      "context": "ish,\\nWhose",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.055409,
+        -0.153172,
+        -0.093024,
+        -0.052981,
+        -0.037783,
+        -0.031431,
+        -0.027486,
+        -0.023754
+      ],
+      "actual_losses": [
+        0.043992,
+        0.00134,
+        0.001003,
+        0.001392,
+        0.001918,
+        0.002388,
+        0.002849,
+        0.0033
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 106,
+      "context": "sh,\\nWhose ",
+      "target": "b",
+      "prediction": "i",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.714792,
+        0.625386,
+        0.635931,
+        0.633314,
+        0.633924,
+        0.63488,
+        0.636277,
+        0.637982
+      ],
+      "actual_losses": [
+        9.896873,
+        10.889321,
+        10.976862,
+        10.94171,
+        10.873025,
+        10.836722,
+        10.809289,
+        10.781737
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 107,
+      "context": "h,\\nWhose b",
+      "target": "l",
+      "prediction": "e",
+      "used_depth": 3,
+      "predicted_losses": [
+        0.557158,
+        0.434546,
+        0.381134,
+        0.358202,
+        0.341057,
+        0.329283,
+        0.320247,
+        0.311871
+      ],
+      "actual_losses": [
+        3.505098,
+        3.070032,
+        2.544983,
+        1.946528,
+        1.537109,
+        1.304981,
+        1.153449,
+        1.027769
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 108,
+      "context": ",\\nWhose bl",
+      "target": "o",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.061788,
+        -0.04041,
+        -0.100788,
+        -0.130841,
+        -0.139755,
+        -0.140185,
+        -0.140046,
+        -0.140888
+      ],
+      "actual_losses": [
+        8.786669,
+        6.179136,
+        5.321808,
+        4.26034,
+        3.651246,
+        3.441183,
+        3.317336,
+        3.204852
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 109,
+      "context": "\\nWhose blo",
+      "target": "o",
+      "prediction": "t",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.081002,
+        0.202598,
+        0.305017,
+        0.373675,
+        0.383437,
+        0.366295,
+        0.350365,
+        0.339686
+      ],
+      "actual_losses": [
+        5.21844,
+        7.409674,
+        7.084732,
+        6.493401,
+        6.386416,
+        6.604012,
+        6.760945,
+        6.80789
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 110,
+      "context": "Whose bloo",
+      "target": "d",
+      "prediction": "d",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.412573,
+        0.406717,
+        0.405684,
+        0.408272,
+        0.412072,
+        0.415735,
+        0.41903,
+        0.422123
+      ],
+      "actual_losses": [
+        0.060345,
+        0.039871,
+        0.03217,
+        0.028889,
+        0.027149,
+        0.025994,
+        0.025118,
+        0.024384
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 111,
+      "context": "hose blood",
+      "target": " ",
+      "prediction": ",",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.368218,
+        0.306065,
+        0.267308,
+        0.245785,
+        0.239842,
+        0.255436,
+        0.268897,
+        0.272692
+      ],
+      "actual_losses": [
+        2.725472,
+        2.865322,
+        4.440163,
+        5.796103,
+        6.045716,
+        5.675293,
+        5.109775,
+        4.650121
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 112,
+      "context": "ose blood ",
+      "target": "i",
+      "prediction": "c",
+      "used_depth": 3,
+      "predicted_losses": [
+        0.724883,
+        0.673266,
+        0.643614,
+        0.659024,
+        0.670845,
+        0.678966,
+        0.684683,
+        0.688744
+      ],
+      "actual_losses": [
+        8.354258,
+        7.259893,
+        6.383655,
+        6.393957,
+        6.44522,
+        6.475218,
+        6.485702,
+        6.482288
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 113,
+      "context": "se blood i",
+      "target": "s",
+      "prediction": "n",
+      "used_depth": 5,
+      "predicted_losses": [
+        0.595214,
+        0.566369,
+        0.441287,
+        0.414652,
+        0.395408,
+        0.379186,
+        0.365686,
+        0.353492
+      ],
+      "actual_losses": [
+        3.725018,
+        5.015343,
+        5.473701,
+        5.699354,
+        5.822916,
+        5.818417,
+        5.82744,
+        5.857328
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 114,
+      "context": "e blood is",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.053639,
+        0.024576,
+        0.047865,
+        0.045785,
+        0.049232,
+        0.048157,
+        0.047461,
+        0.049525
+      ],
+      "actual_losses": [
+        0.013872,
+        0.019052,
+        0.020407,
+        0.015499,
+        0.010547,
+        0.007732,
+        0.006447,
+        0.005915
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 115,
+      "context": " blood is ",
+      "target": "f",
+      "prediction": "t",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.688225,
+        0.539346,
+        0.563998,
+        0.560109,
+        0.557251,
+        0.555364,
+        0.554375,
+        0.553841
+      ],
+      "actual_losses": [
+        7.268492,
+        8.497614,
+        8.618222,
+        8.733448,
+        8.809108,
+        8.841099,
+        8.848499,
+        8.844762
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 116,
+      "context": "blood is f",
+      "target": "e",
+      "prediction": "o",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.254406,
+        0.117216,
+        0.217249,
+        0.236287,
+        0.258085,
+        0.266764,
+        0.271493,
+        0.272811
+      ],
+      "actual_losses": [
+        4.272004,
+        6.833227,
+        6.989797,
+        7.196905,
+        7.051233,
+        7.395929,
+        7.830841,
+        8.179039
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 117,
+      "context": "lood is fe",
+      "target": "t",
+      "prediction": "r",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.241261,
+        0.2043,
+        0.327797,
+        0.362755,
+        0.379978,
+        0.395706,
+        0.408109,
+        0.416073
+      ],
+      "actual_losses": [
+        3.451161,
+        1.295405,
+        1.919752,
+        1.950078,
+        1.997766,
+        1.887877,
+        1.865862,
+        1.843945
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 118,
+      "context": "ood is fet",
+      "target": " ",
+      "prediction": ",",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.512108,
+        0.355381,
+        0.323644,
+        0.302391,
+        0.287932,
+        0.277007,
+        0.269057,
+        0.264348
+      ],
+      "actual_losses": [
+        5.081586,
+        6.938125,
+        5.880505,
+        5.445135,
+        5.549763,
+        5.805007,
+        6.071801,
+        6.27855
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 119,
+      "context": "od is fet ",
+      "target": "f",
+      "prediction": "t",
+      "used_depth": 3,
+      "predicted_losses": [
+        0.861957,
+        0.737971,
+        0.712013,
+        0.703533,
+        0.700028,
+        0.698551,
+        0.697997,
+        0.697824
+      ],
+      "actual_losses": [
+        8.379202,
+        7.358643,
+        6.285617,
+        6.007462,
+        6.013234,
+        6.040336,
+        6.05203,
+        6.049957
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 120,
+      "context": "d is fet f",
+      "target": "r",
+      "prediction": "i",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.223323,
+        0.108667,
+        0.167011,
+        0.195164,
+        0.202038,
+        0.201066,
+        0.204581,
+        0.205925
+      ],
+      "actual_losses": [
+        5.646184,
+        5.526423,
+        5.488285,
+        5.177884,
+        4.847637,
+        4.617589,
+        4.531504,
+        4.556819
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 121,
+      "context": " is fet fr",
+      "target": "o",
+      "prediction": "e",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.542367,
+        0.45195,
+        0.452888,
+        0.435288,
+        0.4271,
+        0.418054,
+        0.409548,
+        0.402411
+      ],
+      "actual_losses": [
+        5.273255,
+        4.209375,
+        3.732238,
+        3.57473,
+        3.475325,
+        3.444056,
+        3.497111,
+        3.599004
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 122,
+      "context": "is fet fro",
+      "target": "m",
+      "prediction": "m",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.196407,
+        0.373244,
+        0.368981,
+        0.379834,
+        0.371455,
+        0.378492,
+        0.399162,
+        0.421457
+      ],
+      "actual_losses": [
+        0.255841,
+        0.458887,
+        0.543893,
+        0.938681,
+        1.693141,
+        2.478462,
+        2.949632,
+        3.173281
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 123,
+      "context": "s fet from",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.413316,
+        0.194011,
+        0.152942,
+        0.164755,
+        0.167061,
+        0.192106,
+        0.202128,
+        0.198807
+      ],
+      "actual_losses": [
+        0.365625,
+        0.226017,
+        0.075954,
+        0.087045,
+        0.165758,
+        0.253394,
+        0.271089,
+        0.279143
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 124,
+      "context": " fet from ",
+      "target": "f",
+      "prediction": "h",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.698018,
+        0.598028,
+        0.59858,
+        0.59288,
+        0.590785,
+        0.589898,
+        0.589731,
+        0.58993
+      ],
+      "actual_losses": [
+        10.94461,
+        12.350398,
+        10.372501,
+        9.821204,
+        9.739029,
+        9.785012,
+        9.860093,
+        9.930454
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 125,
+      "context": "fet from f",
+      "target": "a",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.287964,
+        0.182587,
+        0.18936,
+        0.174802,
+        0.197696,
+        0.211558,
+        0.217067,
+        0.218722
+      ],
+      "actual_losses": [
+        2.37146,
+        1.311833,
+        2.316302,
+        2.901974,
+        3.032476,
+        2.95298,
+        2.785497,
+        2.609709
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 126,
+      "context": "et from fa",
+      "target": "t",
+      "prediction": "i",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.526765,
+        0.576161,
+        0.617354,
+        0.624361,
+        0.618451,
+        0.621304,
+        0.625245,
+        0.627422
+      ],
+      "actual_losses": [
+        8.279235,
+        7.879817,
+        7.522222,
+        7.606262,
+        7.353913,
+        7.035793,
+        6.772799,
+        6.503944
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 127,
+      "context": "t from fat",
+      "target": "h",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.189443,
+        0.089657,
+        0.057147,
+        0.051794,
+        0.042318,
+        0.031172,
+        0.018461,
+        0.006738
+      ],
+      "actual_losses": [
+        3.622761,
+        2.934796,
+        3.206785,
+        2.899716,
+        2.608189,
+        2.359149,
+        2.18359,
+        2.054417
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 128,
+      "context": " from fath",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.058572,
+        0.309321,
+        0.307753,
+        0.315439,
+        0.318465,
+        0.317719,
+        0.320276,
+        0.32399
+      ],
+      "actual_losses": [
+        0.048491,
+        1.831091,
+        1.196518,
+        1.244032,
+        1.305142,
+        1.377213,
+        1.430316,
+        1.486958
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 129,
+      "context": "from fathe",
+      "target": "r",
+      "prediction": "d",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.453649,
+        0.444643,
+        0.318287,
+        0.276156,
+        0.253139,
+        0.247691,
+        0.245174,
+        0.244275
+      ],
+      "actual_losses": [
+        1.232211,
+        0.539563,
+        0.232173,
+        0.17752,
+        0.15543,
+        0.142763,
+        0.148266,
+        0.151741
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 130,
+      "context": "rom father",
+      "target": "s",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.334664,
+        0.363075,
+        0.353476,
+        0.286446,
+        0.251592,
+        0.23741,
+        0.235551,
+        0.236043
+      ],
+      "actual_losses": [
+        9.432962,
+        9.028648,
+        9.090395,
+        9.456187,
+        9.540447,
+        9.012983,
+        8.32705,
+        7.708987
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 131,
+      "context": "om fathers",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.016798,
+        0.138356,
+        0.113503,
+        0.138126,
+        0.169884,
+        0.179108,
+        0.181247,
+        0.18126
+      ],
+      "actual_losses": [
+        0.199991,
+        0.224479,
+        0.105559,
+        0.129246,
+        0.23505,
+        0.295852,
+        0.320406,
+        0.334287
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 132,
+      "context": "m fathers ",
+      "target": "o",
+      "prediction": "o",
+      "used_depth": 3,
+      "predicted_losses": [
+        0.627107,
+        0.502092,
+        0.489579,
+        0.537258,
+        0.513299,
+        0.521889,
+        0.516865,
+        0.518982
+      ],
+      "actual_losses": [
+        2.259431,
+        1.225984,
+        0.510529,
+        0.56874,
+        0.427854,
+        0.403183,
+        0.35538,
+        0.335258
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 133,
+      "context": " fathers o",
+      "target": "f",
+      "prediction": "f",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.416366,
+        0.28159,
+        0.31702,
+        0.34198,
+        0.357598,
+        0.371628,
+        0.383437,
+        0.393421
+      ],
+      "actual_losses": [
+        0.002686,
+        0.006387,
+        0.007493,
+        0.01056,
+        0.012848,
+        0.014592,
+        0.016032,
+        0.017281
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 134,
+      "context": "fathers of",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.199839,
+        0.110436,
+        0.117895,
+        0.131527,
+        0.141068,
+        0.147236,
+        0.148332,
+        0.147764
+      ],
+      "actual_losses": [
+        0.008761,
+        0.003206,
+        0.004266,
+        0.002846,
+        0.002294,
+        0.002353,
+        0.002843,
+        0.003583
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 135,
+      "context": "athers of ",
+      "target": "w",
+      "prediction": "o",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.830683,
+        0.799295,
+        0.801889,
+        0.790264,
+        0.788476,
+        0.787813,
+        0.787332,
+        0.787156
+      ],
+      "actual_losses": [
+        5.852858,
+        4.483946,
+        4.671148,
+        4.854259,
+        5.082018,
+        5.172476,
+        5.212711,
+        5.240993
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 136,
+      "context": "thers of w",
+      "target": "a",
+      "prediction": "h",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.351372,
+        0.13165,
+        0.091464,
+        0.10075,
+        0.099635,
+        0.096007,
+        0.09191,
+        0.087939
+      ],
+      "actual_losses": [
+        1.640854,
+        3.304458,
+        3.453482,
+        3.435833,
+        3.325949,
+        3.184454,
+        3.020552,
+        2.855697
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 137,
+      "context": "hers of wa",
+      "target": "r",
+      "prediction": "s",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.454361,
+        0.202678,
+        0.030329,
+        0.021209,
+        0.043863,
+        0.060978,
+        0.073382,
+        0.08417
+      ],
+      "actual_losses": [
+        7.243694,
+        9.613504,
+        14.349662,
+        16.410378,
+        16.197157,
+        15.707643,
+        15.157549,
+        14.577843
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 138,
+      "context": "ers of war",
+      "target": "-",
+      "prediction": "s",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.522059,
+        0.553423,
+        0.570743,
+        0.589508,
+        0.591885,
+        0.582309,
+        0.566033,
+        0.546782
+      ],
+      "actual_losses": [
+        10.320019,
+        8.725225,
+        7.986765,
+        7.732076,
+        7.52676,
+        7.378861,
+        7.240707,
+        7.097106
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 139,
+      "context": "rs of war-",
+      "target": "p",
+      "prediction": "b",
+      "used_depth": 4,
+      "predicted_losses": [
+        0.500497,
+        0.478803,
+        0.447384,
+        0.382449,
+        0.400656,
+        0.423115,
+        0.428963,
+        0.42798
+      ],
+      "actual_losses": [
+        5.307778,
+        4.279477,
+        2.74329,
+        2.534371,
+        2.949812,
+        3.700333,
+        4.281593,
+        4.643928
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 140,
+      "context": "s of war-p",
+      "target": "r",
+      "prediction": "o",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.495139,
+        0.404362,
+        0.469266,
+        0.491728,
+        0.489977,
+        0.464094,
+        0.441928,
+        0.422763
+      ],
+      "actual_losses": [
+        3.59065,
+        5.980145,
+        4.643731,
+        3.655047,
+        3.510578,
+        3.833559,
+        4.232829,
+        4.660096
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 141,
+      "context": " of war-pr",
+      "target": "o",
+      "prediction": "o",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.439081,
+        0.391028,
+        0.38919,
+        0.36985,
+        0.359994,
+        0.356476,
+        0.35358,
+        0.350875
+      ],
+      "actual_losses": [
+        0.018525,
+        0.048167,
+        0.631039,
+        1.066896,
+        1.340666,
+        1.481053,
+        1.580682,
+        1.669947
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 142,
+      "context": "of war-pro",
+      "target": "o",
+      "prediction": "u",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.379566,
+        0.441639,
+        0.444047,
+        0.47542,
+        0.481991,
+        0.487967,
+        0.498648,
+        0.50818
+      ],
+      "actual_losses": [
+        10.213797,
+        9.449644,
+        6.815617,
+        5.930933,
+        6.254865,
+        6.698693,
+        6.969621,
+        7.195874
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 143,
+      "context": "f war-proo",
+      "target": "f",
+      "prediction": "n",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.305461,
+        0.300867,
+        0.299266,
+        0.299127,
+        0.299815,
+        0.301097,
+        0.302869,
+        0.305046
+      ],
+      "actual_losses": [
+        11.995633,
+        12.135354,
+        12.195788,
+        12.207776,
+        12.188959,
+        12.150707,
+        12.101526,
+        12.048188
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 144,
+      "context": " war-proof",
+      "target": "!",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.238387,
+        0.132342,
+        0.128115,
+        0.092739,
+        0.098663,
+        0.103872,
+        0.105143,
+        0.107459
+      ],
+      "actual_losses": [
+        11.894724,
+        13.559442,
+        13.549967,
+        13.128821,
+        12.647355,
+        12.285237,
+        11.899712,
+        11.542594
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 145,
+      "context": "war-proof!",
+      "target": "\\n",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.069994,
+        0.101773,
+        0.127098,
+        0.162151,
+        0.151861,
+        0.124178,
+        0.10613,
+        0.095898
+      ],
+      "actual_losses": [
+        8.168622,
+        8.139906,
+        8.704997,
+        8.435605,
+        8.225055,
+        8.114296,
+        7.964179,
+        7.802017
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 146,
+      "context": "ar-proof!\\n",
+      "target": "\\n",
+      "prediction": "D",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.408313,
+        0.329424,
+        0.292406,
+        0.294894,
+        0.310318,
+        0.291649,
+        0.270399,
+        0.250121
+      ],
+      "actual_losses": [
+        13.66243,
+        13.367708,
+        13.617796,
+        14.726068,
+        15.209893,
+        15.509251,
+        15.787991,
+        16.001631
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 147,
+      "context": "r-proof!\\n\\n",
+      "target": "L",
+      "prediction": "A",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.258538,
+        0.256398,
+        0.253969,
+        0.251,
+        0.248132,
+        0.246021,
+        0.244896,
+        0.244711
+      ],
+      "actual_losses": [
+        3.512831,
+        3.795039,
+        4.050408,
+        4.266478,
+        4.43663,
+        4.56419,
+        4.657461,
+        4.724596
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 148,
+      "context": "-proof!\\n\\nL",
+      "target": "E",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.033134,
+        0.0804,
+        0.063847,
+        0.053889,
+        0.058857,
+        0.084644,
+        0.090036,
+        0.079645
+      ],
+      "actual_losses": [
+        3.221143,
+        2.918727,
+        3.363542,
+        3.8465,
+        4.157492,
+        4.367038,
+        4.452054,
+        4.530559
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 149,
+      "context": "proof!\\n\\nLE",
+      "target": "A",
+      "prediction": "T",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.247564,
+        0.187804,
+        0.197486,
+        0.180622,
+        0.179281,
+        0.189487,
+        0.183703,
+        0.178445
+      ],
+      "actual_losses": [
+        3.647483,
+        5.661433,
+        7.10371,
+        8.632383,
+        9.690446,
+        10.337097,
+        10.632067,
+        10.50916
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 150,
+      "context": "roof!\\n\\nLEA",
+      "target": "R",
+      "prediction": "v",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.225459,
+        0.263959,
+        0.311171,
+        0.397753,
+        0.434736,
+        0.449647,
+        0.456954,
+        0.461248
+      ],
+      "actual_losses": [
+        1.965878,
+        3.063801,
+        3.303064,
+        3.458817,
+        3.867131,
+        4.031278,
+        4.095895,
+        4.141221
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 151,
+      "context": "oof!\\n\\nLEAR",
+      "target": ":",
+      "prediction": "\\n",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.044753,
+        -0.109128,
+        -0.166492,
+        -0.16187,
+        -0.201031,
+        -0.207092,
+        -0.20952,
+        -0.20961
+      ],
+      "actual_losses": [
+        8.739523,
+        11.615955,
+        11.686604,
+        10.117625,
+        10.960422,
+        11.739402,
+        12.36137,
+        12.652576
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 152,
+      "context": "of!\\n\\nLEAR:",
+      "target": "\\n",
+      "prediction": "\\n",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.0141,
+        0.073847,
+        0.017593,
+        0.003389,
+        -0.021256,
+        -0.039814,
+        -0.052896,
+        -0.064833
+      ],
+      "actual_losses": [
+        0.000125,
+        0.000232,
+        0.000218,
+        0.000218,
+        0.000205,
+        0.000207,
+        0.000207,
+        0.00019
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 153,
+      "context": "f!\\n\\nLEAR:\\n",
+      "target": "B",
+      "prediction": "T",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.083589,
+        0.223128,
+        0.251459,
+        0.229659,
+        0.221105,
+        0.225511,
+        0.23732,
+        0.244215
+      ],
+      "actual_losses": [
+        6.957615,
+        6.839404,
+        6.545553,
+        6.141381,
+        5.7884,
+        5.383517,
+        5.040248,
+        4.762382
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 154,
+      "context": "!\\n\\nLEAR:\\nB",
+      "target": "l",
+      "prediction": "r",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.073236,
+        0.050345,
+        0.025577,
+        -0.016606,
+        -0.002256,
+        -0.001942,
+        -0.001504,
+        -0.002115
+      ],
+      "actual_losses": [
+        13.8204,
+        15.637415,
+        15.644153,
+        15.096902,
+        14.494699,
+        14.050816,
+        13.855037,
+        13.823165
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 155,
+      "context": "\\n\\nLEAR:\\nBl",
+      "target": "o",
+      "prediction": "u",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.092948,
+        -0.003074,
+        -0.021489,
+        -0.021925,
+        0.004437,
+        0.010399,
+        0.015614,
+        0.018423
+      ],
+      "actual_losses": [
+        10.334789,
+        9.454971,
+        7.641778,
+        7.057445,
+        6.671301,
+        6.389343,
+        6.171007,
+        6.027796
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 156,
+      "context": "\\nLEAR:\\nBlo",
+      "target": "w",
+      "prediction": "w",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.25813,
+        0.305884,
+        0.399279,
+        0.456843,
+        0.407265,
+        0.378771,
+        0.370532,
+        0.383382
+      ],
+      "actual_losses": [
+        0.631943,
+        2.358165,
+        3.18617,
+        2.813868,
+        2.277456,
+        2.172794,
+        2.216142,
+        2.183062
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 157,
+      "context": "LEAR:\\nBlow",
+      "target": ",",
+      "prediction": "h",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.348163,
+        0.234359,
+        0.134735,
+        0.092709,
+        0.048225,
+        -0.005038,
+        -0.032053,
+        -0.036728
+      ],
+      "actual_losses": [
+        5.80989,
+        4.217598,
+        3.393892,
+        3.309398,
+        3.242504,
+        2.911291,
+        2.621411,
+        2.559621
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 158,
+      "context": "EAR:\\nBlow,",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.440454,
+        0.118347,
+        0.209551,
+        0.213373,
+        0.254012,
+        0.274849,
+        0.269985,
+        0.260583
+      ],
+      "actual_losses": [
+        0.474747,
+        0.003813,
+        0.010541,
+        0.020113,
+        0.023742,
+        0.028545,
+        0.028455,
+        0.02461
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 159,
+      "context": "AR:\\nBlow, ",
+      "target": "w",
+      "prediction": "i",
+      "used_depth": 3,
+      "predicted_losses": [
+        0.716707,
+        0.615984,
+        0.597411,
+        0.597378,
+        0.597812,
+        0.598468,
+        0.599186,
+        0.599929
+      ],
+      "actual_losses": [
+        3.670506,
+        2.249225,
+        2.926204,
+        3.280119,
+        3.440889,
+        3.50087,
+        3.5219,
+        3.530149
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 160,
+      "context": "R:\\nBlow, w",
+      "target": "i",
+      "prediction": "i",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.299853,
+        0.041401,
+        0.044408,
+        0.089597,
+        0.120758,
+        0.141288,
+        0.152625,
+        0.158331
+      ],
+      "actual_losses": [
+        0.406635,
+        1.296476,
+        1.401645,
+        1.261597,
+        0.917007,
+        0.620112,
+        0.484242,
+        0.427373
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 161,
+      "context": ":\\nBlow, wi",
+      "target": "n",
+      "prediction": "t",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.013671,
+        -0.032659,
+        0.022749,
+        0.040662,
+        0.04534,
+        0.048684,
+        0.0507,
+        0.051969
+      ],
+      "actual_losses": [
+        8.052644,
+        13.009084,
+        14.277369,
+        14.625756,
+        14.572754,
+        14.536597,
+        14.52825,
+        14.528606
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 162,
+      "context": "\\nBlow, win",
+      "target": "d",
+      "prediction": "g",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.013397,
+        -0.037,
+        0.018073,
+        0.029621,
+        0.03224,
+        0.034915,
+        0.038256,
+        0.041703
+      ],
+      "actual_losses": [
+        6.165462,
+        6.274274,
+        5.54775,
+        5.914901,
+        6.127425,
+        6.301516,
+        6.39523,
+        6.465546
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 163,
+      "context": "Blow, wind",
+      "target": "s",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.22368,
+        0.151821,
+        0.145523,
+        0.118037,
+        0.097619,
+        0.092652,
+        0.086508,
+        0.080561
+      ],
+      "actual_losses": [
+        10.529527,
+        14.332826,
+        15.285588,
+        15.426524,
+        15.587031,
+        15.666027,
+        15.754854,
+        15.895258
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 164,
+      "context": "low, winds",
+      "target": ",",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.070814,
+        0.123229,
+        0.137954,
+        0.124551,
+        0.120909,
+        0.120916,
+        0.121658,
+        0.122795
+      ],
+      "actual_losses": [
+        13.213117,
+        13.631989,
+        13.405635,
+        13.238547,
+        13.050751,
+        12.879957,
+        12.73052,
+        12.599315
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 165,
+      "context": "ow, winds,",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.141682,
+        0.120449,
+        0.057782,
+        0.013762,
+        -0.002001,
+        -0.004608,
+        -0.005892,
+        -0.006993
+      ],
+      "actual_losses": [
+        0.000146,
+        5.9e-05,
+        0.000182,
+        0.000602,
+        0.000961,
+        0.001138,
+        0.00124,
+        0.001317
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 166,
+      "context": "w, winds, ",
+      "target": "a",
+      "prediction": "o",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.64927,
+        0.686689,
+        0.698274,
+        0.697741,
+        0.706208,
+        0.7114,
+        0.711928,
+        0.709576
+      ],
+      "actual_losses": [
+        5.656438,
+        5.953875,
+        5.990365,
+        5.766397,
+        5.489803,
+        5.315575,
+        5.219094,
+        5.166224
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 167,
+      "context": ", winds, a",
+      "target": "n",
+      "prediction": "n",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.558885,
+        0.332897,
+        0.310265,
+        0.311583,
+        0.299056,
+        0.287124,
+        0.276833,
+        0.268279
+      ],
+      "actual_losses": [
+        0.182612,
+        0.314422,
+        0.454512,
+        0.551258,
+        0.642905,
+        0.733625,
+        0.808638,
+        0.843002
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 168,
+      "context": " winds, an",
+      "target": "d",
+      "prediction": "d",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.285185,
+        0.244844,
+        0.214182,
+        0.190909,
+        0.184651,
+        0.182753,
+        0.181802,
+        0.181325
+      ],
+      "actual_losses": [
+        0.033907,
+        0.040017,
+        0.023172,
+        0.018542,
+        0.017397,
+        0.017001,
+        0.017059,
+        0.01733
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 169,
+      "context": "winds, and",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.158098,
+        0.101309,
+        0.030545,
+        -0.022695,
+        -0.040605,
+        -0.054496,
+        -0.064521,
+        -0.070346
+      ],
+      "actual_losses": [
+        0.00026,
+        3.2e-05,
+        8e-06,
+        5e-06,
+        6e-06,
+        8e-06,
+        1e-05,
+        1.1e-05
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 170,
+      "context": "inds, and ",
+      "target": "c",
+      "prediction": "t",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.546241,
+        0.605908,
+        0.610302,
+        0.615597,
+        0.620121,
+        0.624417,
+        0.628463,
+        0.632225
+      ],
+      "actual_losses": [
+        4.804397,
+        5.841688,
+        5.684907,
+        5.643209,
+        5.63794,
+        5.649017,
+        5.665924,
+        5.684617
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 171,
+      "context": "nds, and c",
+      "target": "r",
+      "prediction": "r",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.310772,
+        0.216092,
+        0.216588,
+        0.226896,
+        0.236481,
+        0.24495,
+        0.251596,
+        0.256144
+      ],
+      "actual_losses": [
+        0.409053,
+        0.233032,
+        0.129568,
+        0.114371,
+        0.106028,
+        0.101108,
+        0.100235,
+        0.103717
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 172,
+      "context": "ds, and cr",
+      "target": "a",
+      "prediction": "o",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.419875,
+        0.424837,
+        0.395515,
+        0.388677,
+        0.400849,
+        0.404768,
+        0.398937,
+        0.391259
+      ],
+      "actual_losses": [
+        6.959164,
+        6.961902,
+        6.496838,
+        6.993442,
+        7.876522,
+        8.542511,
+        8.832597,
+        8.98059
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 173,
+      "context": "s, and cra",
+      "target": "c",
+      "prediction": "e",
+      "used_depth": 5,
+      "predicted_losses": [
+        0.6225,
+        0.510045,
+        0.483769,
+        0.42192,
+        0.403068,
+        0.402009,
+        0.403423,
+        0.406718
+      ],
+      "actual_losses": [
+        3.432194,
+        2.575137,
+        2.499906,
+        2.058085,
+        1.767331,
+        1.54998,
+        1.473451,
+        1.439853
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 174,
+      "context": ", and crac",
+      "target": "k",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.188777,
+        0.113115,
+        0.099249,
+        0.093403,
+        0.08728,
+        0.085339,
+        0.084703,
+        0.084386
+      ],
+      "actual_losses": [
+        9.865476,
+        9.71929,
+        8.871266,
+        8.029251,
+        8.207395,
+        8.32481,
+        8.41888,
+        8.461792
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 175,
+      "context": " and crack",
+      "target": " ",
+      "prediction": "i",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.130062,
+        -0.061444,
+        0.050541,
+        0.082129,
+        0.099364,
+        0.110879,
+        0.119072,
+        0.125515
+      ],
+      "actual_losses": [
+        4.495184,
+        2.638771,
+        2.305172,
+        2.63324,
+        2.797362,
+        2.899786,
+        2.974118,
+        3.032429
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 176,
+      "context": "and crack ",
+      "target": "y",
+      "prediction": "i",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.742753,
+        0.697378,
+        0.731957,
+        0.748593,
+        0.753847,
+        0.75474,
+        0.754113,
+        0.752867
+      ],
+      "actual_losses": [
+        12.029587,
+        12.525417,
+        11.494328,
+        10.911978,
+        10.519427,
+        10.261268,
+        10.092738,
+        9.981223
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 177,
+      "context": "nd crack y",
+      "target": "o",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.390094,
+        0.005898,
+        0.096048,
+        0.117036,
+        0.118629,
+        0.119238,
+        0.120259,
+        0.119436
+      ],
+      "actual_losses": [
+        6.142927,
+        1.905349,
+        1.699986,
+        1.890551,
+        2.193155,
+        2.923929,
+        3.948535,
+        4.810467
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 178,
+      "context": "d crack yo",
+      "target": "u",
+      "prediction": "u",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.157326,
+        0.276699,
+        0.210139,
+        0.197301,
+        0.214112,
+        0.224403,
+        0.230888,
+        0.235307
+      ],
+      "actual_losses": [
+        0.078646,
+        0.011534,
+        0.021192,
+        0.02682,
+        0.030489,
+        0.036108,
+        0.042428,
+        0.049269
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 179,
+      "context": " crack you",
+      "target": "r",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.254695,
+        0.2102,
+        0.228448,
+        0.194501,
+        0.180855,
+        0.180286,
+        0.180161,
+        0.18007
+      ],
+      "actual_losses": [
+        1.153339,
+        2.427178,
+        3.434849,
+        2.029749,
+        1.614096,
+        1.287771,
+        0.933308,
+        0.636812
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 180,
+      "context": "crack your",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.547289,
+        0.516964,
+        0.575859,
+        0.53018,
+        0.498123,
+        0.486097,
+        0.479607,
+        0.477518
+      ],
+      "actual_losses": [
+        0.093558,
+        0.06335,
+        0.04632,
+        0.054302,
+        0.04824,
+        0.045082,
+        0.046399,
+        0.050501
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 181,
+      "context": "rack your ",
+      "target": "c",
+      "prediction": "g",
+      "used_depth": 3,
+      "predicted_losses": [
+        1.05489,
+        1.008739,
+        0.996849,
+        0.989785,
+        0.98934,
+        0.986919,
+        0.982907,
+        0.978866
+      ],
+      "actual_losses": [
+        4.777847,
+        6.872012,
+        5.80594,
+        5.690189,
+        5.702662,
+        5.70563,
+        5.706561,
+        5.705449
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 182,
+      "context": "ack your c",
+      "target": "h",
+      "prediction": "a",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.50636,
+        0.387137,
+        0.326549,
+        0.319732,
+        0.317906,
+        0.316131,
+        0.314101,
+        0.31191
+      ],
+      "actual_losses": [
+        8.053967,
+        8.830836,
+        9.367137,
+        9.623808,
+        9.777328,
+        9.889801,
+        9.984861,
+        10.069225
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 183,
+      "context": "ck your ch",
+      "target": "e",
+      "prediction": "o",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.230177,
+        0.144981,
+        0.133226,
+        0.124567,
+        0.134817,
+        0.145067,
+        0.152943,
+        0.158908
+      ],
+      "actual_losses": [
+        2.789572,
+        3.573725,
+        4.149907,
+        4.47607,
+        4.424991,
+        4.276802,
+        4.116543,
+        3.980835
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 184,
+      "context": "k your che",
+      "target": "e",
+      "prediction": "a",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.304141,
+        0.266759,
+        0.315782,
+        0.358567,
+        0.374794,
+        0.381669,
+        0.387167,
+        0.392662
+      ],
+      "actual_losses": [
+        15.418847,
+        15.022748,
+        14.949739,
+        14.907269,
+        14.908624,
+        14.840405,
+        14.72335,
+        14.576946
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 185,
+      "context": " your chee",
+      "target": "k",
+      "prediction": "a",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.331096,
+        0.338239,
+        0.34468,
+        0.349951,
+        0.353682,
+        0.35572,
+        0.356191,
+        0.355442
+      ],
+      "actual_losses": [
+        17.749041,
+        17.684675,
+        17.624363,
+        17.566235,
+        17.51112,
+        17.4622,
+        17.423187,
+        17.395973
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 186,
+      "context": "your cheek",
+      "target": "s",
+      "prediction": "i",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.440801,
+        0.214476,
+        0.094243,
+        0.076921,
+        0.067226,
+        0.050936,
+        0.039287,
+        0.030286
+      ],
+      "actual_losses": [
+        6.729001,
+        6.814934,
+        7.15851,
+        6.870814,
+        6.571764,
+        6.269863,
+        5.994677,
+        5.806558
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 187,
+      "context": "our cheeks",
+      "target": "!",
+      "prediction": "i",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.343558,
+        0.262196,
+        0.278612,
+        0.283107,
+        0.270113,
+        0.261591,
+        0.255758,
+        0.251226
+      ],
+      "actual_losses": [
+        6.716943,
+        5.99956,
+        4.861782,
+        4.528401,
+        4.401252,
+        4.312562,
+        4.2616,
+        4.240675
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 188,
+      "context": "ur cheeks!",
+      "target": " ",
+      "prediction": "\\n",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.227161,
+        0.265836,
+        0.224725,
+        0.202411,
+        0.197368,
+        0.212536,
+        0.228328,
+        0.222512
+      ],
+      "actual_losses": [
+        3.677305,
+        1.903962,
+        2.26619,
+        2.137091,
+        1.901551,
+        2.090985,
+        2.420441,
+        2.78921
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 189,
+      "context": "r cheeks! ",
+      "target": "r",
+      "prediction": "t",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.295159,
+        0.328671,
+        0.315294,
+        0.341309,
+        0.345327,
+        0.348213,
+        0.350395,
+        0.352392
+      ],
+      "actual_losses": [
+        4.02353,
+        1.928111,
+        3.115104,
+        3.501809,
+        3.516238,
+        3.499072,
+        3.475879,
+        3.455037
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 190,
+      "context": " cheeks! r",
+      "target": "a",
+      "prediction": "o",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.210635,
+        0.178719,
+        0.233256,
+        0.259135,
+        0.296327,
+        0.322069,
+        0.330099,
+        0.329358
+      ],
+      "actual_losses": [
+        4.696218,
+        2.608616,
+        3.264986,
+        4.013858,
+        4.631066,
+        5.103271,
+        5.409514,
+        5.590583
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 191,
+      "context": "cheeks! ra",
+      "target": "g",
+      "prediction": "i",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.545739,
+        0.507003,
+        0.565336,
+        0.57496,
+        0.572518,
+        0.570223,
+        0.568382,
+        0.566236
+      ],
+      "actual_losses": [
+        0.48796,
+        2.083298,
+        2.454801,
+        3.108013,
+        3.851122,
+        4.101688,
+        4.210488,
+        4.278107
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 192,
+      "context": "heeks! rag",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.401147,
+        0.465761,
+        0.379813,
+        0.352916,
+        0.329011,
+        0.313759,
+        0.29685,
+        0.279758
+      ],
+      "actual_losses": [
+        0.843445,
+        1.556376,
+        0.48578,
+        0.278382,
+        0.310116,
+        0.373785,
+        0.398946,
+        0.392001
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 193,
+      "context": "eeks! rage",
+      "target": "!",
+      "prediction": "r",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.231494,
+        0.176307,
+        0.239308,
+        0.264843,
+        0.281585,
+        0.288882,
+        0.290459,
+        0.290554
+      ],
+      "actual_losses": [
+        4.474752,
+        4.16097,
+        4.612741,
+        4.82763,
+        4.736935,
+        4.747634,
+        4.744821,
+        4.747047
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 194,
+      "context": "eks! rage!",
+      "target": " ",
+      "prediction": "o",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.220894,
+        0.253884,
+        0.222702,
+        0.182959,
+        0.164791,
+        0.15555,
+        0.154531,
+        0.16071
+      ],
+      "actual_losses": [
+        3.501593,
+        0.879147,
+        0.534433,
+        0.571785,
+        0.418935,
+        0.296691,
+        0.217155,
+        0.174245
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 195,
+      "context": "ks! rage! ",
+      "target": "b",
+      "prediction": "h",
+      "used_depth": 3,
+      "predicted_losses": [
+        0.583685,
+        0.431666,
+        0.415136,
+        0.42024,
+        0.421358,
+        0.421137,
+        0.42062,
+        0.420067
+      ],
+      "actual_losses": [
+        11.508985,
+        12.576044,
+        13.092803,
+        13.322696,
+        13.546558,
+        13.731267,
+        13.8763,
+        13.98924
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 196,
+      "context": "s! rage! b",
+      "target": "l",
+      "prediction": "o",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.367667,
+        0.150631,
+        0.241739,
+        0.195073,
+        0.163366,
+        0.140937,
+        0.122368,
+        0.107384
+      ],
+      "actual_losses": [
+        7.783826,
+        6.547909,
+        4.68716,
+        3.485241,
+        3.25684,
+        3.276173,
+        3.310687,
+        3.276399
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 197,
+      "context": "! rage! bl",
+      "target": "o",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.123357,
+        -0.210435,
+        -0.272071,
+        -0.300495,
+        -0.303979,
+        -0.302864,
+        -0.300449,
+        -0.297173
+      ],
+      "actual_losses": [
+        2.895144,
+        3.081411,
+        2.71301,
+        2.717316,
+        2.784255,
+        2.921998,
+        3.007854,
+        3.046106
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 198,
+      "context": " rage! blo",
+      "target": "w",
+      "prediction": "t",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.019989,
+        0.313351,
+        0.357126,
+        0.388271,
+        0.397232,
+        0.407978,
+        0.401102,
+        0.40092
+      ],
+      "actual_losses": [
+        2.951212,
+        2.794908,
+        1.951999,
+        3.534938,
+        4.089695,
+        4.846114,
+        5.531397,
+        5.823799
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 199,
+      "context": "rage! blow",
+      "target": "!",
+      "prediction": "h",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.410819,
+        0.321235,
+        0.324599,
+        0.315886,
+        0.318293,
+        0.324829,
+        0.332512,
+        0.344045
+      ],
+      "actual_losses": [
+        8.663463,
+        9.104136,
+        7.374224,
+        7.366092,
+        7.147641,
+        7.106748,
+        7.148195,
+        7.218207
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 200,
+      "context": "age! blow!",
+      "target": "\\n",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.20665,
+        0.014939,
+        0.034705,
+        0.03982,
+        0.037714,
+        0.036213,
+        0.031307,
+        0.028605
+      ],
+      "actual_losses": [
+        8.772453,
+        8.440529,
+        7.844412,
+        7.690877,
+        7.928393,
+        8.337061,
+        8.60511,
+        8.736404
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 201,
+      "context": "ge! blow!\\n",
+      "target": "Y",
+      "prediction": "N",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.198575,
+        0.240473,
+        0.196884,
+        0.176932,
+        0.164926,
+        0.17055,
+        0.175174,
+        0.175388
+      ],
+      "actual_losses": [
+        7.957331,
+        8.455609,
+        9.713917,
+        9.720861,
+        10.554915,
+        11.303737,
+        11.474473,
+        11.396975
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 202,
+      "context": "e! blow!\\nY",
+      "target": "o",
+      "prediction": "i",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.05209,
+        0.003542,
+        -0.031798,
+        -0.043475,
+        -0.047584,
+        -0.037303,
+        -0.027857,
+        -0.025082
+      ],
+      "actual_losses": [
+        7.742166,
+        6.093211,
+        4.323757,
+        4.691517,
+        5.261807,
+        5.18024,
+        4.776845,
+        4.51841
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 203,
+      "context": "! blow!\\nYo",
+      "target": "u",
+      "prediction": "u",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.228782,
+        0.341427,
+        0.346727,
+        0.350676,
+        0.348197,
+        0.373336,
+        0.401054,
+        0.425113
+      ],
+      "actual_losses": [
+        0.579428,
+        2.918618,
+        3.564049,
+        2.702444,
+        2.874029,
+        2.970778,
+        2.991143,
+        2.998401
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 204,
+      "context": " blow!\\nYou",
+      "target": " ",
+      "prediction": "s",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.14794,
+        0.125862,
+        0.136457,
+        0.145054,
+        0.160841,
+        0.167855,
+        0.171137,
+        0.173948
+      ],
+      "actual_losses": [
+        1.635317,
+        1.673693,
+        0.352451,
+        0.419834,
+        0.567603,
+        0.646104,
+        0.65227,
+        0.635168
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 205,
+      "context": "blow!\\nYou ",
+      "target": "c",
+      "prediction": "r",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.553296,
+        0.62343,
+        0.723574,
+        0.725214,
+        0.728292,
+        0.731407,
+        0.733714,
+        0.735217
+      ],
+      "actual_losses": [
+        5.989949,
+        6.024971,
+        5.95583,
+        5.823964,
+        5.865253,
+        5.883443,
+        5.865007,
+        5.835516
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 206,
+      "context": "low!\\nYou c",
+      "target": "a",
+      "prediction": "a",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.330608,
+        0.267796,
+        0.165428,
+        0.166126,
+        0.168464,
+        0.170804,
+        0.172768,
+        0.174568
+      ],
+      "actual_losses": [
+        0.329084,
+        0.010086,
+        0.011129,
+        0.015092,
+        0.016856,
+        0.018263,
+        0.01966,
+        0.020975
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 207,
+      "context": "ow!\\nYou ca",
+      "target": "t",
+      "prediction": "r",
+      "used_depth": 3,
+      "predicted_losses": [
+        0.441225,
+        0.417106,
+        0.388617,
+        0.295985,
+        0.252319,
+        0.239307,
+        0.203057,
+        0.182652
+      ],
+      "actual_losses": [
+        6.054279,
+        4.261766,
+        2.336043,
+        1.353158,
+        1.616842,
+        1.411306,
+        1.130184,
+        0.836281
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 208,
+      "context": "w!\\nYou cat",
+      "target": "a",
+      "prediction": "t",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.100569,
+        0.178773,
+        0.173277,
+        0.175192,
+        0.177517,
+        0.182062,
+        0.18793,
+        0.192471
+      ],
+      "actual_losses": [
+        3.454433,
+        3.944205,
+        4.18287,
+        4.162727,
+        4.050535,
+        3.894503,
+        3.725328,
+        3.59401
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 209,
+      "context": "!\\nYou cata",
+      "target": "r",
+      "prediction": "t",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.070972,
+        -0.042453,
+        0.064279,
+        0.058206,
+        0.079359,
+        0.055393,
+        0.051493,
+        0.04161
+      ],
+      "actual_losses": [
+        1.782327,
+        2.319776,
+        2.179752,
+        2.71245,
+        2.548075,
+        2.404583,
+        2.260766,
+        2.168019
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 210,
+      "context": "\\nYou catar",
+      "target": "a",
+      "prediction": "t",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.417118,
+        0.456067,
+        0.404226,
+        0.387446,
+        0.397681,
+        0.407676,
+        0.414378,
+        0.417351
+      ],
+      "actual_losses": [
+        4.492118,
+        4.295592,
+        4.183969,
+        3.951613,
+        3.81728,
+        3.748708,
+        3.650943,
+        3.584304
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 211,
+      "context": "You catara",
+      "target": "c",
+      "prediction": "l",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.326005,
+        0.399032,
+        0.381999,
+        0.382045,
+        0.363404,
+        0.35568,
+        0.350813,
+        0.347279
+      ],
+      "actual_losses": [
+        3.656511,
+        6.147151,
+        6.066149,
+        6.771794,
+        7.48807,
+        8.033047,
+        8.306482,
+        8.416739
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 212,
+      "context": "ou catarac",
+      "target": "t",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.072638,
+        -0.064401,
+        -0.090922,
+        -0.080663,
+        -0.07099,
+        -0.064357,
+        -0.058388,
+        -0.052799
+      ],
+      "actual_losses": [
+        3.469674,
+        2.756565,
+        2.779474,
+        2.385875,
+        2.333282,
+        2.383351,
+        2.465987,
+        2.554227
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 213,
+      "context": "u cataract",
+      "target": "s",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.093505,
+        0.091669,
+        0.091096,
+        0.086142,
+        0.082384,
+        0.081128,
+        0.081285,
+        0.082279
+      ],
+      "actual_losses": [
+        7.448005,
+        7.296706,
+        7.769829,
+        8.039811,
+        7.927504,
+        7.769374,
+        7.626913,
+        7.507331
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 214,
+      "context": " cataracts",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.045798,
+        0.112273,
+        0.056302,
+        0.00661,
+        -0.007059,
+        -0.009162,
+        -0.007348,
+        -0.004993
+      ],
+      "actual_losses": [
+        0.037079,
+        0.094621,
+        0.087669,
+        0.051351,
+        0.037506,
+        0.030945,
+        0.027637,
+        0.025583
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 215,
+      "context": "cataracts ",
+      "target": "a",
+      "prediction": "o",
+      "used_depth": 3,
+      "predicted_losses": [
+        0.486056,
+        0.415087,
+        0.398405,
+        0.395943,
+        0.399883,
+        0.406385,
+        0.412444,
+        0.417112
+      ],
+      "actual_losses": [
+        4.306605,
+        5.454247,
+        5.84543,
+        5.882564,
+        6.058644,
+        6.255726,
+        6.41946,
+        6.537223
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 216,
+      "context": "ataracts a",
+      "target": "n",
+      "prediction": "n",
+      "used_depth": 6,
+      "predicted_losses": [
+        0.586101,
+        0.509064,
+        0.464361,
+        0.435234,
+        0.413551,
+        0.383518,
+        0.355791,
+        0.336425
+      ],
+      "actual_losses": [
+        0.233952,
+        0.043565,
+        0.089128,
+        0.188649,
+        0.207087,
+        0.217061,
+        0.25133,
+        0.28738
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 217,
+      "context": "taracts an",
+      "target": "d",
+      "prediction": "d",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.229393,
+        0.091184,
+        0.142111,
+        0.157306,
+        0.164008,
+        0.169803,
+        0.174036,
+        0.177423
+      ],
+      "actual_losses": [
+        0.003024,
+        0.00558,
+        0.003068,
+        0.003756,
+        0.004815,
+        0.006321,
+        0.007971,
+        0.009702
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 218,
+      "context": "aracts and",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.259898,
+        0.14922,
+        0.052505,
+        0.003826,
+        -0.023185,
+        -0.037933,
+        -0.047077,
+        -0.05292
+      ],
+      "actual_losses": [
+        0.002175,
+        0.001412,
+        0.000251,
+        0.000148,
+        0.000115,
+        0.000106,
+        0.000104,
+        0.000104
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 219,
+      "context": "racts and ",
+      "target": "h",
+      "prediction": "b",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.484522,
+        0.560917,
+        0.581305,
+        0.593284,
+        0.59482,
+        0.595168,
+        0.594592,
+        0.593496
+      ],
+      "actual_losses": [
+        6.421513,
+        5.195071,
+        4.362213,
+        4.227162,
+        4.173314,
+        4.131542,
+        4.102718,
+        4.08237
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 220,
+      "context": "acts and h",
+      "target": "u",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.104509,
+        0.192342,
+        0.236502,
+        0.240348,
+        0.247652,
+        0.250074,
+        0.251612,
+        0.253119
+      ],
+      "actual_losses": [
+        4.710808,
+        2.923466,
+        3.269242,
+        3.39826,
+        3.524832,
+        3.589999,
+        3.631504,
+        3.668878
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 221,
+      "context": "cts and hu",
+      "target": "r",
+      "prediction": "m",
+      "used_depth": 3,
+      "predicted_losses": [
+        0.555637,
+        0.51872,
+        0.507349,
+        0.503796,
+        0.487656,
+        0.47405,
+        0.454635,
+        0.430862
+      ],
+      "actual_losses": [
+        2.230893,
+        4.350523,
+        4.818484,
+        4.683146,
+        4.298846,
+        4.146616,
+        4.028479,
+        3.999543
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 222,
+      "context": "ts and hur",
+      "target": "r",
+      "prediction": "a",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.624116,
+        0.623777,
+        0.597882,
+        0.551941,
+        0.491211,
+        0.431659,
+        0.381864,
+        0.339209
+      ],
+      "actual_losses": [
+        10.242767,
+        9.217406,
+        9.084857,
+        8.932035,
+        8.880576,
+        8.660236,
+        8.358751,
+        8.104151
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 223,
+      "context": "s and hurr",
+      "target": "i",
+      "prediction": "d",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.319457,
+        0.306387,
+        0.29361,
+        0.280986,
+        0.268565,
+        0.256478,
+        0.244893,
+        0.23398
+      ],
+      "actual_losses": [
+        8.029019,
+        7.896435,
+        7.765703,
+        7.639299,
+        7.519103,
+        7.406789,
+        7.303637,
+        7.21028
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 224,
+      "context": " and hurri",
+      "target": "c",
+      "prediction": "s",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.419873,
+        0.518721,
+        0.532546,
+        0.50146,
+        0.496629,
+        0.502778,
+        0.507025,
+        0.510072
+      ],
+      "actual_losses": [
+        8.480957,
+        10.59678,
+        11.14419,
+        10.45702,
+        10.010932,
+        10.001002,
+        10.005324,
+        9.973475
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 225,
+      "context": "and hurric",
+      "target": "a",
+      "prediction": "e",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.066091,
+        0.028928,
+        0.05247,
+        0.070573,
+        0.064027,
+        0.056208,
+        0.055796,
+        0.060159
+      ],
+      "actual_losses": [
+        6.899126,
+        5.623769,
+        5.195263,
+        5.536197,
+        6.187085,
+        6.668505,
+        7.040842,
+        7.299842
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 226,
+      "context": "nd hurrica",
+      "target": "n",
+      "prediction": "n",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.316981,
+        0.407382,
+        0.382595,
+        0.367943,
+        0.374064,
+        0.37813,
+        0.365597,
+        0.357653
+      ],
+      "actual_losses": [
+        0.135387,
+        0.115982,
+        0.042241,
+        0.037688,
+        0.101335,
+        0.149183,
+        0.172512,
+        0.182404
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 227,
+      "context": "d hurrican",
+      "target": "o",
+      "prediction": "s",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.157888,
+        0.080323,
+        0.108033,
+        0.152913,
+        0.173024,
+        0.181185,
+        0.184512,
+        0.186435
+      ],
+      "actual_losses": [
+        11.986343,
+        11.837223,
+        11.134638,
+        11.597137,
+        12.219039,
+        12.598207,
+        12.743305,
+        12.750304
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 228,
+      "context": " hurricano",
+      "target": "e",
+      "prediction": "n",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.50316,
+        0.350827,
+        0.35482,
+        0.379813,
+        0.37786,
+        0.378868,
+        0.385163,
+        0.395687
+      ],
+      "actual_losses": [
+        6.41343,
+        14.736492,
+        15.380993,
+        15.599846,
+        16.363081,
+        16.884613,
+        17.266186,
+        17.551117
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 229,
+      "context": "hurricanoe",
+      "target": "s",
+      "prediction": "n",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.374401,
+        0.393418,
+        0.450305,
+        0.44231,
+        0.431564,
+        0.412392,
+        0.38953,
+        0.364856
+      ],
+      "actual_losses": [
+        3.055323,
+        1.881304,
+        1.630265,
+        1.588328,
+        1.679992,
+        1.730833,
+        1.784802,
+        1.825871
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 230,
+      "context": "urricanoes",
+      "target": ",",
+      "prediction": ",",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.456627,
+        0.326878,
+        0.32553,
+        0.321768,
+        0.31696,
+        0.312402,
+        0.30817,
+        0.304251
+      ],
+      "actual_losses": [
+        0.891734,
+        0.153715,
+        0.137317,
+        0.143261,
+        0.16151,
+        0.197814,
+        0.252067,
+        0.313737
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 231,
+      "context": "rricanoes,",
+      "target": " ",
+      "prediction": "\\n",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.300281,
+        0.230947,
+        0.181283,
+        0.204012,
+        0.202847,
+        0.18909,
+        0.174511,
+        0.159995
+      ],
+      "actual_losses": [
+        2.072497,
+        0.530326,
+        0.054969,
+        0.0213,
+        0.016549,
+        0.013665,
+        0.011388,
+        0.00978
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 232,
+      "context": "ricanoes, ",
+      "target": "s",
+      "prediction": "n",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.741905,
+        0.533613,
+        0.578327,
+        0.595513,
+        0.596909,
+        0.595374,
+        0.593664,
+        0.592284
+      ],
+      "actual_losses": [
+        2.575592,
+        5.073385,
+        4.061142,
+        3.7666,
+        3.656527,
+        3.594194,
+        3.549497,
+        3.512419
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 233,
+      "context": "icanoes, s",
+      "target": "p",
+      "prediction": "o",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.088022,
+        0.058248,
+        0.126454,
+        0.124034,
+        0.121896,
+        0.120595,
+        0.120183,
+        0.12039
+      ],
+      "actual_losses": [
+        11.31142,
+        10.007392,
+        9.541397,
+        9.588126,
+        9.706879,
+        9.77835,
+        9.81263,
+        9.82219
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 234,
+      "context": "canoes, sp",
+      "target": "o",
+      "prediction": "u",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.263402,
+        0.125492,
+        0.129319,
+        0.159839,
+        0.167615,
+        0.175249,
+        0.181298,
+        0.186989
+      ],
+      "actual_losses": [
+        3.52018,
+        3.412508,
+        2.945532,
+        3.00723,
+        3.10825,
+        3.18572,
+        3.260242,
+        3.332109
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 235,
+      "context": "anoes, spo",
+      "target": "u",
+      "prediction": "u",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.273728,
+        0.403144,
+        0.448559,
+        0.409244,
+        0.418159,
+        0.374067,
+        0.344425,
+        0.340534
+      ],
+      "actual_losses": [
+        0.442788,
+        1.107905,
+        2.732931,
+        3.803003,
+        3.676289,
+        3.45929,
+        3.022696,
+        2.716426
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 236,
+      "context": "noes, spou",
+      "target": "t",
+      "prediction": "r",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.362133,
+        0.200118,
+        0.277788,
+        0.27636,
+        0.276487,
+        0.283208,
+        0.28787,
+        0.292983
+      ],
+      "actual_losses": [
+        4.659344,
+        5.111363,
+        5.575541,
+        6.163739,
+        6.964006,
+        7.496424,
+        7.812946,
+        7.983834
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 237,
+      "context": "oes, spout",
+      "target": "\\n",
+      "prediction": "r",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.29462,
+        0.285792,
+        0.303805,
+        0.312053,
+        0.306027,
+        0.303057,
+        0.302932,
+        0.304094
+      ],
+      "actual_losses": [
+        8.79302,
+        8.828669,
+        8.685114,
+        8.347064,
+        8.056478,
+        7.874904,
+        7.765043,
+        7.703209
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 238,
+      "context": "es, spout\\n",
+      "target": "T",
+      "prediction": "A",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.013346,
+        -0.053587,
+        0.052678,
+        0.079503,
+        0.071222,
+        0.073525,
+        0.080336,
+        0.089429
+      ],
+      "actual_losses": [
+        4.393485,
+        3.896143,
+        4.921514,
+        5.080507,
+        4.906341,
+        4.84745,
+        4.83182,
+        4.858571
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 239,
+      "context": "s, spout\\nT",
+      "target": "i",
+      "prediction": "h",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.106023,
+        0.190209,
+        0.195389,
+        0.180907,
+        0.183429,
+        0.192589,
+        0.204579,
+        0.217351
+      ],
+      "actual_losses": [
+        6.027416,
+        8.02541,
+        8.468886,
+        8.034547,
+        7.744673,
+        7.652734,
+        7.649436,
+        7.695677
+      ],
+      "correct_at_used_depth": false
+    }
+  ]
+}

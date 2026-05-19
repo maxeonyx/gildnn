@@ -1,37 +1,382 @@
 {
-  "depth_rows": [
-    {
-      "depth": 1,
-      "final_loss": 0.03202458471059799,
-      "final_accuracy": 0.9793282151222229,
-      "mismatch_count": 8,
-      "sample_hello": "hello world.\nsmall text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhello worl",
-      "loss_delta_vs_depth_1": 0.0,
-      "accuracy_delta_vs_depth_1": 0.0,
-      "mismatch_delta_vs_depth_1": 0,
-      "sample_hello_matches_depth_1": true
+  "parameter_count": 71997,
+  "runs": {
+    "fixed_depth_1": {
+      "model_name": "fixed_depth_1",
+      "runtime_seconds": 29.724616999999853,
+      "overfit_reached": true,
+      "train_metrics": {
+        "total_loss": 0.027322884649038315,
+        "task_loss": 0.023259207606315613,
+        "loss_prediction_loss": 0.04063676670193672,
+        "accuracy": 0.9939695000648499,
+        "per_depth_task_loss": [
+          0.023259207606315613
+        ],
+        "per_depth_accuracy": [
+          0.9939695000648499
+        ],
+        "mean_used_depth": 1.0,
+        "depth_histogram": {
+          "1": 5638
+        }
+      },
+      "val_metrics": {
+        "total_loss": 7.7672038078308105,
+        "task_loss": 4.347914695739746,
+        "loss_prediction_loss": 34.19289016723633,
+        "accuracy": 0.29793301224708557,
+        "per_depth_task_loss": [
+          4.347914695739746
+        ],
+        "per_depth_accuracy": [
+          0.29793301224708557
+        ],
+        "mean_used_depth": 1.0,
+        "depth_histogram": {
+          "1": 1403
+        }
+      },
+      "samples": {
+        "HAMLET:\\nTo": "HAMLET:\nTo be, or not to be: that is the question:\nWhether 'tis nobler in the mind to suffer\nThe slings and arrows of outrageous f",
+        "s hour upo": "s hour upon the stage,\nAnd then the lover,\nSighing like furnace, with a woeful ballad\nMade to his mistress' eyebrow. Then a soldie",
+        " nostril w": " nostril wone mait fring and intrate, the art to sagh the wread an and oformour whtat,\nAnd atit the pool have beath death, and ret"
+      },
+      "halting_threshold": null,
+      "improvement_epsilon": null
     },
-    {
-      "depth": 2,
-      "final_loss": 0.03172789886593819,
-      "final_accuracy": 0.9793282151222229,
-      "mismatch_count": 8,
-      "sample_hello": "hello world.\nsmall text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhello worl",
-      "loss_delta_vs_depth_1": -0.0002966858446598053,
-      "accuracy_delta_vs_depth_1": 0.0,
-      "mismatch_delta_vs_depth_1": 0,
-      "sample_hello_matches_depth_1": true
+    "fixed_depth_8": {
+      "model_name": "fixed_depth_8",
+      "runtime_seconds": 197.05132749999757,
+      "overfit_reached": true,
+      "train_metrics": {
+        "total_loss": 0.44713178277015686,
+        "task_loss": 0.4011310040950775,
+        "loss_prediction_loss": 0.4600076675415039,
+        "accuracy": 0.8793898820877075,
+        "per_depth_task_loss": [
+          0.627230703830719,
+          0.3952372372150421,
+          0.34567883610725403,
+          0.3432556986808777,
+          0.3511226773262024,
+          0.36464694142341614,
+          0.3815058171749115,
+          0.40037021040916443
+        ],
+        "per_depth_accuracy": [
+          0.8020575046539307,
+          0.8868393301963806,
+          0.9033345580101013,
+          0.9059950709342957,
+          0.9045761227607727,
+          0.899255096912384,
+          0.8896772265434265,
+          0.8793898820877075
+        ],
+        "mean_used_depth": 8.0,
+        "depth_histogram": {
+          "8": 5638
+        }
+      },
+      "val_metrics": {
+        "total_loss": 6.891585350036621,
+        "task_loss": 4.066387176513672,
+        "loss_prediction_loss": 28.251977920532227,
+        "accuracy": 0.29009267687797546,
+        "per_depth_task_loss": [
+          4.215661525726318,
+          4.090290069580078,
+          4.0540289878845215,
+          4.043042182922363,
+          4.034912586212158,
+          4.0309157371521,
+          4.0306854248046875,
+          4.031559944152832
+        ],
+        "per_depth_accuracy": [
+          0.28581610321998596,
+          0.30862438678741455,
+          0.3064860999584198,
+          0.30506059527397156,
+          0.30434784293174744,
+          0.2993585169315338,
+          0.2993585169315338,
+          0.29009267687797546
+        ],
+        "mean_used_depth": 8.0,
+        "depth_histogram": {
+          "8": 1403
+        }
+      },
+      "samples": {
+        "HAMLET:\\nTo": "HAMLET:\nTo dreams may we have shound soul how nothing so before man! have their exinst of the mind to uge, the still.\nArt to slep;",
+        "s hour upo": "s hour upon the stage,\nAnd one man country of the mind to uge, the still.\nArt to slep;\nNo more; and by a was and modern inter dear",
+        " nostril w": " nostril wor weard bear which nome\nWhen the gonols of the stil.\nAnd then the slep ot so wold beard of the suffftalking and strange"
+      },
+      "halting_threshold": null,
+      "improvement_epsilon": null
     },
-    {
-      "depth": 4,
-      "final_loss": 0.031890515238046646,
-      "final_accuracy": 0.9793282151222229,
-      "mismatch_count": 8,
-      "sample_hello": "hello world.\nsmall text.\nhello world.\nsmall text.\nhello world.\nsmall text.\nhello worl",
-      "loss_delta_vs_depth_1": -0.00013406947255134583,
-      "accuracy_delta_vs_depth_1": 0.0,
-      "mismatch_delta_vs_depth_1": 0,
-      "sample_hello_matches_depth_1": true
+    "dynamic_depth": {
+      "model_name": "dynamic_depth",
+      "runtime_seconds": 198.14523540000664,
+      "overfit_reached": true,
+      "train_metrics": {
+        "total_loss": 0.4217626750469208,
+        "task_loss": 0.4217626750469208,
+        "loss_prediction_loss": 0.3531894087791443,
+        "accuracy": 0.8722951401206102,
+        "per_depth_task_loss": [
+          0.48984038829803467,
+          0.2926008701324463,
+          0.2553648352622986,
+          0.2559683322906494,
+          0.26505541801452637,
+          0.27674317359924316,
+          0.2898770868778229,
+          0.3046744763851166
+        ],
+        "per_depth_accuracy": [
+          0.8474636673927307,
+          0.9150408506393433,
+          0.9297623634338379,
+          0.9299397468566895,
+          0.9272792339324951,
+          0.9216034412384033,
+          0.9184108376502991,
+          0.9132671356201172
+        ],
+        "mean_used_depth": 1.3808088302612305,
+        "depth_histogram": {
+          "1": 4132,
+          "2": 1102,
+          "3": 258,
+          "4": 95,
+          "5": 28,
+          "6": 12,
+          "7": 5,
+          "8": 6
+        }
+      },
+      "val_metrics": {
+        "total_loss": 4.38485050201416,
+        "task_loss": 4.38485050201416,
+        "loss_prediction_loss": 32.19794845581055,
+        "accuracy": 0.27441197434069853,
+        "per_depth_task_loss": [
+          4.385519027709961,
+          4.3782219886779785,
+          4.3495259284973145,
+          4.342647075653076,
+          4.337211608886719,
+          4.336188316345215,
+          4.3369317054748535,
+          4.3377814292907715
+        ],
+        "per_depth_accuracy": [
+          0.26657164096832275,
+          0.27797576785087585,
+          0.2922309339046478,
+          0.28866714239120483,
+          0.2915181815624237,
+          0.2908054292201996,
+          0.2908054292201996,
+          0.2908054292201996
+        ],
+        "mean_used_depth": 1.3535281419754028,
+        "depth_histogram": {
+          "1": 1042,
+          "2": 274,
+          "3": 58,
+          "4": 16,
+          "5": 7,
+          "6": 6
+        }
+      },
+      "samples": {
+        "HAMLET:\\nTo": "HAMLET:\nTo blest; I so beelacy enid trom heaver'd id ot is the ence of dofe oat mire of Brutus fairat mate,\nWhe have the evourable",
+        "s hour upo": "s hour upon the stage,\nAnd all the rest; I so beelacy enid trom heaver'd id ot is the ence of dofe oat mire of Brutus fairat mate,",
+        " nostril w": " nostril which in thee nould be with the parnd of doy blat poudk in Caesar's funturaing so how nothing so becowes and of the wer's"
+      },
+      "halting_threshold": 0.4011310040950775,
+      "improvement_epsilon": 0.01
     }
-  ]
+  },
+  "dynamic_depth_analysis": {
+    "annotated_text": "i2d1e1,1\u23ce1H1o1l1d4 1h2a1r2d1 1t2h1e1 1b1r3e5a1t2h2 1a2n2d2 2b1e4n3d1 2u2p1 1e1v1e1r1y1 1s2p2i1r1i1t1\u23ce1T1o1 1h1i2s4 1f2u2l2l2 1h2e3i1g2h1t1.1 1O1n1,1 2o2n2,2 1y2o1u1 1n2o2b1l2e1s1t1 1E3n1g1l1i1s1h1,2\u23ce1W1h1o1s1e1 1b2l3o1o1d1 1i3s5 1f2e1t1 2f3r1o2m1 2f2a1t1h1e1r1s1 1o3f2 1w2a1r2-1p4r2o2o1f1!1\u23ce1\u23ce2L1E1A1R1:1\u23ce1B1l1o1w1,1 2w3i1n1d1s1,1 1a1n2d1 1c1r1a1c5k1 1y2o1u1r1 2c3h2e1e1k1s2!1 1r1a1g2e1!1 1b3l1o1w1!2\u23ce1Y1o1u1 1c1a1t3a1r1a1c1t1s1 1a3n6d1 1h1u1r3r1i1c1a1n1o1e2s1,2 1s2p1o1u1t1\u23ce1T1i1",
+    "depth_histogram": {
+      "1": 165,
+      "2": 53,
+      "3": 14,
+      "4": 4,
+      "5": 3,
+      "6": 1,
+      "7": 0,
+      "8": 0
+    },
+    "top_hard_examples": [
+      {
+        "char": "n",
+        "used_depth": 6,
+        "actual_loss_at_used_depth": 0.217061,
+        "context": "ataracts a",
+        "target": "n",
+        "prediction": "n"
+      },
+      {
+        "char": "s",
+        "used_depth": 5,
+        "actual_loss_at_used_depth": 5.822916,
+        "context": "se blood i",
+        "target": "s",
+        "prediction": "n"
+      },
+      {
+        "char": "e",
+        "used_depth": 5,
+        "actual_loss_at_used_depth": 5.766298,
+        "context": "ard the br",
+        "target": "e",
+        "prediction": "o"
+      },
+      {
+        "char": "c",
+        "used_depth": 5,
+        "actual_loss_at_used_depth": 1.767331,
+        "context": "s, and cra",
+        "target": "c",
+        "prediction": "e"
+      },
+      {
+        "char": "d",
+        "used_depth": 4,
+        "actual_loss_at_used_depth": 2.761347,
+        "context": " wide,\\nHol",
+        "target": "d",
+        "prediction": "l"
+      },
+      {
+        "char": "p",
+        "used_depth": 4,
+        "actual_loss_at_used_depth": 2.534371,
+        "context": "rs of war-",
+        "target": "p",
+        "prediction": "b"
+      },
+      {
+        "char": "e",
+        "used_depth": 4,
+        "actual_loss_at_used_depth": 0.049088,
+        "context": "eath and b",
+        "target": "e",
+        "prediction": "e"
+      },
+      {
+        "char": "s",
+        "used_depth": 4,
+        "actual_loss_at_used_depth": 0.000104,
+        "context": "irit\\nTo hi",
+        "target": "s",
+        "prediction": "s"
+      },
+      {
+        "char": "b",
+        "used_depth": 3,
+        "actual_loss_at_used_depth": 13.092803,
+        "context": "ks! rage! ",
+        "target": "b",
+        "prediction": "h"
+      },
+      {
+        "char": "E",
+        "used_depth": 3,
+        "actual_loss_at_used_depth": 12.935317,
+        "context": "u noblest ",
+        "target": "E",
+        "prediction": "i"
+      },
+      {
+        "char": "e",
+        "used_depth": 3,
+        "actual_loss_at_used_depth": 6.679129,
+        "context": "his full h",
+        "target": "e",
+        "prediction": "a"
+      },
+      {
+        "char": "i",
+        "used_depth": 3,
+        "actual_loss_at_used_depth": 6.383655,
+        "context": "ose blood ",
+        "target": "i",
+        "prediction": "c"
+      },
+      {
+        "char": "f",
+        "used_depth": 3,
+        "actual_loss_at_used_depth": 6.285617,
+        "context": "od is fet ",
+        "target": "f",
+        "prediction": "t"
+      },
+      {
+        "char": "a",
+        "used_depth": 3,
+        "actual_loss_at_used_depth": 5.84543,
+        "context": "cataracts ",
+        "target": "a",
+        "prediction": "o"
+      },
+      {
+        "char": "c",
+        "used_depth": 3,
+        "actual_loss_at_used_depth": 5.80594,
+        "context": "rack your ",
+        "target": "c",
+        "prediction": "g"
+      },
+      {
+        "char": "r",
+        "used_depth": 3,
+        "actual_loss_at_used_depth": 4.818484,
+        "context": "cts and hu",
+        "target": "r",
+        "prediction": "m"
+      },
+      {
+        "char": "n",
+        "used_depth": 3,
+        "actual_loss_at_used_depth": 4.335856,
+        "context": "ath and be",
+        "target": "n",
+        "prediction": "a"
+      },
+      {
+        "char": "w",
+        "used_depth": 3,
+        "actual_loss_at_used_depth": 2.926204,
+        "context": "AR:\\nBlow, ",
+        "target": "w",
+        "prediction": "i"
+      },
+      {
+        "char": "l",
+        "used_depth": 3,
+        "actual_loss_at_used_depth": 2.544983,
+        "context": "h,\\nWhose b",
+        "target": "l",
+        "prediction": "e"
+      },
+      {
+        "char": "t",
+        "used_depth": 3,
+        "actual_loss_at_used_depth": 2.336043,
+        "context": "ow!\\nYou ca",
+        "target": "t",
+        "prediction": "r"
+      }
+    ]
+  },
+  "halting_threshold": 0.4011310040950775,
+  "improvement_epsilon": 0.01
 }
