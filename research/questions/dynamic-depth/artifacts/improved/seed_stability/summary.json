@@ -1,0 +1,259 @@
+{
+  "source": "aggregated_from_seed_stability_debug",
+  "seeds": [
+    42,
+    123,
+    456,
+    789,
+    1337
+  ],
+  "runs": [
+    {
+      "seed": 42,
+      "training_runtime_seconds": 911.8274668999948,
+      "fixed_depth_8_val_loss": 1.7058124542236328,
+      "recommended_threshold": 0.795748,
+      "recommended_point": {
+        "val_loss": 1.710301160812378,
+        "mean_depth": 6.215294361114502
+      },
+      "position_in_word": {
+        "effect_metric": "correlation_ratio_eta",
+        "effect_size": 0.327800206673618,
+        "categories": [
+          {
+            "category": "first_after_space",
+            "mean_depth": 7.990354805373752,
+            "count": 2903
+          },
+          {
+            "category": "other_word_start",
+            "mean_depth": 7.922580645161291,
+            "count": 620
+          },
+          {
+            "category": "middle_of_word",
+            "mean_depth": 6.340150699677072,
+            "count": 8361
+          },
+          {
+            "category": "end_before_boundary",
+            "mean_depth": 5.679201619901649,
+            "count": 3457
+          },
+          {
+            "category": "non_word",
+            "mean_depth": 5.047763129457532,
+            "count": 4627
+          }
+        ]
+      }
+    },
+    {
+      "seed": 123,
+      "training_runtime_seconds": 1200.1589348999842,
+      "fixed_depth_8_val_loss": 1.6988767385482788,
+      "recommended_threshold": 1.221981,
+      "recommended_point": {
+        "val_loss": 1.715753197669983,
+        "mean_depth": 5.089242935180664
+      },
+      "position_in_word": {
+        "effect_metric": "correlation_ratio_eta",
+        "effect_size": 0.4097972606595047,
+        "categories": [
+          {
+            "category": "first_after_space",
+            "mean_depth": 7.9517740268687565,
+            "count": 2903
+          },
+          {
+            "category": "other_word_start",
+            "mean_depth": 7.898387096774194,
+            "count": 620
+          },
+          {
+            "category": "middle_of_word",
+            "mean_depth": 4.838057648606626,
+            "count": 8361
+          },
+          {
+            "category": "end_before_boundary",
+            "mean_depth": 4.273358403239803,
+            "count": 3457
+          },
+          {
+            "category": "non_word",
+            "mean_depth": 3.9803328290468984,
+            "count": 4627
+          }
+        ]
+      }
+    },
+    {
+      "seed": 456,
+      "training_runtime_seconds": 1204.564255300007,
+      "fixed_depth_8_val_loss": 1.7139002084732056,
+      "recommended_threshold": 0.439087,
+      "recommended_point": {
+        "val_loss": 1.7295516729354858,
+        "mean_depth": 6.811698913574219
+      },
+      "position_in_word": {
+        "effect_metric": "correlation_ratio_eta",
+        "effect_size": 0.2716020341619071,
+        "categories": [
+          {
+            "category": "first_after_space",
+            "mean_depth": 8.0,
+            "count": 2903
+          },
+          {
+            "category": "other_word_start",
+            "mean_depth": 7.990322580645161,
+            "count": 620
+          },
+          {
+            "category": "middle_of_word",
+            "mean_depth": 6.910537017103217,
+            "count": 8361
+          },
+          {
+            "category": "end_before_boundary",
+            "mean_depth": 6.62105872143477,
+            "count": 3457
+          },
+          {
+            "category": "non_word",
+            "mean_depth": 5.872055327425978,
+            "count": 4627
+          }
+        ]
+      }
+    },
+    {
+      "seed": 789,
+      "training_runtime_seconds": 896.186694700009,
+      "fixed_depth_8_val_loss": 1.7065703868865967,
+      "recommended_threshold": 0.46247,
+      "recommended_point": {
+        "val_loss": 1.7209131717681885,
+        "mean_depth": 6.763822078704834
+      },
+      "position_in_word": {
+        "effect_metric": "correlation_ratio_eta",
+        "effect_size": 0.2571706914295253,
+        "categories": [
+          {
+            "category": "first_after_space",
+            "mean_depth": 8.0,
+            "count": 2903
+          },
+          {
+            "category": "other_word_start",
+            "mean_depth": 7.990322580645161,
+            "count": 620
+          },
+          {
+            "category": "middle_of_word",
+            "mean_depth": 6.821193637124746,
+            "count": 8361
+          },
+          {
+            "category": "end_before_boundary",
+            "mean_depth": 6.364188602834828,
+            "count": 3457
+          },
+          {
+            "category": "non_word",
+            "mean_depth": 6.018802679922196,
+            "count": 4627
+          }
+        ]
+      }
+    },
+    {
+      "seed": 1337,
+      "training_runtime_seconds": 909.5160542000085,
+      "fixed_depth_8_val_loss": 1.7098809480667114,
+      "recommended_threshold": 1.000285,
+      "recommended_point": {
+        "val_loss": 1.7193167209625244,
+        "mean_depth": 5.665314674377441
+      },
+      "position_in_word": {
+        "effect_metric": "correlation_ratio_eta",
+        "effect_size": 0.355667793565363,
+        "categories": [
+          {
+            "category": "first_after_space",
+            "mean_depth": 8.0,
+            "count": 2903
+          },
+          {
+            "category": "other_word_start",
+            "mean_depth": 7.84516129032258,
+            "count": 620
+          },
+          {
+            "category": "middle_of_word",
+            "mean_depth": 5.51835904796077,
+            "count": 8361
+          },
+          {
+            "category": "end_before_boundary",
+            "mean_depth": 5.15504772924501,
+            "count": 3457
+          },
+          {
+            "category": "non_word",
+            "mean_depth": 4.555219364599092,
+            "count": 4627
+          }
+        ]
+      }
+    }
+  ],
+  "variance_summary": {
+    "fixed_depth_8_val_loss": {
+      "mean": 1.707008147239685,
+      "min": 1.6988767385482788,
+      "max": 1.7139002084732056,
+      "range": 0.015023469924926758,
+      "variance": 2.4698923172081778e-05,
+      "stdev": 0.004969801119972687
+    },
+    "recommended_val_loss": {
+      "mean": 1.7191671848297119,
+      "min": 1.710301160812378,
+      "max": 1.7295516729354858,
+      "range": 0.01925051212310791,
+      "variance": 4.0234022973208996e-05,
+      "stdev": 0.00634302947913763
+    },
+    "recommended_mean_depth": {
+      "mean": 6.109074592590332,
+      "min": 5.089242935180664,
+      "max": 6.811698913574219,
+      "range": 1.7224559783935547,
+      "variance": 0.43412746414078357,
+      "stdev": 0.6588834981548586
+    },
+    "position_in_word_eta": {
+      "mean": 0.32440759729798363,
+      "min": 0.2571706914295253,
+      "max": 0.4097972606595047,
+      "range": 0.15262656922997941,
+      "variance": 0.003117866657385342,
+      "stdev": 0.05583786042986731
+    },
+    "recommended_threshold": {
+      "mean": 0.7839142,
+      "min": 0.439087,
+      "max": 1.221981,
+      "range": 0.782894,
+      "variance": 0.09221821095016,
+      "stdev": 0.30367451481834956
+    }
+  }
+}
