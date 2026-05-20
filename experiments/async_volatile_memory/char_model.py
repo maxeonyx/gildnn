@@ -22,6 +22,9 @@ class TrainableConfig:
     benchmark_steps: int = 40
     memorization_batch_size: int = 32
     memorization_steps: int = 300
+    train_epochs: int = 12
+    eval_batch_size: int = 512
+    sample_length: int = 200
     learning_rate: float = 0.003
     memorization_learning_rate: float = 0.02
     gradient_clip_norm: float = 1.0

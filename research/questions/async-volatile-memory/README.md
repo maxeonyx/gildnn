@@ -159,3 +159,45 @@ Inline excerpt from `overfit_report.json`:
 ```
 
 So the stale-read mechanism is not obviously breaking optimization at the first rung. On this fixed batch, both matched variants memorize cleanly.
+
+### Stage 5 tiny matched training-and-timing rung
+
+Artifact: [`tiny_training_report.json`](../../../experiments/async_volatile_memory/artifacts/stage5/tiny_training_report.json)
+
+Tiny matched rung on the standard `100K/20K`, `ctx=32` TinyShakespeare frame, 12 epochs, same optimizer/LR/seed, same `d_model=72`, same `num_modules=3`, same `num_ticks=4`, same params `158,965`.
+
+Best-vs-final comparison:
+
+| Variant | Best epoch | Best val loss | Best val acc | Final train loss | Final val loss | Final val acc |
+|---|---:|---:|---:|---:|---:|---:|
+| Synchronous control | `9` | `1.656889` | `0.513021` | `1.348393` | `1.669227` | `0.509465` |
+| Async stale reads | `6` | `1.658197` | `0.504758` | `1.362514` | `1.668071` | `0.506761` |
+
+Epoch-time comparison:
+
+| Variant | Typical epoch wall-clock |
+|---|---:|
+| Synchronous control | about `18.0–19.8 s` |
+| Async stale reads | about `18.4–19.7 s` |
+
+The training curves are close. The synchronous control reached the slightly better best validation loss and best validation accuracy, but the gap stayed small: about `0.0013` loss and `0.0083` accuracy at best epoch.
+
+Final samples:
+
+```text
+synchronous_control
+First Citizen:
+Before we proceed his he had have
+which his he had the had have him the company, the had have him
+The capting the had have the have him the stal
+A call his hing the people him.
+
+MENENIUS:
+What the common the consul, w
+
+async_stale_reads
+First Citizen:
+Before we proceed to the people and the people the people the people the people the people the people the people the people the people the people the people the people the people the people the people the people the p
+```
+
+At this tiny rung the async mechanism remains viable in the narrow sense that it trains, matches wall-clock closely, and stays near the synchronous control on validation metrics. But it is not yet a positive modeling result: the sync control is still slightly better, and both samples are still clearly weak.
