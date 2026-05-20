@@ -47,6 +47,8 @@ Unresolved conclusions must stay explicitly unresolved until backed by real arti
 
 Reports should link back to Max's goals, explain the path the experiment took, and end with discriminating next steps. See `PROCESS.md` for the report-first experiment protocol.
 
+If a framing, term, or architecture name came from a prior agent rather than the dictations (for example, "predictive chain"), present it as a simplification or hypothesis, not as Max's core idea.
+
 ## Docs reminder
 
 Load the `information-architecture` OpenCode skill before restructuring or reorganising question write-ups.

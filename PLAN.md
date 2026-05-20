@@ -4,13 +4,12 @@ Working file. Rewrite it as the state changes.
 
 ## Current situation
 
-- Process direction is in much better shape: report-first experiments, directory roles, experiment visibility, and background-run rules are now written down.
-- Two research threads already produced real findings:
-  - **Predictive chain:** local predictive learning works, unhooked gradients work, the small-scale gain looks like regularization, the advantage disappears at larger scale, and the earlier graph-shortcut variant hurt rather than helped on this task.
-  - **Dynamic depth:** the mechanism works on character LM, the loss-prediction head becomes useful with enough data, and there is a real compute/quality tradeoff (~43% compute savings for ~1% loss hit at one operating point), but the operating point is seed-dependent.
-- The main missing foundation is still the same: `base-experiments/` does not yet contain trustworthy standard baselines with correctness checks, so future claims are not grounded against a reference Max can trust.
-- That baseline gap is real, but it is **not** the whole remaining project. Max's current vision work is after the baselines: composition of predictive modules + dynamic depth, selective triggering, async/desynchronized execution, and arbitrary-order image patches.
-- The plan should spend the first part earning trust, then spend the rest on the actual architectural questions.
+- The trust foundation for text is now in place: `base_experiments/` has a trustworthy transformer anchor and a trustworthy vanilla RNN anchor on the fixed TinyShakespeare frame.
+- The predictive-chain and dynamic-depth reports have been re-framed against that baseline anchor so they no longer overclaim.
+- New dictations changed the near-term priority. Early composition of predictive chain + dynamic depth is **not** the main thing Max wants right now.
+- The current priority is thorough isolated experiments on the individual performance/mechanism pieces: local learning, stop gradients, asynchronous/asynchronized modules, keeping weights in memory, processing activations in place, and replacing depth with width / propagation across timesteps.
+- "Predictive chain" remains a useful experiment label for one simplification, but it is not the project goal. It should not silently drive the plan.
+- There is partially completed chain+dynamic-depth work in `experiments/chain_dynamic_depth/`, but that thread is currently paused in planning until it is explicitly re-scoped.
 
 ## Execution phases with clear sequencing
 
@@ -22,19 +21,15 @@ Working file. Rewrite it as the state changes.
 4. Base experiments also get cheap correctness tests where mistakes are easy and expensive: data slicing/targets, embedding lookup shape/content, loss masking/accounting, sampling/generation path, and any modality-specific preprocessing.
 5. Keep experiment scope small, but move quickly from one discriminating experiment to the next. Do not spend days polishing an already-answered question.
 
-### Phase 1 — Trust foundation for text baselines (start immediately)
+### Phase 1 — Trust foundation for text baselines (done)
 
 Objective: make text results interpretable enough that later custom-architecture comparisons mean something.
 
-1. Choose and lock the primary text baseline task and target range for the current project dataset.
-2. Build the first trustworthy standard baseline in `base-experiments/` with the full ladder and correctness tests.
-   - Prefer the cheapest baseline most likely to establish trust quickly.
-   - Save evidence that would let a fresh agent answer: why do we believe this implementation is correct?
-3. Build the second text reference baseline once the first trust anchor exists.
-   - The target baseline set for this window is **ordinary RNN + ordinary transformer** on the same character-level task.
-   - Feedforward is optional if it is cheap and clarifies something, but it does not block the rest of the window.
-4. Move only genuinely shared, now-verified pieces into `core/`.
-5. As soon as there is enough baseline evidence to support honest comparison, move on. Baselines are a gate, not the destination.
+Done:
+
+- Transformer anchor: ~186K params, best val loss 1.632
+- Vanilla RNN anchor: ~186K params, best val loss 1.706
+- Cheap correctness checks and comparison frame documented in `base_experiments/README.md`
 
 End state required to leave Phase 1:
 
@@ -42,39 +37,44 @@ End state required to leave Phase 1:
 - The base-experiment path has cheap correctness tests.
 - The comparison frame for future reports is fixed: parameter count, loss, compute cost, and important execution constraints.
 
-### Phase 2 — Re-ground the current findings against the new trust anchor
+### Phase 2 — Re-ground the current findings against the new trust anchor (done)
 
-Objective: stop carrying around pre-baseline results as if they stand alone.
+Done:
 
-1. Update the predictive-chain report framing so it is explicit about what is now grounded by the baseline and what still is not.
-2. Update the dynamic-depth report framing the same way.
-3. Standardize the comparison table shape that future experiment READMEs should use.
-4. If any existing claim no longer survives honest comparison framing, rerun or weaken the claim rather than carrying it forward.
+- Predictive-chain report weakened where the standardized anchors made the old parity framing misleading
+- Dynamic-depth report anchored against the standardized frame with honest comparability limits
+- Future comparisons now have a fixed text comparison frame
 
 End state required to leave Phase 2:
 
 - The two strongest completed threads are now anchored to the same comparison frame future work will use.
 
-### Phase 3 — First composition experiment: dynamic depth inside the predictive-chain family
+### Phase 3 — Isolated mechanism experiments for fast recurrent training
 
-Objective: test the most obvious combination Max already asked for, using existing positive results rather than starting from scratch.
+Objective: test the individual pieces Max actually cares about before composing them.
 
-1. Create a new question/report for the composition experiment before coding.
-2. Implement the smallest honest version of **dynamic depth inside the predictive-chain family**.
-   - The question is not "can we make it fancy?" It is: does adaptive compute add anything once local predictive modules already exist?
-3. Compare against four references where possible:
-   - ordinary RNN baseline
-   - ordinary transformer baseline
-   - predictive chain without dynamic depth
-   - dynamic-depth model without predictive chain structure
-4. Measure both quality and compute, not just loss.
-5. Decide whether the combination is additive, redundant, unstable, or only useful in a narrow regime.
+Priority order inside this phase:
 
-This phase is important because it directly tests whether the two strongest surviving text ideas actually compose, instead of leaving them as separate curiosities.
+1. Stop gradients / local learning as a performance and training-stability mechanism
+2. Selective triggering / update-skipping signals
+3. Async / desynchronized module execution approximations
+4. In-place activation processing / width-over-depth execution ideas where they can be tested honestly
+
+Rules:
+
+- Prefer the cheapest isolated experiment that could produce real evidence about one of those pieces.
+- Do not smuggle composition back in by changing several mechanisms at once.
+- If a simplification came from an earlier agent rather than the dictations, keep that fact visible in the write-up.
+
+Questions this phase should answer:
+
+- Can local learning / stop-gradient style training give useful speed or stability benefits?
+- Can a model learn a useful trigger for whether more computation is worth doing?
+- Can we approximate asynchronous execution without turning the experiment into a completely different architecture?
 
 ### Phase 4 — Async/desynchronized execution path on text
 
-Objective: test the part of the cortical-column vision that the predictive-chain work did **not** test: selective updates, stale communication, and the beginning of asynchronous execution.
+Objective: once the individual pieces above are better grounded, test the asynchronous path more directly.
 
 Do this in escalating steps, stopping as soon as the answer is clear:
 
@@ -95,7 +95,18 @@ Questions this phase should answer:
 - Does skipping updates save meaningful compute without collapsing quality?
 - Does graph locality still matter once a shared/global path exists, or does the global path bypass the interesting part?
 
-### Phase 5 — Second modality: arbitrary-order image patches
+### Phase 5 — Contingent composition work
+
+Objective: only after the isolated pieces are understood well enough, test whether any composition is actually justified.
+
+Candidates may include:
+
+- dynamic depth inside the predictive-chain family
+- loss-prediction-driven triggering inside another local-learning family
+
+This phase is contingent, not automatic. If the isolated experiments do not justify composition, skip it.
+
+### Phase 6 — Second modality: arbitrary-order image patches
 
 Objective: open the second modality in the vision, but do it with the same discipline as text.
 
@@ -110,7 +121,7 @@ Objective: open the second modality in the vision, but do it with the same disci
 
 This phase exists because image patches are part of the stated vision, and a text-only finish would leave too much of Max's agenda untouched.
 
-### Phase 6 — Final combination and synthesis
+### Phase 7 — Final combination and synthesis
 
 Objective: spend the last part of the window on the strongest surviving combined idea, not on cleanup for its own sake.
 
@@ -139,7 +150,7 @@ This window is successful if all of the following are true:
 
 1. `base-experiments/` contains trustworthy text baselines with correctness checks, enough to anchor honest comparison.
 2. Predictive-chain and dynamic-depth are re-stated against that comparison frame.
-3. At least **two real post-baseline vision experiments** are completed, with one of them testing a combination rather than a standalone idea.
+3. At least two real post-baseline experiments test the individual performance/mechanism pieces Max called out.
 4. At least one experiment directly tests selective/dynamic computation rather than only static architecture.
 
 ### Strong success for this window
@@ -148,15 +159,16 @@ This window is a strong success if, in addition to the floor above:
 
 1. The async/selective-update path yields a clear positive or negative answer that narrows the cortical-column design space.
 2. The image-patch modality has at least a baseline plus one first architectural probe.
-3. The final state of the repo answers not just "can we trust the comparisons?" but also "which of Max's architectural ideas are now worth pushing further, and which are not?"
+3. Any composition work that survives is clearly justified by the isolated experiments rather than assumed up front.
+4. The final state of the repo answers not just "can we trust the comparisons?" but also "which of Max's architectural ideas are now worth pushing further, and which are not?"
 
 ### Explicit cut rules
 
 - Do not spend multiple days polishing baseline quality once the trust question is answered well enough to compare.
 - Do not repeat an experiment class that already gave a clear answer unless the new version changes the actual hypothesis being tested.
-- If time gets tight, cut breadth before cutting the highest-value composition work.
+- If time gets tight, cut contingent composition work before cutting the highest-value isolated mechanism experiments.
 - If one late-phase thread is blocked, switch to the next discriminating experiment rather than burning the remaining window on setup/debugging.
 
 ## Immediate next step
 
-Start Phase 1 properly: lock the text baseline task and expected target range, define the cheap correctness tests the base experiments need, create the first base-experiment report/README, and begin the overfit→tiny→inspect→scale ladder for the first trustworthy text baseline.
+Choose the first isolated post-baseline mechanism question and write its report-first README before touching code. The leading candidates are stop gradients / local learning, selective triggering, and async/desynchronized execution. The paused chain+dynamic-depth composition thread is not the default next step.

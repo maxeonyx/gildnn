@@ -120,9 +120,11 @@ Evidence in question READMEs must be **embedded inline** in the markdown (tables
 
 **Open questions stay open.** Do not state architectural decisions as settled unless they have been experimentally verified. If it's not confirmed, mark it as an open question.
 
+**Isolation before composition.** Do not combine speculative mechanisms early just because they seem like they should fit together. Run the individual pieces thoroughly in isolation first. In particular, "predictive chain" is an agent-coined simplification for one experiment family, not the project goal itself.
+
 **Don't interrupt the desktop.** No popups, notifications, or focus-stealing windows. Max may be doing other things.
 
-**Experiment visibility.** Before running any experiment expected to take more than ~30 seconds, subagents must stop and report back with what they're about to run and how long it's expected to take. The orchestrator logs a visibility note before resuming them. See `PROCESS.md` for details. This keeps the loop output informative for Max.
+**Experiment visibility.** Before running any experiment expected to take more than ~30 seconds, subagents must stop and report back with what they're about to run, how long it's expected to take, and what it will produce. This applies to every long run, including retries after obvious fixes. The orchestrator logs a fresh visibility note with the current time before resuming each run. See `PROCESS.md` for details. This keeps the loop output informative for Max.
 
 ## Handover protocol
 

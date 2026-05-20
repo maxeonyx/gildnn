@@ -208,9 +208,11 @@ Keep selectable variants only when they produced an informative comparison or ar
 - Expected duration (estimate from corpus size, step count, prior runs)
 - What it will produce
 
-The orchestrator then logs a visibility note (so Max can see what's happening if he checks the loop) and resumes the subagent to proceed.
+The orchestrator then logs a visibility note with the current time (so Max can see what's happening if he checks the loop) and resumes the subagent to proceed.
 
 This prevents silent multi-hour waits where Max has no idea what's happening. The loop output should always show what we're doing and how long it's expected to take.
+
+**Orchestrators must instruct subagents to report back before each new run.** When delegating experiment work, explicitly tell the subagent: "Report back to me with results before launching any new training run — including retries of failed runs, even if the fix seems obvious. Do not chain runs without returning first. Each run that exceeds ~30 seconds is a separate report-back cycle."
 
 ## Background training runs
 

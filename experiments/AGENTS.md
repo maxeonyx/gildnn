@@ -32,4 +32,6 @@ Some older experiments exist as flat `.py` files directly in this directory (not
 
 ## Experiment visibility
 
-Before running any experiment expected to take more than ~30 seconds, stop and report back to the orchestrating agent with: what you're about to run, expected duration, what it will produce. Wait to be resumed before proceeding.
+Before running any experiment expected to take more than ~30 seconds, stop and report back to the orchestrating agent with: what you're about to run, expected duration, and what it will produce. Wait to be resumed before proceeding.
+
+This is per run, not per task. If you fix something and want to retry a 10-20 minute run, stop and report back again first. Do not chain long runs without returning first. The orchestrator logs a fresh visibility note with the current time before each such run.
