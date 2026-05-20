@@ -198,8 +198,13 @@ This window is a strong success if, in addition to the floor above:
 
 ## Immediate next step
 
-Choose the first isolated post-baseline mechanism question in the **clarified architecture frame**: single-block vs multi-block local learning on a shared `d_model` residual stream, with explicit stop-gradient boundaries at block interfaces, and report-first design.
+Redo the local-learning experiment in the **clarified architecture frame**:
 
-Note: the already-run local-learning experiment (`research/questions/local-learning/`) used a now-superseded architecture interpretation (detached recurrent stacks). Review that result before starting the next code run — it informs what to do differently, but it does not directly settle the single-block question.
+- Module = single residual block (e.g. LayerNorm + Linear + activation + Linear)
+- Interface = shared residual stream at uniform `d_model`
+- Stop gradients at block boundaries
+- Local prediction head at each boundary predicts the next incoming residual
+- Compare: 1 block (control), 3 blocks, 6 blocks — all at ~186K params, same d_model throughout
+- No recurrence, no bottleneck, no per-module hidden dimension
 
-Also: the baseline reports (`base_experiments/README.md`) need example inputs and outputs at different loss stages from multiple models. Max wants to see what the models actually produce as they train, not just final numbers.
+The old recurrent-stack experiment (`research/questions/local-learning/`) is superseded but kept for reference. The new experiment should go in a new question folder (e.g. `research/questions/local-learning-residual/`).
