@@ -127,3 +127,35 @@ Forward-time breakdown from `timing_report.json`:
 ```
 
 So at this rung the async implementation looks like a fair vehicle for the idea: dense module compute dominates, bookkeeping stays small, and the variant did not reintroduce the previously-failed sparse execution pattern.
+
+### Stage 4 overfit one batch
+
+Artifact: [`overfit_report.json`](../../../experiments/async_volatile_memory/artifacts/stage4/overfit_report.json)
+
+One-batch memorization on the same TinyShakespeare frame, same optimizer, same LR, same seed, same `d_model`, same module count, same ticks:
+
+| Variant | Memorized? | Hit step | Final loss | Final accuracy |
+|---|---:|---:|---:|---:|
+| Synchronous control | yes | `18` | `0.000052` | `1.0` |
+| Async stale reads | yes | `11` | `0.000036` | `1.0` |
+
+Inline excerpt from `overfit_report.json`:
+
+```json
+{
+  "synchronous_control": {
+    "memorized": true,
+    "hit_step": 18,
+    "final_loss": 0.000052,
+    "final_accuracy": 1.0
+  },
+  "async_stale_reads": {
+    "memorized": true,
+    "hit_step": 11,
+    "final_loss": 0.000036,
+    "final_accuracy": 1.0
+  }
+}
+```
+
+So the stale-read mechanism is not obviously breaking optimization at the first rung. On this fixed batch, both matched variants memorize cleanly.
