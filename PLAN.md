@@ -201,33 +201,27 @@ This window is a strong success if, in addition to the floor above:
 - **Local learning (residual)** — NEGATIVE. Stop-gradient boundaries + local prediction heads on residual blocks clearly hurt vs matched end-to-end (best val 2.081 vs 1.644, 3-block). Mechanism works mechanically but LM quality tanks. See `research/questions/local-learning-residual/README.md`.
 - **Attention-residual (depth-only)** — MARGINAL/INCONCLUSIVE. Content-based attention over earlier boundary states shows no stable improvement (transient 0.013 nat edge at peak, regresses to worse by end of training). 33% slower. Not worth pursuing further at this budget. See `research/questions/attention-residual/README.md`.
 - **Async/selective execution** — CUT (NEGATIVE). Learned per-token gating works mechanically (gates learn genuine selectivity, no collapse) but GPU wall-clock is 26-29% WORSE despite 15-32% fewer logical block executions. Per-token conditional execution breaks batched GPU parallelism. Premise falsified at tiny rung; stopped before full standardized. See `research/questions/async-selective/README.md`.
-- **GPU utilization study** — CONFIRMED Max's hypothesis. At matched params on RTX 3090: GRU is 1.8-2.8x faster training than transformer, LSTM is 1.4-2.5x faster. Decode: GRU 2.5-3.7x faster (constant cost vs transformer's growing KV cache). See `research/questions/gpu-utilization/README.md`.
-- **Causal triangle attention residuals** — NEGATIVE. Extending depth-only attention to attend over depth+sequence in a 2D causal mask. Worse than both baseline (+0.028 nats) and depth-only (+0.049 nats), and 1.8x slower. Mechanism verified correct; the architecture simply doesn't help at this scale. See `research/questions/causal-triangle-attention/README.md`.
-- **Async volatile-memory prototype** — POSITIVE (mechanism viable). Dense execution with stale shared-memory reads: mechanically verified, trains within noise of sync control (best val 1.658 vs 1.657), no wall-clock overhead. Demonstrates the execution model Max asked for. True hardware-level async (independent CUDA streams) not yet implemented but semantics proven. See `research/questions/async-volatile-memory/README.md`.
+- **GPU utilization study** — CONFIRMED Max's hypothesis, then EXTENDED with full hardware deep dive. GRU 1.8-2.8x faster training, 2.5-3.7x faster decode. Profiler reveals WHY: GRU hits Tensor Core paths (CUTLASS tensorop kernels) even in FP32 while transformer at this scale stays on CUDA cores. GRU spends 69% of time in GPU kernels vs transformer's 51%. Sequence length sweep shows GRU holds 1.2-1.4M tok/s flat from ctx=32 to ctx=1024 while transformer drops from 530K to 276K. See `research/questions/gpu-utilization/README.md`.
+- **Causal triangle attention residuals** — NEGATIVE. Extending depth-only attention to attend over depth+sequence in a 2D causal mask. Worse than both baseline (+0.028 nats) and depth-only (+0.049 nats), and 1.8x slower. See `research/questions/causal-triangle-attention/README.md`.
+- **Async volatile-memory prototype** — POSITIVE (mechanism viable). Dense execution with stale shared-memory reads: mechanically verified, trains within noise of sync control (best val 1.658 vs 1.657), no wall-clock overhead. Demonstrates the execution model Max asked for. See `research/questions/async-volatile-memory/README.md`.
+- **Self-prediction / compute compression** — NEGATIVE. Adding auxiliary KL loss (shallow logits → detached deep logits) to the dynamic-depth GRU. At every fixed depth, the self-prediction variant is slightly worse (Δ +0.011 to +0.018 nats). Halting frontier also worse. See `research/questions/self-prediction-compute-compression/README.md`.
 
 ## Assessment
 
-Six isolated experiments completed. The boundary mechanisms that tried to improve quality all failed. But the async volatile-memory prototype succeeded at its actual goal: proving the execution model is viable without speed penalty.
+Eight experiments/investigations completed. The picture is now clear:
 
-The emerging picture:
-1. **RNNs are significantly faster** than transformers on this hardware (GPU utilization study)
+1. **RNNs are significantly faster** than transformers on this hardware — and the profiler shows exactly why (Tensor Core paths, kernel consolidation, weight reuse)
 2. **Async shared-memory semantics** don't break training (volatile-memory prototype)
-3. **Boundary tricks for quality** don't work at this scale (local learning, attention residuals, causal triangle)
+3. **Boundary tricks for quality** don't work at this scale (local learning, attention residuals, causal triangle, self-prediction)
+4. **The hardware story is understood** — arithmetic intensity, not "fits in cache," is the right mental model
 
-This points toward: **RNN-based architecture + async execution model** as the productive direction, not "transformer + boundary tricks."
-
-- **Self-prediction / compute compression** — NEGATIVE. Adding auxiliary KL loss (shallow logits → detached deep logits) to the dynamic-depth GRU. At every fixed depth, the self-prediction variant is slightly worse (Δ +0.011 to +0.018 nats). Halting frontier also worse. The model's existing multi-exit training already extracts what shallow steps can learn; explicit self-distillation adds noise. See `research/questions/self-prediction-compute-compression/README.md`.
+This points toward: **RNN-based architecture + async execution model** as the productive direction. The next experiments should build on GRU's proven throughput advantage and the async semantics that work.
 
 ## Immediate next step
 
-**GPU utilization deep dive (dictation 2026-05-20-13).** Max wants to understand:
-1. Why GPU utilization is poor in current experiments
-2. What model shape fits the RTX 3090 best — "what's the largest parameter shape that just sits in cache, repeatedly processing data?"
-3. Sequence length comparisons between transformers and RNNs
-4. Whether RNNs avoid the memory-bandwidth bottleneck that limits transformers
+Candidates, roughly prioritized:
 
-This connects to the GPU utilization study already done but goes deeper — Max wants to understand the *hardware* story, not just the throughput numbers. He explicitly says "please teach me."
-
-Other candidates:
-- **Broadcast router** — global communication channel to all modules
-- **Loop management tooling** — dictation 2026-05-20-14 asks for better visibility into the loop (show recent subagent messages, allow sending messages)
+1. **Combine async + GRU** — run the volatile-memory prototype with GRU modules instead of linear modules. Does the throughput advantage survive when real recurrent computation is the module?
+2. **Scale up** — current experiments are all ~186K-1M params. The GPU utilization story suggests scaling width first (bigger GEMMs = better Tensor Core utilization). Try ~10M param GRU with async semantics.
+3. **Broadcast router** — global communication channel to all modules
+4. **Loop management tooling** — dictation 2026-05-20-14 asks for better visibility into the loop
