@@ -1,0 +1,115 @@
+[
+  {
+    "name": "dataset_round_trip",
+    "ok": true,
+    "sample": "First Citizen:\\nBefore we proceed"
+  },
+  {
+    "name": "forward_shape",
+    "ok": true,
+    "expected_shape": [
+      8,
+      52
+    ],
+    "actual_shape": [
+      8,
+      52
+    ]
+  },
+  {
+    "name": "known_tiny_batch_loss",
+    "ok": true,
+    "loss": 3.9983134269714355,
+    "expected_range": [
+      2.9512437185814275,
+      4.951243718581427
+    ]
+  },
+  {
+    "name": "one_batch_memorization",
+    "ok": true,
+    "final_total_loss": 0.00456742150709033,
+    "final_task_loss": 0.0003521821345202625,
+    "final_auxiliary_total": 0.42152395844459534,
+    "final_accuracy": 1.0,
+    "trace": [
+      {
+        "step": 0,
+        "total_loss": 3.991271,
+        "task_loss": 3.986724,
+        "auxiliary_total": 0.45468,
+        "accuracy": 0.03125
+      },
+      {
+        "step": 20,
+        "total_loss": 0.082611,
+        "task_loss": 0.07252,
+        "auxiliary_total": 1.009114,
+        "accuracy": 1.0
+      },
+      {
+        "step": 40,
+        "total_loss": 0.009465,
+        "task_loss": 0.002853,
+        "auxiliary_total": 0.661228,
+        "accuracy": 1.0
+      },
+      {
+        "step": 60,
+        "total_loss": 0.006713,
+        "task_loss": 0.001104,
+        "auxiliary_total": 0.560891,
+        "accuracy": 1.0
+      },
+      {
+        "step": 80,
+        "total_loss": 0.006814,
+        "task_loss": 0.001493,
+        "auxiliary_total": 0.532044,
+        "accuracy": 1.0
+      },
+      {
+        "step": 100,
+        "total_loss": 0.005926,
+        "task_loss": 0.000894,
+        "auxiliary_total": 0.5032,
+        "accuracy": 1.0
+      },
+      {
+        "step": 120,
+        "total_loss": 0.005337,
+        "task_loss": 0.000582,
+        "auxiliary_total": 0.475459,
+        "accuracy": 1.0
+      },
+      {
+        "step": 140,
+        "total_loss": 0.004986,
+        "task_loss": 0.000492,
+        "auxiliary_total": 0.449369,
+        "accuracy": 1.0
+      },
+      {
+        "step": 160,
+        "total_loss": 0.004766,
+        "task_loss": 0.00043,
+        "auxiliary_total": 0.433582,
+        "accuracy": 1.0
+      },
+      {
+        "step": 180,
+        "total_loss": 0.00468,
+        "task_loss": 0.000385,
+        "auxiliary_total": 0.429546,
+        "accuracy": 1.0
+      },
+      {
+        "step": 200,
+        "total_loss": 0.004567,
+        "task_loss": 0.000352,
+        "auxiliary_total": 0.421524,
+        "accuracy": 1.0
+      }
+    ]
+  }
+]

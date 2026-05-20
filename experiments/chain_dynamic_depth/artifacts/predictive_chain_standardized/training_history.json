@@ -1,0 +1,156 @@
+[
+  {
+    "epoch": 0,
+    "train_total_loss": 4.119452,
+    "train_task_loss": 4.114888,
+    "train_auxiliary_total": 0.456427,
+    "train_accuracy": 0.016955,
+    "val_total_loss": 4.122432,
+    "val_task_loss": 4.11788,
+    "val_auxiliary_total": 0.455181,
+    "val_accuracy": 0.013772
+  },
+  {
+    "epoch": 1,
+    "train_total_loss": 2.163834,
+    "train_task_loss": 2.159679,
+    "train_auxiliary_total": 0.415441,
+    "train_accuracy": 0.390825,
+    "val_total_loss": 1.918613,
+    "val_task_loss": 1.914433,
+    "val_auxiliary_total": 0.417995,
+    "val_accuracy": 0.441206
+  },
+  {
+    "epoch": 2,
+    "train_total_loss": 1.79249,
+    "train_task_loss": 1.788303,
+    "train_auxiliary_total": 0.418745,
+    "train_accuracy": 0.474172,
+    "val_total_loss": 1.846611,
+    "val_task_loss": 1.84233,
+    "val_auxiliary_total": 0.428061,
+    "val_accuracy": 0.467097
+  },
+  {
+    "epoch": 3,
+    "train_total_loss": 1.71158,
+    "train_task_loss": 1.707321,
+    "train_auxiliary_total": 0.425855,
+    "train_accuracy": 0.493758,
+    "val_total_loss": 1.756712,
+    "val_task_loss": 1.752358,
+    "val_auxiliary_total": 0.435468,
+    "val_accuracy": 0.48733
+  },
+  {
+    "epoch": 4,
+    "train_total_loss": 1.645845,
+    "train_task_loss": 1.641548,
+    "train_auxiliary_total": 0.429673,
+    "train_accuracy": 0.510353,
+    "val_total_loss": 1.735495,
+    "val_task_loss": 1.731125,
+    "val_auxiliary_total": 0.437016,
+    "val_accuracy": 0.489433
+  },
+  {
+    "epoch": 5,
+    "train_total_loss": 1.602194,
+    "train_task_loss": 1.59787,
+    "train_auxiliary_total": 0.432426,
+    "train_accuracy": 0.520347,
+    "val_total_loss": 1.739877,
+    "val_task_loss": 1.735484,
+    "val_auxiliary_total": 0.439239,
+    "val_accuracy": 0.4998
+  },
+  {
+    "epoch": 6,
+    "train_total_loss": 1.57269,
+    "train_task_loss": 1.56834,
+    "train_auxiliary_total": 0.435035,
+    "train_accuracy": 0.526478,
+    "val_total_loss": 1.701775,
+    "val_task_loss": 1.697342,
+    "val_auxiliary_total": 0.443294,
+    "val_accuracy": 0.505659
+  },
+  {
+    "epoch": 7,
+    "train_total_loss": 1.54927,
+    "train_task_loss": 1.544905,
+    "train_auxiliary_total": 0.436589,
+    "train_accuracy": 0.533171,
+    "val_total_loss": 1.683816,
+    "val_task_loss": 1.679352,
+    "val_auxiliary_total": 0.446407,
+    "val_accuracy": 0.511218
+  },
+  {
+    "epoch": 8,
+    "train_total_loss": 1.547273,
+    "train_task_loss": 1.542853,
+    "train_auxiliary_total": 0.441994,
+    "train_accuracy": 0.533551,
+    "val_total_loss": 1.685001,
+    "val_task_loss": 1.680479,
+    "val_auxiliary_total": 0.452129,
+    "val_accuracy": 0.504858
+  },
+  {
+    "epoch": 9,
+    "train_total_loss": 1.517754,
+    "train_task_loss": 1.513361,
+    "train_auxiliary_total": 0.439333,
+    "train_accuracy": 0.540253,
+    "val_total_loss": 1.689281,
+    "val_task_loss": 1.684803,
+    "val_auxiliary_total": 0.447795,
+    "val_accuracy": 0.511468
+  },
+  {
+    "epoch": 10,
+    "train_total_loss": 1.526761,
+    "train_task_loss": 1.522346,
+    "train_auxiliary_total": 0.441517,
+    "train_accuracy": 0.538942,
+    "val_total_loss": 1.730873,
+    "val_task_loss": 1.726382,
+    "val_auxiliary_total": 0.449054,
+    "val_accuracy": 0.497396
+  },
+  {
+    "epoch": 11,
+    "train_total_loss": 1.54795,
+    "train_task_loss": 1.543528,
+    "train_auxiliary_total": 0.442224,
+    "train_accuracy": 0.533251,
+    "val_total_loss": 1.715408,
+    "val_task_loss": 1.710939,
+    "val_auxiliary_total": 0.446843,
+    "val_accuracy": 0.505559
+  },
+  {
+    "epoch": 12,
+    "train_total_loss": 1.522732,
+    "train_task_loss": 1.518331,
+    "train_auxiliary_total": 0.440053,
+    "train_accuracy": 0.539693,
+    "val_total_loss": 1.698452,
+    "val_task_loss": 1.693956,
+    "val_auxiliary_total": 0.449553,
+    "val_accuracy": 0.508564
+  },
+  {
+    "epoch": 13,
+    "train_total_loss": 1.506554,
+    "train_task_loss": 1.502153,
+    "train_auxiliary_total": 0.440104,
+    "train_accuracy": 0.542924,
+    "val_total_loss": 1.680406,
+    "val_task_loss": 1.675908,
+    "val_auxiliary_total": 0.449871,
+    "val_accuracy": 0.507712
+  }
+]
