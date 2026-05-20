@@ -1,0 +1,26 @@
+{
+  "prompt": "First Citizen:\\nBefore we proceed",
+  "sample_length": 200,
+  "checkpoints": [
+    {
+      "epoch": 0,
+      "val_loss": 4.253161,
+      "sample": "First Citizen:\nBefore we proceedvbvbvbvbvevevgHevevevevevevevevgAfevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevevev"
+    },
+    {
+      "epoch": 1,
+      "val_loss": 1.960112,
+      "sample": "First Citizen:\nBefore we proceed the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the"
+    },
+    {
+      "epoch": 2,
+      "val_loss": 1.83026,
+      "sample": "First Citizen:\nBefore we proceed the see the sent the store the sent the sent the sent the sto the see the sent the sto the see the sent the sto the see the sent the sto the see the sent the sto the see the sent the sto the see the "
+    },
+    {
+      "epoch": 4,
+      "val_loss": 1.737541,
+      "sample": "First Citizen:\nBefore we proceed the power the power\nThan a so will the power the power\nThan a so and the power the power\nThan a so will the power the power\nThan a so and the power the power\nThan a so will the power the power\nThan a"
+    }
+  ]
+}
