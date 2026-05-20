@@ -1,0 +1,282 @@
+{
+  "git_sha": "a6dd81aeb1c6e36e391bfbad2ae844474628e35f",
+  "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+  "torch_version": "2.11.0+cu128",
+  "cuda_device_name": "NVIDIA GeForce RTX 3090",
+  "target_parameters": 1000000,
+  "warmup_steps": 8,
+  "timed_steps": 30,
+  "results": [
+    {
+      "family": "transformer",
+      "target_parameters": 1000000,
+      "context_size": 32,
+      "parameter_count": 1012417,
+      "batch_size": 512,
+      "timed_steps": 30,
+      "config": {
+        "family": "transformer",
+        "hidden_size": 128,
+        "num_layers": 5,
+        "num_heads": 4,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 512,
+        "tokens_per_second": 528524.1989708988,
+        "milliseconds_per_step": 30.999526666710153,
+        "peak_vram_bytes": 767489536,
+        "loss_mean": 3.714103356997172,
+        "loss_stdev": 0.28114103012899233
+      }
+    },
+    {
+      "family": "transformer",
+      "target_parameters": 1000000,
+      "context_size": 64,
+      "parameter_count": 1016513,
+      "batch_size": 256,
+      "timed_steps": 30,
+      "config": {
+        "family": "transformer",
+        "hidden_size": 128,
+        "num_layers": 5,
+        "num_heads": 4,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 256,
+        "tokens_per_second": 530392.9787674675,
+        "milliseconds_per_step": 30.890303333338426,
+        "peak_vram_bytes": 767538688,
+        "loss_mean": 3.748267936706543,
+        "loss_stdev": 0.24796731475008496
+      }
+    },
+    {
+      "family": "transformer",
+      "target_parameters": 1000000,
+      "context_size": 128,
+      "parameter_count": 1024705,
+      "batch_size": 256,
+      "timed_steps": 30,
+      "config": {
+        "family": "transformer",
+        "hidden_size": 128,
+        "num_layers": 5,
+        "num_heads": 4,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 256,
+        "tokens_per_second": 542032.5260315362,
+        "milliseconds_per_step": 60.453936666696485,
+        "peak_vram_bytes": 1504589824,
+        "loss_mean": 3.9758690039316815,
+        "loss_stdev": 0.115473491703534
+      }
+    },
+    {
+      "family": "transformer",
+      "target_parameters": 1000000,
+      "context_size": 256,
+      "parameter_count": 996945,
+      "batch_size": 32,
+      "timed_steps": 30,
+      "config": {
+        "family": "transformer",
+        "hidden_size": 272,
+        "num_layers": 1,
+        "num_heads": 8,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 32,
+        "tokens_per_second": 515026.9636811283,
+        "milliseconds_per_step": 15.905963333352702,
+        "peak_vram_bytes": 359233536,
+        "loss_mean": 3.0946932554244997,
+        "loss_stdev": 0.6013255060777593
+      }
+    },
+    {
+      "family": "transformer",
+      "target_parameters": 1000000,
+      "context_size": 512,
+      "parameter_count": 1013441,
+      "batch_size": 16,
+      "timed_steps": 30,
+      "config": {
+        "family": "transformer",
+        "hidden_size": 192,
+        "num_layers": 2,
+        "num_heads": 6,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 16,
+        "tokens_per_second": 600383.3013486852,
+        "milliseconds_per_step": 13.644616666715592,
+        "peak_vram_bytes": 279196160,
+        "loss_mean": 3.2197442054748535,
+        "loss_stdev": 0.5163106987457057
+      }
+    },
+    {
+      "family": "transformer",
+      "target_parameters": 1000000,
+      "context_size": 1024,
+      "parameter_count": 1005761,
+      "batch_size": 16,
+      "timed_steps": 30,
+      "config": {
+        "family": "transformer",
+        "hidden_size": 96,
+        "num_layers": 8,
+        "num_heads": 2,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 16,
+        "tokens_per_second": 276086.7179214354,
+        "milliseconds_per_step": 59.343673333326784,
+        "peak_vram_bytes": 881243136,
+        "loss_mean": 3.8906797647476195,
+        "loss_stdev": 0.16861908157953848
+      }
+    },
+    {
+      "family": "gru",
+      "target_parameters": 1000000,
+      "context_size": 32,
+      "parameter_count": 1003233,
+      "batch_size": 512,
+      "timed_steps": 30,
+      "config": {
+        "family": "gru",
+        "hidden_size": 232,
+        "num_layers": 3,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 512,
+        "tokens_per_second": 1405357.525280715,
+        "milliseconds_per_step": 11.658243333295104,
+        "peak_vram_bytes": 529162752,
+        "loss_mean": 3.8996668020884195,
+        "loss_stdev": 0.16030001184074813
+      }
+    },
+    {
+      "family": "gru",
+      "target_parameters": 1000000,
+      "context_size": 64,
+      "parameter_count": 1003233,
+      "batch_size": 512,
+      "timed_steps": 30,
+      "config": {
+        "family": "gru",
+        "hidden_size": 232,
+        "num_layers": 3,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 512,
+        "tokens_per_second": 1161539.323181964,
+        "milliseconds_per_step": 28.210840000004584,
+        "peak_vram_bytes": 1007869952,
+        "loss_mean": 4.009949398040772,
+        "loss_stdev": 0.09460863857519217
+      }
+    },
+    {
+      "family": "gru",
+      "target_parameters": 1000000,
+      "context_size": 128,
+      "parameter_count": 1003233,
+      "batch_size": 512,
+      "timed_steps": 30,
+      "config": {
+        "family": "gru",
+        "hidden_size": 232,
+        "num_layers": 3,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 512,
+        "tokens_per_second": 1210276.9383829727,
+        "milliseconds_per_step": 54.14959000008821,
+        "peak_vram_bytes": 1964823552,
+        "loss_mean": 4.079570198059082,
+        "loss_stdev": 0.055356094784145445
+      }
+    },
+    {
+      "family": "gru",
+      "target_parameters": 1000000,
+      "context_size": 256,
+      "parameter_count": 1003233,
+      "batch_size": 512,
+      "timed_steps": 30,
+      "config": {
+        "family": "gru",
+        "hidden_size": 232,
+        "num_layers": 3,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 512,
+        "tokens_per_second": 1241537.7505415482,
+        "milliseconds_per_step": 105.57230333336823,
+        "peak_vram_bytes": 3868251136,
+        "loss_mean": 4.12214035987854,
+        "loss_stdev": 0.02964155589027212
+      }
+    },
+    {
+      "family": "gru",
+      "target_parameters": 1000000,
+      "context_size": 512,
+      "parameter_count": 1003233,
+      "batch_size": 256,
+      "timed_steps": 30,
+      "config": {
+        "family": "gru",
+        "hidden_size": 232,
+        "num_layers": 3,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 256,
+        "tokens_per_second": 1217780.9471555313,
+        "milliseconds_per_step": 107.63183666664797,
+        "peak_vram_bytes": 3854274048,
+        "loss_mean": 4.1208417574564615,
+        "loss_stdev": 0.03044557303669481
+      }
+    },
+    {
+      "family": "gru",
+      "target_parameters": 1000000,
+      "context_size": 1024,
+      "parameter_count": 1003233,
+      "batch_size": 512,
+      "timed_steps": 30,
+      "config": {
+        "family": "gru",
+        "hidden_size": 232,
+        "num_layers": 3,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 512,
+        "tokens_per_second": 1199027.3728382497,
+        "milliseconds_per_step": 437.26107666661846,
+        "peak_vram_bytes": 15288816640,
+        "loss_mean": 4.159919913609823,
+        "loss_stdev": 0.008729144431667538
+      }
+    }
+  ],
+  "summary_table": "family       ctx   params      batch  train tok/s  ms/step  peak VRAM\n-----------  ----  ----------  -----  -----------  -------  ---------\ntransformer    32   1,012,417    512      528,524    31.00      0.71G\ntransformer    64   1,016,513    256      530,393    30.89      0.71G\ntransformer   128   1,024,705    256      542,033    60.45      1.40G\ntransformer   256     996,945     32      515,027    15.91      0.33G\ntransformer   512   1,013,441     16      600,383    13.64      0.26G\ntransformer  1024   1,005,761     16      276,087    59.34      0.82G\ngru            32   1,003,233    512    1,405,358    11.66      0.49G\ngru            64   1,003,233    512    1,161,539    28.21      0.94G\ngru           128   1,003,233    512    1,210,277    54.15      1.83G\ngru           256   1,003,233    512    1,241,538   105.57      3.60G\ngru           512   1,003,233    256    1,217,781   107.63      3.59G\ngru          1024   1,003,233    512    1,199,027   437.26     14.24G"
+}
