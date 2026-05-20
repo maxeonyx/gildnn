@@ -201,6 +201,7 @@ This window is a strong success if, in addition to the floor above:
 - **Local learning (residual)** — NEGATIVE. Stop-gradient boundaries + local prediction heads on residual blocks clearly hurt vs matched end-to-end (best val 2.081 vs 1.644, 3-block). Mechanism works mechanically but LM quality tanks. See `research/questions/local-learning-residual/README.md`.
 - **Attention-residual (depth-only)** — MARGINAL/INCONCLUSIVE. Content-based attention over earlier boundary states shows no stable improvement (transient 0.013 nat edge at peak, regresses to worse by end of training). 33% slower. Not worth pursuing further at this budget. See `research/questions/attention-residual/README.md`.
 - **Async/selective execution** — CUT (NEGATIVE). Learned per-token gating works mechanically (gates learn genuine selectivity, no collapse) but GPU wall-clock is 26-29% WORSE despite 15-32% fewer logical block executions. Per-token conditional execution breaks batched GPU parallelism. Premise falsified at tiny rung; stopped before full standardized. See `research/questions/async-selective/README.md`.
+- **GPU utilization study** — CONFIRMED Max's hypothesis. At matched params on RTX 3090: GRU is 1.8-2.8x faster training than transformer, LSTM is 1.4-2.5x faster. Decode: GRU 2.5-3.7x faster (constant cost vs transformer's growing KV cache). See `research/questions/gpu-utilization/README.md`.
 
 ## Assessment of boundary mechanisms
 
@@ -222,17 +223,11 @@ Key untested ideas from dictations:
 
 ## Immediate next step
 
-**GPU utilization study.** This is:
-1. Explicitly flagged by Max as overdue ("obvious")
-2. A prerequisite for the async/performance story being credible
-3. Requires no novel architecture — just measurement on plain models
-4. Tests Max's hypothesis: "I tend to think we can get significantly more FLOPs out of a GPU training an RNN than a transformer"
+**Causal triangle attention residuals.** This is the explicitly-requested second variant of depth attention — attending across both depth AND sequence in a causal triangle mask. Max's words: "another one where every attention model is attentive over depth and sequence length in a causal triangle. So it can't attend to the same layer in previous step."
 
-Measure on RTX 3090 under matched parameters:
-- Wall-clock training time per batch
-- GPU compute utilization (not just theoretical FLOPs)
-- Memory bandwidth utilization
-- Inference throughput (tokens/sec for generation)
-- Models: standard transformer, RNN (LSTM or GRU), and possibly Mamba/SSM
+This is interesting because it bridges toward Max's looped-block RNN vision — attention residuals across time are essentially what makes looped transformer blocks equivalent to an RNN with attention over history.
 
-After that: **causal triangle attention residuals** (the explicitly-requested second variant).
+Other candidates after that:
+- True async/volatile-memory prototype (toy, possibly untrained)
+- Broadcast router experiment
+- Dynamic depth in isolation
