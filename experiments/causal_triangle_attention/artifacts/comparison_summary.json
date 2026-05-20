@@ -1,0 +1,79 @@
+{
+  "mechanical_trust": {
+    "parameter_counts": {
+      "external_control": 186805,
+      "depth_only": 186946,
+      "causal_triangle": 186799
+    },
+    "parameter_delta_vs_external_control": {
+      "depth_only": 141,
+      "causal_triangle": -6
+    },
+    "rough_compute_relative_to_external_control": {
+      "external_control": 1.0,
+      "depth_only": 1.0,
+      "causal_triangle": 1.1435185185185186
+    },
+    "causal_triangle_probe": {
+      "allowed_same_layer_past_timestep": 0.001070261001586914,
+      "allowed_earlier_layer_same_timestep": 0.001018136739730835,
+      "forbidden_same_layer_same_timestep": 0.0,
+      "forbidden_same_layer_future_timestep": 0.0,
+      "forbidden_earlier_layer_future_timestep": 0.0
+    }
+  },
+  "overfit": {
+    "external_control": {
+      "steps_run": 15,
+      "final_loss": 0.01618570275604725,
+      "final_accuracy": 1.0
+    },
+    "depth_only": {
+      "steps_run": 14,
+      "final_loss": 0.014182763174176216,
+      "final_accuracy": 1.0
+    },
+    "causal_triangle": {
+      "steps_run": 14,
+      "final_loss": 0.01478668861091137,
+      "final_accuracy": 1.0
+    }
+  },
+  "tiny": {
+    "external_control": {
+      "best_val_loss": 2.586105,
+      "final_val_loss": 2.5861046083511843,
+      "runtime_seconds": 2.0601016000000527
+    },
+    "depth_only": {
+      "best_val_loss": 2.581598,
+      "final_val_loss": 2.5815983433877268,
+      "runtime_seconds": 2.7307218999994802
+    },
+    "causal_triangle": {
+      "best_val_loss": 2.568915,
+      "final_val_loss": 2.568914598034274,
+      "runtime_seconds": 3.9760493999983737
+    }
+  },
+  "full": {
+    "external_control": {
+      "best_val_loss": 1.638869,
+      "final_val_loss": 1.6408166212913318,
+      "runtime_seconds": 83.96286419999888,
+      "best_epoch": 11
+    },
+    "depth_only": {
+      "best_val_loss": 1.61805,
+      "final_val_loss": 1.6404173832673292,
+      "runtime_seconds": 116.412101599999,
+      "best_epoch": 12
+    },
+    "causal_triangle": {
+      "best_val_loss": 1.666854,
+      "final_val_loss": 1.6966725893509693,
+      "runtime_seconds": 152.2520837000011,
+      "best_epoch": 8
+    }
+  }
+}

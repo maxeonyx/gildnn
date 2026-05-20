@@ -1,0 +1,100 @@
+[
+  {
+    "epoch": 0,
+    "train_loss": 4.255054,
+    "train_accuracy": 0.018786,
+    "val_loss": 4.264182,
+    "val_accuracy": 0.021685
+  },
+  {
+    "epoch": 1,
+    "train_loss": 2.168929,
+    "train_accuracy": 0.382792,
+    "val_loss": 1.945497,
+    "val_accuracy": 0.433494
+  },
+  {
+    "epoch": 2,
+    "train_loss": 1.797696,
+    "train_accuracy": 0.46795,
+    "val_loss": 1.810787,
+    "val_accuracy": 0.473508
+  },
+  {
+    "epoch": 3,
+    "train_loss": 1.685137,
+    "train_accuracy": 0.492418,
+    "val_loss": 1.739634,
+    "val_accuracy": 0.483774
+  },
+  {
+    "epoch": 4,
+    "train_loss": 1.616013,
+    "train_accuracy": 0.510873,
+    "val_loss": 1.7084,
+    "val_accuracy": 0.488882
+  },
+  {
+    "epoch": 5,
+    "train_loss": 1.567751,
+    "train_accuracy": 0.522037,
+    "val_loss": 1.67332,
+    "val_accuracy": 0.498998
+  },
+  {
+    "epoch": 6,
+    "train_loss": 1.529206,
+    "train_accuracy": 0.53135,
+    "val_loss": 1.676845,
+    "val_accuracy": 0.49379
+  },
+  {
+    "epoch": 7,
+    "train_loss": 1.499066,
+    "train_accuracy": 0.537712,
+    "val_loss": 1.651727,
+    "val_accuracy": 0.507462
+  },
+  {
+    "epoch": 8,
+    "train_loss": 1.466013,
+    "train_accuracy": 0.546615,
+    "val_loss": 1.644734,
+    "val_accuracy": 0.505759
+  },
+  {
+    "epoch": 9,
+    "train_loss": 1.44031,
+    "train_accuracy": 0.553567,
+    "val_loss": 1.649283,
+    "val_accuracy": 0.508914
+  },
+  {
+    "epoch": 10,
+    "train_loss": 1.418354,
+    "train_accuracy": 0.557658,
+    "val_loss": 1.650603,
+    "val_accuracy": 0.510417
+  },
+  {
+    "epoch": 11,
+    "train_loss": 1.395849,
+    "train_accuracy": 0.56399,
+    "val_loss": 1.638869,
+    "val_accuracy": 0.510417
+  },
+  {
+    "epoch": 12,
+    "train_loss": 1.374308,
+    "train_accuracy": 0.569162,
+    "val_loss": 1.642318,
+    "val_accuracy": 0.510817
+  },
+  {
+    "epoch": 13,
+    "train_loss": 1.357251,
+    "train_accuracy": 0.572873,
+    "val_loss": 1.640817,
+    "val_accuracy": 0.514423
+  }
+]
