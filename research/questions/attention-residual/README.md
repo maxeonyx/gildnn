@@ -195,22 +195,30 @@ First Citizen:
 Before we proceed the people, and they are they do the people, and the people, and the common the people, and the people the people, and the common the people, and the people [...]
 ```
 
-## Interpretation
+## Conclusion
 
-- The depth-only path is mechanically distinct and did run as locked.
-- On this seed and frame, the depth-only model reached the best single validation loss (`1.631051`), beating both controls.
-- That gain did not hold to the final epoch: its final val loss regressed to `1.657420`, worse than both controls.
-- The internal control stayed close to the baseline and ended with the best final val loss of the three completed runs (`1.645569`), but it did not beat the baseline on best val loss.
-- The depth-only variant cost about `1.33x` baseline runtime (`112.42s / 84.60s`).
+### Result
 
-So the current result is: the content-based depth read looks capable of buying a transient best-loss improvement on this fixed frame, but the effect is modest, unstable across epochs, and not obviously worth the extra runtime yet.
+Marginal / inconclusive. The depth-only attention-residual variant is mechanically distinct from a standard transformer, but at this budget and frame it shows no meaningful language-modeling improvement.
 
-## What this does not settle
+### Key evidence
 
-- Seed stability of the depth-only win
-- Whether different regularization or checkpoint selection would preserve the depth-only best-loss edge
-- Whether Variant B (depth+sequence / 2D memory) is more meaningful
-- Whether the mechanism remains interesting once runtime is treated as part of the budget, not just params
+- The best validation-loss edge is only `0.012488` nats (`1.643539 -> 1.631051`), which is small enough to treat as single-seed noise until shown otherwise.
+- The advantage is transient: the depth-only model peaks at epoch 11, then regresses to a final validation loss of `1.657420`, worse than the baseline's `1.654424`.
+- The internal control, which exposes the same residual-history bank without content-based selection, stays essentially baseline-like (`best 1.645569`, `final 1.645569`), so content-based depth selection adds no clear value here.
+- The depth-only model costs about `33%` more runtime (`112.42s` vs `84.60s`) for no stable quality gain.
+
+### What this settles
+
+At roughly `186K` parameters on TinyShakespeare character-level LM, content-based attention over earlier residual-stream boundary states does not meaningfully help quality. The mechanism works mechanically, but it does not earn its compute cost on this comparison frame.
+
+### What this does not settle
+
+- Whether the 2D depth+sequence variant would behave differently
+- Whether weight sharing / looped blocks would change the picture
+- Whether a larger-scale regime would make the mechanism more worthwhile
+
+Those remain open, but this result does not justify pursuing them from within the current depth-only line.
 
 ## Artifacts
 
