@@ -36,6 +36,7 @@ class RunConfig:
     stage2_learning_rate: float = 0.01
     stage2_log_interval: int = 25
     stage3_epochs: int = 4
+    stage4_epochs: int = 13
     sample_length: int = 320
     progression_sample_length: int = 200
     sample_checkpoints: tuple[int, ...] = (0, 1, 2, 4)
@@ -354,11 +355,12 @@ def stage3_train(
     prompt: str,
     config: RunConfig,
     device: torch.device,
+    epochs: int,
 ) -> tuple[list[dict[str, float | int]], list[dict[str, float | int | str]], dict[str, float], float, str]:
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
     history: list[dict[str, float | int]] = []
     progression_samples: list[dict[str, float | int | str]] = []
-    sample_epochs = {epoch for epoch in config.sample_checkpoints if epoch <= config.stage3_epochs}
+    sample_epochs = {epoch for epoch in config.sample_checkpoints if epoch <= epochs}
     started_at = time.perf_counter()
 
     initial_train_metrics = evaluate_model(
@@ -403,7 +405,7 @@ def stage3_train(
             }
         )
 
-    for epoch in range(1, config.stage3_epochs + 1):
+    for epoch in range(1, epochs + 1):
         train_metrics = train_one_epoch(
             model,
             optimizer,
@@ -463,7 +465,7 @@ def stage3_train(
 def parse_args() -> argparse.Namespace:
     repo_root = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
-    parser.add_argument("--stage", choices=["stage2", "stage3"], required=True)
+    parser.add_argument("--stage", choices=["stage2", "stage3", "stage4"], required=True)
     parser.add_argument("--variant", choices=sorted(VARIANTS), required=True)
     parser.add_argument("--device", choices=["cuda", "cpu"], default="cuda")
     parser.add_argument("--text-file", type=Path)
@@ -488,6 +490,11 @@ def main() -> None:
     raw_text = text_file.read_text(encoding="utf-8")
     split = build_fixed_length_split(raw_text, config=config)
     output_dir.mkdir(parents=True, exist_ok=True)
+    stage_label = args.stage
+    epochs = config.stage3_epochs
+    if args.stage == "stage4":
+        config = RunConfig(sample_checkpoints=(1, 5, 10, 13))
+        epochs = config.stage4_epochs
     model = make_model(
         vocab_size=split.train_dataset.vocab_size,
         context_size=config.context_size,
@@ -540,6 +547,7 @@ def main() -> None:
         prompt=prompt,
         config=config,
         device=device,
+        epochs=epochs,
     )
     write_json(output_dir / "training_history.json", history)
     write_json(
@@ -568,7 +576,7 @@ def main() -> None:
     )
     (output_dir / "sample.txt").write_text(sample, encoding="utf-8")
     print(
-        f"{variant.label} stage3 best_val_lm_loss={float(best_epoch_record['val_lm_loss']):.6f} "
+        f"{variant.label} {stage_label} best_val_lm_loss={float(best_epoch_record['val_lm_loss']):.6f} "
         f"runtime_seconds={runtime_seconds:.2f}"
     )
 

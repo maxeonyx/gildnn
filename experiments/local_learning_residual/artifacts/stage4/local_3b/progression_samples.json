@@ -1,0 +1,26 @@
+{
+  "prompt": "First Citizen:\\nBefore we proceed",
+  "sample_length": 200,
+  "checkpoints": [
+    {
+      "epoch": 1,
+      "val_lm_loss": 2.896261,
+      "sample": "First Citizen:\nBefore we proceed th th th th th  or  o  or  or or or oo ho ho he  he  he  he  h  o o  o  or or or or he  he  he  he  h or or o  he  or or or h or or he  or he  h or he  or he  he  o  or he  o or he  or h  or he  he  "
+    },
+    {
+      "epoch": 5,
+      "val_lm_loss": 2.438543,
+      "sample": "First Citizen:\nBefore we proceed the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the"
+    },
+    {
+      "epoch": 10,
+      "val_lm_loss": 2.323964,
+      "sample": "First Citizen:\nBefore we proceed have have have have have have have have have have have have have have have have have have have have have have have have have have have have have have have have have have have have have have have have"
+    },
+    {
+      "epoch": 13,
+      "val_lm_loss": 2.080552,
+      "sample": "First Citizen:\nBefore we proceed the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the"
+    }
+  ]
+}

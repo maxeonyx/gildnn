@@ -4,9 +4,9 @@ This question serves the block-boundary part of [dictation 2026-05-20-10](../../
 
 ## Status
 
-Stages 0-3 are now done for the attention-enabled residual-block version. The clarified architecture is implemented in [`experiments/local_learning_residual/`](../../../experiments/local_learning_residual/). Stage 1 mechanical trust checks are saved in [`mechanical_trust.json`](../../../experiments/local_learning_residual/artifacts/stage1_checks/mechanical_trust.json). Stage 2 overfit evidence is under [`artifacts/stage2/`](../../../experiments/local_learning_residual/artifacts/stage2/). Stage 3 tiny-run evidence is under [`artifacts/stage3/`](../../../experiments/local_learning_residual/artifacts/stage3/).
+Stages 0-4 are now done for the narrowed 3-block comparison. The clarified architecture is implemented in [`experiments/local_learning_residual/`](../../../experiments/local_learning_residual/). Stage 1 mechanical trust checks are saved in [`mechanical_trust.json`](../../../experiments/local_learning_residual/artifacts/stage1_checks/mechanical_trust.json). Stage 2 overfit evidence is under [`artifacts/stage2/`](../../../experiments/local_learning_residual/artifacts/stage2/). Stage 3 tiny-run evidence is under [`artifacts/stage3/`](../../../experiments/local_learning_residual/artifacts/stage3/). The first full standardized comparison is under [`artifacts/stage4/`](../../../experiments/local_learning_residual/artifacts/stage4/).
 
-Current answer, still only from the reduced Stage 3 rung: the stop-gradient local-learning variants train mechanically and can memorize one batch, but they are much worse than the matched end-to-end controls on short TinyShakespeare runs.
+Current answer: in this formulation, 3-block local learning clearly loses to a matched 3-block end-to-end control on TinyShakespeare. The result is now strong enough to call negative for this exact mechanism.
 
 ## Exact question
 
@@ -182,12 +182,51 @@ Before we proceed wo mo lo lo the whe the  oo eat hat hat he the whe he the he t
 
 Evidence from [`stage3/end_to_end_3b/progression_samples.json`](../../../experiments/local_learning_residual/artifacts/stage3/end_to_end_3b/progression_samples.json), [`stage3/local_3b/progression_samples.json`](../../../experiments/local_learning_residual/artifacts/stage3/local_3b/progression_samples.json), and [`stage3/local_6b/progression_samples.json`](../../../experiments/local_learning_residual/artifacts/stage3/local_6b/progression_samples.json).
 
+Important interpretation note before the full run: the Stage 3 `local_3b` curve was still improving at epoch 4, but no longer dropping steeply. The final step there was `2.670505 -> 2.581370` from epochs 3 to 4 — enough to justify a full standardized run, but not enough to suggest an obvious hidden late-training breakout.
+
+## Stage 4 — standardized 3-block comparison
+
+This uses the same trusted training frame as the existing baselines: 13 epochs, learning rate `0.003`, batch size `256`, eval batch size `512`, gradient clip `1.0`, seed `42`.
+
+| Variant | Params | Best val LM loss | Final val LM loss | Best epoch | Val accuracy | Runtime (s) |
+|---|---:|---:|---:|---:|---:|---:|
+| End-to-end 3-block | 185,935 | 1.643514 | 1.668810 | 10 | 0.518429 | 75.15 |
+| Local 3-block | 186,043 | 2.080552 | 2.080552 | 13 | 0.398187 | 85.77 |
+
+The gap is `0.437038` in best validation loss. That is large enough that the full-run conclusion is not ambiguous: this 3-block local-learning formulation clearly loses to the matched end-to-end control.
+
+Representative checkpoint samples:
+
+| Variant | Epoch 1 | Epoch 5 | Epoch 10 | Final |
+|---|---|---|---|---|
+| End-to-end 3-block | `the the the ...` | `the could ...` | `and the common and the people...` | `the people, and the people...` |
+| Local 3-block | `th th th ...` | `the the the ...` | `have have have ...` | `the the the ...` |
+
+More explicit inline evidence from the saved progression samples:
+
+```text
+end_to_end_3b epoch 10 sample
+First Citizen:
+Before we proceed and the common and the people,
+And the consul, and the people and the people,
+And the people and the people and the people,
+And the people and the people
+```
+
+```text
+local_3b epoch 13 sample
+First Citizen:
+Before we proceed the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the
+```
+
+Evidence from [`stage4/end_to_end_3b/final_metrics.json`](../../../experiments/local_learning_residual/artifacts/stage4/end_to_end_3b/final_metrics.json), [`stage4/local_3b/final_metrics.json`](../../../experiments/local_learning_residual/artifacts/stage4/local_3b/final_metrics.json), [`stage4/end_to_end_3b/training_history.json`](../../../experiments/local_learning_residual/artifacts/stage4/end_to_end_3b/training_history.json), [`stage4/local_3b/training_history.json`](../../../experiments/local_learning_residual/artifacts/stage4/local_3b/training_history.json), and the corresponding `progression_samples.json` files.
+
 ## What changed in understanding so far
 
 - The original FFN-only residual block interpretation was not actually a language model over context. Adding causal attention fixed that and made Stage 2 possible.
 - With causal attention added, the detach-boundary local-learning variants are mechanically healthy.
-- Mechanical health is not enough: on this first reduced TinyShakespeare rung, stop-gradient local learning is strongly negative relative to matched end-to-end stacking.
-- The 6-block local variant is not obviously deader than the 3-block local variant on this rung, but neither is remotely competitive with the end-to-end controls.
+- Mechanical health is not enough: on both the reduced rung and the first full standardized comparison, stop-gradient local learning is strongly negative relative to matched end-to-end stacking.
+- The 6-block local variant is not obviously numerically dead, but its `ff_hidden=17` trunk is so narrow that it is confounded as a fairness comparison. It is evidence of failure at this budget allocation, not a clean depth conclusion.
 
 ## Open tensions
 
@@ -195,9 +234,11 @@ These remain open on purpose:
 
 1. **Last-block target tension.** “Predict the next incoming residual delta” is clean for interior blocks but underspecified for the last block. Stage 1 uses a fallback: the final block predicts its own delta so the top block still has a local head and a local-loss path.
 2. **Fairness tension.** Parameter matching is explicit, but local heads still reallocate parameters away from trunk width. If later results are very close, a same-trunk-width diagnostic may still be needed.
-3. **Depth-collapse tension.** The `6`-block local variant is mechanically valid at `ff_hidden=163`, but that does not yet prove it deserves promotion to the standardized training table.
+3. **Depth-collapse tension.** The `6`-block local variant is mechanically valid at `ff_hidden=17`, but that width is so extreme that its result is confounded rather than cleanly interpretable as a depth effect.
 4. **Embedding-gradient tension.** Detach boundaries are between residual blocks, not between embeddings and block 1. Whether that is the best boundary convention is not settled here.
 
 ## What this does not settle
 
-Even after the full comparison, this experiment will still not settle async execution, graph structure, attention residuals, recurrence, or whether any broader cortical-column picture is good. It only asks what stop-gradient boundaries plus local heads do in this one minimal shared-residual-block setting.
+Even after the full comparison, this experiment still does not settle async execution, graph structure, attention residuals, recurrence, or whether any broader cortical-column picture is good. More narrowly, it also does not settle whether a different local target, different local-loss weighting, or a different boundary mechanism could work better.
+
+What it does settle is narrower and still useful: at this `~186K`, TinyShakespeare, `context=32` frame, **stop-gradient residual boundaries plus predict-next-delta local heads are negative relative to a matched 3-block end-to-end stack**.
