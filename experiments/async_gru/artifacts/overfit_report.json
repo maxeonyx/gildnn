@@ -1,0 +1,210 @@
+{
+  "config": {
+    "context_size": 32,
+    "train_characters": 100000,
+    "val_characters": 20000,
+    "d_model": 152,
+    "num_modules": 6,
+    "num_ticks": 4,
+    "batch_size": 256,
+    "eval_batch_size": 512,
+    "learning_rate": 0.003,
+    "gradient_clip_norm": 1.0,
+    "memorization_batch_size": 32,
+    "memorization_steps": 300,
+    "memorization_learning_rate": 0.02,
+    "seed": 42
+  },
+  "environment": {
+    "git_sha": "ffab2577f0fa6e12406905398b91d25f4f53cb29",
+    "git_working_tree_clean": false,
+    "git_status_short": [
+      "?? experiments/async_gru/",
+      "?? research/questions/async-gru/"
+    ],
+    "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+    "torch_version": "2.11.0+cu128",
+    "device": "cuda",
+    "cuda_device_name": "NVIDIA GeForce RTX 3090"
+  },
+  "corpus_summary": {
+    "source_file": "C:\\Users\\maxeo\\gildnn\\experiments\\corpora.ignore\\tinyshakespeare_input.txt",
+    "source_total_characters": 1115394,
+    "source_sha256": "86c4e6aa9db7c042ec79f339dcb96d42b0075e16b8fc2e86bf0ca57e2dc565ed",
+    "train_characters": 100000,
+    "val_characters": 20000,
+    "vocab_size": 61
+  },
+  "model": {
+    "parameter_count": 1002349,
+    "d_model": 152,
+    "num_modules": 6,
+    "num_ticks": 4,
+    "read_lags": {
+      "synchronous_control": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "async_stale_reads": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    }
+  },
+  "overfit": {
+    "synchronous_control": {
+      "trace": [
+        {
+          "step": 0,
+          "loss": 4.087561,
+          "accuracy": 0.03125
+        },
+        {
+          "step": 25,
+          "loss": 0.000473,
+          "accuracy": 1.0
+        },
+        {
+          "step": 50,
+          "loss": 4.1e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 75,
+          "loss": 2.4e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 100,
+          "loss": 2e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 125,
+          "loss": 1.8e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 150,
+          "loss": 1.6e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 175,
+          "loss": 1.5e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 200,
+          "loss": 1.4e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 225,
+          "loss": 1.4e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 250,
+          "loss": 1.3e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 275,
+          "loss": 1.3e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 300,
+          "loss": 1.2e-05,
+          "accuracy": 1.0
+        }
+      ],
+      "final_loss": 1.2e-05,
+      "final_accuracy": 1.0,
+      "memorized": true,
+      "hit_step": 12
+    },
+    "async_stale_reads": {
+      "trace": [
+        {
+          "step": 0,
+          "loss": 4.087987,
+          "accuracy": 0.03125
+        },
+        {
+          "step": 25,
+          "loss": 0.000174,
+          "accuracy": 1.0
+        },
+        {
+          "step": 50,
+          "loss": 2.9e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 75,
+          "loss": 2e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 100,
+          "loss": 1.8e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 125,
+          "loss": 1.6e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 150,
+          "loss": 1.5e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 175,
+          "loss": 1.5e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 200,
+          "loss": 1.4e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 225,
+          "loss": 1.4e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 250,
+          "loss": 1.3e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 275,
+          "loss": 1.3e-05,
+          "accuracy": 1.0
+        },
+        {
+          "step": 300,
+          "loss": 1.3e-05,
+          "accuracy": 1.0
+        }
+      ],
+      "final_loss": 1.3e-05,
+      "final_accuracy": 1.0,
+      "memorized": true,
+      "hit_step": 9
+    }
+  }
+}
