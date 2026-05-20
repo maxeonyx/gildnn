@@ -53,12 +53,36 @@ End state required to leave Phase 2:
 
 Objective: test the individual pieces Max actually cares about before composing them.
 
-Priority order inside this phase:
+#### 3a. Local learning / stop gradients (first)
 
-1. Stop gradients / local learning as a performance and training-stability mechanism
-2. Selective triggering / update-skipping signals
-3. Async / desynchronized module execution approximations
-4. In-place activation processing / width-over-depth execution ideas where they can be tested honestly
+Not a "chain" from one end to the other. Each module predicts its own input (A→A), with auxiliary bits hanging off. The boundary/shape of a "local module" is itself experimental — maybe ~3 nodes.
+
+Key questions:
+- Does a multi-module model beat a single-module model?
+- Does adding more modules improve performance?
+- How does it compare at same params / same FLOPs / same wall-clock time?
+
+#### 3b. GPU utilization research
+
+What kind of GPU programs actually fit best on the RTX 3090? Can RNNs get significantly more FLOPs out of the GPU than transformers? Measure wall-clock, actual utilization, memory bandwidth. This grounds all future performance claims.
+
+#### 3c. Attention residual transformer
+
+Multiple variants:
+- Attention over depth only
+- Attention over depth AND sequence length in a causal triangle (can't attend to same layer at previous step)
+
+Motivation: to parallelize across time by adding only one depth per timestep for the RNN. The causal triangle shows how this could work.
+
+Note: Max doesn't want too much transformer focus. This experiment serves the RNN goal — it demonstrates the mechanism that will later apply to RNN depth.
+
+#### 3d. Stop gradients / overlapping stop gradients
+
+Even just a tiny example of training with stop gradients or overlapping stop gradients. This is separate from the async question — it's about whether local learning works at all.
+
+#### 3e. Async execution without synchrony
+
+The important question: can we run modules in parallel with volatile shared memory between them, so they don't have to synchronize at the GPU level? We want to train without synchrony. Even a tiny working example would be valuable.
 
 Rules:
 
@@ -71,6 +95,7 @@ Questions this phase should answer:
 - Can local learning / stop-gradient style training give useful speed or stability benefits?
 - Can a model learn a useful trigger for whether more computation is worth doing?
 - Can we approximate asynchronous execution without turning the experiment into a completely different architecture?
+- What actual GPU utilization do different architectures achieve on this hardware?
 
 ### Phase 4 — Async/desynchronized execution path on text
 
@@ -171,4 +196,4 @@ This window is a strong success if, in addition to the floor above:
 
 ## Immediate next step
 
-Choose the first isolated post-baseline mechanism question and write its report-first README before touching code. The leading candidates are stop gradients / local learning, selective triggering, and async/desynchronized execution. The paused chain+dynamic-depth composition thread is not the default next step.
+Choose the first isolated post-baseline mechanism question. The leading candidate is local learning (3a) — multi-module A→A prediction with stop gradients, compared against single-module and baselines at same params/FLOPs/wall-clock. Write the report-first README before touching code.

@@ -49,6 +49,10 @@ This is well-trodden territory. The goal is not novelty — it's understanding w
 
 Starting point: get this working on a standard recurrent model or transformer before involving cortical columns at all.
 
+## GPU utilization as a research question
+
+There is a whole research avenue around understanding what kind of GPU programs fit best on the RTX 3090. Max's hypothesis is that RNNs might get significantly more FLOPs out of a GPU than transformers — but this is genuinely uncertain and needs to be measured. Performance comparisons between architectures should include wall-clock time and actual GPU utilization, not just parameter counts and theoretical FLOPs. The hardware constrains what "fast" means in practice.
+
 ## Comparison goals
 
 Before claiming any architecture works, it needs to be compared against:
