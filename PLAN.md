@@ -216,11 +216,18 @@ The emerging picture:
 
 This points toward: **RNN-based architecture + async execution model** as the productive direction, not "transformer + boundary tricks."
 
+- **Self-prediction / compute compression** — NEGATIVE. Adding auxiliary KL loss (shallow logits → detached deep logits) to the dynamic-depth GRU. At every fixed depth, the self-prediction variant is slightly worse (Δ +0.011 to +0.018 nats). Halting frontier also worse. The model's existing multi-exit training already extracts what shallow steps can learn; explicit self-distillation adds noise. See `research/questions/self-prediction-compute-compression/README.md`.
+
 ## Immediate next step
 
-**New dictation (2026-05-20-12)** raises an interesting idea: a network that predicts its own future outputs/latents to compress computation into fewer timesteps. Max notes this might be similar to multi-token prediction or dynamic depth. This connects naturally to the dynamic-depth finding (the model already learned to allocate compute non-uniformly) and could be the next discriminating experiment.
+**GPU utilization deep dive (dictation 2026-05-20-13).** Max wants to understand:
+1. Why GPU utilization is poor in current experiments
+2. What model shape fits the RTX 3090 best — "what's the largest parameter shape that just sits in cache, repeatedly processing data?"
+3. Sequence length comparisons between transformers and RNNs
+4. Whether RNNs avoid the memory-bandwidth bottleneck that limits transformers
 
-Candidates:
-1. **Self-prediction / compute compression** — from dictation 2026-05-20-12. A network trained to predict not just output from input but to do so "quicker" — predicting its own future internal states.
-2. **Broadcast router** — global communication channel to all modules
-3. **Dynamic depth in isolation** — previously confounded with predictive chain
+This connects to the GPU utilization study already done but goes deeper — Max wants to understand the *hardware* story, not just the throughput numbers. He explicitly says "please teach me."
+
+Other candidates:
+- **Broadcast router** — global communication channel to all modules
+- **Loop management tooling** — dictation 2026-05-20-14 asks for better visibility into the loop (show recent subagent messages, allow sending messages)
