@@ -50,6 +50,7 @@ def with_overrides(
     batch_size: int | None = None,
     eval_batch_size: int | None = None,
     learning_rate: float | None = None,
+    seed: int | None = None,
     memorization_batch_size: int | None = None,
     memorization_steps: int | None = None,
     memorization_learning_rate: float | None = None,
@@ -59,6 +60,7 @@ def with_overrides(
         batch_size=config.batch_size if batch_size is None else batch_size,
         eval_batch_size=config.eval_batch_size if eval_batch_size is None else eval_batch_size,
         learning_rate=config.learning_rate if learning_rate is None else learning_rate,
+        seed=config.seed if seed is None else seed,
         memorization_batch_size=(
             config.memorization_batch_size if memorization_batch_size is None else memorization_batch_size
         ),
