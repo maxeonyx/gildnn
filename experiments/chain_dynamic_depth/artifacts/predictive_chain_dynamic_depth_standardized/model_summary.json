@@ -1,0 +1,21 @@
+{
+  "model_family": "predictive_chain_dynamic_depth_standardized",
+  "parameter_count": 186670,
+  "context_size": 32,
+  "num_nodes": 3,
+  "node_labels": [
+    "A",
+    "B",
+    "C"
+  ],
+  "embedding_dim": 56,
+  "hidden_dim": 144,
+  "message_dim": 56,
+  "max_depth": 8,
+  "recurrent_cell": "RNNCell(tanh)",
+  "task_head_input": "concat(all_final_hidden_states_per_depth)",
+  "loss_head_target": "next_char_cross_entropy_at_each_depth",
+  "message_target_detach": true,
+  "message_input_detach": true,
+  "delta_vs_stage1": "adds shared-depth refinement and loss-prediction halting head on top of the standardized predictive chain"
+}
