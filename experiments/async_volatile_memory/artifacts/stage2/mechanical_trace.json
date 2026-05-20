@@ -1,0 +1,1055 @@
+{
+  "config": {
+    "batch_size": 1,
+    "num_slots": 2,
+    "d_model": 4,
+    "num_modules": 3,
+    "hidden_dim": 6,
+    "num_ticks": 4,
+    "seed": 7
+  },
+  "environment": {
+    "git_sha": "b37c52364bf21b88e88363632d22ed8978a03bbf",
+    "git_working_tree_clean": false,
+    "git_status_short": [
+      "?? dictations/2026-05-20-12.md",
+      "?? experiments/async_volatile_memory/",
+      "?? research/questions/async-volatile-memory/"
+    ],
+    "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+    "torch_version": "2.11.0+cu128",
+    "device": "cuda",
+    "cuda_is_available": true,
+    "cuda_device_name": "NVIDIA GeForce RTX 3090"
+  },
+  "semantics": {
+    "shared_memory_shape": [
+      1,
+      2,
+      4
+    ],
+    "num_modules": 3,
+    "num_ticks": 4,
+    "commit_rule": "memory[t+1] = memory[t] + sum(module_deltas[t])",
+    "synchronous_control_read_lags": [
+      0,
+      0,
+      0
+    ],
+    "async_read_lags": [
+      0,
+      1,
+      2
+    ],
+    "single_changed_variable": "committed-memory visibility",
+    "all_modules_execute_every_tick": true,
+    "per_token_branching": false,
+    "gradients_in_scope": false
+  },
+  "parameter_count": 177,
+  "checks": {
+    "zero_staleness_equivalence": {
+      "max_final_memory_abs_diff": 0.0,
+      "max_all_versions_abs_diff": 0.0
+    },
+    "write_rule": {
+      "synchronous_control": {
+        "max_tensor_abs_diff": 0.0
+      },
+      "async_stale_reads": {
+        "max_tensor_abs_diff": 0.0
+      }
+    },
+    "stale_read_witness": {
+      "witness_tick": 1,
+      "latest_version_id": 1,
+      "read_version_ids": [
+        1,
+        0,
+        0
+      ],
+      "unique_read_version_ids": [
+        0,
+        1
+      ],
+      "stale_modules": [
+        {
+          "module_index": 1,
+          "read_version_id": 0,
+          "latest_version_id": 1,
+          "read_slot0": [
+            0.25,
+            -0.5,
+            0.75,
+            -1.0
+          ],
+          "delta_slot0": [
+            -0.067071,
+            -0.048012,
+            -0.01591,
+            -0.078155
+          ],
+          "max_read_vs_latest_abs_diff": 0.417959
+        },
+        {
+          "module_index": 2,
+          "read_version_id": 0,
+          "latest_version_id": 1,
+          "read_slot0": [
+            0.25,
+            -0.5,
+            0.75,
+            -1.0
+          ],
+          "delta_slot0": [
+            0.059784,
+            -0.038325,
+            -0.005866,
+            -0.084858
+          ],
+          "max_read_vs_latest_abs_diff": 0.417959
+        }
+      ],
+      "max_read_vs_latest_abs_diff": 0.417959
+    }
+  },
+  "initial_memory": [
+    [
+      [
+        0.25,
+        -0.5,
+        0.75,
+        -1.0
+      ],
+      [
+        1.25,
+        -1.5,
+        1.75,
+        -2.0
+      ]
+    ]
+  ],
+  "control_trace": {
+    "version_previews": [
+      {
+        "version_id": 0,
+        "slot0": [
+          0.25,
+          -0.5,
+          0.75,
+          -1.0
+        ],
+        "full_memory": [
+          [
+            [
+              0.25,
+              -0.5,
+              0.75,
+              -1.0
+            ],
+            [
+              1.25,
+              -1.5,
+              1.75,
+              -2.0
+            ]
+          ]
+        ]
+      },
+      {
+        "version_id": 1,
+        "slot0": [
+          0.25036,
+          -0.536612,
+          0.689779,
+          -1.14374
+        ],
+        "full_memory": [
+          [
+            [
+              0.25036,
+              -0.536612,
+              0.689779,
+              -1.14374
+            ],
+            [
+              1.267097,
+              -1.565263,
+              1.629318,
+              -2.210789
+            ]
+          ]
+        ]
+      },
+      {
+        "version_id": 2,
+        "slot0": [
+          0.258001,
+          -0.570214,
+          0.627011,
+          -1.284891
+        ],
+        "full_memory": [
+          [
+            [
+              0.258001,
+              -0.570214,
+              0.627011,
+              -1.284891
+            ],
+            [
+              1.289086,
+              -1.627537,
+              1.506891,
+              -2.417055
+            ]
+          ]
+        ]
+      },
+      {
+        "version_id": 3,
+        "slot0": [
+          0.272239,
+          -0.601004,
+          0.561562,
+          -1.423492
+        ],
+        "full_memory": [
+          [
+            [
+              0.272239,
+              -0.601004,
+              0.561562,
+              -1.423492
+            ],
+            [
+              1.315267,
+              -1.686739,
+              1.383247,
+              -2.618701
+            ]
+          ]
+        ]
+      },
+      {
+        "version_id": 4,
+        "slot0": [
+          0.292417,
+          -0.629172,
+          0.493339,
+          -1.5596
+        ],
+        "full_memory": [
+          [
+            [
+              0.292417,
+              -0.629172,
+              0.493339,
+              -1.5596
+            ],
+            [
+              1.344999,
+              -1.742824,
+              1.258848,
+              -2.815716
+            ]
+          ]
+        ]
+      }
+    ],
+    "tick_summaries": [
+      {
+        "label": "synchronous_control",
+        "tick": 0,
+        "latest_version_id": 0,
+        "read_version_ids": [
+          0,
+          0,
+          0
+        ],
+        "unique_read_version_ids": [
+          0
+        ],
+        "aggregate_delta_slot0": [
+          0.00036,
+          -0.036612,
+          -0.060221,
+          -0.14374
+        ],
+        "committed_version_id": 1,
+        "committed_slot0": [
+          0.25036,
+          -0.536612,
+          0.689779,
+          -1.14374
+        ],
+        "module_rows": [
+          {
+            "module_index": 0,
+            "read_version_id": 0,
+            "latest_version_id": 0,
+            "read_slot0": [
+              0.25,
+              -0.5,
+              0.75,
+              -1.0
+            ],
+            "delta_slot0": [
+              0.007647,
+              0.049725,
+              -0.038445,
+              0.019273
+            ],
+            "max_read_vs_latest_abs_diff": 0.210789
+          },
+          {
+            "module_index": 1,
+            "read_version_id": 0,
+            "latest_version_id": 0,
+            "read_slot0": [
+              0.25,
+              -0.5,
+              0.75,
+              -1.0
+            ],
+            "delta_slot0": [
+              -0.067071,
+              -0.048012,
+              -0.01591,
+              -0.078155
+            ],
+            "max_read_vs_latest_abs_diff": 0.210789
+          },
+          {
+            "module_index": 2,
+            "read_version_id": 0,
+            "latest_version_id": 0,
+            "read_slot0": [
+              0.25,
+              -0.5,
+              0.75,
+              -1.0
+            ],
+            "delta_slot0": [
+              0.059784,
+              -0.038325,
+              -0.005866,
+              -0.084858
+            ],
+            "max_read_vs_latest_abs_diff": 0.210789
+          }
+        ]
+      },
+      {
+        "label": "synchronous_control",
+        "tick": 1,
+        "latest_version_id": 1,
+        "read_version_ids": [
+          1,
+          1,
+          1
+        ],
+        "unique_read_version_ids": [
+          1
+        ],
+        "aggregate_delta_slot0": [
+          0.007641,
+          -0.033602,
+          -0.062768,
+          -0.141151
+        ],
+        "committed_version_id": 2,
+        "committed_slot0": [
+          0.258001,
+          -0.570214,
+          0.627011,
+          -1.284891
+        ],
+        "module_rows": [
+          {
+            "module_index": 0,
+            "read_version_id": 1,
+            "latest_version_id": 1,
+            "read_slot0": [
+              0.25036,
+              -0.536612,
+              0.689779,
+              -1.14374
+            ],
+            "delta_slot0": [
+              0.004299,
+              0.052132,
+              -0.043493,
+              0.021683
+            ],
+            "max_read_vs_latest_abs_diff": 0.206266
+          },
+          {
+            "module_index": 1,
+            "read_version_id": 1,
+            "latest_version_id": 1,
+            "read_slot0": [
+              0.25036,
+              -0.536612,
+              0.689779,
+              -1.14374
+            ],
+            "delta_slot0": [
+              -0.067667,
+              -0.048498,
+              -0.012195,
+              -0.077119
+            ],
+            "max_read_vs_latest_abs_diff": 0.206266
+          },
+          {
+            "module_index": 2,
+            "read_version_id": 1,
+            "latest_version_id": 1,
+            "read_slot0": [
+              0.25036,
+              -0.536612,
+              0.689779,
+              -1.14374
+            ],
+            "delta_slot0": [
+              0.071009,
+              -0.037236,
+              -0.007079,
+              -0.085715
+            ],
+            "max_read_vs_latest_abs_diff": 0.206266
+          }
+        ]
+      },
+      {
+        "label": "synchronous_control",
+        "tick": 2,
+        "latest_version_id": 2,
+        "read_version_ids": [
+          2,
+          2,
+          2
+        ],
+        "unique_read_version_ids": [
+          2
+        ],
+        "aggregate_delta_slot0": [
+          0.014237,
+          -0.03079,
+          -0.065449,
+          -0.138601
+        ],
+        "committed_version_id": 3,
+        "committed_slot0": [
+          0.272239,
+          -0.601004,
+          0.561562,
+          -1.423492
+        ],
+        "module_rows": [
+          {
+            "module_index": 0,
+            "read_version_id": 2,
+            "latest_version_id": 2,
+            "read_slot0": [
+              0.258001,
+              -0.570214,
+              0.627011,
+              -1.284891
+            ],
+            "delta_slot0": [
+              0.001091,
+              0.054614,
+              -0.048644,
+              0.024161
+            ],
+            "max_read_vs_latest_abs_diff": 0.201646
+          },
+          {
+            "module_index": 1,
+            "read_version_id": 2,
+            "latest_version_id": 2,
+            "read_slot0": [
+              0.258001,
+              -0.570214,
+              0.627011,
+              -1.284891
+            ],
+            "delta_slot0": [
+              -0.068441,
+              -0.049097,
+              -0.008527,
+              -0.076316
+            ],
+            "max_read_vs_latest_abs_diff": 0.201646
+          },
+          {
+            "module_index": 2,
+            "read_version_id": 2,
+            "latest_version_id": 2,
+            "read_slot0": [
+              0.258001,
+              -0.570214,
+              0.627011,
+              -1.284891
+            ],
+            "delta_slot0": [
+              0.081587,
+              -0.036307,
+              -0.008278,
+              -0.086446
+            ],
+            "max_read_vs_latest_abs_diff": 0.201646
+          }
+        ]
+      },
+      {
+        "label": "synchronous_control",
+        "tick": 3,
+        "latest_version_id": 3,
+        "read_version_ids": [
+          3,
+          3,
+          3
+        ],
+        "unique_read_version_ids": [
+          3
+        ],
+        "aggregate_delta_slot0": [
+          0.020179,
+          -0.028168,
+          -0.068223,
+          -0.136109
+        ],
+        "committed_version_id": 4,
+        "committed_slot0": [
+          0.292417,
+          -0.629172,
+          0.493339,
+          -1.5596
+        ],
+        "module_rows": [
+          {
+            "module_index": 0,
+            "read_version_id": 3,
+            "latest_version_id": 3,
+            "read_slot0": [
+              0.272239,
+              -0.601004,
+              0.561562,
+              -1.423492
+            ],
+            "delta_slot0": [
+              -0.001988,
+              0.057148,
+              -0.053859,
+              0.026693
+            ],
+            "max_read_vs_latest_abs_diff": 0.197015
+          },
+          {
+            "module_index": 1,
+            "read_version_id": 3,
+            "latest_version_id": 3,
+            "read_slot0": [
+              0.272239,
+              -0.601004,
+              0.561562,
+              -1.423492
+            ],
+            "delta_slot0": [
+              -0.069374,
+              -0.049794,
+              -0.004909,
+              -0.075718
+            ],
+            "max_read_vs_latest_abs_diff": 0.197015
+          },
+          {
+            "module_index": 2,
+            "read_version_id": 3,
+            "latest_version_id": 3,
+            "read_slot0": [
+              0.272239,
+              -0.601004,
+              0.561562,
+              -1.423492
+            ],
+            "delta_slot0": [
+              0.091541,
+              -0.035522,
+              -0.009455,
+              -0.087083
+            ],
+            "max_read_vs_latest_abs_diff": 0.197015
+          }
+        ]
+      }
+    ]
+  },
+  "async_trace": {
+    "version_previews": [
+      {
+        "version_id": 0,
+        "slot0": [
+          0.25,
+          -0.5,
+          0.75,
+          -1.0
+        ],
+        "full_memory": [
+          [
+            [
+              0.25,
+              -0.5,
+              0.75,
+              -1.0
+            ],
+            [
+              1.25,
+              -1.5,
+              1.75,
+              -2.0
+            ]
+          ]
+        ]
+      },
+      {
+        "version_id": 1,
+        "slot0": [
+          0.25036,
+          -0.536612,
+          0.689779,
+          -1.14374
+        ],
+        "full_memory": [
+          [
+            [
+              0.25036,
+              -0.536612,
+              0.689779,
+              -1.14374
+            ],
+            [
+              1.267097,
+              -1.565263,
+              1.629318,
+              -2.210789
+            ]
+          ]
+        ]
+      },
+      {
+        "version_id": 2,
+        "slot0": [
+          0.247372,
+          -0.570818,
+          0.62451,
+          -1.28507
+        ],
+        "full_memory": [
+          [
+            [
+              0.247372,
+              -0.570818,
+              0.62451,
+              -1.28507
+            ],
+            [
+              1.278605,
+              -1.627308,
+              1.501388,
+              -2.417959
+            ]
+          ]
+        ]
+      },
+      {
+        "version_id": 3,
+        "slot0": [
+          0.240335,
+          -0.603205,
+          0.558018,
+          -1.423034
+        ],
+        "full_memory": [
+          [
+            [
+              0.240335,
+              -0.603205,
+              0.558018,
+              -1.423034
+            ],
+            [
+              1.282192,
+              -1.687941,
+              1.372686,
+              -2.620156
+            ]
+          ]
+        ]
+      },
+      {
+        "version_id": 4,
+        "slot0": [
+          0.240752,
+          -0.632679,
+          0.489323,
+          -1.558326
+        ],
+        "full_memory": [
+          [
+            [
+              0.240752,
+              -0.632679,
+              0.489323,
+              -1.558326
+            ],
+            [
+              1.290822,
+              -1.745988,
+              1.243273,
+              -2.817866
+            ]
+          ]
+        ]
+      }
+    ],
+    "tick_summaries": [
+      {
+        "label": "async_stale_reads",
+        "tick": 0,
+        "latest_version_id": 0,
+        "read_version_ids": [
+          0,
+          0,
+          0
+        ],
+        "unique_read_version_ids": [
+          0
+        ],
+        "aggregate_delta_slot0": [
+          0.00036,
+          -0.036612,
+          -0.060221,
+          -0.14374
+        ],
+        "committed_version_id": 1,
+        "committed_slot0": [
+          0.25036,
+          -0.536612,
+          0.689779,
+          -1.14374
+        ],
+        "module_rows": [
+          {
+            "module_index": 0,
+            "read_version_id": 0,
+            "latest_version_id": 0,
+            "read_slot0": [
+              0.25,
+              -0.5,
+              0.75,
+              -1.0
+            ],
+            "delta_slot0": [
+              0.007647,
+              0.049725,
+              -0.038445,
+              0.019273
+            ],
+            "max_read_vs_latest_abs_diff": 0.210789
+          },
+          {
+            "module_index": 1,
+            "read_version_id": 0,
+            "latest_version_id": 0,
+            "read_slot0": [
+              0.25,
+              -0.5,
+              0.75,
+              -1.0
+            ],
+            "delta_slot0": [
+              -0.067071,
+              -0.048012,
+              -0.01591,
+              -0.078155
+            ],
+            "max_read_vs_latest_abs_diff": 0.210789
+          },
+          {
+            "module_index": 2,
+            "read_version_id": 0,
+            "latest_version_id": 0,
+            "read_slot0": [
+              0.25,
+              -0.5,
+              0.75,
+              -1.0
+            ],
+            "delta_slot0": [
+              0.059784,
+              -0.038325,
+              -0.005866,
+              -0.084858
+            ],
+            "max_read_vs_latest_abs_diff": 0.210789
+          }
+        ]
+      },
+      {
+        "label": "async_stale_reads",
+        "tick": 1,
+        "latest_version_id": 1,
+        "read_version_ids": [
+          1,
+          0,
+          0
+        ],
+        "unique_read_version_ids": [
+          0,
+          1
+        ],
+        "aggregate_delta_slot0": [
+          -0.002988,
+          -0.034206,
+          -0.065269,
+          -0.14133
+        ],
+        "committed_version_id": 2,
+        "committed_slot0": [
+          0.247372,
+          -0.570818,
+          0.62451,
+          -1.28507
+        ],
+        "module_rows": [
+          {
+            "module_index": 0,
+            "read_version_id": 1,
+            "latest_version_id": 1,
+            "read_slot0": [
+              0.25036,
+              -0.536612,
+              0.689779,
+              -1.14374
+            ],
+            "delta_slot0": [
+              0.004299,
+              0.052132,
+              -0.043493,
+              0.021683
+            ],
+            "max_read_vs_latest_abs_diff": 0.207171
+          },
+          {
+            "module_index": 1,
+            "read_version_id": 0,
+            "latest_version_id": 1,
+            "read_slot0": [
+              0.25,
+              -0.5,
+              0.75,
+              -1.0
+            ],
+            "delta_slot0": [
+              -0.067071,
+              -0.048012,
+              -0.01591,
+              -0.078155
+            ],
+            "max_read_vs_latest_abs_diff": 0.417959
+          },
+          {
+            "module_index": 2,
+            "read_version_id": 0,
+            "latest_version_id": 1,
+            "read_slot0": [
+              0.25,
+              -0.5,
+              0.75,
+              -1.0
+            ],
+            "delta_slot0": [
+              0.059784,
+              -0.038325,
+              -0.005866,
+              -0.084858
+            ],
+            "max_read_vs_latest_abs_diff": 0.417959
+          }
+        ]
+      },
+      {
+        "label": "async_stale_reads",
+        "tick": 2,
+        "latest_version_id": 2,
+        "read_version_ids": [
+          2,
+          1,
+          0
+        ],
+        "unique_read_version_ids": [
+          0,
+          1,
+          2
+        ],
+        "aggregate_delta_slot0": [
+          -0.007038,
+          -0.032387,
+          -0.066491,
+          -0.137964
+        ],
+        "committed_version_id": 3,
+        "committed_slot0": [
+          0.240335,
+          -0.603205,
+          0.558018,
+          -1.423034
+        ],
+        "module_rows": [
+          {
+            "module_index": 0,
+            "read_version_id": 2,
+            "latest_version_id": 2,
+            "read_slot0": [
+              0.247372,
+              -0.570818,
+              0.62451,
+              -1.28507
+            ],
+            "delta_slot0": [
+              0.000846,
+              0.054436,
+              -0.048431,
+              0.024013
+            ],
+            "max_read_vs_latest_abs_diff": 0.202196
+          },
+          {
+            "module_index": 1,
+            "read_version_id": 1,
+            "latest_version_id": 2,
+            "read_slot0": [
+              0.25036,
+              -0.536612,
+              0.689779,
+              -1.14374
+            ],
+            "delta_slot0": [
+              -0.067667,
+              -0.048498,
+              -0.012195,
+              -0.077119
+            ],
+            "max_read_vs_latest_abs_diff": 0.409367
+          },
+          {
+            "module_index": 2,
+            "read_version_id": 0,
+            "latest_version_id": 2,
+            "read_slot0": [
+              0.25,
+              -0.5,
+              0.75,
+              -1.0
+            ],
+            "delta_slot0": [
+              0.059784,
+              -0.038325,
+              -0.005866,
+              -0.084858
+            ],
+            "max_read_vs_latest_abs_diff": 0.620156
+          }
+        ]
+      },
+      {
+        "label": "async_stale_reads",
+        "tick": 3,
+        "latest_version_id": 3,
+        "read_version_ids": [
+          3,
+          2,
+          1
+        ],
+        "unique_read_version_ids": [
+          1,
+          2,
+          3
+        ],
+        "aggregate_delta_slot0": [
+          0.000417,
+          -0.029474,
+          -0.068695,
+          -0.135292
+        ],
+        "committed_version_id": 4,
+        "committed_slot0": [
+          0.240752,
+          -0.632679,
+          0.489323,
+          -1.558326
+        ],
+        "module_rows": [
+          {
+            "module_index": 0,
+            "read_version_id": 3,
+            "latest_version_id": 3,
+            "read_slot0": [
+              0.240335,
+              -0.603205,
+              0.558018,
+              -1.423034
+            ],
+            "delta_slot0": [
+              -0.002591,
+              0.056598,
+              -0.053129,
+              0.026238
+            ],
+            "max_read_vs_latest_abs_diff": 0.19771
+          },
+          {
+            "module_index": 1,
+            "read_version_id": 2,
+            "latest_version_id": 3,
+            "read_slot0": [
+              0.247372,
+              -0.570818,
+              0.62451,
+              -1.28507
+            ],
+            "delta_slot0": [
+              -0.068002,
+              -0.048836,
+              -0.008487,
+              -0.075815
+            ],
+            "max_read_vs_latest_abs_diff": 0.399906
+          },
+          {
+            "module_index": 2,
+            "read_version_id": 1,
+            "latest_version_id": 3,
+            "read_slot0": [
+              0.25036,
+              -0.536612,
+              0.689779,
+              -1.14374
+            ],
+            "delta_slot0": [
+              0.071009,
+              -0.037236,
+              -0.007079,
+              -0.085715
+            ],
+            "max_read_vs_latest_abs_diff": 0.607077
+          }
+        ]
+      }
+    ]
+  }
+}
