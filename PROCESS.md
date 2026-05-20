@@ -8,7 +8,9 @@ This is personal hobbyist ML research. The goal is discovery: try ideas, run exp
 
 ## The autonomous loop
 
-`loop.ps1` relaunches OpenCode if it exits. On relaunch, the agent should reorient quickly and continue.
+`loop.ps1` relaunches OpenCode if it exits. This file is what autonomous agents follow when running in that loop.
+
+The process here is not optional ceremony. It exists because an autonomous agent will otherwise drift, overclaim, skip grounding, or leave unreadable outputs. Following it is the job. Skipping it is failure — even if the immediate output looks productive. The goal is research; the process is the only reliable mechanism for getting there.
 
 On session start:
 
@@ -45,6 +47,16 @@ If the work feels tangled, restart from a smaller simpler version instead of pro
 
 ---
 
+## Grounding and source of truth
+
+`dictations/` is the authoritative source of project intent. Every other file in the repo — including this one — is a derived interpretation and may be wrong: wrong framing, wrong emphasis, wrong level of certainty, things missed entirely.
+
+Before starting or continuing a research avenue, check that the framing still matches the dictations in spirit. If a report, plan, prompt, or code path has drifted from the dictations, correct the derived file — do not treat the drift as truth.
+
+Do not build on unverified assumptions. If a result is not grounded enough that you can explain honestly why it should be trusted, do more validation before scaling it, integrating it, or writing a confident narrative about it. If you cannot write the report honestly without hand-waving or unexplained trust gaps, the work is not ready to be called a result yet.
+
+---
+
 ## Experiment discipline
 
 ### The ladder
@@ -62,7 +74,7 @@ This ladder is non-negotiable.
 
 ### Report-first experiment protocol
 
-Every experiment starts by writing the report first in `research/questions/<question>/README.md`.
+Every experiment starts by writing the report first in `research/questions/<question>/README.md`, even if many sections begin as placeholders.
 
 Create or update the question README with:
 
@@ -73,6 +85,8 @@ Create or update the question README with:
 - the planned evidence: what artifacts the run will produce and why those artifacts answer the question
 - placeholder sections for results, next steps, and deferrals
 - explicit non-goals: what this experiment will not settle
+
+The point of writing first is to force explicit hypotheses and surface hidden assumptions before the code grows. Blank sections are fine. Hidden assumptions are not.
 
 Fill in results, next steps, and reasons for deferral as the experiment proceeds, not only at the end.
 
@@ -107,6 +121,14 @@ Ambiguity is allowed. Failure is allowed. Needing to restart from a simpler vers
 Start with the simplest version that could possibly work. For example: tiny context, tiny model, next-token prediction, minimal dataset, inspectable outputs.
 
 Do not smuggle in architectural complexity "for later." Add complexity only after the simpler version genuinely works.
+
+### Isolation before composition
+
+Do not combine multiple speculative mechanisms too early.
+
+When exploring a new architectural idea, run thorough experiments on the individual pieces in isolation before composing them into a larger system. Composition is a later experiment — once the pieces are at least somewhat understood in their own right.
+
+If a simplified architecture or framing was introduced by a prior agent rather than the dictations, treat it as a hypothesis to justify or replace, not as the project goal.
 
 ### Reproducibility
 
@@ -162,9 +184,17 @@ If two experiments share logic, move that logic into `core/`.
 
 If an experimental branch taught nothing and is only clutter, delete it.
 
+### Baselines before bold claims
+
+Trustworthy baseline experiments are part of the foundation, not optional side work.
+
+Before making strong claims about a custom architecture, establish what a standard model should achieve on the same dataset and reproduce that result closely enough to trust the training stack, data pipeline, and evaluation. Standard baselines belong in `base-experiments/`, and the reusable parts of those implementations belong in `core/`.
+
+A custom result without a trusted baseline is weak evidence.
+
 ### Architectural options
 
-Open questions stay open.
+Open questions stay open. Do not collapse real uncertainty into a single clean story just to simplify the docs or code. When multiple architectural options are genuinely still alive, record them as open and compare them deliberately rather than quietly picking one.
 
 Keep selectable variants only when they produced an informative comparison or are still actively useful. Do not keep every dead path forever.
 
@@ -229,6 +259,8 @@ Daily and weekly reports are for Max. They should be dense, readable, and eviden
 Every factual claim should point to a real artifact: a run log, metric, sample output, saved image, or concrete file.
 
 No free-floating assertions. Open questions should remain open.
+
+A good report lets Max answer: what was tried, why it was a legitimate step relative to the dictations, what happened, and why the result should or should not be trusted. It explains the path the experiment took, the simplifications made, the hypotheses tested, the evidence gathered, and the limits of the conclusion. If you cannot write it honestly without hand-waving or unexplained trust gaps, either weaken the claim or do the additional validation first.
 
 **Include process improvements.** When the development process was improved (gitignore fixes, doc restructuring, new conventions, friction removed), report it. Max wants to see the process getting better, not just experimental results. A day where the only real work was making the project more runnable is still a real day — say exactly what process risk was reduced and why it was the highest-leverage step.
 
