@@ -11,6 +11,8 @@ Does a weight-shared recurrent model trained with losses at every depth learn a 
 - Loss-prediction head: predicts what the task loss would be at the current depth
 - Halting: at inference, stop when predicted loss drops below threshold
 
+> **Comparison-frame note:** This report's large-corpus runs use a smaller model budget (`72K` params) than the repo's current standardized trust anchors in [`base_experiments/README.md`](../../../base_experiments/README.md): transformer `186K` params / best val loss `1.632`, vanilla RNN `186K` params / best val loss `1.706`, both on the fixed `100K/20K`, `ctx=32`, `AdamW`, `13`-epoch frame. The compute-savings claims below are still internally valid because they compare dynamic vs fixed depth **within the same 72K model family**. But the absolute quality levels here are not directly comparable to those `186K` anchors.
+
 ## Results
 
 ### Small corpus (7K chars, 72K params)

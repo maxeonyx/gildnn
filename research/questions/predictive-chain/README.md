@@ -155,6 +155,8 @@ Scale-up to 100K chars, 200K params, context=32, 5000 steps:
 | Predictive chain | 203K | 1.390 | 1.735 | **0.506** |
 | Feedforward | 187K | 0.661 | 3.771 | 0.351 |
 
+> **Standardized-anchor note (added later):** This table is still real, but it is **not** on the repo's current standard comparison frame. The new trust anchors in [`base_experiments/README.md`](../../../base_experiments/README.md) are stronger: transformer `186K` params / best val loss `1.632`, vanilla RNN `186K` params / best val loss `1.706`, both trained for `13` epochs with `AdamW`, `lr=0.003`, `ctx=32`, and reported by **best-of-run** validation loss. The runs in this section used an older setup (`5000` steps, older endpoint reporting, `Adam` rather than `AdamW`, and a different RNN architecture), so the old `1.727` / `1.731` baselines here are undertrained relative to today's anchors. The honest claim is therefore narrower: the predictive chain reached rough parity **against those older baselines**, but it has **not yet been tested against the standardized anchors**. Before treating the chain as a live contender at this scale, it needs a re-run on the standardized frame.
+
 All three recurrent architectures converge to ~1.73 val loss. The chain is no longer best — within noise of the RNN and transformer. With enough data, baselines don't overfit, so the chain's regularization effect becomes irrelevant.
 
 Additional cost: the chain is **10–80× slower** than baselines (1177s vs 15–100s) due to sequential node processing that can't be batched.
