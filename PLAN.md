@@ -204,24 +204,35 @@ This window is a strong success if, in addition to the floor above:
 
 ## Assessment of boundary mechanisms
 
-All three isolated boundary mechanisms from the vision have now been tested at ~186K params on TinyShakespeare:
+All three isolated boundary mechanisms from the vision have been tested at ~186K params on TinyShakespeare:
 1. Stop-gradient local learning: clearly negative on quality
 2. Depth attention residuals: marginal, not worth the compute cost
 3. Selective block execution: mechanism works but GPU execution negates compute savings
 
 **None of the proposed boundary mechanisms help at this scale/budget in isolation.**
 
-Possible interpretations:
-- The mechanisms only matter at larger scale (more params, more data, longer contexts)
-- The mechanisms need composition (stop-gradients alone fail, but stop-gradients + async might work differently together)
-- The vision's value lies elsewhere — in the framing/perspective rather than the specific mechanisms
-- TinyShakespeare char-level at 186K params is too small/simple to expose the benefits
+**However — dictation review reveals important framing mismatch.** Max's primary question was never "do these improve quality at tiny scale?" It was "can we make inference/training FAST through async execution and parallelism?" Quality degradation from stop-gradients is *acceptable* to Max if it unlocks performance. The experiments answered the wrong primary question.
+
+Key untested ideas from dictations:
+- **GPU utilization study** (Max: "I can't believe we haven't written that down yet") — RNN vs transformer wall-clock, actual GPU utilization on RTX 3090
+- **Attention residual causal triangle** — depth+sequence variant, explicitly requested, not delivered
+- **True async/volatile-memory prototype** — even a toy untrained example would satisfy Max
+- **Broadcast router** — global communication channel to all modules
+- **Dynamic depth in isolation** — previously confounded with predictive chain
 
 ## Immediate next step
 
-With all three boundary mechanisms tested and none showing benefit, the remaining Phase 3 candidates are:
-- **3b: GPU utilization research** — what programs fit best on RTX 3090? Measure wall-clock, utilization, memory bandwidth. This grounds future performance claims.
-- **Scale-up probe** — run one or two of the mechanisms (e.g. depth attention) at a larger scale (more params, longer context, word-level) to see if the picture changes.
-- **Dictation review** — re-read dictations to check whether the original vision had other mechanisms or ideas not yet tested.
+**GPU utilization study.** This is:
+1. Explicitly flagged by Max as overdue ("obvious")
+2. A prerequisite for the async/performance story being credible
+3. Requires no novel architecture — just measurement on plain models
+4. Tests Max's hypothesis: "I tend to think we can get significantly more FLOPs out of a GPU training an RNN than a transformer"
 
-Recommendation: **Dictation review first** — before running more experiments, check whether we've actually tested what Max intended or whether the operationalizations missed the point. Then decide between scale-up and GPU utilization research.
+Measure on RTX 3090 under matched parameters:
+- Wall-clock training time per batch
+- GPU compute utilization (not just theoretical FLOPs)
+- Memory bandwidth utilization
+- Inference throughput (tokens/sec for generation)
+- Models: standard transformer, RNN (LSTM or GRU), and possibly Mamba/SSM
+
+After that: **causal triangle attention residuals** (the explicitly-requested second variant).
