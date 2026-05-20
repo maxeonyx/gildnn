@@ -1,0 +1,93 @@
+{
+  "config": {
+    "context_size": 32,
+    "train_characters": 100000,
+    "val_characters": 20000,
+    "d_model": 512,
+    "num_modules": 6,
+    "num_ticks": 4,
+    "batch_size": 256,
+    "eval_batch_size": 512,
+    "learning_rate": 0.003,
+    "gradient_clip_norm": 1.0,
+    "memorization_batch_size": 32,
+    "memorization_steps": 300,
+    "memorization_learning_rate": 0.02,
+    "seed": 42
+  },
+  "probe": {
+    "variant": "synchronous_control",
+    "requested_steps": 10,
+    "warmup_steps": 2
+  },
+  "environment": {
+    "git_sha": "ac5d0f93fce661da593eeeee3bfe240470b8b3f3",
+    "git_working_tree_clean": false,
+    "git_status_short": [
+      "?? experiments/async_gru_scaleup/"
+    ],
+    "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+    "torch_version": "2.11.0+cu128",
+    "device": "cuda",
+    "cuda_device_name": "NVIDIA GeForce RTX 3090"
+  },
+  "corpus_summary": {
+    "source_file": "C:\\Users\\maxeo\\gildnn\\experiments\\corpora.ignore\\tinyshakespeare_input.txt",
+    "source_total_characters": 1115394,
+    "source_sha256": "86c4e6aa9db7c042ec79f339dcb96d42b0075e16b8fc2e86bf0ca57e2dc565ed",
+    "train_characters": 100000,
+    "val_characters": 20000,
+    "vocab_size": 61
+  },
+  "model": {
+    "parameter_count": 11117629,
+    "d_model": 512,
+    "num_modules": 6,
+    "num_ticks": 4,
+    "read_lags": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "result": {
+    "fit": true,
+    "steps": 10,
+    "warmup_steps": 2,
+    "first_loss": 4.335824,
+    "last_loss": 2.899292,
+    "min_loss": 2.899292,
+    "max_loss": 4.87647,
+    "loss_trace": [
+      4.335824,
+      3.828466,
+      4.856477,
+      4.87647,
+      4.487675,
+      3.548414,
+      3.845657,
+      3.081792,
+      2.955845,
+      2.899292
+    ],
+    "grad_norm_trace": [
+      3.666446,
+      6.754244,
+      8.816019,
+      5.547069,
+      6.417472,
+      4.159604,
+      11.381595,
+      3.22079,
+      2.112787,
+      2.679887
+    ],
+    "mean_ms_per_step": 230.948,
+    "tokens_per_step": 8192,
+    "tokens_per_second": 35471.2,
+    "peak_memory_bytes": 4190446592
+  }
+}

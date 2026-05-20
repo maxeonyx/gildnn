@@ -1,0 +1,244 @@
+{
+  "config": {
+    "context_size": 32,
+    "train_characters": 100000,
+    "val_characters": 20000,
+    "d_model": 512,
+    "num_modules": 6,
+    "num_ticks": 4,
+    "batch_size": 256,
+    "eval_batch_size": 512,
+    "learning_rate": 0.0015,
+    "gradient_clip_norm": 1.0,
+    "memorization_batch_size": 32,
+    "memorization_steps": 300,
+    "memorization_learning_rate": 0.02,
+    "seed": 42
+  },
+  "training_config": {
+    "max_steps": 2000,
+    "eval_every": 250,
+    "early_stop_patience": 3
+  },
+  "environment": {
+    "git_sha": "ac5d0f93fce661da593eeeee3bfe240470b8b3f3",
+    "git_working_tree_clean": false,
+    "git_status_short": [
+      "?? experiments/async_gru_scaleup/"
+    ],
+    "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+    "torch_version": "2.11.0+cu128",
+    "device": "cuda",
+    "cuda_device_name": "NVIDIA GeForce RTX 3090"
+  },
+  "corpus_summary": {
+    "source_file": "C:\\Users\\maxeo\\gildnn\\experiments\\corpora.ignore\\tinyshakespeare_input.txt",
+    "source_total_characters": 1115394,
+    "source_sha256": "86c4e6aa9db7c042ec79f339dcb96d42b0075e16b8fc2e86bf0ca57e2dc565ed",
+    "train_characters": 100000,
+    "val_characters": 20000,
+    "vocab_size": 61
+  },
+  "model": {
+    "parameter_count": 11117629,
+    "d_model": 512,
+    "num_modules": 6,
+    "num_ticks": 4,
+    "read_lags": {
+      "synchronous_control": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "async_stale_reads": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    }
+  },
+  "training": {
+    "synchronous_control": {
+      "history": [
+        {
+          "step": 250,
+          "train_loss": 2.050034,
+          "train_accuracy": 0.413453,
+          "val_loss": 1.829619,
+          "val_accuracy": 0.465645,
+          "interval_seconds": 66.768,
+          "is_best_so_far": true,
+          "non_improving_evals": 0
+        },
+        {
+          "step": 500,
+          "train_loss": 1.632031,
+          "train_accuracy": 0.512578,
+          "val_loss": 1.74676,
+          "val_accuracy": 0.492638,
+          "interval_seconds": 66.915,
+          "is_best_so_far": true,
+          "non_improving_evals": 0
+        },
+        {
+          "step": 750,
+          "train_loss": 1.471066,
+          "train_accuracy": 0.556406,
+          "val_loss": 1.678454,
+          "val_accuracy": 0.509966,
+          "interval_seconds": 66.214,
+          "is_best_so_far": true,
+          "non_improving_evals": 0
+        },
+        {
+          "step": 1000,
+          "train_loss": 1.344902,
+          "train_accuracy": 0.592562,
+          "val_loss": 1.676129,
+          "val_accuracy": 0.515274,
+          "interval_seconds": 65.783,
+          "is_best_so_far": true,
+          "non_improving_evals": 0
+        },
+        {
+          "step": 1250,
+          "train_loss": 1.25041,
+          "train_accuracy": 0.619297,
+          "val_loss": 1.704146,
+          "val_accuracy": 0.519331,
+          "interval_seconds": 65.885,
+          "is_best_so_far": false,
+          "non_improving_evals": 1
+        },
+        {
+          "step": 1500,
+          "train_loss": 1.152047,
+          "train_accuracy": 0.647828,
+          "val_loss": 1.755496,
+          "val_accuracy": 0.514173,
+          "interval_seconds": 66.153,
+          "is_best_so_far": false,
+          "non_improving_evals": 2
+        },
+        {
+          "step": 1750,
+          "train_loss": 1.067011,
+          "train_accuracy": 0.674359,
+          "val_loss": 1.806962,
+          "val_accuracy": 0.50621,
+          "interval_seconds": 66.338,
+          "is_best_so_far": false,
+          "non_improving_evals": 3
+        }
+      ],
+      "best_eval": {
+        "step": 1000,
+        "val_loss": 1.676129,
+        "val_accuracy": 0.515274
+      },
+      "final_eval": {
+        "step": 1750,
+        "train_loss": 1.067011,
+        "train_accuracy": 0.674359,
+        "val_loss": 1.806962,
+        "val_accuracy": 0.50621,
+        "interval_seconds": 66.338,
+        "is_best_so_far": false,
+        "non_improving_evals": 3
+      },
+      "completed_steps": 1750,
+      "stop_reason": "early_stop_non_improving_evals",
+      "sample_prompt": "First Citizen:\nBefore we proceed",
+      "sample_text": "First Citizen:\nBefore we proceed not such as in the charge\nThat been cansuled their condented,\nWe cannot sufferal, they letter for them,\nNor had I am consul, and they are a\nvery hatter fully dearth, when they are a\nvery hath alone.\n"
+    },
+    "async_stale_reads": {
+      "history": [
+        {
+          "step": 250,
+          "train_loss": 2.036316,
+          "train_accuracy": 0.416625,
+          "val_loss": 1.812072,
+          "val_accuracy": 0.472706,
+          "interval_seconds": 66.109,
+          "is_best_so_far": true,
+          "non_improving_evals": 0
+        },
+        {
+          "step": 500,
+          "train_loss": 1.619835,
+          "train_accuracy": 0.514641,
+          "val_loss": 1.743276,
+          "val_accuracy": 0.500701,
+          "interval_seconds": 66.287,
+          "is_best_so_far": true,
+          "non_improving_evals": 0
+        },
+        {
+          "step": 750,
+          "train_loss": 1.469085,
+          "train_accuracy": 0.557187,
+          "val_loss": 1.675736,
+          "val_accuracy": 0.509966,
+          "interval_seconds": 66.334,
+          "is_best_so_far": true,
+          "non_improving_evals": 0
+        },
+        {
+          "step": 1000,
+          "train_loss": 1.347276,
+          "train_accuracy": 0.592328,
+          "val_loss": 1.684057,
+          "val_accuracy": 0.510367,
+          "interval_seconds": 66.338,
+          "is_best_so_far": false,
+          "non_improving_evals": 1
+        },
+        {
+          "step": 1250,
+          "train_loss": 1.254639,
+          "train_accuracy": 0.620156,
+          "val_loss": 1.739824,
+          "val_accuracy": 0.50616,
+          "interval_seconds": 66.288,
+          "is_best_so_far": false,
+          "non_improving_evals": 2
+        },
+        {
+          "step": 1500,
+          "train_loss": 1.161494,
+          "train_accuracy": 0.647891,
+          "val_loss": 1.750164,
+          "val_accuracy": 0.514824,
+          "interval_seconds": 66.218,
+          "is_best_so_far": false,
+          "non_improving_evals": 3
+        }
+      ],
+      "best_eval": {
+        "step": 750,
+        "val_loss": 1.675736,
+        "val_accuracy": 0.509966
+      },
+      "final_eval": {
+        "step": 1500,
+        "train_loss": 1.161494,
+        "train_accuracy": 0.647891,
+        "val_loss": 1.750164,
+        "val_accuracy": 0.514824,
+        "interval_seconds": 66.218,
+        "is_best_so_far": false,
+        "non_improving_evals": 3
+      },
+      "completed_steps": 1500,
+      "stop_reason": "early_stop_non_improving_evals",
+      "sample_prompt": "First Citizen:\nBefore we proceed",
+      "sample_text": "First Citizen:\nBefore we proceed, the gods, which he hath he hath his hink,\nWhich he did company the here? How have him the hath he hath here here here done that hath he hath here?\n\nSICINIUS:\nHe'll we have him the hath he hath he ha"
+    }
+  }
+}
