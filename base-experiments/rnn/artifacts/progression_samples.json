@@ -1,0 +1,31 @@
+{
+  "prompt": "First Citizen:\\nBefore we proceed",
+  "sample_length": 200,
+  "checkpoints": [
+    {
+      "epoch": 0,
+      "val_loss": 4.144862,
+      "sample": "First Citizen:\nBefore we proceedYbztQ-UbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUbMUb"
+    },
+    {
+      "epoch": 1,
+      "val_loss": 1.896089,
+      "sample": "First Citizen:\nBefore we proceed them them them them them them them them them them them them them them them them them them them them them them them them them them them them them them them them them them them them them them them them"
+    },
+    {
+      "epoch": 3,
+      "val_loss": 1.736296,
+      "sample": "First Citizen:\nBefore we proceed, and the people,\nSo more the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the th"
+    },
+    {
+      "epoch": 7,
+      "val_loss": 1.717554,
+      "sample": "First Citizen:\nBefore we proceed to the gods good for the gods good for the gods good for the gods good for the gods good for the gods good for the gods good for the gods good for the gods good for the gods good for the gods good fo"
+    },
+    {
+      "epoch": 13,
+      "val_loss": 1.7331,
+      "sample": "First Citizen:\nBefore we proceed and the people, and the people, and the people, and the people, and the people, and the people, and the people, and the people, and the people, and the people, and the people, and the people, and the"
+    }
+  ]
+}

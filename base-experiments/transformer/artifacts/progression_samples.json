@@ -1,0 +1,31 @@
+{
+  "prompt": "First Citizen:\\nBefore we proceed",
+  "sample_length": 200,
+  "checkpoints": [
+    {
+      "epoch": 0,
+      "val_loss": 4.264182,
+      "sample": "First Citizen:\nBefore we proceedTBMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
+    },
+    {
+      "epoch": 1,
+      "val_loss": 1.94469,
+      "sample": "First Citizen:\nBefore we proceed to the see to the seeven to the good to the seeven the good to the seever the seeven the so mare to the seeven to the seeven to the seeven to the seeven to the seeven to the seeven to the seeven to t"
+    },
+    {
+      "epoch": 3,
+      "val_loss": 1.7242,
+      "sample": "First Citizen:\nBefore we proceeds the proud the proud\nThe proud the proud the proud.\n\nCORIOLANUS:\nSo the proud the proud the proud the proud\nThe proud the proud the proud.\n\nCORIOLANUS:\nSo the proud the proud the proud the proud\nThe "
+    },
+    {
+      "epoch": 7,
+      "val_loss": 1.652433,
+      "sample": "First Citizen:\nBefore we proceed the consul.\n\nMENENIUS:\nHe have the consul.\n\nMENENIUS:\nHe have the consul.\n\nMENENIUS:\nHe have the consul.\n\nMENENIUS:\nHe have the consul.\n\nMENENIUS:\nHe have the consul.\n\nMENENIUS:\nHe have the consul.\n\n"
+    },
+    {
+      "epoch": 13,
+      "val_loss": 1.643463,
+      "sample": "First Citizen:\nBefore we proceed, and they have they shall the people.\n\nCOMINIUS:\nThey are the people.\n\nCOMINIUS:\nThey are the people.\n\nCOMINIUS:\nThey are the people.\n\nCOMINIUS:\nThey are the people.\n\nCOMINIUS:\nThey are the people.\n\n"
+    }
+  ]
+}

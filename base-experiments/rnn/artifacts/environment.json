@@ -1,10 +1,12 @@
 {
-  "git_sha": "4d70867e481c2fbaaedcaec69ecc59d4d1d5bbcf",
+  "git_sha": "522e581ff9e118e06c97c6104dbfd55abcf84552",
   "git_working_tree_clean": false,
   "git_status_short": [
-    "?? base-experiments/rnn/",
+    " M base_experiments/rnn.py",
+    " M base_experiments/transformer.py",
     "?? base-experiments/transformer/artifacts/model_state.pt",
-    "?? base_experiments/rnn.py"
+    "?? experiments/chain_dynamic_depth/artifacts/predictive_chain_dynamic_depth_standardized/",
+    "?? experiments/chain_dynamic_depth/predictive_chain_dynamic_depth_standardized.py"
   ],
   "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
   "torch_version": "2.11.0+cu128",

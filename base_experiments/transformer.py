@@ -42,6 +42,8 @@ class RunConfig:
     num_heads: int = 4
     num_layers: int = 3
     sample_length: int = 320
+    progression_sample_length: int = 200
+    sample_checkpoints: tuple[int, ...] = (0, 1, 3, 7, 13)
     seed: int = 42
     check_batch_size: int = 8
     memorization_batch_size: int = 32
@@ -266,17 +268,45 @@ def train_one_epoch(
     }
 
 
+def capture_sample(
+    model: nn.Module,
+    dataset: FixedWindowCharDataset,
+    prompt: str,
+    *,
+    length: int,
+    device: torch.device,
+) -> str:
+    was_training = model.training
+    model.eval()
+    with torch.inference_mode():
+        sample = generate_text(
+            model,
+            dataset,
+            prompt,
+            length=length,
+            device=device,
+        )
+    if was_training:
+        model.train()
+    return sample
+
+
 def train_model(
     model: nn.Module,
     *,
+    dataset: FixedWindowCharDataset,
     train_inputs: Tensor,
     train_targets: Tensor,
     val_inputs: Tensor,
     val_targets: Tensor,
+    prompt: str,
     config: RunConfig,
-) -> tuple[list[dict[str, float | int]], dict[str, float], float]:
+    device: torch.device,
+) -> tuple[list[dict[str, float | int]], list[dict[str, float | int | str]], dict[str, float], float]:
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
     history: list[dict[str, float | int]] = []
+    progression_samples: list[dict[str, float | int | str]] = []
+    sample_epochs = {epoch for epoch in config.sample_checkpoints if epoch <= config.epochs}
     started_at = time.perf_counter()
 
     initial_train_metrics = evaluate_model(
@@ -304,6 +334,20 @@ def train_model(
         f"epoch=0 train_loss={initial_train_metrics['loss']:.4f} "
         f"val_loss={initial_val_metrics['loss']:.4f}"
     )
+    if 0 in sample_epochs:
+        progression_samples.append(
+            {
+                "epoch": 0,
+                "val_loss": round(initial_val_metrics["loss"], 6),
+                "sample": capture_sample(
+                    model,
+                    dataset,
+                    prompt,
+                    length=config.progression_sample_length,
+                    device=device,
+                ),
+            }
+        )
 
     for epoch in range(1, config.epochs + 1):
         train_metrics = train_one_epoch(
@@ -333,6 +377,20 @@ def train_model(
             f"epoch={epoch} train_loss={train_metrics['loss']:.4f} "
             f"val_loss={val_metrics['loss']:.4f}"
         )
+        if epoch in sample_epochs:
+            progression_samples.append(
+                {
+                    "epoch": epoch,
+                    "val_loss": round(val_metrics["loss"], 6),
+                    "sample": capture_sample(
+                        model,
+                        dataset,
+                        prompt,
+                        length=config.progression_sample_length,
+                        device=device,
+                    ),
+                }
+            )
 
     runtime_seconds = time.perf_counter() - started_at
     final_metrics = evaluate_model(
@@ -341,7 +399,7 @@ def train_model(
         val_targets,
         batch_size=config.eval_batch_size,
     )
-    return history, final_metrics, runtime_seconds
+    return history, progression_samples, final_metrics, runtime_seconds
 
 
 def run_correctness_checks(
@@ -475,6 +533,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--epochs", type=int)
     parser.add_argument("--learning-rate", type=float)
     parser.add_argument("--sample-length", type=int)
+    parser.add_argument("--progression-sample-length", type=int)
     parser.add_argument("--seed", type=int)
     parser.add_argument("--memorization-steps", type=int)
     parser.add_argument("--memorization-learning-rate", type=float)
@@ -508,6 +567,7 @@ def resolved_config(args: argparse.Namespace) -> RunConfig:
         "epochs": args.epochs,
         "learning_rate": args.learning_rate,
         "sample_length": args.sample_length,
+        "progression_sample_length": args.progression_sample_length,
         "seed": args.seed,
         "memorization_steps": args.memorization_steps,
         "memorization_learning_rate": args.memorization_learning_rate,
@@ -598,17 +658,20 @@ def main() -> None:
 
     set_seed(config.seed)
     model = make_model(config, vocab_size=split.train_dataset.vocab_size, device=device)
-    history, final_val_metrics, runtime_seconds = train_model(
+    prompt = split.train_text[: config.context_size]
+    history, progression_samples, final_val_metrics, runtime_seconds = train_model(
         model,
+        dataset=split.train_dataset,
         train_inputs=train_inputs,
         train_targets=train_targets,
         val_inputs=val_inputs,
         val_targets=val_targets,
+        prompt=prompt,
         config=config,
+        device=device,
     )
 
-    prompt = split.train_text[: config.context_size]
-    sample = generate_text(
+    sample = capture_sample(
         model,
         split.train_dataset,
         prompt,
@@ -617,6 +680,14 @@ def main() -> None:
     )
     torch.save(model.state_dict(), output_dir / "model_state.pt")
     write_json(output_dir / "training_history.json", history)
+    write_json(
+        output_dir / "progression_samples.json",
+        {
+            "prompt": prompt.replace("\n", "\\n"),
+            "sample_length": config.progression_sample_length,
+            "checkpoints": progression_samples,
+        },
+    )
     best_epoch_record = min(history[1:] or history, key=lambda record: float(record["val_loss"]))
     write_json(
         output_dir / "final_metrics.json",
