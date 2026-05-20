@@ -6,6 +6,12 @@ This question serves the local-predictive-learning part of [Max's 2026-05-20 dic
 
 First comparison slice partly run. The 1-module and 2-module variants now have full standardized results. The 4-module variant passed the mechanical checks but failed the reduced-setting gate badly enough that it was not promoted to the full comparison table as a fair standardized run.
 
+## Key findings
+
+- On this first fair comparison slice, **2 modules lost to 1**. The 2-module local-learning variant was worse on validation loss and much slower.
+- The **1-module local-learning control beat the vanilla RNN anchor** on this single-seed run (`1.664525` vs `1.711203` best val loss), but **still lost to the transformer anchor** (`1.643`) and was much slower than both baselines (`395s` vs `161s` for the vanilla RNN and `~212s` for the transformer).
+- The **4-module variant did not earn a full standardized run**. At this parameter budget it shrinks to width `80` per module, and the reduced-setting behavior stayed bad enough that the current evidence points to an architectural limitation of this slice rather than a hidden implementation bug.
+
 ## The exact question being tested
 
 The first experiment asks a narrower version of the question in the [dictation](../../../dictations/2026-05-20-9.md):
@@ -256,13 +262,16 @@ Likewise, a negative result here would only rule against this **tested slice**, 
 
 Within this first slice, the answer is currently negative for extra modularity under the tested stop-gradient placement. The 1-module local-learning control reached `1.664525` best validation loss, beating the vanilla RNN anchor's `1.711203`, while the 2-module variant degraded to `1.803579` best validation loss and took substantially longer. The 4-module variant did not earn a full-frame run because it was already weak in the reduced setting.
 
+All results here are **single-seed** results. That is enough to be confident about the `1` vs `2` conclusion, because the best-loss gap is `0.139054`, which is large for this frame. It is weaker evidence for the `1` vs vanilla-RNN gap (`0.046678`), and especially weak evidence for the `1` vs transformer gap (`0.021062`), where this report should be read as one informative run rather than a settled ranking.
+
 ### Comparison table
 
 | Variant | Params | Best val loss | Final val loss | Val accuracy | Runtime (s) | Notes |
 |---|---:|---:|---:|---:|---:|---|
 | Single-module local-learning control | 185,489 | 1.664525 | 1.667036 | 0.511118 | 395.11 | Best epoch 9; better than the vanilla RNN anchor on this fixed frame |
-| Two-module local-learning | 185,959 | 1.803579 | 2.095361 | 0.484625 | 704.43 | Best epoch 4, then overfit/degraded; worse than both the 1-module control and the vanilla RNN anchor |
+| Two-module local-learning | 185,959 | 1.803579 | 2.095361 | 0.484625 | 704.43 | Best epoch 4, then peaked early and degraded under this schedule; worse than both the 1-module control and the vanilla RNN anchor |
 | Four-module local-learning | 187,709 | — | — | — | — | Not promoted to the full comparison: tiny-run best val loss only `3.312253` at width `80`, and an auxiliary-weight=`0.0` focused check still failed the memorization gate |
+| Transformer anchor | 186,805 | 1.643 | — | — | ~212 | From [base_experiments/README.md](../../../base_experiments/README.md) |
 | Vanilla RNN anchor | 186,125 | 1.711203 | 1.733100 | 0.509916 | 160.78 | From [base_experiments/README.md](../../../base_experiments/README.md) |
 
 ### Qualitative samples
