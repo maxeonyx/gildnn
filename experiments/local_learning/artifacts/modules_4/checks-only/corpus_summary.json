@@ -1,0 +1,14 @@
+{
+  "source_file": "C:\\Users\\maxeo\\gildnn\\experiments\\corpora.ignore\\tinyshakespeare_input.txt",
+  "source_total_characters": 1115394,
+  "source_sha256": "86c4e6aa9db7c042ec79f339dcb96d42b0075e16b8fc2e86bf0ca57e2dc565ed",
+  "used_total_characters": 2560,
+  "used_sha256": "bcffe1e8d0c6e539cfc2035e5dd488792ae746a2b0567424a419b6aaf2ccf979",
+  "train_characters": 2048,
+  "val_characters": 512,
+  "val_start": 2730,
+  "val_stop": 3242,
+  "train_windows": 2016,
+  "val_windows": 480,
+  "vocab_size": 49
+}

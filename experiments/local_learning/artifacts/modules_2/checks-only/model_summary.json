@@ -1,0 +1,20 @@
+{
+  "model_family": "local_learning_stopgrad_rnn",
+  "parameter_count": 183799,
+  "context_size": 32,
+  "embedding_dim": 64,
+  "hidden_dim": 115,
+  "module_count": 2,
+  "module_depth": 3,
+  "module_input_dims": [
+    64,
+    115
+  ],
+  "local_head_targets": [
+    "next_step_bounded_embedding",
+    "next_step_detached_module_1_output"
+  ],
+  "inter_module_boundary": "detach(previous_module_output_before_next_module_consumes_it)",
+  "task_head": "linear(top_module_last_step_hidden -> vocab)",
+  "hidden_state_handling": "zero_init_per_window_persistent_within_window_and_within_module"
+}

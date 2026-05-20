@@ -1,0 +1,15 @@
+{
+  "git_sha": "17017a352a7059ed99cb95d66b796067ceac353d",
+  "git_working_tree_clean": false,
+  "git_status_short": [
+    "?? experiments/chain_dynamic_depth/artifacts/predictive_chain_dynamic_depth_standardized/",
+    "?? experiments/chain_dynamic_depth/predictive_chain_dynamic_depth_standardized.py",
+    "?? experiments/local_learning/",
+    "?? research/questions/local-learning/"
+  ],
+  "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+  "torch_version": "2.11.0+cu128",
+  "device": "cuda",
+  "cuda_is_available": true,
+  "cuda_device_name": "NVIDIA GeForce RTX 3090"
+}
