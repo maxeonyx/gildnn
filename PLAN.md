@@ -196,15 +196,12 @@ This window is a strong success if, in addition to the floor above:
 - If time gets tight, cut contingent composition work before cutting the highest-value isolated mechanism experiments.
 - If one late-phase thread is blocked, switch to the next discriminating experiment rather than burning the remaining window on setup/debugging.
 
+## Completed experiments
+
+- **Local learning (residual)** — NEGATIVE. Stop-gradient boundaries + local prediction heads on residual blocks clearly hurt vs matched end-to-end (best val 2.081 vs 1.644, 3-block). Mechanism works mechanically but LM quality tanks. See `research/questions/local-learning-residual/README.md`.
+
 ## Immediate next step
 
-Redo the local-learning experiment in the **clarified architecture frame**:
+**3c: Attention residual transformer.** This is the core mechanism experiment for the clarified architecture. Max's dictation says looped blocks with attention residual connections are "essentially a transformer" — test whether using attention across depth (and optionally across depth+sequence in a causal triangle) gives useful behavior.
 
-- Module = single residual block (e.g. LayerNorm + Linear + activation + Linear)
-- Interface = shared residual stream at uniform `d_model`
-- Stop gradients at block boundaries
-- Local prediction head at each boundary predicts the next incoming residual
-- Compare: 1 block (control), 3 blocks, 6 blocks — all at ~186K params, same d_model throughout
-- No recurrence, no bottleneck, no per-module hidden dimension
-
-The old recurrent-stack experiment (`research/questions/local-learning/`) is superseded but kept for reference. The new experiment should go in a new question folder (e.g. `research/questions/local-learning-residual/`).
+This directly tests the residual-stream boundary mechanism that's central to the vision, without stop-gradients or local losses (those were negative).
