@@ -22,8 +22,10 @@ while ($iteration -lt $maxIterations) {
     Write-Host "[$($now.ToString('yyyy-MM-dd HH:mm:ss'))] Launching OpenCode iteration $iteration/$maxIterations (session $sessionId)..."
 
     $prompt = Get-Content -Path "$PSScriptRoot\loop-prompt.md" -Raw
+    $prompt = "$prompt $($args[0])"
+    echo $prompt
     opencode run --agent arrange --model github-copilot-max/claude-opus-4.6 --variant high --session $sessionId $prompt
-
+    
     $exitCode = $LASTEXITCODE
     $elapsed = ((Get-Date) - $lastLaunch).TotalSeconds
     $lastLaunch = Get-Date

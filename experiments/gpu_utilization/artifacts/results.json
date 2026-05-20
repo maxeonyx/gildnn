@@ -1,0 +1,305 @@
+{
+  "git_sha": "ce199af78a925b32017d1c9e43481d553a9cfec6",
+  "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+  "torch_version": "2.11.0+cu128",
+  "cuda_device_name": "NVIDIA GeForce RTX 3090",
+  "train_warmup_steps": 10,
+  "train_timed_steps": 50,
+  "decode_warmup_tokens": 10,
+  "decode_timed_tokens": 100,
+  "results": [
+    {
+      "family": "transformer",
+      "size_label": "~1M",
+      "context_size": 32,
+      "parameter_count": 936017,
+      "config": {
+        "family": "transformer",
+        "hidden_size": 272,
+        "num_layers": 1,
+        "num_heads": 8,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 256,
+        "tokens_per_second": 710636.736414506,
+        "milliseconds_per_step": 11.527690000002622,
+        "peak_vram_bytes": 247915520,
+        "loss_mean": 2.0557770383358003,
+        "loss_stdev": 1.3165700421616857
+      },
+      "decode": {
+        "tokens_per_second": 1087.303986279631,
+        "milliseconds_per_token": 0.9197059999951307
+      }
+    },
+    {
+      "family": "transformer",
+      "size_label": "~1M",
+      "context_size": 256,
+      "parameter_count": 996945,
+      "config": {
+        "family": "transformer",
+        "hidden_size": 272,
+        "num_layers": 1,
+        "num_heads": 8,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 32,
+        "tokens_per_second": 543433.2670321326,
+        "milliseconds_per_step": 15.074527999986458,
+        "peak_vram_bytes": 358852608,
+        "loss_mean": 1.9948227302730084,
+        "loss_stdev": 1.312475418149514
+      },
+      "decode": {
+        "tokens_per_second": 746.2324588761228,
+        "milliseconds_per_token": 1.3400649999948655
+      }
+    },
+    {
+      "family": "lstm",
+      "size_label": "~1M",
+      "context_size": 32,
+      "parameter_count": 994225,
+      "config": {
+        "family": "lstm",
+        "hidden_size": 344,
+        "num_layers": 1,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 512,
+        "tokens_per_second": 1742850.7907394182,
+        "milliseconds_per_step": 9.400690000002214,
+        "peak_vram_bytes": 444749824,
+        "loss_mean": 3.4007212781906127,
+        "loss_stdev": 0.47159569041144395
+      },
+      "decode": {
+        "tokens_per_second": 2028.28648328676,
+        "milliseconds_per_token": 0.4930270000022574
+      }
+    },
+    {
+      "family": "lstm",
+      "size_label": "~1M",
+      "context_size": 256,
+      "parameter_count": 994225,
+      "config": {
+        "family": "lstm",
+        "hidden_size": 344,
+        "num_layers": 1,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 256,
+        "tokens_per_second": 1570336.5119773822,
+        "milliseconds_per_step": 41.733729999996285,
+        "peak_vram_bytes": 1600583680,
+        "loss_mean": 3.8535525369644166,
+        "loss_stdev": 0.20597904849309873
+      },
+      "decode": {
+        "tokens_per_second": 2027.6120205118282,
+        "milliseconds_per_token": 0.49319099999593163
+      }
+    },
+    {
+      "family": "gru",
+      "size_label": "~1M",
+      "context_size": 32,
+      "parameter_count": 1003233,
+      "config": {
+        "family": "gru",
+        "hidden_size": 232,
+        "num_layers": 3,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 512,
+        "tokens_per_second": 1313351.1150896617,
+        "milliseconds_per_step": 12.474958000002516,
+        "peak_vram_bytes": 529122816,
+        "loss_mean": 3.627559571266174,
+        "loss_stdev": 0.3443809322127621
+      },
+      "decode": {
+        "tokens_per_second": 2683.4615581081894,
+        "milliseconds_per_token": 0.372652999994898
+      }
+    },
+    {
+      "family": "gru",
+      "size_label": "~1M",
+      "context_size": 256,
+      "parameter_count": 1003233,
+      "config": {
+        "family": "gru",
+        "hidden_size": 232,
+        "num_layers": 3,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 512,
+        "tokens_per_second": 1265393.2347145816,
+        "milliseconds_per_step": 103.58202999999776,
+        "peak_vram_bytes": 3869153280,
+        "loss_mean": 4.0575640726089475,
+        "loss_stdev": 0.07900632778902618
+      },
+      "decode": {
+        "tokens_per_second": 2922.0371273951764,
+        "milliseconds_per_token": 0.34222700000100303
+      }
+    },
+    {
+      "family": "transformer",
+      "size_label": "~10M",
+      "context_size": 32,
+      "parameter_count": 9792449,
+      "config": {
+        "family": "transformer",
+        "hidden_size": 896,
+        "num_layers": 1,
+        "num_heads": 16,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 128,
+        "tokens_per_second": 106522.78323640418,
+        "milliseconds_per_step": 38.45186800001102,
+        "peak_vram_bytes": 489009664,
+        "loss_mean": 0.1389940569922328,
+        "loss_stdev": 0.32848548518242876
+      },
+      "decode": {
+        "tokens_per_second": 951.0006428727582,
+        "milliseconds_per_token": 1.0515240000040649
+      }
+    },
+    {
+      "family": "transformer",
+      "size_label": "~10M",
+      "context_size": 256,
+      "parameter_count": 9993153,
+      "config": {
+        "family": "transformer",
+        "hidden_size": 896,
+        "num_layers": 1,
+        "num_heads": 16,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 8,
+        "tokens_per_second": 91705.12789284183,
+        "milliseconds_per_step": 22.332447999997385,
+        "peak_vram_bytes": 329568256,
+        "loss_mean": 0.02418934335350059,
+        "loss_stdev": 0.07957330421692173
+      },
+      "decode": {
+        "tokens_per_second": 1077.5153788439702,
+        "milliseconds_per_token": 0.9280609999950684
+      }
+    },
+    {
+      "family": "lstm",
+      "size_label": "~10M",
+      "context_size": 32,
+      "parameter_count": 10008161,
+      "config": {
+        "family": "lstm",
+        "hidden_size": 336,
+        "num_layers": 11,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 256,
+        "tokens_per_second": 150886.2467259775,
+        "milliseconds_per_step": 54.29255600000033,
+        "peak_vram_bytes": 1121136128,
+        "loss_mean": 4.160895175933838,
+        "loss_stdev": 0.006798356973817783
+      },
+      "decode": {
+        "tokens_per_second": 647.8051712973997,
+        "milliseconds_per_token": 1.5436740000041027
+      }
+    },
+    {
+      "family": "lstm",
+      "size_label": "~10M",
+      "context_size": 256,
+      "parameter_count": 10008161,
+      "config": {
+        "family": "lstm",
+        "hidden_size": 336,
+        "num_layers": 11,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 512,
+        "tokens_per_second": 156958.26493482658,
+        "milliseconds_per_step": 835.0754899999993,
+        "peak_vram_bytes": 13901226496,
+        "loss_mean": 4.17405068397522,
+        "loss_stdev": 0.00014951711924255238
+      },
+      "decode": {
+        "tokens_per_second": 720.5400014966767,
+        "milliseconds_per_token": 1.3878480000039417
+      }
+    },
+    {
+      "family": "gru",
+      "size_label": "~10M",
+      "context_size": 32,
+      "parameter_count": 10004545,
+      "config": {
+        "family": "gru",
+        "hidden_size": 1280,
+        "num_layers": 1,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 128,
+        "tokens_per_second": 194254.10029803906,
+        "milliseconds_per_step": 21.085784000006242,
+        "peak_vram_bytes": 589170688,
+        "loss_mean": 0.3656230615824461,
+        "loss_stdev": 0.6051230888009227
+      },
+      "decode": {
+        "tokens_per_second": 3678.187977577452,
+        "milliseconds_per_token": 0.27187299999241077
+      }
+    },
+    {
+      "family": "gru",
+      "size_label": "~10M",
+      "context_size": 256,
+      "parameter_count": 10004545,
+      "config": {
+        "family": "gru",
+        "hidden_size": 1280,
+        "num_layers": 1,
+        "feedforward_mult": 4
+      },
+      "train": {
+        "batch_size": 512,
+        "tokens_per_second": 252835.47855829127,
+        "milliseconds_per_step": 518.4082579999995,
+        "peak_vram_bytes": 12323429376,
+        "loss_mean": 2.5794737219810484,
+        "loss_stdev": 1.0223802977911338
+      },
+      "decode": {
+        "tokens_per_second": 3589.8393187896727,
+        "milliseconds_per_token": 0.27856400000018766
+      }
+    }
+  ],
+  "summary_table": "family       size   ctx  params      batch  train tok/s  ms/step  peak VRAM  decode tok/s\n-----------  -----  ---  ----------  -----  -----------  -------  ---------  ------------\ntransformer  ~1M     32     936,017    256    710,636.7    11.53       0.23G       1,087.3\ntransformer  ~1M    256     996,945     32    543,433.3    15.07       0.33G         746.2\nlstm         ~1M     32     994,225    512  1,742,850.8     9.40       0.41G       2,028.3\nlstm         ~1M    256     994,225    256  1,570,336.5    41.73       1.49G       2,027.6\ngru          ~1M     32   1,003,233    512  1,313,351.1    12.47       0.49G       2,683.5\ngru          ~1M    256   1,003,233    512  1,265,393.2   103.58       3.60G       2,922.0\ntransformer  ~10M    32   9,792,449    128    106,522.8    38.45       0.46G         951.0\ntransformer  ~10M   256   9,993,153      8     91,705.1    22.33       0.31G       1,077.5\nlstm         ~10M    32  10,008,161    256    150,886.2    54.29       1.04G         647.8\nlstm         ~10M   256  10,008,161    512    156,958.3   835.08      12.95G         720.5\ngru          ~10M    32  10,004,545    128    194,254.1    21.09       0.55G       3,678.2\ngru          ~10M   256  10,004,545    512    252,835.5   518.41      11.48G       3,589.8"
+}
