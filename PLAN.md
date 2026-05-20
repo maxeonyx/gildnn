@@ -197,3 +197,5 @@ This window is a strong success if, in addition to the floor above:
 ## Immediate next step
 
 Choose the first isolated post-baseline mechanism question. The leading candidate is local learning (3a) — multi-module A→A prediction with stop gradients, compared against single-module and baselines at same params/FLOPs/wall-clock. Write the report-first README before touching code.
+
+Also: the baseline reports (`base_experiments/README.md`) need example inputs and outputs at different loss stages from multiple models. Max wants to see what the models actually produce as they train, not just final numbers.
