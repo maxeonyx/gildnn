@@ -1,0 +1,9138 @@
+{
+  "threshold": 0.25354,
+  "improvement_epsilon": -Infinity,
+  "depth_histogram": {
+    "1": 22,
+    "2": 7,
+    "3": 7,
+    "4": 2,
+    "5": 1,
+    "6": 0,
+    "7": 0,
+    "8": 281
+  },
+  "top_hard_examples": [
+    {
+      "char": "t",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 6.914204,
+      "context": "what; yet go:\\nNay, but thou shal",
+      "target": "t",
+      "prediction": "l"
+    },
+    {
+      "char": ":",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 6.883688,
+      "context": "ood. I'll tell thee what; yet go",
+      "target": ":",
+      "prediction": "d"
+    },
+    {
+      "char": "A",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 6.784957,
+      "context": "tay too: I would my son\\nWere in ",
+      "target": "A",
+      "prediction": "t"
+    },
+    {
+      "char": ":",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 6.712817,
+      "context": "go:\\nNay, but thou shalt stay too",
+      "target": ":",
+      "prediction": " "
+    },
+    {
+      "char": ",",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 6.269705,
+      "context": "o: I would my son\\nWere in Arabia",
+      "target": ",",
+      "prediction": "n"
+    },
+    {
+      "char": "a",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 5.717978,
+      "context": "oo: I would my son\\nWere in Arabi",
+      "target": "a",
+      "prediction": "n"
+    },
+    {
+      "char": "e",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 5.067636,
+      "context": "VOLUMNIA:\\nMore noble blows than ",
+      "target": "e",
+      "prediction": "t"
+    },
+    {
+      "char": "b",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 4.970058,
+      "context": " too: I would my son\\nWere in Ara",
+      "target": "b",
+      "prediction": "n"
+    },
+    {
+      "char": "!",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 4.806707,
+      "context": "\\nWhat then?\\n\\nVIRGILIA:\\nWhat then",
+      "target": "!",
+      "prediction": " "
+    },
+    {
+      "char": "R",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 4.79501,
+      "context": "n ever thou wise words;\\nAnd for ",
+      "target": "R",
+      "prediction": "t"
+    },
+    {
+      "char": "e",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 4.469361,
+      "context": "GILIA:\\nWhat then!\\nHe'ld make an ",
+      "target": "e",
+      "prediction": "t"
+    },
+    {
+      "char": "n",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 4.395037,
+      "context": "in his hand.\\n\\nSICINIUS:\\nWhat the",
+      "target": "n",
+      "prediction": " "
+    },
+    {
+      "char": "g",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 4.393386,
+      "context": " good. I'll tell thee what; yet ",
+      "target": "g",
+      "prediction": "w"
+    },
+    {
+      "char": "n",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 4.288627,
+      "context": ":\\nWhat then?\\n\\nVIRGILIA:\\nWhat the",
+      "target": "n",
+      "prediction": " "
+    },
+    {
+      "char": "n",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 4.273587,
+      "context": "ords?\\n\\nSICINIUS:\\nO blessed heave",
+      "target": "n",
+      "prediction": " "
+    },
+    {
+      "char": "'",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 4.262665,
+      "context": "er thou wise words;\\nAnd for Rome",
+      "target": "'",
+      "prediction": ","
+    },
+    {
+      "char": "N",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 4.177376,
+      "context": "d. I'll tell thee what; yet go:\\n",
+      "target": "N",
+      "prediction": "A"
+    },
+    {
+      "char": "e",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 4.164904,
+      "context": "d for Rome's good. I'll tell the",
+      "target": "e",
+      "prediction": " "
+    },
+    {
+      "char": ";",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 4.103446,
+      "context": "Rome's good. I'll tell thee what",
+      "target": ";",
+      "prediction": " "
+    },
+    {
+      "char": "y",
+      "used_depth": 8,
+      "actual_loss_at_used_depth": 4.02667,
+      "context": "at then!\\nHe'ld make an end of th",
+      "target": "y",
+      "prediction": "e"
+    }
+  ],
+  "rows": [
+    {
+      "index": 0,
+      "context": " hast spoken words?\\n\\nSICINIUS:\\nO",
+      "target": " ",
+      "prediction": ",",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.972124,
+        1.77934,
+        1.641069,
+        1.549607,
+        1.493636,
+        1.454436,
+        1.425984,
+        1.404831
+      ],
+      "actual_losses": [
+        2.208904,
+        1.985814,
+        2.170068,
+        2.260181,
+        2.246746,
+        2.198516,
+        2.149031,
+        2.107183
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 1,
+      "context": "hast spoken words?\\n\\nSICINIUS:\\nO ",
+      "target": "b",
+      "prediction": "w",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.009324,
+        2.728504,
+        2.763804,
+        2.76547,
+        2.767865,
+        2.771117,
+        2.774726,
+        2.778503
+      ],
+      "actual_losses": [
+        3.446713,
+        3.579891,
+        3.625683,
+        3.630179,
+        3.626905,
+        3.620492,
+        3.612005,
+        3.602086
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 2,
+      "context": "ast spoken words?\\n\\nSICINIUS:\\nO b",
+      "target": "l",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.523909,
+        1.306972,
+        1.415542,
+        1.477607,
+        1.503815,
+        1.518044,
+        1.527177,
+        1.53504
+      ],
+      "actual_losses": [
+        2.750589,
+        3.034239,
+        3.078377,
+        2.985663,
+        2.911386,
+        2.881824,
+        2.867568,
+        2.856241
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 3,
+      "context": "st spoken words?\\n\\nSICINIUS:\\nO bl",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.171913,
+        1.150924,
+        1.219653,
+        1.291839,
+        1.326221,
+        1.35068,
+        1.369547,
+        1.383592
+      ],
+      "actual_losses": [
+        0.5118,
+        0.47258,
+        0.55848,
+        0.627605,
+        0.687407,
+        0.730631,
+        0.759233,
+        0.780328
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 4,
+      "context": "t spoken words?\\n\\nSICINIUS:\\nO ble",
+      "target": "s",
+      "prediction": "s",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.573063,
+        2.558342,
+        2.263474,
+        2.21893,
+        2.198077,
+        2.18534,
+        2.182141,
+        2.188401
+      ],
+      "actual_losses": [
+        1.256898,
+        1.721774,
+        1.660181,
+        1.678253,
+        1.673729,
+        1.664151,
+        1.663874,
+        1.672686
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 5,
+      "context": " spoken words?\\n\\nSICINIUS:\\nO bles",
+      "target": "s",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.298285,
+        2.074767,
+        2.176643,
+        2.210791,
+        2.226906,
+        2.240843,
+        2.252223,
+        2.262004
+      ],
+      "actual_losses": [
+        2.376581,
+        2.527673,
+        2.42978,
+        2.441172,
+        2.537348,
+        2.676836,
+        2.83458,
+        2.990263
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 6,
+      "context": "spoken words?\\n\\nSICINIUS:\\nO bless",
+      "target": "e",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.270663,
+        2.278455,
+        2.285136,
+        2.29,
+        2.292355,
+        2.291864,
+        2.288566,
+        2.282707
+      ],
+      "actual_losses": [
+        1.766276,
+        1.868513,
+        1.958763,
+        2.041611,
+        2.118847,
+        2.190248,
+        2.254868,
+        2.312132
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 7,
+      "context": "poken words?\\n\\nSICINIUS:\\nO blesse",
+      "target": "d",
+      "prediction": "d",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.015735,
+        1.978841,
+        2.174068,
+        2.272336,
+        2.28814,
+        2.248749,
+        2.206973,
+        2.190955
+      ],
+      "actual_losses": [
+        2.843076,
+        1.849854,
+        2.055155,
+        2.000354,
+        1.848236,
+        1.734873,
+        1.655075,
+        1.594434
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 8,
+      "context": "oken words?\\n\\nSICINIUS:\\nO blessed",
+      "target": " ",
+      "prediction": ",",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.375718,
+        2.2595,
+        2.256027,
+        2.291268,
+        2.313607,
+        2.324479,
+        2.324674,
+        2.316231
+      ],
+      "actual_losses": [
+        1.343763,
+        1.488561,
+        1.369341,
+        1.346437,
+        1.37398,
+        1.428728,
+        1.50226,
+        1.588402
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 9,
+      "context": "ken words?\\n\\nSICINIUS:\\nO blessed ",
+      "target": "h",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.220671,
+        2.974441,
+        2.958212,
+        2.965564,
+        2.972211,
+        2.978505,
+        2.984126,
+        2.989038
+      ],
+      "actual_losses": [
+        2.602694,
+        2.914453,
+        3.118315,
+        3.163683,
+        3.187752,
+        3.203691,
+        3.214527,
+        3.222101
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 10,
+      "context": "en words?\\n\\nSICINIUS:\\nO blessed h",
+      "target": "e",
+      "prediction": "i",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.406753,
+        1.08598,
+        1.141624,
+        1.128508,
+        1.122203,
+        1.121746,
+        1.125427,
+        1.131592
+      ],
+      "actual_losses": [
+        1.254677,
+        1.251232,
+        1.22297,
+        1.23808,
+        1.269057,
+        1.303628,
+        1.338841,
+        1.373986
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 11,
+      "context": "n words?\\n\\nSICINIUS:\\nO blessed he",
+      "target": "a",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.465616,
+        1.480183,
+        1.61052,
+        1.6976,
+        1.75896,
+        1.809065,
+        1.849982,
+        1.877674
+      ],
+      "actual_losses": [
+        1.922306,
+        1.866678,
+        1.834464,
+        1.794853,
+        1.792096,
+        1.838461,
+        1.92002,
+        2.019106
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 12,
+      "context": " words?\\n\\nSICINIUS:\\nO blessed hea",
+      "target": "v",
+      "prediction": "r",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.427458,
+        1.190957,
+        1.122763,
+        1.140126,
+        1.139921,
+        1.130628,
+        1.117826,
+        1.104018
+      ],
+      "actual_losses": [
+        3.984004,
+        4.407994,
+        4.13418,
+        3.928401,
+        3.784138,
+        3.667007,
+        3.570297,
+        3.489741
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 13,
+      "context": "words?\\n\\nSICINIUS:\\nO blessed heav",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 3,
+      "predicted_losses": [
+        0.872625,
+        0.326576,
+        -0.049499,
+        -0.051207,
+        -0.003263,
+        0.043868,
+        0.08201,
+        0.107715
+      ],
+      "actual_losses": [
+        0.424474,
+        0.087011,
+        0.045794,
+        0.044079,
+        0.044162,
+        0.04899,
+        0.053355,
+        0.055959
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 14,
+      "context": "ords?\\n\\nSICINIUS:\\nO blessed heave",
+      "target": "n",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.69907,
+        0.759042,
+        0.734765,
+        0.728376,
+        0.746436,
+        0.77147,
+        0.796274,
+        0.818463
+      ],
+      "actual_losses": [
+        4.075913,
+        4.498882,
+        4.464149,
+        4.406318,
+        4.355489,
+        4.317237,
+        4.29164,
+        4.273587
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 15,
+      "context": "rds?\\n\\nSICINIUS:\\nO blessed heaven",
+      "target": "s",
+      "prediction": "d",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.970862,
+        1.161708,
+        1.141534,
+        1.154931,
+        1.233456,
+        1.345179,
+        1.470555,
+        1.590766
+      ],
+      "actual_losses": [
+        3.966084,
+        3.508257,
+        3.503403,
+        3.492603,
+        3.582962,
+        3.704526,
+        3.849906,
+        4.002532
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 16,
+      "context": "ds?\\n\\nSICINIUS:\\nO blessed heavens",
+      "target": "!",
+      "prediction": ",",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.356627,
+        1.440773,
+        1.417594,
+        1.456416,
+        1.473329,
+        1.485802,
+        1.496078,
+        1.505851
+      ],
+      "actual_losses": [
+        2.634311,
+        2.442887,
+        2.455636,
+        2.503869,
+        2.553084,
+        2.606758,
+        2.662346,
+        2.71599
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 17,
+      "context": "s?\\n\\nSICINIUS:\\nO blessed heavens!",
+      "target": "\\n",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.652368,
+        0.748343,
+        1.001229,
+        1.100211,
+        1.163295,
+        1.205918,
+        1.233551,
+        1.25122
+      ],
+      "actual_losses": [
+        1.275862,
+        0.916397,
+        0.908288,
+        0.896062,
+        0.864388,
+        0.845762,
+        0.835158,
+        0.829044
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 18,
+      "context": "?\\n\\nSICINIUS:\\nO blessed heavens!\\n",
+      "target": "\\n",
+      "prediction": "\\n",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.331795,
+        2.035682,
+        1.90897,
+        1.754676,
+        1.680477,
+        1.629445,
+        1.774483,
+        2.248722
+      ],
+      "actual_losses": [
+        1.43855,
+        1.25647,
+        0.892123,
+        0.87953,
+        0.794133,
+        0.721535,
+        0.629865,
+        1.28971
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 19,
+      "context": "\\n\\nSICINIUS:\\nO blessed heavens!\\n\\n",
+      "target": "V",
+      "prediction": "C",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.516967,
+        2.439205,
+        2.327307,
+        2.226635,
+        2.137843,
+        2.094855,
+        2.088416,
+        2.090583
+      ],
+      "actual_losses": [
+        2.196857,
+        1.995361,
+        2.063893,
+        2.122012,
+        2.126365,
+        2.139741,
+        2.158206,
+        2.171679
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 20,
+      "context": "\\nSICINIUS:\\nO blessed heavens!\\n\\nV",
+      "target": "O",
+      "prediction": "O",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.893227,
+        1.005603,
+        0.85968,
+        0.770633,
+        0.757088,
+        0.74182,
+        0.708889,
+        0.6669
+      ],
+      "actual_losses": [
+        0.128775,
+        0.17198,
+        0.17884,
+        0.172493,
+        0.173328,
+        0.186477,
+        0.199411,
+        0.209208
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 21,
+      "context": "SICINIUS:\\nO blessed heavens!\\n\\nVO",
+      "target": "L",
+      "prediction": "L",
+      "used_depth": 4,
+      "predicted_losses": [
+        0.414023,
+        0.267832,
+        0.289527,
+        0.190302,
+        0.128095,
+        0.128036,
+        0.158362,
+        0.193702
+      ],
+      "actual_losses": [
+        0.04308,
+        0.021009,
+        0.025752,
+        0.034425,
+        0.037975,
+        0.042651,
+        0.048023,
+        0.056489
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 22,
+      "context": "ICINIUS:\\nO blessed heavens!\\n\\nVOL",
+      "target": "U",
+      "prediction": "U",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.359551,
+        0.282212,
+        0.254889,
+        0.334988,
+        0.316582,
+        0.291074,
+        0.283197,
+        0.280563
+      ],
+      "actual_losses": [
+        0.098363,
+        0.053075,
+        0.02064,
+        0.018633,
+        0.01867,
+        0.018768,
+        0.020092,
+        0.022324
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 23,
+      "context": "CINIUS:\\nO blessed heavens!\\n\\nVOLU",
+      "target": "M",
+      "prediction": "M",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.777533,
+        0.612047,
+        0.5215,
+        0.478707,
+        0.458112,
+        0.44481,
+        0.433975,
+        0.423693
+      ],
+      "actual_losses": [
+        0.103476,
+        0.072749,
+        0.074968,
+        0.072006,
+        0.070935,
+        0.071411,
+        0.072841,
+        0.075143
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 24,
+      "context": "INIUS:\\nO blessed heavens!\\n\\nVOLUM",
+      "target": "N",
+      "prediction": "N",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.212209,
+        0.191631,
+        0.097958,
+        0.018391,
+        -0.064392,
+        -0.135049,
+        -0.191561,
+        -0.231649
+      ],
+      "actual_losses": [
+        0.063432,
+        0.008159,
+        0.004241,
+        0.00467,
+        0.005414,
+        0.00587,
+        0.006505,
+        0.007576
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 25,
+      "context": "NIUS:\\nO blessed heavens!\\n\\nVOLUMN",
+      "target": "I",
+      "prediction": "I",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.001715,
+        0.184613,
+        0.193545,
+        0.122268,
+        0.063401,
+        0.037273,
+        0.035348,
+        0.042113
+      ],
+      "actual_losses": [
+        0.022736,
+        0.002591,
+        0.003868,
+        0.005584,
+        0.006377,
+        0.006923,
+        0.007287,
+        0.007418
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 26,
+      "context": "IUS:\\nO blessed heavens!\\n\\nVOLUMNI",
+      "target": "A",
+      "prediction": "A",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.284744,
+        0.164622,
+        0.06715,
+        0.107632,
+        0.121752,
+        0.138577,
+        0.164437,
+        0.194495
+      ],
+      "actual_losses": [
+        0.138994,
+        0.039773,
+        0.039661,
+        0.037494,
+        0.0384,
+        0.039325,
+        0.039478,
+        0.039553
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 27,
+      "context": "US:\\nO blessed heavens!\\n\\nVOLUMNIA",
+      "target": ":",
+      "prediction": ":",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.169825,
+        0.109542,
+        -0.01752,
+        -0.063107,
+        -0.083934,
+        -0.093529,
+        -0.089859,
+        -0.071376
+      ],
+      "actual_losses": [
+        0.059361,
+        0.018428,
+        0.013424,
+        0.013539,
+        0.013605,
+        0.013914,
+        0.014673,
+        0.016008
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 28,
+      "context": "S:\\nO blessed heavens!\\n\\nVOLUMNIA:",
+      "target": "\\n",
+      "prediction": "\\n",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.144588,
+        0.029599,
+        -0.039353,
+        -0.097657,
+        -0.121774,
+        -0.144615,
+        -0.165257,
+        -0.180762
+      ],
+      "actual_losses": [
+        0.037257,
+        0.005807,
+        0.004142,
+        0.004555,
+        0.005166,
+        0.005619,
+        0.005896,
+        0.006071
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 29,
+      "context": ":\\nO blessed heavens!\\n\\nVOLUMNIA:\\n",
+      "target": "M",
+      "prediction": "H",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.685694,
+        2.782575,
+        2.724639,
+        2.719561,
+        2.635955,
+        2.645873,
+        2.717458,
+        2.821934
+      ],
+      "actual_losses": [
+        3.945862,
+        4.252804,
+        4.054007,
+        4.047136,
+        4.032091,
+        3.797641,
+        3.49554,
+        3.248489
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 30,
+      "context": "\\nO blessed heavens!\\n\\nVOLUMNIA:\\nM",
+      "target": "o",
+      "prediction": "a",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.005203,
+        1.247169,
+        1.381985,
+        1.314171,
+        1.308088,
+        1.312966,
+        1.31511,
+        1.314763
+      ],
+      "actual_losses": [
+        1.253205,
+        1.706026,
+        1.801842,
+        1.77762,
+        1.772458,
+        1.794134,
+        1.824322,
+        1.856495
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 31,
+      "context": "O blessed heavens!\\n\\nVOLUMNIA:\\nMo",
+      "target": "r",
+      "prediction": "r",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.351053,
+        1.581486,
+        1.597973,
+        1.547916,
+        1.475824,
+        1.395248,
+        1.316582,
+        1.249077
+      ],
+      "actual_losses": [
+        1.31895,
+        1.720997,
+        1.951692,
+        1.828815,
+        1.679695,
+        1.532229,
+        1.406298,
+        1.323879
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 32,
+      "context": " blessed heavens!\\n\\nVOLUMNIA:\\nMor",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.34797,
+        0.120875,
+        0.178871,
+        0.353139,
+        0.455297,
+        0.536827,
+        0.636748,
+        0.738569
+      ],
+      "actual_losses": [
+        1.26577,
+        0.831961,
+        0.395959,
+        0.240485,
+        0.182417,
+        0.154595,
+        0.150752,
+        0.16847
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 33,
+      "context": "blessed heavens!\\n\\nVOLUMNIA:\\nMore",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.552442,
+        1.669939,
+        1.701123,
+        1.748703,
+        1.826931,
+        1.889886,
+        1.939158,
+        1.979367
+      ],
+      "actual_losses": [
+        1.07559,
+        1.061094,
+        0.917843,
+        0.911977,
+        0.907564,
+        0.912089,
+        0.927371,
+        0.954549
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 34,
+      "context": "lessed heavens!\\n\\nVOLUMNIA:\\nMore ",
+      "target": "n",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.089449,
+        3.092046,
+        3.054939,
+        3.054497,
+        3.051599,
+        3.048993,
+        3.046496,
+        3.044036
+      ],
+      "actual_losses": [
+        4.183584,
+        3.977195,
+        3.899285,
+        3.872818,
+        3.859876,
+        3.850782,
+        3.844552,
+        3.840207
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 35,
+      "context": "essed heavens!\\n\\nVOLUMNIA:\\nMore n",
+      "target": "o",
+      "prediction": "o",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.75831,
+        0.563839,
+        0.56274,
+        0.580897,
+        0.591427,
+        0.597868,
+        0.603328,
+        0.60883
+      ],
+      "actual_losses": [
+        0.101927,
+        0.167559,
+        0.15642,
+        0.158206,
+        0.163335,
+        0.168349,
+        0.173051,
+        0.177683
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 36,
+      "context": "ssed heavens!\\n\\nVOLUMNIA:\\nMore no",
+      "target": "b",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.718737,
+        1.393594,
+        1.398034,
+        1.484313,
+        1.518205,
+        1.530116,
+        1.541172,
+        1.553465
+      ],
+      "actual_losses": [
+        2.525935,
+        2.766024,
+        2.861288,
+        2.799565,
+        2.706737,
+        2.659924,
+        2.650757,
+        2.658093
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 37,
+      "context": "sed heavens!\\n\\nVOLUMNIA:\\nMore nob",
+      "target": "l",
+      "prediction": "l",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.23864,
+        1.346555,
+        1.429378,
+        1.450251,
+        1.443496,
+        1.429287,
+        1.414469,
+        1.401307
+      ],
+      "actual_losses": [
+        0.094717,
+        0.0579,
+        0.070891,
+        0.086544,
+        0.095798,
+        0.101406,
+        0.105207,
+        0.10827
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 38,
+      "context": "ed heavens!\\n\\nVOLUMNIA:\\nMore nobl",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.894359,
+        0.909414,
+        1.00082,
+        0.971719,
+        0.944139,
+        0.925588,
+        0.91177,
+        0.901234
+      ],
+      "actual_losses": [
+        0.355841,
+        0.133486,
+        0.101073,
+        0.083785,
+        0.083141,
+        0.087062,
+        0.09222,
+        0.09796
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 39,
+      "context": "d heavens!\\n\\nVOLUMNIA:\\nMore noble",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.464284,
+        1.868467,
+        1.947636,
+        1.971877,
+        1.970025,
+        1.961905,
+        1.957278,
+        1.95787
+      ],
+      "actual_losses": [
+        0.918459,
+        0.871553,
+        0.906095,
+        0.964165,
+        1.024431,
+        1.082926,
+        1.137744,
+        1.187425
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 40,
+      "context": " heavens!\\n\\nVOLUMNIA:\\nMore noble ",
+      "target": "b",
+      "prediction": "m",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.996728,
+        3.15071,
+        3.201274,
+        3.19944,
+        3.192136,
+        3.185532,
+        3.179607,
+        3.174193
+      ],
+      "actual_losses": [
+        4.127516,
+        3.959436,
+        4.029671,
+        4.039055,
+        4.031122,
+        4.01622,
+        3.997821,
+        3.977441
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 41,
+      "context": "heavens!\\n\\nVOLUMNIA:\\nMore noble b",
+      "target": "l",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.686602,
+        1.740249,
+        1.802538,
+        1.862349,
+        1.89974,
+        1.924116,
+        1.94131,
+        1.952658
+      ],
+      "actual_losses": [
+        2.576286,
+        2.910259,
+        2.981561,
+        2.794881,
+        2.634087,
+        2.525096,
+        2.457937,
+        2.417673
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 42,
+      "context": "eavens!\\n\\nVOLUMNIA:\\nMore noble bl",
+      "target": "o",
+      "prediction": "o",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.579769,
+        1.53052,
+        1.534374,
+        1.58407,
+        1.614247,
+        1.630561,
+        1.639345,
+        1.64425
+      ],
+      "actual_losses": [
+        1.762385,
+        0.884354,
+        0.784224,
+        0.778986,
+        0.777977,
+        0.77622,
+        0.773781,
+        0.770707
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 43,
+      "context": "avens!\\n\\nVOLUMNIA:\\nMore noble blo",
+      "target": "w",
+      "prediction": "d",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.069499,
+        2.43821,
+        2.497583,
+        2.444061,
+        2.314015,
+        2.204766,
+        2.122453,
+        2.037332
+      ],
+      "actual_losses": [
+        1.442768,
+        1.802724,
+        1.738852,
+        1.708195,
+        1.732181,
+        1.838708,
+        2.025174,
+        2.286354
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 44,
+      "context": "vens!\\n\\nVOLUMNIA:\\nMore noble blow",
+      "target": "s",
+      "prediction": "s",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.110643,
+        1.691704,
+        1.372599,
+        1.413554,
+        1.463495,
+        1.490476,
+        1.504408,
+        1.511179
+      ],
+      "actual_losses": [
+        2.002517,
+        1.090882,
+        0.866759,
+        0.856442,
+        0.907615,
+        0.961665,
+        1.007288,
+        1.04659
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 45,
+      "context": "ens!\\n\\nVOLUMNIA:\\nMore noble blows",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.837767,
+        1.566764,
+        1.442185,
+        1.449451,
+        1.512845,
+        1.580078,
+        1.639283,
+        1.69115
+      ],
+      "actual_losses": [
+        1.181129,
+        1.100428,
+        0.883809,
+        0.811644,
+        0.815459,
+        0.844023,
+        0.878526,
+        0.913516
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 46,
+      "context": "ns!\\n\\nVOLUMNIA:\\nMore noble blows ",
+      "target": "t",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.15972,
+        3.015244,
+        2.981551,
+        2.981924,
+        2.981159,
+        2.981064,
+        2.981287,
+        2.981643
+      ],
+      "actual_losses": [
+        1.832213,
+        1.809611,
+        1.780222,
+        1.752474,
+        1.735773,
+        1.725707,
+        1.719433,
+        1.715342
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 47,
+      "context": "s!\\n\\nVOLUMNIA:\\nMore noble blows t",
+      "target": "h",
+      "prediction": "h",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.902032,
+        1.140542,
+        1.137854,
+        1.141719,
+        1.137724,
+        1.134098,
+        1.130758,
+        1.127723
+      ],
+      "actual_losses": [
+        0.736802,
+        0.613997,
+        0.536161,
+        0.525587,
+        0.512716,
+        0.504168,
+        0.497895,
+        0.493134
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 48,
+      "context": "!\\n\\nVOLUMNIA:\\nMore noble blows th",
+      "target": "a",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.222561,
+        0.946086,
+        0.898651,
+        0.870563,
+        0.872757,
+        0.890717,
+        0.913008,
+        0.935619
+      ],
+      "actual_losses": [
+        1.833795,
+        1.722684,
+        1.764028,
+        1.815881,
+        1.860612,
+        1.894889,
+        1.924272,
+        1.951506
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 49,
+      "context": "\\n\\nVOLUMNIA:\\nMore noble blows tha",
+      "target": "n",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.152001,
+        0.659116,
+        0.590805,
+        0.59297,
+        0.58938,
+        0.581609,
+        0.572448,
+        0.562755
+      ],
+      "actual_losses": [
+        1.73992,
+        1.198472,
+        1.042162,
+        1.030942,
+        1.048006,
+        1.063447,
+        1.076256,
+        1.086042
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 50,
+      "context": "\\nVOLUMNIA:\\nMore noble blows than",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.971874,
+        0.6256,
+        0.661871,
+        0.746947,
+        0.805455,
+        0.850794,
+        0.884296,
+        0.908503
+      ],
+      "actual_losses": [
+        0.398049,
+        0.336008,
+        0.253322,
+        0.200003,
+        0.185068,
+        0.18108,
+        0.181225,
+        0.183108
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 51,
+      "context": "VOLUMNIA:\\nMore noble blows than ",
+      "target": "e",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.760075,
+        2.938997,
+        3.004817,
+        3.051066,
+        3.072034,
+        3.08902,
+        3.101953,
+        3.111833
+      ],
+      "actual_losses": [
+        5.234456,
+        4.544265,
+        4.718976,
+        4.853288,
+        4.940924,
+        4.998421,
+        5.037937,
+        5.067636
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 52,
+      "context": "OLUMNIA:\\nMore noble blows than e",
+      "target": "v",
+      "prediction": "n",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.037957,
+        1.985307,
+        1.873562,
+        1.857959,
+        1.896235,
+        1.939692,
+        1.979159,
+        2.012106
+      ],
+      "actual_losses": [
+        1.372857,
+        1.467103,
+        1.735641,
+        1.72628,
+        1.697365,
+        1.673957,
+        1.671126,
+        1.68872
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 53,
+      "context": "LUMNIA:\\nMore noble blows than ev",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.092902,
+        0.663939,
+        0.621948,
+        0.639953,
+        0.625123,
+        0.537606,
+        0.402733,
+        0.262275
+      ],
+      "actual_losses": [
+        0.044208,
+        0.055299,
+        0.078152,
+        0.094398,
+        0.100989,
+        0.093112,
+        0.076749,
+        0.060747
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 54,
+      "context": "UMNIA:\\nMore noble blows than eve",
+      "target": "r",
+      "prediction": "r",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.286481,
+        1.117816,
+        1.112014,
+        1.154691,
+        1.195861,
+        1.222779,
+        1.243425,
+        1.264639
+      ],
+      "actual_losses": [
+        0.250803,
+        0.157837,
+        0.153427,
+        0.175403,
+        0.199391,
+        0.22087,
+        0.239993,
+        0.259004
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 55,
+      "context": "MNIA:\\nMore noble blows than ever",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.126969,
+        1.362129,
+        1.53381,
+        1.652848,
+        1.6267,
+        1.598721,
+        1.624719,
+        1.675066
+      ],
+      "actual_losses": [
+        0.728743,
+        0.570231,
+        0.557254,
+        0.804521,
+        0.999572,
+        1.10747,
+        1.163035,
+        1.197205
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 56,
+      "context": "NIA:\\nMore noble blows than ever ",
+      "target": "t",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.081791,
+        3.062064,
+        3.098408,
+        3.092416,
+        3.085016,
+        3.078561,
+        3.072976,
+        3.068069
+      ],
+      "actual_losses": [
+        2.178113,
+        1.982715,
+        1.898214,
+        1.868761,
+        1.853349,
+        1.843657,
+        1.836966,
+        1.832086
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 57,
+      "context": "IA:\\nMore noble blows than ever t",
+      "target": "h",
+      "prediction": "h",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.948221,
+        0.956615,
+        0.925742,
+        0.942211,
+        0.947032,
+        0.95025,
+        0.952938,
+        0.955462
+      ],
+      "actual_losses": [
+        0.699614,
+        0.520097,
+        0.428104,
+        0.422185,
+        0.411627,
+        0.404906,
+        0.399782,
+        0.39586
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 58,
+      "context": "A:\\nMore noble blows than ever th",
+      "target": "o",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.067804,
+        0.814866,
+        0.807616,
+        0.769527,
+        0.756544,
+        0.76776,
+        0.791143,
+        0.819768
+      ],
+      "actual_losses": [
+        2.765669,
+        2.888592,
+        2.892972,
+        2.958146,
+        2.957331,
+        2.908674,
+        2.832181,
+        2.734611
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 59,
+      "context": ":\\nMore noble blows than ever tho",
+      "target": "u",
+      "prediction": "u",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.18606,
+        1.177747,
+        1.161295,
+        1.151589,
+        1.130846,
+        1.10701,
+        1.08102,
+        1.053436
+      ],
+      "actual_losses": [
+        0.524349,
+        0.367531,
+        0.270599,
+        0.271958,
+        0.280659,
+        0.289083,
+        0.296042,
+        0.301673
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 60,
+      "context": "\\nMore noble blows than ever thou",
+      "target": " ",
+      "prediction": "g",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.045568,
+        0.944835,
+        0.978574,
+        1.05946,
+        1.139414,
+        1.187136,
+        1.206871,
+        1.208149
+      ],
+      "actual_losses": [
+        0.650071,
+        0.604338,
+        0.607169,
+        0.724957,
+        0.895455,
+        1.046686,
+        1.170682,
+        1.282864
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 61,
+      "context": "More noble blows than ever thou ",
+      "target": "w",
+      "prediction": "m",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.889859,
+        3.060255,
+        3.183635,
+        3.201661,
+        3.205214,
+        3.206654,
+        3.207201,
+        3.207203
+      ],
+      "actual_losses": [
+        3.394872,
+        2.554769,
+        2.536866,
+        2.515563,
+        2.499103,
+        2.486183,
+        2.475896,
+        2.467478
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 62,
+      "context": "ore noble blows than ever thou w",
+      "target": "i",
+      "prediction": "o",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.175225,
+        2.045424,
+        1.840225,
+        1.705502,
+        1.628753,
+        1.576022,
+        1.536414,
+        1.505292
+      ],
+      "actual_losses": [
+        1.420056,
+        1.943079,
+        2.004624,
+        1.913166,
+        1.852146,
+        1.80903,
+        1.777534,
+        1.7539
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 63,
+      "context": "re noble blows than ever thou wi",
+      "target": "s",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.528329,
+        1.444688,
+        1.427362,
+        1.408522,
+        1.400902,
+        1.398862,
+        1.398112,
+        1.39651
+      ],
+      "actual_losses": [
+        2.888475,
+        3.30695,
+        3.35327,
+        3.298212,
+        3.252372,
+        3.220321,
+        3.19667,
+        3.179561
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 64,
+      "context": "e noble blows than ever thou wis",
+      "target": "e",
+      "prediction": "h",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.576226,
+        1.411791,
+        1.50925,
+        1.559516,
+        1.596646,
+        1.632839,
+        1.672383,
+        1.708651
+      ],
+      "actual_losses": [
+        2.707143,
+        2.446581,
+        2.92522,
+        3.051065,
+        3.043466,
+        2.954191,
+        2.835869,
+        2.744531
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 65,
+      "context": " noble blows than ever thou wise",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.013831,
+        1.431039,
+        1.415699,
+        1.477123,
+        1.559176,
+        1.625103,
+        1.677174,
+        1.725171
+      ],
+      "actual_losses": [
+        0.895306,
+        0.606378,
+        0.615945,
+        0.720266,
+        0.833925,
+        0.964247,
+        1.11725,
+        1.284182
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 66,
+      "context": "noble blows than ever thou wise ",
+      "target": "w",
+      "prediction": "a",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.26557,
+        2.989308,
+        3.055696,
+        3.054399,
+        3.049145,
+        3.043148,
+        3.037143,
+        3.031372
+      ],
+      "actual_losses": [
+        2.358817,
+        2.275124,
+        2.25421,
+        2.231885,
+        2.219174,
+        2.210769,
+        2.204448,
+        2.199235
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 67,
+      "context": "oble blows than ever thou wise w",
+      "target": "o",
+      "prediction": "o",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.768608,
+        1.681123,
+        1.65906,
+        1.663021,
+        1.668662,
+        1.672624,
+        1.673164,
+        1.671851
+      ],
+      "actual_losses": [
+        1.134232,
+        1.021591,
+        0.995398,
+        1.066885,
+        1.131736,
+        1.16973,
+        1.18973,
+        1.202008
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 68,
+      "context": "ble blows than ever thou wise wo",
+      "target": "r",
+      "prediction": "r",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.305327,
+        1.277894,
+        1.380009,
+        1.451743,
+        1.501009,
+        1.544209,
+        1.57365,
+        1.588426
+      ],
+      "actual_losses": [
+        0.831383,
+        0.804458,
+        0.646937,
+        0.595734,
+        0.558955,
+        0.535825,
+        0.530656,
+        0.536522
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 69,
+      "context": "le blows than ever thou wise wor",
+      "target": "d",
+      "prediction": "d",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.805275,
+        1.813375,
+        1.820092,
+        1.835571,
+        1.824888,
+        1.81803,
+        1.81445,
+        1.813564
+      ],
+      "actual_losses": [
+        1.273869,
+        0.796037,
+        0.800874,
+        0.826176,
+        0.825757,
+        0.82365,
+        0.834376,
+        0.856897
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 70,
+      "context": "e blows than ever thou wise word",
+      "target": "s",
+      "prediction": ",",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.911767,
+        2.07505,
+        2.088324,
+        2.149593,
+        2.189554,
+        2.218736,
+        2.241826,
+        2.260465
+      ],
+      "actual_losses": [
+        1.745352,
+        1.378196,
+        1.258498,
+        1.231771,
+        1.240587,
+        1.270285,
+        1.308063,
+        1.348288
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 71,
+      "context": " blows than ever thou wise words",
+      "target": ";",
+      "prediction": ",",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.456642,
+        2.220256,
+        2.082533,
+        2.023465,
+        1.996054,
+        1.985963,
+        1.98553,
+        1.991405
+      ],
+      "actual_losses": [
+        3.659618,
+        3.538644,
+        3.609369,
+        3.653947,
+        3.679687,
+        3.68632,
+        3.680314,
+        3.666014
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 72,
+      "context": "blows than ever thou wise words;",
+      "target": "\\n",
+      "prediction": "\\n",
+      "used_depth": 3,
+      "predicted_losses": [
+        0.646178,
+        0.398944,
+        0.226721,
+        0.189925,
+        0.196316,
+        0.207694,
+        0.21773,
+        0.22685
+      ],
+      "actual_losses": [
+        0.452838,
+        0.482778,
+        0.420215,
+        0.395475,
+        0.379665,
+        0.368603,
+        0.361593,
+        0.357028
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 73,
+      "context": "lows than ever thou wise words;\\n",
+      "target": "A",
+      "prediction": "A",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.785856,
+        2.725875,
+        2.77887,
+        2.802241,
+        2.755121,
+        2.751724,
+        2.863983,
+        3.030967
+      ],
+      "actual_losses": [
+        1.828992,
+        1.025516,
+        0.99801,
+        1.111469,
+        1.371768,
+        1.476137,
+        1.430079,
+        1.418084
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 74,
+      "context": "ows than ever thou wise words;\\nA",
+      "target": "n",
+      "prediction": "n",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.467449,
+        1.90773,
+        1.90323,
+        1.845976,
+        1.814307,
+        1.80016,
+        1.792124,
+        1.786587
+      ],
+      "actual_losses": [
+        0.557479,
+        0.414323,
+        0.363566,
+        0.36337,
+        0.368458,
+        0.374119,
+        0.382209,
+        0.392599
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 75,
+      "context": "ws than ever thou wise words;\\nAn",
+      "target": "d",
+      "prediction": "d",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.859247,
+        0.736699,
+        0.786491,
+        0.700733,
+        0.624908,
+        0.600113,
+        0.602806,
+        0.614259
+      ],
+      "actual_losses": [
+        0.221849,
+        0.07506,
+        0.041327,
+        0.037829,
+        0.040248,
+        0.044073,
+        0.047582,
+        0.050572
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 76,
+      "context": "s than ever thou wise words;\\nAnd",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.249229,
+        0.241641,
+        0.243254,
+        0.251229,
+        0.263448,
+        0.278421,
+        0.30058,
+        0.328736
+      ],
+      "actual_losses": [
+        0.121996,
+        0.066376,
+        0.046927,
+        0.044774,
+        0.046244,
+        0.048439,
+        0.05183,
+        0.05665
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 77,
+      "context": " than ever thou wise words;\\nAnd ",
+      "target": "f",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.865142,
+        2.761481,
+        2.758607,
+        2.781263,
+        2.795385,
+        2.80595,
+        2.81403,
+        2.820535
+      ],
+      "actual_losses": [
+        3.034473,
+        3.620192,
+        3.656437,
+        3.690192,
+        3.707621,
+        3.726406,
+        3.744859,
+        3.76281
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 78,
+      "context": "than ever thou wise words;\\nAnd f",
+      "target": "o",
+      "prediction": "o",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.463608,
+        1.528117,
+        1.566508,
+        1.580693,
+        1.596602,
+        1.61025,
+        1.621641,
+        1.631433
+      ],
+      "actual_losses": [
+        0.930587,
+        0.953436,
+        0.938517,
+        0.907552,
+        0.887924,
+        0.876833,
+        0.869553,
+        0.863733
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 79,
+      "context": "han ever thou wise words;\\nAnd fo",
+      "target": "r",
+      "prediction": "r",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.114116,
+        1.185197,
+        1.140739,
+        1.124142,
+        1.131275,
+        1.142722,
+        1.151019,
+        1.154739
+      ],
+      "actual_losses": [
+        0.443364,
+        0.432767,
+        0.524777,
+        0.618636,
+        0.704926,
+        0.770503,
+        0.817785,
+        0.853839
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 80,
+      "context": "an ever thou wise words;\\nAnd for",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.027595,
+        1.059274,
+        1.060703,
+        1.125013,
+        1.166576,
+        1.177598,
+        1.176403,
+        1.174088
+      ],
+      "actual_losses": [
+        0.36515,
+        0.165733,
+        0.16734,
+        0.199504,
+        0.221027,
+        0.237968,
+        0.25697,
+        0.278758
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 81,
+      "context": "n ever thou wise words;\\nAnd for ",
+      "target": "R",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.031509,
+        2.750511,
+        2.822485,
+        2.827632,
+        2.827852,
+        2.82891,
+        2.830945,
+        2.833737
+      ],
+      "actual_losses": [
+        5.441441,
+        3.949271,
+        4.425206,
+        4.601843,
+        4.675112,
+        4.721257,
+        4.759661,
+        4.79501
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 82,
+      "context": " ever thou wise words;\\nAnd for R",
+      "target": "o",
+      "prediction": "o",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.369278,
+        0.111667,
+        -0.089033,
+        -0.061177,
+        -0.050553,
+        -0.04843,
+        -0.043674,
+        -0.036242
+      ],
+      "actual_losses": [
+        0.228168,
+        0.082354,
+        0.057009,
+        0.057381,
+        0.061918,
+        0.066207,
+        0.069978,
+        0.073586
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 83,
+      "context": "ever thou wise words;\\nAnd for Ro",
+      "target": "m",
+      "prediction": "m",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.382306,
+        0.731327,
+        0.965117,
+        1.081245,
+        1.124447,
+        1.141388,
+        1.14849,
+        1.151616
+      ],
+      "actual_losses": [
+        0.108363,
+        0.091631,
+        0.12209,
+        0.157177,
+        0.189388,
+        0.221635,
+        0.256153,
+        0.294211
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 84,
+      "context": "ver thou wise words;\\nAnd for Rom",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.523145,
+        0.349425,
+        0.450251,
+        0.422553,
+        0.382495,
+        0.34729,
+        0.309318,
+        0.269584
+      ],
+      "actual_losses": [
+        0.427907,
+        0.296279,
+        0.192775,
+        0.13894,
+        0.113679,
+        0.101713,
+        0.098985,
+        0.104539
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 85,
+      "context": "er thou wise words;\\nAnd for Rome",
+      "target": "'",
+      "prediction": ",",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.101539,
+        1.023761,
+        1.106444,
+        1.155187,
+        1.197497,
+        1.234975,
+        1.270222,
+        1.300503
+      ],
+      "actual_losses": [
+        4.297927,
+        4.553389,
+        4.686919,
+        4.524374,
+        4.446597,
+        4.380032,
+        4.316924,
+        4.262665
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 86,
+      "context": "r thou wise words;\\nAnd for Rome'",
+      "target": "s",
+      "prediction": "s",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.361141,
+        1.252075,
+        1.053767,
+        0.948572,
+        0.903524,
+        0.880801,
+        0.865082,
+        0.849367
+      ],
+      "actual_losses": [
+        1.813264,
+        0.373682,
+        0.441368,
+        0.503621,
+        0.5861,
+        0.711616,
+        0.850619,
+        0.981235
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 87,
+      "context": " thou wise words;\\nAnd for Rome's",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.80688,
+        1.144604,
+        1.320184,
+        1.408233,
+        1.450281,
+        1.488733,
+        1.526703,
+        1.560792
+      ],
+      "actual_losses": [
+        0.409605,
+        0.406382,
+        0.331299,
+        0.317695,
+        0.323363,
+        0.345295,
+        0.377035,
+        0.412667
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 88,
+      "context": "thou wise words;\\nAnd for Rome's ",
+      "target": "g",
+      "prediction": "a",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.062331,
+        2.991014,
+        2.970588,
+        2.966771,
+        2.96431,
+        2.962267,
+        2.960327,
+        2.958483
+      ],
+      "actual_losses": [
+        4.373035,
+        3.754251,
+        3.822251,
+        3.846869,
+        3.867279,
+        3.885975,
+        3.903208,
+        3.919206
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 89,
+      "context": "hou wise words;\\nAnd for Rome's g",
+      "target": "o",
+      "prediction": "o",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.20893,
+        1.149472,
+        1.325491,
+        1.460291,
+        1.518774,
+        1.544051,
+        1.556658,
+        1.563404
+      ],
+      "actual_losses": [
+        0.581108,
+        0.612814,
+        0.510456,
+        0.584096,
+        0.619272,
+        0.641866,
+        0.660213,
+        0.676824
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 90,
+      "context": "ou wise words;\\nAnd for Rome's go",
+      "target": "o",
+      "prediction": "d",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.749459,
+        1.630393,
+        1.624478,
+        1.64192,
+        1.591828,
+        1.539827,
+        1.506422,
+        1.476927
+      ],
+      "actual_losses": [
+        1.496541,
+        1.006825,
+        0.865261,
+        0.830256,
+        0.896724,
+        1.045004,
+        1.288276,
+        1.684733
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 91,
+      "context": "u wise words;\\nAnd for Rome's goo",
+      "target": "d",
+      "prediction": "d",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.406891,
+        1.303928,
+        1.181656,
+        1.062491,
+        0.95314,
+        0.879738,
+        0.84926,
+        0.836833
+      ],
+      "actual_losses": [
+        0.377288,
+        0.243595,
+        0.178652,
+        0.147184,
+        0.131505,
+        0.120699,
+        0.109691,
+        0.099755
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 92,
+      "context": " wise words;\\nAnd for Rome's good",
+      "target": ".",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.065111,
+        0.919312,
+        0.882042,
+        0.964423,
+        1.007831,
+        1.016386,
+        1.013238,
+        1.011536
+      ],
+      "actual_losses": [
+        4.442629,
+        4.44312,
+        4.117291,
+        3.886868,
+        3.788663,
+        3.751399,
+        3.738414,
+        3.731031
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 93,
+      "context": "wise words;\\nAnd for Rome's good.",
+      "target": " ",
+      "prediction": "\\n",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.408837,
+        0.436122,
+        0.509541,
+        0.679385,
+        0.733762,
+        0.731746,
+        0.71388,
+        0.695063
+      ],
+      "actual_losses": [
+        0.279648,
+        0.51545,
+        0.594953,
+        0.685949,
+        0.739767,
+        0.765729,
+        0.775811,
+        0.782462
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 94,
+      "context": "ise words;\\nAnd for Rome's good. ",
+      "target": "I",
+      "prediction": "C",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.42243,
+        2.546791,
+        2.714586,
+        2.793359,
+        2.82842,
+        2.855932,
+        2.878234,
+        2.897324
+      ],
+      "actual_losses": [
+        1.922698,
+        2.150167,
+        2.377058,
+        2.48505,
+        2.512736,
+        2.542699,
+        2.561537,
+        2.576228
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 95,
+      "context": "se words;\\nAnd for Rome's good. I",
+      "target": "'",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.011396,
+        1.81537,
+        1.722686,
+        1.6817,
+        1.668265,
+        1.644135,
+        1.606524,
+        1.567015
+      ],
+      "actual_losses": [
+        1.091341,
+        1.638939,
+        1.951663,
+        2.07067,
+        2.169298,
+        2.242381,
+        2.298933,
+        2.341905
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 96,
+      "context": "e words;\\nAnd for Rome's good. I'",
+      "target": "l",
+      "prediction": "l",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.253775,
+        0.906147,
+        0.870726,
+        0.822571,
+        0.771279,
+        0.725729,
+        0.685504,
+        0.650362
+      ],
+      "actual_losses": [
+        0.971104,
+        0.430973,
+        0.411831,
+        0.432416,
+        0.443043,
+        0.441087,
+        0.432773,
+        0.423325
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 97,
+      "context": " words;\\nAnd for Rome's good. I'l",
+      "target": "l",
+      "prediction": "l",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.099368,
+        0.277395,
+        0.475082,
+        0.588882,
+        0.651073,
+        0.693836,
+        0.745318,
+        0.767483
+      ],
+      "actual_losses": [
+        0.131802,
+        0.040275,
+        0.035465,
+        0.048411,
+        0.06675,
+        0.098056,
+        0.177651,
+        0.340837
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 98,
+      "context": "words;\\nAnd for Rome's good. I'll",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.748834,
+        0.758588,
+        0.795365,
+        0.830842,
+        0.856003,
+        0.873274,
+        0.881256,
+        0.884032
+      ],
+      "actual_losses": [
+        0.875758,
+        0.410092,
+        0.191773,
+        0.122967,
+        0.111793,
+        0.117208,
+        0.125188,
+        0.130142
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 99,
+      "context": "ords;\\nAnd for Rome's good. I'll ",
+      "target": "t",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.728117,
+        2.978661,
+        2.960455,
+        2.984083,
+        2.98982,
+        2.989706,
+        2.987099,
+        2.98357
+      ],
+      "actual_losses": [
+        2.141628,
+        1.844403,
+        1.917693,
+        1.858287,
+        1.81931,
+        1.792978,
+        1.774349,
+        1.760522
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 100,
+      "context": "rds;\\nAnd for Rome's good. I'll t",
+      "target": "e",
+      "prediction": "h",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.058769,
+        1.074261,
+        1.061347,
+        1.081915,
+        1.094361,
+        1.101157,
+        1.104848,
+        1.107471
+      ],
+      "actual_losses": [
+        3.974007,
+        4.268851,
+        4.075407,
+        3.960035,
+        3.86418,
+        3.785023,
+        3.719508,
+        3.665108
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 101,
+      "context": "ds;\\nAnd for Rome's good. I'll te",
+      "target": "l",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.048278,
+        2.10502,
+        2.241981,
+        2.23187,
+        2.150806,
+        2.085064,
+        2.045103,
+        2.016669
+      ],
+      "actual_losses": [
+        1.153061,
+        1.151212,
+        1.156307,
+        1.242562,
+        1.384831,
+        1.524559,
+        1.612711,
+        1.653467
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 102,
+      "context": "s;\\nAnd for Rome's good. I'll tel",
+      "target": "l",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.305838,
+        1.020607,
+        0.771206,
+        0.744439,
+        0.799216,
+        0.890667,
+        0.975568,
+        1.109177
+      ],
+      "actual_losses": [
+        0.657174,
+        0.280528,
+        0.157144,
+        0.113753,
+        0.140878,
+        0.280998,
+        0.631452,
+        1.288045
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 103,
+      "context": ";\\nAnd for Rome's good. I'll tell",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.210833,
+        1.248582,
+        1.26237,
+        1.276289,
+        1.283027,
+        1.285244,
+        1.290368,
+        1.29932
+      ],
+      "actual_losses": [
+        0.455253,
+        0.325354,
+        0.262715,
+        0.245637,
+        0.250925,
+        0.260991,
+        0.270987,
+        0.280527
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 104,
+      "context": "\\nAnd for Rome's good. I'll tell ",
+      "target": "t",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.84838,
+        3.047613,
+        3.04537,
+        3.043124,
+        3.0392,
+        3.035175,
+        3.031335,
+        3.027835
+      ],
+      "actual_losses": [
+        3.259338,
+        2.219064,
+        2.123795,
+        2.058279,
+        2.018974,
+        1.992567,
+        1.973521,
+        1.958995
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 105,
+      "context": "And for Rome's good. I'll tell t",
+      "target": "h",
+      "prediction": "h",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.169269,
+        1.227063,
+        1.248192,
+        1.286866,
+        1.301861,
+        1.306231,
+        1.307557,
+        1.308306
+      ],
+      "actual_losses": [
+        0.655909,
+        0.517108,
+        0.47442,
+        0.468272,
+        0.461238,
+        0.457644,
+        0.455097,
+        0.45319
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 106,
+      "context": "nd for Rome's good. I'll tell th",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.288442,
+        0.956511,
+        0.935314,
+        0.905653,
+        0.89423,
+        0.905969,
+        0.928913,
+        0.955689
+      ],
+      "actual_losses": [
+        0.317567,
+        0.379471,
+        0.398552,
+        0.392718,
+        0.388826,
+        0.38773,
+        0.387191,
+        0.387319
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 107,
+      "context": "d for Rome's good. I'll tell the",
+      "target": "e",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.379915,
+        1.375085,
+        1.413282,
+        1.42914,
+        1.453976,
+        1.483817,
+        1.513308,
+        1.54003
+      ],
+      "actual_losses": [
+        4.123592,
+        4.270587,
+        4.279984,
+        4.292591,
+        4.274485,
+        4.238972,
+        4.200663,
+        4.164904
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 108,
+      "context": " for Rome's good. I'll tell thee",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.597356,
+        1.61801,
+        1.63633,
+        1.652629,
+        1.667146,
+        1.680069,
+        1.691544,
+        1.701684
+      ],
+      "actual_losses": [
+        0.548427,
+        0.541834,
+        0.532443,
+        0.521335,
+        0.509302,
+        0.496928,
+        0.484646,
+        0.472781
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 109,
+      "context": "for Rome's good. I'll tell thee ",
+      "target": "w",
+      "prediction": "w",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.879673,
+        2.957188,
+        3.046372,
+        3.068069,
+        3.077458,
+        3.082808,
+        3.086386,
+        3.089046
+      ],
+      "actual_losses": [
+        1.888984,
+        2.2753,
+        2.22426,
+        2.225877,
+        2.230889,
+        2.236379,
+        2.241637,
+        2.246512
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 110,
+      "context": "or Rome's good. I'll tell thee w",
+      "target": "h",
+      "prediction": "o",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.925477,
+        1.841947,
+        1.884038,
+        1.731729,
+        1.632025,
+        1.558705,
+        1.502796,
+        1.459236
+      ],
+      "actual_losses": [
+        3.270974,
+        3.525126,
+        2.737329,
+        2.56629,
+        2.449025,
+        2.373578,
+        2.313344,
+        2.259556
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 111,
+      "context": "r Rome's good. I'll tell thee wh",
+      "target": "a",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.599922,
+        1.575683,
+        1.427485,
+        1.415639,
+        1.431904,
+        1.452422,
+        1.469712,
+        1.483102
+      ],
+      "actual_losses": [
+        1.205612,
+        1.500127,
+        1.633635,
+        1.573129,
+        1.496851,
+        1.424467,
+        1.368874,
+        1.337713
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 112,
+      "context": " Rome's good. I'll tell thee wha",
+      "target": "t",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.555569,
+        0.632149,
+        0.409936,
+        0.451604,
+        0.510001,
+        0.564707,
+        0.608765,
+        0.641385
+      ],
+      "actual_losses": [
+        0.354374,
+        0.191978,
+        0.169622,
+        0.176067,
+        0.171718,
+        0.166232,
+        0.161755,
+        0.158533
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 113,
+      "context": "Rome's good. I'll tell thee what",
+      "target": ";",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.691536,
+        0.825679,
+        0.992617,
+        1.046521,
+        1.079511,
+        1.116227,
+        1.154142,
+        1.194839
+      ],
+      "actual_losses": [
+        4.953382,
+        5.050431,
+        4.814594,
+        4.592475,
+        4.43465,
+        4.303088,
+        4.1924,
+        4.103446
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 114,
+      "context": "ome's good. I'll tell thee what;",
+      "target": " ",
+      "prediction": "\\n",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.647121,
+        0.406162,
+        0.286174,
+        0.264888,
+        0.282979,
+        0.30938,
+        0.336792,
+        0.361158
+      ],
+      "actual_losses": [
+        0.588847,
+        0.759075,
+        0.98361,
+        0.975418,
+        0.938084,
+        0.911828,
+        0.899971,
+        0.895802
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 115,
+      "context": "me's good. I'll tell thee what; ",
+      "target": "y",
+      "prediction": "a",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.3392,
+        3.149616,
+        3.134014,
+        3.124506,
+        3.117077,
+        3.111359,
+        3.106359,
+        3.101897
+      ],
+      "actual_losses": [
+        2.954919,
+        3.028543,
+        2.992667,
+        2.963999,
+        2.945064,
+        2.930516,
+        2.919048,
+        2.909412
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 116,
+      "context": "e's good. I'll tell thee what; y",
+      "target": "e",
+      "prediction": "o",
+      "used_depth": 3,
+      "predicted_losses": [
+        0.428121,
+        0.505579,
+        0.108274,
+        0.101551,
+        -0.017221,
+        -0.134475,
+        -0.192157,
+        -0.228206
+      ],
+      "actual_losses": [
+        2.794985,
+        2.451299,
+        2.32209,
+        2.766956,
+        2.716902,
+        2.527233,
+        2.401302,
+        2.342451
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 117,
+      "context": "'s good. I'll tell thee what; ye",
+      "target": "t",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.929618,
+        1.191051,
+        1.273301,
+        1.276385,
+        1.235516,
+        1.167612,
+        1.093816,
+        1.022527
+      ],
+      "actual_losses": [
+        1.149224,
+        0.679022,
+        0.446001,
+        0.367125,
+        0.355366,
+        0.386602,
+        0.445149,
+        0.528275
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 118,
+      "context": "s good. I'll tell thee what; yet",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.006417,
+        0.961128,
+        0.916507,
+        0.916479,
+        0.902075,
+        0.910301,
+        0.944632,
+        0.986262
+      ],
+      "actual_losses": [
+        0.699656,
+        0.446945,
+        0.451845,
+        0.413646,
+        0.364748,
+        0.349277,
+        0.357916,
+        0.374607
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 119,
+      "context": " good. I'll tell thee what; yet ",
+      "target": "g",
+      "prediction": "w",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.912173,
+        3.008024,
+        3.058429,
+        3.052639,
+        3.05269,
+        3.053422,
+        3.053605,
+        3.053274
+      ],
+      "actual_losses": [
+        4.600919,
+        4.350866,
+        4.345839,
+        4.34631,
+        4.362863,
+        4.376524,
+        4.386462,
+        4.393386
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 120,
+      "context": "good. I'll tell thee what; yet g",
+      "target": "o",
+      "prediction": "o",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.230551,
+        1.100012,
+        1.217971,
+        1.289021,
+        1.296847,
+        1.290684,
+        1.284019,
+        1.278229
+      ],
+      "actual_losses": [
+        0.540441,
+        0.554862,
+        0.392175,
+        0.395938,
+        0.399912,
+        0.402524,
+        0.405205,
+        0.409191
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 121,
+      "context": "ood. I'll tell thee what; yet go",
+      "target": ":",
+      "prediction": "d",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.601631,
+        1.778118,
+        1.901319,
+        1.871962,
+        1.880904,
+        1.864511,
+        1.844525,
+        1.82884
+      ],
+      "actual_losses": [
+        7.190552,
+        6.750134,
+        6.371466,
+        6.50252,
+        6.707118,
+        6.761521,
+        6.79601,
+        6.883688
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 122,
+      "context": "od. I'll tell thee what; yet go:",
+      "target": "\\n",
+      "prediction": "\\n",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.241558,
+        0.123709,
+        0.124546,
+        0.177185,
+        0.227977,
+        0.275935,
+        0.317387,
+        0.350043
+      ],
+      "actual_losses": [
+        0.52638,
+        0.681663,
+        0.797728,
+        0.712837,
+        0.601859,
+        0.545212,
+        0.532654,
+        0.539694
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 123,
+      "context": "d. I'll tell thee what; yet go:\\n",
+      "target": "N",
+      "prediction": "A",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.048593,
+        2.962397,
+        3.063593,
+        3.107163,
+        3.003963,
+        2.987673,
+        3.108946,
+        3.2829
+      ],
+      "actual_losses": [
+        5.087536,
+        3.682323,
+        3.511996,
+        3.561968,
+        3.481246,
+        3.553585,
+        3.580696,
+        4.177376
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 124,
+      "context": ". I'll tell thee what; yet go:\\nN",
+      "target": "a",
+      "prediction": "o",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.262244,
+        1.05315,
+        1.152051,
+        1.217999,
+        1.243133,
+        1.261579,
+        1.278351,
+        1.292557
+      ],
+      "actual_losses": [
+        3.402072,
+        2.827314,
+        2.685372,
+        2.641558,
+        2.661313,
+        2.691785,
+        2.712943,
+        2.724409
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 125,
+      "context": " I'll tell thee what; yet go:\\nNa",
+      "target": "y",
+      "prediction": "y",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.721913,
+        1.854979,
+        1.944644,
+        1.962138,
+        1.96932,
+        1.969386,
+        1.967269,
+        1.964252
+      ],
+      "actual_losses": [
+        0.342523,
+        0.508009,
+        0.440739,
+        0.432496,
+        0.443692,
+        0.457048,
+        0.472201,
+        0.4893
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 126,
+      "context": "I'll tell thee what; yet go:\\nNay",
+      "target": ",",
+      "prediction": ",",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.401054,
+        1.3998,
+        1.231306,
+        1.168844,
+        1.140558,
+        1.129413,
+        1.127464,
+        1.130268
+      ],
+      "actual_losses": [
+        0.993477,
+        0.78952,
+        0.76717,
+        0.730654,
+        0.696549,
+        0.666308,
+        0.640196,
+        0.618996
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 127,
+      "context": "'ll tell thee what; yet go:\\nNay,",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.246849,
+        0.153831,
+        0.339171,
+        0.360536,
+        0.397148,
+        0.414408,
+        0.420125,
+        0.421871
+      ],
+      "actual_losses": [
+        0.058753,
+        0.046742,
+        0.041032,
+        0.035463,
+        0.033006,
+        0.032417,
+        0.032489,
+        0.032834
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 128,
+      "context": "ll tell thee what; yet go:\\nNay, ",
+      "target": "b",
+      "prediction": "a",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.29897,
+        3.095156,
+        3.034481,
+        3.031363,
+        3.027781,
+        3.02583,
+        3.02422,
+        3.022902
+      ],
+      "actual_losses": [
+        2.399081,
+        2.971845,
+        3.12156,
+        3.170103,
+        3.183891,
+        3.189047,
+        3.189441,
+        3.187241
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 129,
+      "context": "l tell thee what; yet go:\\nNay, b",
+      "target": "u",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.654943,
+        1.49026,
+        1.486533,
+        1.517054,
+        1.53288,
+        1.543536,
+        1.551973,
+        1.559266
+      ],
+      "actual_losses": [
+        1.980676,
+        1.779371,
+        1.631791,
+        1.747692,
+        1.808373,
+        1.830167,
+        1.83733,
+        1.838804
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 130,
+      "context": " tell thee what; yet go:\\nNay, bu",
+      "target": "t",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.256251,
+        0.98431,
+        1.011298,
+        1.023353,
+        1.01609,
+        1.004397,
+        0.994005,
+        0.984897
+      ],
+      "actual_losses": [
+        0.297393,
+        0.153694,
+        0.149626,
+        0.145777,
+        0.144176,
+        0.142167,
+        0.139613,
+        0.136845
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 131,
+      "context": "tell thee what; yet go:\\nNay, but",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.988197,
+        0.888747,
+        0.766387,
+        0.633713,
+        0.551312,
+        0.492071,
+        0.456171,
+        0.445962
+      ],
+      "actual_losses": [
+        0.237225,
+        0.098324,
+        0.085314,
+        0.094354,
+        0.100265,
+        0.100187,
+        0.099121,
+        0.100415
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 132,
+      "context": "ell thee what; yet go:\\nNay, but ",
+      "target": "t",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.046815,
+        3.190989,
+        3.16968,
+        3.150078,
+        3.136003,
+        3.125361,
+        3.116464,
+        3.108636
+      ],
+      "actual_losses": [
+        1.601283,
+        1.804958,
+        1.765358,
+        1.746941,
+        1.735992,
+        1.72836,
+        1.72251,
+        1.717656
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 133,
+      "context": "ll thee what; yet go:\\nNay, but t",
+      "target": "h",
+      "prediction": "h",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.049137,
+        1.064986,
+        1.058297,
+        1.069384,
+        1.070725,
+        1.072411,
+        1.074235,
+        1.076418
+      ],
+      "actual_losses": [
+        0.330975,
+        0.32385,
+        0.274642,
+        0.268535,
+        0.263881,
+        0.262464,
+        0.262203,
+        0.262655
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 134,
+      "context": "l thee what; yet go:\\nNay, but th",
+      "target": "o",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.118744,
+        0.782228,
+        0.715693,
+        0.700167,
+        0.714939,
+        0.741694,
+        0.768765,
+        0.793178
+      ],
+      "actual_losses": [
+        3.250002,
+        3.020031,
+        3.055618,
+        3.132776,
+        3.161746,
+        3.168318,
+        3.164744,
+        3.153556
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 135,
+      "context": " thee what; yet go:\\nNay, but tho",
+      "target": "u",
+      "prediction": "u",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.133555,
+        1.07112,
+        1.082132,
+        1.085869,
+        1.072962,
+        1.055425,
+        1.034448,
+        1.010581
+      ],
+      "actual_losses": [
+        0.483877,
+        0.323642,
+        0.25141,
+        0.252839,
+        0.261526,
+        0.270885,
+        0.27926,
+        0.286438
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 136,
+      "context": "thee what; yet go:\\nNay, but thou",
+      "target": " ",
+      "prediction": "g",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.079519,
+        0.983728,
+        1.022401,
+        1.113843,
+        1.19493,
+        1.237053,
+        1.246937,
+        1.236572
+      ],
+      "actual_losses": [
+        0.517706,
+        0.488374,
+        0.503552,
+        0.625476,
+        0.791602,
+        0.939531,
+        1.067213,
+        1.189499
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 137,
+      "context": "hee what; yet go:\\nNay, but thou ",
+      "target": "s",
+      "prediction": "m",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.973662,
+        3.072836,
+        3.159917,
+        3.171577,
+        3.175999,
+        3.179018,
+        3.181204,
+        3.182816
+      ],
+      "actual_losses": [
+        2.827494,
+        2.481525,
+        2.363361,
+        2.353299,
+        2.351884,
+        2.35171,
+        2.351548,
+        2.351396
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 138,
+      "context": "ee what; yet go:\\nNay, but thou s",
+      "target": "h",
+      "prediction": "o",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.319678,
+        2.397836,
+        2.304439,
+        2.279899,
+        2.278715,
+        2.277036,
+        2.272186,
+        2.265364
+      ],
+      "actual_losses": [
+        1.705754,
+        1.870143,
+        2.119174,
+        2.186431,
+        2.219965,
+        2.253521,
+        2.287385,
+        2.319043
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 139,
+      "context": "e what; yet go:\\nNay, but thou sh",
+      "target": "a",
+      "prediction": "a",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.256357,
+        1.251678,
+        1.243883,
+        1.210568,
+        1.206561,
+        1.213801,
+        1.224022,
+        1.234095
+      ],
+      "actual_losses": [
+        0.376491,
+        0.471787,
+        0.434887,
+        0.407641,
+        0.390243,
+        0.381406,
+        0.379433,
+        0.380306
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 140,
+      "context": " what; yet go:\\nNay, but thou sha",
+      "target": "l",
+      "prediction": "l",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.02417,
+        1.554105,
+        1.514191,
+        1.532193,
+        1.538642,
+        1.53502,
+        1.53328,
+        1.535099
+      ],
+      "actual_losses": [
+        0.375564,
+        0.222092,
+        0.174385,
+        0.171506,
+        0.181709,
+        0.189443,
+        0.192682,
+        0.193585
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 141,
+      "context": "what; yet go:\\nNay, but thou shal",
+      "target": "t",
+      "prediction": "l",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.006817,
+        0.5001,
+        0.39249,
+        0.398779,
+        0.442614,
+        0.498532,
+        0.569856,
+        0.655551
+      ],
+      "actual_losses": [
+        6.35412,
+        6.819624,
+        7.21876,
+        7.390814,
+        7.385214,
+        7.347805,
+        7.244712,
+        6.914204
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 142,
+      "context": "hat; yet go:\\nNay, but thou shalt",
+      "target": " ",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.116787,
+        1.661561,
+        1.706227,
+        1.643844,
+        1.582484,
+        1.54099,
+        1.513125,
+        1.494459
+      ],
+      "actual_losses": [
+        1.232861,
+        1.405634,
+        1.623273,
+        1.617963,
+        1.578159,
+        1.532912,
+        1.501491,
+        1.487464
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 143,
+      "context": "at; yet go:\\nNay, but thou shalt ",
+      "target": "s",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.573663,
+        2.917437,
+        2.961839,
+        2.950703,
+        2.942505,
+        2.9382,
+        2.935928,
+        2.934704
+      ],
+      "actual_losses": [
+        3.524169,
+        3.286263,
+        3.242216,
+        3.254126,
+        3.259881,
+        3.259684,
+        3.256727,
+        3.252491
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 144,
+      "context": "t; yet go:\\nNay, but thou shalt s",
+      "target": "t",
+      "prediction": "o",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.080234,
+        1.898334,
+        1.936628,
+        1.963407,
+        1.957973,
+        1.956549,
+        1.957711,
+        1.959581
+      ],
+      "actual_losses": [
+        1.958172,
+        1.80407,
+        1.920952,
+        1.896307,
+        1.862507,
+        1.855505,
+        1.857064,
+        1.860928
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 145,
+      "context": "; yet go:\\nNay, but thou shalt st",
+      "target": "a",
+      "prediction": "a",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.43835,
+        1.361605,
+        1.444485,
+        1.438018,
+        1.409544,
+        1.383107,
+        1.360823,
+        1.342308
+      ],
+      "actual_losses": [
+        1.19273,
+        0.860356,
+        0.913475,
+        1.013547,
+        1.05514,
+        1.085409,
+        1.120613,
+        1.159368
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 146,
+      "context": " yet go:\\nNay, but thou shalt sta",
+      "target": "y",
+      "prediction": "n",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.036716,
+        1.91763,
+        2.032502,
+        2.028021,
+        1.997266,
+        1.970589,
+        1.950692,
+        1.935816
+      ],
+      "actual_losses": [
+        3.522319,
+        3.792365,
+        3.821253,
+        3.806018,
+        3.793842,
+        3.797592,
+        3.813266,
+        3.834689
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 147,
+      "context": "yet go:\\nNay, but thou shalt stay",
+      "target": " ",
+      "prediction": ",",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.560529,
+        1.673025,
+        1.507802,
+        1.452736,
+        1.421397,
+        1.410098,
+        1.412974,
+        1.425362
+      ],
+      "actual_losses": [
+        0.812098,
+        0.65876,
+        0.711955,
+        0.904918,
+        1.061602,
+        1.168511,
+        1.248404,
+        1.313811
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 148,
+      "context": "et go:\\nNay, but thou shalt stay ",
+      "target": "t",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.000426,
+        2.711657,
+        2.731992,
+        2.719938,
+        2.718384,
+        2.72035,
+        2.723755,
+        2.727851
+      ],
+      "actual_losses": [
+        1.699195,
+        1.608333,
+        1.557301,
+        1.546109,
+        1.544927,
+        1.547943,
+        1.552776,
+        1.558307
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 149,
+      "context": "t go:\\nNay, but thou shalt stay t",
+      "target": "o",
+      "prediction": "h",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.700409,
+        0.94982,
+        0.966025,
+        0.986526,
+        0.99888,
+        1.011596,
+        1.023364,
+        1.033895
+      ],
+      "actual_losses": [
+        1.289506,
+        1.279026,
+        1.484381,
+        1.456192,
+        1.438312,
+        1.421036,
+        1.407556,
+        1.396923
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 150,
+      "context": " go:\\nNay, but thou shalt stay to",
+      "target": "o",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.493264,
+        1.25466,
+        1.170387,
+        1.116644,
+        1.099325,
+        1.094043,
+        1.095628,
+        1.101393
+      ],
+      "actual_losses": [
+        2.859319,
+        2.001369,
+        1.819469,
+        1.873582,
+        1.977577,
+        2.10356,
+        2.239263,
+        2.375305
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 151,
+      "context": "go:\\nNay, but thou shalt stay too",
+      "target": ":",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.115997,
+        1.129782,
+        1.149178,
+        1.17544,
+        1.208727,
+        1.246955,
+        1.285511,
+        1.319115
+      ],
+      "actual_losses": [
+        7.152646,
+        7.071917,
+        6.994534,
+        6.919271,
+        6.848857,
+        6.788657,
+        6.743233,
+        6.712817
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 152,
+      "context": "o:\\nNay, but thou shalt stay too:",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.079915,
+        -0.055427,
+        -0.087778,
+        -0.047319,
+        -0.033667,
+        -0.017678,
+        0.001394,
+        0.018266
+      ],
+      "actual_losses": [
+        0.118471,
+        0.064697,
+        0.064857,
+        0.066926,
+        0.066205,
+        0.064358,
+        0.062909,
+        0.06194
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 153,
+      "context": ":\\nNay, but thou shalt stay too: ",
+      "target": "I",
+      "prediction": "a",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.267764,
+        2.984594,
+        2.973512,
+        2.969811,
+        2.967366,
+        2.965733,
+        2.964536,
+        2.963576
+      ],
+      "actual_losses": [
+        3.771603,
+        3.327766,
+        3.372899,
+        3.381915,
+        3.388642,
+        3.390928,
+        3.390743,
+        3.38927
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 154,
+      "context": "\\nNay, but thou shalt stay too: I",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.082666,
+        0.822477,
+        0.86291,
+        0.887982,
+        0.889658,
+        0.851576,
+        0.797004,
+        0.751639
+      ],
+      "actual_losses": [
+        0.391366,
+        0.207568,
+        0.140503,
+        0.109118,
+        0.103334,
+        0.107114,
+        0.115167,
+        0.122734
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 155,
+      "context": "Nay, but thou shalt stay too: I ",
+      "target": "w",
+      "prediction": "w",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.024942,
+        2.889187,
+        2.889204,
+        2.889513,
+        2.891868,
+        2.892612,
+        2.892318,
+        2.89154
+      ],
+      "actual_losses": [
+        1.287574,
+        1.834269,
+        1.874086,
+        1.850533,
+        1.818634,
+        1.789873,
+        1.764247,
+        1.741198
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 156,
+      "context": "ay, but thou shalt stay too: I w",
+      "target": "o",
+      "prediction": "o",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.637123,
+        1.232986,
+        1.281888,
+        1.279452,
+        1.270167,
+        1.252307,
+        1.231523,
+        1.212581
+      ],
+      "actual_losses": [
+        1.328288,
+        0.892263,
+        0.880039,
+        0.880429,
+        0.891497,
+        0.910456,
+        0.932259,
+        0.953843
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 157,
+      "context": "y, but thou shalt stay too: I wo",
+      "target": "u",
+      "prediction": "u",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.963328,
+        1.198313,
+        1.289819,
+        1.300433,
+        1.29786,
+        1.293668,
+        1.289928,
+        1.287293
+      ],
+      "actual_losses": [
+        0.986296,
+        1.0254,
+        0.954059,
+        0.922044,
+        0.92163,
+        0.930226,
+        0.933867,
+        0.928934
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 158,
+      "context": ", but thou shalt stay too: I wou",
+      "target": "l",
+      "prediction": "l",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.913637,
+        0.942472,
+        0.976596,
+        0.995215,
+        0.991535,
+        0.980443,
+        0.96889,
+        0.958363
+      ],
+      "actual_losses": [
+        0.317413,
+        0.36156,
+        0.394464,
+        0.396966,
+        0.394334,
+        0.393484,
+        0.394758,
+        0.397746
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 159,
+      "context": " but thou shalt stay too: I woul",
+      "target": "d",
+      "prediction": "d",
+      "used_depth": 4,
+      "predicted_losses": [
+        0.456859,
+        0.310684,
+        0.289992,
+        0.241444,
+        0.235405,
+        0.235392,
+        0.229405,
+        0.215393
+      ],
+      "actual_losses": [
+        0.038904,
+        0.016514,
+        0.0149,
+        0.014083,
+        0.014367,
+        0.015324,
+        0.016667,
+        0.018246
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 160,
+      "context": "but thou shalt stay too: I would",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.473957,
+        0.741195,
+        0.830688,
+        0.845734,
+        0.849317,
+        0.864614,
+        0.888951,
+        0.915318
+      ],
+      "actual_losses": [
+        0.46722,
+        0.432112,
+        0.442841,
+        0.438397,
+        0.437468,
+        0.44405,
+        0.454743,
+        0.465003
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 161,
+      "context": "ut thou shalt stay too: I would ",
+      "target": "m",
+      "prediction": "a",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.923527,
+        2.625305,
+        2.699347,
+        2.737321,
+        2.768493,
+        2.793453,
+        2.813016,
+        2.828278
+      ],
+      "actual_losses": [
+        4.659101,
+        3.858239,
+        3.636977,
+        3.515198,
+        3.41812,
+        3.346514,
+        3.291933,
+        3.248914
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 162,
+      "context": "t thou shalt stay too: I would m",
+      "target": "y",
+      "prediction": "y",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.411123,
+        1.562783,
+        1.475568,
+        1.501012,
+        1.520009,
+        1.532599,
+        1.546984,
+        1.562334
+      ],
+      "actual_losses": [
+        1.017705,
+        0.860374,
+        1.114165,
+        1.133703,
+        1.012529,
+        0.938089,
+        0.890885,
+        0.856247
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 163,
+      "context": " thou shalt stay too: I would my",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.832751,
+        0.211034,
+        0.171529,
+        0.225614,
+        0.2284,
+        0.205619,
+        0.173108,
+        0.141816
+      ],
+      "actual_losses": [
+        0.194107,
+        0.100584,
+        0.119128,
+        0.127666,
+        0.135278,
+        0.140858,
+        0.144972,
+        0.148874
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 164,
+      "context": "thou shalt stay too: I would my ",
+      "target": "s",
+      "prediction": "m",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.312357,
+        3.305638,
+        3.275393,
+        3.261375,
+        3.253336,
+        3.248405,
+        3.245344,
+        3.243432
+      ],
+      "actual_losses": [
+        2.352772,
+        2.355608,
+        2.309784,
+        2.309774,
+        2.321929,
+        2.335721,
+        2.348805,
+        2.360936
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 165,
+      "context": "hou shalt stay too: I would my s",
+      "target": "o",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.346134,
+        2.464893,
+        2.359669,
+        2.327731,
+        2.31706,
+        2.305452,
+        2.292829,
+        2.281294
+      ],
+      "actual_losses": [
+        1.880734,
+        1.779092,
+        1.683243,
+        1.712734,
+        1.736128,
+        1.748741,
+        1.753859,
+        1.754262
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 166,
+      "context": "ou shalt stay too: I would my so",
+      "target": "n",
+      "prediction": "n",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.272495,
+        2.304708,
+        2.359765,
+        2.382913,
+        2.370588,
+        2.350798,
+        2.331831,
+        2.314655
+      ],
+      "actual_losses": [
+        2.166052,
+        1.434438,
+        1.276672,
+        1.226944,
+        1.208485,
+        1.189241,
+        1.156092,
+        1.110223
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 167,
+      "context": "u shalt stay too: I would my son",
+      "target": "\\n",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.907392,
+        2.270046,
+        2.426884,
+        2.435337,
+        2.405568,
+        2.378685,
+        2.361167,
+        2.347031
+      ],
+      "actual_losses": [
+        4.383682,
+        3.874244,
+        3.511151,
+        3.489334,
+        3.465189,
+        3.415789,
+        3.362508,
+        3.315272
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 168,
+      "context": " shalt stay too: I would my son\\n",
+      "target": "W",
+      "prediction": "T",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.690268,
+        3.806715,
+        3.741169,
+        3.641568,
+        3.583927,
+        3.594745,
+        3.627844,
+        3.655266
+      ],
+      "actual_losses": [
+        2.768396,
+        2.599878,
+        2.356747,
+        2.31269,
+        2.361507,
+        2.403114,
+        2.446797,
+        2.499252
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 169,
+      "context": "shalt stay too: I would my son\\nW",
+      "target": "e",
+      "prediction": "h",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.775104,
+        1.557163,
+        1.526481,
+        1.574614,
+        1.612013,
+        1.635369,
+        1.650342,
+        1.6605
+      ],
+      "actual_losses": [
+        2.210299,
+        2.063264,
+        2.221381,
+        2.166505,
+        2.178414,
+        2.212873,
+        2.240639,
+        2.260919
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 170,
+      "context": "halt stay too: I would my son\\nWe",
+      "target": "r",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.574597,
+        1.348178,
+        1.373878,
+        1.432343,
+        1.479414,
+        1.516014,
+        1.544703,
+        1.567539
+      ],
+      "actual_losses": [
+        2.680204,
+        2.174322,
+        1.909873,
+        1.860283,
+        1.833747,
+        1.807421,
+        1.780397,
+        1.753916
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 171,
+      "context": "alt stay too: I would my son\\nWer",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.002645,
+        0.383245,
+        0.376577,
+        0.427722,
+        0.468863,
+        0.505787,
+        0.53899,
+        0.572454
+      ],
+      "actual_losses": [
+        0.381298,
+        0.054746,
+        0.032377,
+        0.0304,
+        0.029633,
+        0.029462,
+        0.029892,
+        0.031096
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 172,
+      "context": "lt stay too: I would my son\\nWere",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.159262,
+        1.299489,
+        1.384931,
+        1.423816,
+        1.437344,
+        1.436175,
+        1.429066,
+        1.422295
+      ],
+      "actual_losses": [
+        0.249088,
+        0.333224,
+        0.340956,
+        0.364003,
+        0.393637,
+        0.425372,
+        0.456344,
+        0.484036
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 173,
+      "context": "t stay too: I would my son\\nWere ",
+      "target": "i",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.884392,
+        2.964791,
+        2.915579,
+        2.90384,
+        2.896324,
+        2.8916,
+        2.888501,
+        2.886411
+      ],
+      "actual_losses": [
+        3.549996,
+        2.813548,
+        2.723173,
+        2.694617,
+        2.686196,
+        2.686442,
+        2.691342,
+        2.698902
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 174,
+      "context": " stay too: I would my son\\nWere i",
+      "target": "n",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.379371,
+        1.127897,
+        1.172418,
+        1.315893,
+        1.346158,
+        1.351488,
+        1.349722,
+        1.346375
+      ],
+      "actual_losses": [
+        0.927247,
+        0.824968,
+        0.949062,
+        0.981089,
+        1.008891,
+        1.023344,
+        1.026881,
+        1.022347
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 175,
+      "context": "stay too: I would my son\\nWere in",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.403064,
+        1.334211,
+        1.321481,
+        1.27344,
+        1.28466,
+        1.30958,
+        1.339545,
+        1.369413
+      ],
+      "actual_losses": [
+        0.183885,
+        0.127326,
+        0.167653,
+        0.19624,
+        0.217951,
+        0.229702,
+        0.235826,
+        0.23978
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 176,
+      "context": "tay too: I would my son\\nWere in ",
+      "target": "A",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.052115,
+        2.942997,
+        3.008465,
+        3.018058,
+        3.01808,
+        3.017777,
+        3.017161,
+        3.016279
+      ],
+      "actual_losses": [
+        7.91768,
+        6.946736,
+        6.763734,
+        6.769363,
+        6.776062,
+        6.780761,
+        6.783454,
+        6.784957
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 177,
+      "context": "ay too: I would my son\\nWere in A",
+      "target": "r",
+      "prediction": "u",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.608528,
+        1.648151,
+        1.813092,
+        1.928954,
+        1.968137,
+        1.97952,
+        1.984879,
+        1.988939
+      ],
+      "actual_losses": [
+        2.771932,
+        3.605093,
+        4.096775,
+        4.01666,
+        3.806792,
+        3.62976,
+        3.490956,
+        3.387064
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 178,
+      "context": "y too: I would my son\\nWere in Ar",
+      "target": "a",
+      "prediction": "i",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.439437,
+        0.854774,
+        1.134526,
+        1.137505,
+        1.09736,
+        1.075148,
+        1.073234,
+        1.094709
+      ],
+      "actual_losses": [
+        1.371273,
+        0.833248,
+        1.255886,
+        1.561376,
+        1.76757,
+        1.966338,
+        2.175499,
+        2.371375
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 179,
+      "context": " too: I would my son\\nWere in Ara",
+      "target": "b",
+      "prediction": "n",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.280582,
+        2.429838,
+        2.476576,
+        2.476346,
+        2.468922,
+        2.461332,
+        2.453527,
+        2.444612
+      ],
+      "actual_losses": [
+        4.582742,
+        5.141787,
+        5.145096,
+        5.07438,
+        5.001516,
+        4.971856,
+        4.966613,
+        4.970058
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 180,
+      "context": "too: I would my son\\nWere in Arab",
+      "target": "i",
+      "prediction": "l",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.583849,
+        1.978505,
+        2.260436,
+        2.363793,
+        2.398338,
+        2.400633,
+        2.394064,
+        2.387018
+      ],
+      "actual_losses": [
+        2.696587,
+        2.890664,
+        2.738955,
+        2.677176,
+        2.611501,
+        2.534528,
+        2.461123,
+        2.398398
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 181,
+      "context": "oo: I would my son\\nWere in Arabi",
+      "target": "a",
+      "prediction": "n",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.133759,
+        2.114972,
+        2.097957,
+        2.086548,
+        2.064775,
+        2.039273,
+        2.007958,
+        1.968794
+      ],
+      "actual_losses": [
+        5.107225,
+        5.352883,
+        5.503085,
+        5.590283,
+        5.652663,
+        5.69972,
+        5.726156,
+        5.717978
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 182,
+      "context": "o: I would my son\\nWere in Arabia",
+      "target": ",",
+      "prediction": "n",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.199985,
+        2.207945,
+        2.324111,
+        2.271396,
+        2.203396,
+        2.150635,
+        2.113942,
+        2.084899
+      ],
+      "actual_losses": [
+        5.568624,
+        4.987385,
+        5.110162,
+        5.719332,
+        5.991163,
+        6.120377,
+        6.202653,
+        6.269705
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 183,
+      "context": ": I would my son\\nWere in Arabia,",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.627778,
+        0.438147,
+        0.486376,
+        0.521887,
+        0.499378,
+        0.479841,
+        0.46697,
+        0.458065
+      ],
+      "actual_losses": [
+        0.048819,
+        0.017956,
+        0.02413,
+        0.029272,
+        0.030352,
+        0.030686,
+        0.03124,
+        0.03199
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 184,
+      "context": " I would my son\\nWere in Arabia, ",
+      "target": "a",
+      "prediction": "a",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.304215,
+        3.186776,
+        3.114311,
+        3.111137,
+        3.105657,
+        3.101314,
+        3.097289,
+        3.093588
+      ],
+      "actual_losses": [
+        1.547489,
+        1.603433,
+        1.5377,
+        1.498819,
+        1.497365,
+        1.496847,
+        1.497838,
+        1.499527
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 185,
+      "context": "I would my son\\nWere in Arabia, a",
+      "target": "n",
+      "prediction": "n",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.455984,
+        2.169511,
+        2.006834,
+        1.952232,
+        1.947282,
+        1.949523,
+        1.951329,
+        1.951572
+      ],
+      "actual_losses": [
+        0.684378,
+        0.323371,
+        0.436462,
+        0.456043,
+        0.466692,
+        0.470793,
+        0.473294,
+        0.475214
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 186,
+      "context": " would my son\\nWere in Arabia, an",
+      "target": "d",
+      "prediction": "d",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.066676,
+        0.599738,
+        0.550825,
+        0.551963,
+        0.55562,
+        0.562722,
+        0.571537,
+        0.581241
+      ],
+      "actual_losses": [
+        0.146451,
+        0.07323,
+        0.075947,
+        0.078722,
+        0.080721,
+        0.082312,
+        0.084017,
+        0.08599
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 187,
+      "context": "would my son\\nWere in Arabia, and",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.319937,
+        0.11249,
+        -0.083841,
+        -0.032604,
+        0.033027,
+        0.082345,
+        0.119093,
+        0.152787
+      ],
+      "actual_losses": [
+        0.050338,
+        0.022588,
+        0.01422,
+        0.014234,
+        0.015671,
+        0.017118,
+        0.018282,
+        0.019304
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 188,
+      "context": "ould my son\\nWere in Arabia, and ",
+      "target": "t",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.692141,
+        2.762398,
+        2.782351,
+        2.80495,
+        2.817468,
+        2.826337,
+        2.832794,
+        2.837757
+      ],
+      "actual_losses": [
+        1.521185,
+        1.795268,
+        1.877516,
+        1.882737,
+        1.869951,
+        1.860386,
+        1.8529,
+        1.847101
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 189,
+      "context": "uld my son\\nWere in Arabia, and t",
+      "target": "h",
+      "prediction": "h",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.054508,
+        1.246144,
+        1.256791,
+        1.278625,
+        1.290354,
+        1.296995,
+        1.301276,
+        1.30474
+      ],
+      "actual_losses": [
+        0.358257,
+        0.489157,
+        0.444219,
+        0.430859,
+        0.420326,
+        0.4153,
+        0.413387,
+        0.413306
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 190,
+      "context": "ld my son\\nWere in Arabia, and th",
+      "target": "y",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.32542,
+        0.936081,
+        0.880051,
+        0.855044,
+        0.860474,
+        0.885114,
+        0.915639,
+        0.946508
+      ],
+      "actual_losses": [
+        5.290589,
+        4.369191,
+        4.098191,
+        3.896489,
+        3.799104,
+        3.756504,
+        3.745281,
+        3.752302
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 191,
+      "context": "d my son\\nWere in Arabia, and thy",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.567488,
+        0.145007,
+        0.018296,
+        -0.045379,
+        -0.106492,
+        -0.143084,
+        -0.150844,
+        -0.139777
+      ],
+      "actual_losses": [
+        0.063128,
+        0.019819,
+        0.021778,
+        0.025605,
+        0.029836,
+        0.033637,
+        0.03727,
+        0.041323
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 192,
+      "context": " my son\\nWere in Arabia, and thy ",
+      "target": "t",
+      "prediction": "w",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.823444,
+        3.096382,
+        3.167987,
+        3.173971,
+        3.174881,
+        3.174116,
+        3.172466,
+        3.170335
+      ],
+      "actual_losses": [
+        3.129029,
+        3.664265,
+        3.678598,
+        3.652145,
+        3.629298,
+        3.608485,
+        3.589106,
+        3.570939
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 193,
+      "context": "my son\\nWere in Arabia, and thy t",
+      "target": "r",
+      "prediction": "h",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.567391,
+        1.474932,
+        1.499071,
+        1.565965,
+        1.587874,
+        1.592728,
+        1.595152,
+        1.597716
+      ],
+      "actual_losses": [
+        1.537951,
+        1.600748,
+        1.737904,
+        1.879622,
+        1.936844,
+        1.957292,
+        1.963643,
+        1.962307
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 194,
+      "context": "y son\\nWere in Arabia, and thy tr",
+      "target": "i",
+      "prediction": "u",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.792173,
+        1.80216,
+        1.78808,
+        1.692906,
+        1.626671,
+        1.582323,
+        1.557476,
+        1.54796
+      ],
+      "actual_losses": [
+        1.302238,
+        0.917749,
+        1.067281,
+        1.211611,
+        1.321394,
+        1.381534,
+        1.409954,
+        1.411624
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 195,
+      "context": " son\\nWere in Arabia, and thy tri",
+      "target": "b",
+      "prediction": "b",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.549593,
+        2.392045,
+        2.261739,
+        2.243036,
+        2.203392,
+        2.173349,
+        2.142631,
+        2.119153
+      ],
+      "actual_losses": [
+        2.367134,
+        1.746954,
+        1.522061,
+        1.508823,
+        1.40365,
+        1.363628,
+        1.341945,
+        1.334452
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 196,
+      "context": "son\\nWere in Arabia, and thy trib",
+      "target": "e",
+      "prediction": "u",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.629178,
+        1.729332,
+        1.755052,
+        1.683031,
+        1.603688,
+        1.528864,
+        1.472502,
+        1.433059
+      ],
+      "actual_losses": [
+        0.775874,
+        2.454495,
+        2.957467,
+        2.996272,
+        2.901235,
+        2.751877,
+        2.641836,
+        2.573019
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 197,
+      "context": "on\\nWere in Arabia, and thy tribe",
+      "target": " ",
+      "prediction": "n",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.913835,
+        1.58596,
+        1.457104,
+        1.545185,
+        1.679586,
+        1.779125,
+        1.840067,
+        1.876141
+      ],
+      "actual_losses": [
+        3.046831,
+        2.902238,
+        2.503343,
+        2.453264,
+        2.453418,
+        2.485291,
+        2.530672,
+        2.566936
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 198,
+      "context": "n\\nWere in Arabia, and thy tribe ",
+      "target": "b",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.933208,
+        2.836662,
+        2.84132,
+        2.84711,
+        2.849991,
+        2.851895,
+        2.853338,
+        2.854487
+      ],
+      "actual_losses": [
+        4.162419,
+        3.704966,
+        3.720287,
+        3.740447,
+        3.747562,
+        3.748814,
+        3.746701,
+        3.742353
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 199,
+      "context": "\\nWere in Arabia, and thy tribe b",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.422296,
+        1.482185,
+        1.569597,
+        1.617676,
+        1.648893,
+        1.67142,
+        1.690076,
+        1.706094
+      ],
+      "actual_losses": [
+        1.120552,
+        1.00813,
+        0.936951,
+        0.967756,
+        1.001112,
+        1.038703,
+        1.078593,
+        1.117072
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 200,
+      "context": "Were in Arabia, and thy tribe be",
+      "target": "f",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.415408,
+        2.220963,
+        2.139194,
+        2.095968,
+        2.070698,
+        2.056697,
+        2.047766,
+        2.041937
+      ],
+      "actual_losses": [
+        4.458531,
+        4.007474,
+        3.707548,
+        3.589683,
+        3.520464,
+        3.473264,
+        3.438776,
+        3.412203
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 201,
+      "context": "ere in Arabia, and thy tribe bef",
+      "target": "o",
+      "prediction": "o",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.323618,
+        1.531127,
+        1.627277,
+        1.657589,
+        1.673445,
+        1.684922,
+        1.694881,
+        1.703771
+      ],
+      "actual_losses": [
+        0.777336,
+        0.524155,
+        0.585143,
+        0.578541,
+        0.586125,
+        0.603959,
+        0.626708,
+        0.650772
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 202,
+      "context": "re in Arabia, and thy tribe befo",
+      "target": "r",
+      "prediction": "r",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.542431,
+        1.765611,
+        1.941444,
+        1.955015,
+        1.944828,
+        1.930707,
+        1.915648,
+        1.900319
+      ],
+      "actual_losses": [
+        0.884707,
+        0.491333,
+        0.425055,
+        0.436422,
+        0.462991,
+        0.494664,
+        0.529489,
+        0.566766
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 203,
+      "context": "e in Arabia, and thy tribe befor",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.544962,
+        1.069643,
+        0.965023,
+        1.010666,
+        1.085137,
+        1.142129,
+        1.165121,
+        1.167279
+      ],
+      "actual_losses": [
+        0.675065,
+        0.308561,
+        0.201459,
+        0.184487,
+        0.197409,
+        0.212112,
+        0.215221,
+        0.211127
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 204,
+      "context": " in Arabia, and thy tribe before",
+      "target": " ",
+      "prediction": ",",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.801692,
+        1.860517,
+        1.873015,
+        1.912283,
+        1.993457,
+        2.067191,
+        2.128832,
+        2.176783
+      ],
+      "actual_losses": [
+        0.840893,
+        1.200128,
+        1.266131,
+        1.245755,
+        1.1687,
+        1.135727,
+        1.132265,
+        1.143677
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 205,
+      "context": "in Arabia, and thy tribe before ",
+      "target": "h",
+      "prediction": "a",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.398537,
+        3.186924,
+        3.185358,
+        3.177298,
+        3.167621,
+        3.159189,
+        3.151567,
+        3.144486
+      ],
+      "actual_losses": [
+        3.0456,
+        2.835468,
+        2.933563,
+        2.986813,
+        3.007562,
+        3.017711,
+        3.022068,
+        3.023026
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 206,
+      "context": "n Arabia, and thy tribe before h",
+      "target": "i",
+      "prediction": "i",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.436891,
+        1.142807,
+        1.187063,
+        1.171657,
+        1.165727,
+        1.167298,
+        1.173396,
+        1.18176
+      ],
+      "actual_losses": [
+        1.277727,
+        1.176408,
+        1.086791,
+        1.04089,
+        1.016023,
+        1.004617,
+        1.002871,
+        1.007492
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 207,
+      "context": " Arabia, and thy tribe before hi",
+      "target": "m",
+      "prediction": "m",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.643915,
+        1.319267,
+        1.349273,
+        1.311589,
+        1.294981,
+        1.287944,
+        1.281711,
+        1.27387
+      ],
+      "actual_losses": [
+        0.504764,
+        0.508653,
+        0.487266,
+        0.510105,
+        0.531906,
+        0.581743,
+        0.641707,
+        0.712591
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 208,
+      "context": "Arabia, and thy tribe before him",
+      "target": ",",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.329784,
+        1.467138,
+        1.589799,
+        1.708539,
+        1.673595,
+        1.616377,
+        1.551099,
+        1.495225
+      ],
+      "actual_losses": [
+        2.145444,
+        1.347285,
+        1.314151,
+        1.322377,
+        1.3332,
+        1.384278,
+        1.480216,
+        1.583987
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 209,
+      "context": "rabia, and thy tribe before him,",
+      "target": "\\n",
+      "prediction": "\\n",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.421428,
+        0.371424,
+        0.502392,
+        0.531687,
+        0.54418,
+        0.553364,
+        0.558546,
+        0.561617
+      ],
+      "actual_losses": [
+        0.320314,
+        0.530009,
+        0.488293,
+        0.528551,
+        0.578368,
+        0.614771,
+        0.639074,
+        0.656472
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 210,
+      "context": "abia, and thy tribe before him,\\n",
+      "target": "H",
+      "prediction": "A",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.747034,
+        2.882053,
+        2.905832,
+        2.95676,
+        2.915788,
+        2.873057,
+        2.913517,
+        3.016524
+      ],
+      "actual_losses": [
+        3.376756,
+        3.745908,
+        3.596041,
+        3.596062,
+        3.489272,
+        3.494492,
+        3.588369,
+        3.679639
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 211,
+      "context": "bia, and thy tribe before him,\\nH",
+      "target": "i",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.229508,
+        1.497083,
+        1.380292,
+        1.308258,
+        1.246356,
+        1.201943,
+        1.173076,
+        1.155766
+      ],
+      "actual_losses": [
+        2.53079,
+        2.774527,
+        2.631279,
+        2.752278,
+        2.907137,
+        3.029993,
+        3.122102,
+        3.190777
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 212,
+      "context": "ia, and thy tribe before him,\\nHi",
+      "target": "s",
+      "prediction": "s",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.927109,
+        1.701658,
+        1.624999,
+        1.538223,
+        1.502977,
+        1.503421,
+        1.506818,
+        1.509938
+      ],
+      "actual_losses": [
+        0.788733,
+        0.324257,
+        0.170707,
+        0.143091,
+        0.125414,
+        0.122937,
+        0.129752,
+        0.141206
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 213,
+      "context": "a, and thy tribe before him,\\nHis",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.161043,
+        0.649152,
+        0.611834,
+        0.673746,
+        0.727008,
+        0.764687,
+        0.791177,
+        0.813098
+      ],
+      "actual_losses": [
+        0.083289,
+        0.054493,
+        0.050714,
+        0.04702,
+        0.04394,
+        0.041165,
+        0.039613,
+        0.039359
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 214,
+      "context": ", and thy tribe before him,\\nHis ",
+      "target": "g",
+      "prediction": "w",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.822472,
+        2.913786,
+        2.944351,
+        2.963025,
+        2.97382,
+        2.980596,
+        2.985085,
+        2.988153
+      ],
+      "actual_losses": [
+        3.098153,
+        3.686084,
+        3.811459,
+        3.841551,
+        3.856842,
+        3.86601,
+        3.871719,
+        3.875364
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 215,
+      "context": " and thy tribe before him,\\nHis g",
+      "target": "o",
+      "prediction": "o",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.497239,
+        1.332855,
+        1.449931,
+        1.588165,
+        1.667079,
+        1.70655,
+        1.726433,
+        1.736184
+      ],
+      "actual_losses": [
+        1.353629,
+        0.620633,
+        0.605062,
+        0.653029,
+        0.671726,
+        0.685881,
+        0.701586,
+        0.718745
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 216,
+      "context": "and thy tribe before him,\\nHis go",
+      "target": "o",
+      "prediction": "d",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.881518,
+        1.799624,
+        1.72164,
+        1.667837,
+        1.609265,
+        1.566969,
+        1.541103,
+        1.517742
+      ],
+      "actual_losses": [
+        1.769949,
+        1.05097,
+        0.901618,
+        0.890865,
+        0.981,
+        1.139275,
+        1.383268,
+        1.752818
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 217,
+      "context": "nd thy tribe before him,\\nHis goo",
+      "target": "d",
+      "prediction": "d",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.472713,
+        1.393739,
+        1.298475,
+        1.209893,
+        1.129645,
+        1.052899,
+        0.984378,
+        0.937917
+      ],
+      "actual_losses": [
+        0.394429,
+        0.265089,
+        0.190426,
+        0.150515,
+        0.127532,
+        0.114465,
+        0.106733,
+        0.099807
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 218,
+      "context": "d thy tribe before him,\\nHis good",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.067595,
+        0.986114,
+        0.916164,
+        0.980602,
+        1.015593,
+        1.018315,
+        1.009261,
+        1.001852
+      ],
+      "actual_losses": [
+        0.483905,
+        0.264712,
+        0.273786,
+        0.284999,
+        0.302414,
+        0.316327,
+        0.327645,
+        0.337823
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 219,
+      "context": " thy tribe before him,\\nHis good ",
+      "target": "s",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.231471,
+        3.090549,
+        3.062028,
+        3.06299,
+        3.063659,
+        3.062842,
+        3.061118,
+        3.058939
+      ],
+      "actual_losses": [
+        2.138349,
+        2.634324,
+        2.609076,
+        2.599592,
+        2.598573,
+        2.603556,
+        2.61095,
+        2.619243
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 220,
+      "context": "thy tribe before him,\\nHis good s",
+      "target": "w",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.15455,
+        2.057956,
+        2.050164,
+        2.044731,
+        2.029166,
+        2.017618,
+        2.010862,
+        2.006718
+      ],
+      "actual_losses": [
+        3.138584,
+        3.281602,
+        3.264184,
+        3.281111,
+        3.301359,
+        3.306985,
+        3.306552,
+        3.306149
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 221,
+      "context": "hy tribe before him,\\nHis good sw",
+      "target": "o",
+      "prediction": "o",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.370584,
+        1.221466,
+        1.103026,
+        1.103468,
+        1.113712,
+        1.113239,
+        1.112961,
+        1.116268
+      ],
+      "actual_losses": [
+        1.026241,
+        0.353966,
+        0.185069,
+        0.151469,
+        0.145352,
+        0.147253,
+        0.152934,
+        0.160848
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 222,
+      "context": "y tribe before him,\\nHis good swo",
+      "target": "r",
+      "prediction": "r",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.241957,
+        1.196281,
+        1.250886,
+        1.382294,
+        1.445229,
+        1.465104,
+        1.470821,
+        1.472412
+      ],
+      "actual_losses": [
+        0.536162,
+        0.33642,
+        0.215909,
+        0.175295,
+        0.168976,
+        0.172746,
+        0.180395,
+        0.190311
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 223,
+      "context": " tribe before him,\\nHis good swor",
+      "target": "d",
+      "prediction": "d",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.730837,
+        1.641757,
+        1.69625,
+        1.736729,
+        1.754035,
+        1.767124,
+        1.776147,
+        1.781579
+      ],
+      "actual_losses": [
+        0.566628,
+        0.420759,
+        0.39491,
+        0.376653,
+        0.359623,
+        0.349011,
+        0.34549,
+        0.348421
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 224,
+      "context": "tribe before him,\\nHis good sword",
+      "target": " ",
+      "prediction": ",",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.751203,
+        1.810061,
+        1.850164,
+        1.909598,
+        1.94524,
+        1.966313,
+        1.980381,
+        1.9902
+      ],
+      "actual_losses": [
+        1.344732,
+        1.551843,
+        1.491408,
+        1.504539,
+        1.525748,
+        1.536437,
+        1.536282,
+        1.530205
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 225,
+      "context": "ribe before him,\\nHis good sword ",
+      "target": "i",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.058872,
+        2.889287,
+        2.924238,
+        2.923519,
+        2.921209,
+        2.919439,
+        2.91796,
+        2.916602
+      ],
+      "actual_losses": [
+        3.054037,
+        2.97263,
+        2.823409,
+        2.772967,
+        2.754523,
+        2.746255,
+        2.744015,
+        2.745903
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 226,
+      "context": "ibe before him,\\nHis good sword i",
+      "target": "n",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.411199,
+        1.037121,
+        1.026689,
+        1.165441,
+        1.195848,
+        1.199982,
+        1.197152,
+        1.191654
+      ],
+      "actual_losses": [
+        0.752338,
+        0.615569,
+        0.828249,
+        0.927934,
+        0.992963,
+        1.021169,
+        1.029001,
+        1.027307
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 227,
+      "context": "be before him,\\nHis good sword in",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.408294,
+        1.273978,
+        1.342109,
+        1.31191,
+        1.336686,
+        1.371724,
+        1.408474,
+        1.444457
+      ],
+      "actual_losses": [
+        0.315679,
+        0.184643,
+        0.238878,
+        0.279248,
+        0.313292,
+        0.336641,
+        0.356337,
+        0.377441
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 228,
+      "context": "e before him,\\nHis good sword in ",
+      "target": "h",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.039128,
+        2.922871,
+        3.003965,
+        3.013307,
+        3.013881,
+        3.014567,
+        3.014886,
+        3.014788
+      ],
+      "actual_losses": [
+        3.158951,
+        3.050139,
+        2.982053,
+        2.99538,
+        3.009816,
+        3.020862,
+        3.028333,
+        3.033324
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 229,
+      "context": " before him,\\nHis good sword in h",
+      "target": "i",
+      "prediction": "i",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.549968,
+        1.175616,
+        1.155263,
+        1.119392,
+        1.096916,
+        1.085537,
+        1.082045,
+        1.083335
+      ],
+      "actual_losses": [
+        1.345865,
+        1.14418,
+        1.096145,
+        1.055849,
+        1.01756,
+        0.990238,
+        0.975626,
+        0.971498
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 230,
+      "context": "before him,\\nHis good sword in hi",
+      "target": "s",
+      "prediction": "m",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.54615,
+        1.333379,
+        1.287182,
+        1.260549,
+        1.25933,
+        1.265714,
+        1.270953,
+        1.272609
+      ],
+      "actual_losses": [
+        1.318535,
+        1.132138,
+        1.164373,
+        1.177801,
+        1.133307,
+        1.069904,
+        1.003684,
+        0.941209
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 231,
+      "context": "efore him,\\nHis good sword in his",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.65032,
+        0.567595,
+        0.443453,
+        0.465544,
+        0.520719,
+        0.56774,
+        0.601259,
+        0.629968
+      ],
+      "actual_losses": [
+        0.312945,
+        0.120104,
+        0.106692,
+        0.10716,
+        0.119865,
+        0.132464,
+        0.14359,
+        0.154026
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 232,
+      "context": "fore him,\\nHis good sword in his ",
+      "target": "h",
+      "prediction": "p",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.688313,
+        2.895027,
+        3.006346,
+        3.026401,
+        3.034135,
+        3.038526,
+        3.04152,
+        3.043742
+      ],
+      "actual_losses": [
+        2.847818,
+        2.933973,
+        2.887365,
+        2.890385,
+        2.891109,
+        2.890321,
+        2.889537,
+        2.889145
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 233,
+      "context": "ore him,\\nHis good sword in his h",
+      "target": "a",
+      "prediction": "a",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.379112,
+        1.352123,
+        1.257427,
+        1.196587,
+        1.167159,
+        1.147831,
+        1.13182,
+        1.117458
+      ],
+      "actual_losses": [
+        0.465282,
+        0.317496,
+        0.385155,
+        0.392507,
+        0.394139,
+        0.398152,
+        0.403137,
+        0.407584
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 234,
+      "context": "re him,\\nHis good sword in his ha",
+      "target": "n",
+      "prediction": "v",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.923828,
+        1.544686,
+        1.416973,
+        1.454134,
+        1.487447,
+        1.510025,
+        1.525969,
+        1.536913
+      ],
+      "actual_losses": [
+        2.206998,
+        2.377374,
+        2.623101,
+        2.600052,
+        2.550471,
+        2.505352,
+        2.466776,
+        2.43468
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 235,
+      "context": "e him,\\nHis good sword in his han",
+      "target": "d",
+      "prediction": "d",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.638705,
+        1.124494,
+        0.965297,
+        1.022347,
+        1.112,
+        1.202324,
+        1.274486,
+        1.331161
+      ],
+      "actual_losses": [
+        0.462195,
+        0.252248,
+        0.22288,
+        0.221399,
+        0.247414,
+        0.277479,
+        0.305209,
+        0.331633
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 236,
+      "context": " him,\\nHis good sword in his hand",
+      "target": ".",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.550309,
+        2.002583,
+        1.99248,
+        1.944754,
+        1.898076,
+        1.853168,
+        1.809325,
+        1.76948
+      ],
+      "actual_losses": [
+        3.313651,
+        3.195286,
+        3.223727,
+        3.264984,
+        3.269578,
+        3.251781,
+        3.22271,
+        3.189577
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 237,
+      "context": "him,\\nHis good sword in his hand.",
+      "target": "\\n",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.031471,
+        0.73739,
+        0.498828,
+        0.562214,
+        0.582454,
+        0.560632,
+        0.538821,
+        0.52915
+      ],
+      "actual_losses": [
+        1.369807,
+        0.99651,
+        1.080222,
+        1.004812,
+        0.942904,
+        0.89769,
+        0.858062,
+        0.823478
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 238,
+      "context": "im,\\nHis good sword in his hand.\\n",
+      "target": "\\n",
+      "prediction": "\\n",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.073892,
+        0.996367,
+        1.099807,
+        1.072333,
+        1.041389,
+        1.145624,
+        1.547758,
+        2.133853
+      ],
+      "actual_losses": [
+        0.790985,
+        0.704743,
+        0.581017,
+        0.455825,
+        0.372314,
+        0.277774,
+        0.344497,
+        1.349672
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 239,
+      "context": "m,\\nHis good sword in his hand.\\n\\n",
+      "target": "S",
+      "prediction": "C",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.269896,
+        2.189924,
+        2.097582,
+        2.029953,
+        1.977778,
+        1.96141,
+        1.965091,
+        1.970378
+      ],
+      "actual_losses": [
+        2.514491,
+        2.18724,
+        2.194809,
+        2.198945,
+        2.190025,
+        2.17919,
+        2.175457,
+        2.174552
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 240,
+      "context": ",\\nHis good sword in his hand.\\n\\nS",
+      "target": "I",
+      "prediction": "I",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.57072,
+        0.847459,
+        0.711787,
+        0.523813,
+        0.455603,
+        0.416961,
+        0.392289,
+        0.373875
+      ],
+      "actual_losses": [
+        0.711707,
+        0.262584,
+        0.30948,
+        0.306016,
+        0.286968,
+        0.267472,
+        0.249587,
+        0.23451
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 241,
+      "context": "\\nHis good sword in his hand.\\n\\nSI",
+      "target": "C",
+      "prediction": "C",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.221006,
+        0.082529,
+        0.074165,
+        0.147646,
+        0.206113,
+        0.248054,
+        0.270503,
+        0.279608
+      ],
+      "actual_losses": [
+        0.040965,
+        0.015113,
+        0.013285,
+        0.012669,
+        0.014561,
+        0.017727,
+        0.021758,
+        0.025606
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 242,
+      "context": "His good sword in his hand.\\n\\nSIC",
+      "target": "I",
+      "prediction": "I",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.16005,
+        0.194165,
+        0.174961,
+        0.222673,
+        0.265845,
+        0.213357,
+        0.103854,
+        -0.002594
+      ],
+      "actual_losses": [
+        0.021756,
+        0.013873,
+        0.015938,
+        0.018722,
+        0.0224,
+        0.024668,
+        0.026745,
+        0.030543
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 243,
+      "context": "is good sword in his hand.\\n\\nSICI",
+      "target": "N",
+      "prediction": "N",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.55919,
+        -0.196866,
+        -0.068931,
+        -0.007959,
+        0.060326,
+        0.121328,
+        0.174097,
+        0.218816
+      ],
+      "actual_losses": [
+        0.022108,
+        0.039273,
+        0.044617,
+        0.041648,
+        0.037036,
+        0.033991,
+        0.032726,
+        0.032605
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 244,
+      "context": "s good sword in his hand.\\n\\nSICIN",
+      "target": "I",
+      "prediction": "I",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.047049,
+        -0.03741,
+        -0.063703,
+        -0.035168,
+        0.019389,
+        0.074347,
+        0.117253,
+        0.144884
+      ],
+      "actual_losses": [
+        0.036891,
+        0.003876,
+        0.004057,
+        0.004563,
+        0.005014,
+        0.005552,
+        0.006235,
+        0.007133
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 245,
+      "context": " good sword in his hand.\\n\\nSICINI",
+      "target": "U",
+      "prediction": "U",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.058618,
+        -0.067393,
+        -0.166112,
+        -0.159036,
+        -0.124058,
+        -0.088641,
+        -0.059236,
+        -0.035019
+      ],
+      "actual_losses": [
+        0.014414,
+        0.004615,
+        0.002464,
+        0.002153,
+        0.002238,
+        0.002457,
+        0.002782,
+        0.003197
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 246,
+      "context": "good sword in his hand.\\n\\nSICINIU",
+      "target": "S",
+      "prediction": "S",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.101623,
+        0.004475,
+        0.120945,
+        0.122445,
+        0.079698,
+        0.045556,
+        0.023377,
+        0.007914
+      ],
+      "actual_losses": [
+        0.016239,
+        0.004024,
+        0.002418,
+        0.002198,
+        0.002219,
+        0.002308,
+        0.002421,
+        0.002539
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 247,
+      "context": "ood sword in his hand.\\n\\nSICINIUS",
+      "target": ":",
+      "prediction": ":",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.057237,
+        0.15536,
+        0.08394,
+        0.005914,
+        0.044553,
+        0.134832,
+        0.177453,
+        0.192911
+      ],
+      "actual_losses": [
+        0.020352,
+        0.005233,
+        0.0041,
+        0.003747,
+        0.003673,
+        0.004132,
+        0.004777,
+        0.005426
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 248,
+      "context": "od sword in his hand.\\n\\nSICINIUS:",
+      "target": "\\n",
+      "prediction": "\\n",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.121977,
+        0.00962,
+        -0.095568,
+        -0.075319,
+        -0.047539,
+        -0.015108,
+        0.019865,
+        0.05151
+      ],
+      "actual_losses": [
+        0.004168,
+        0.00286,
+        0.002822,
+        0.003153,
+        0.003844,
+        0.0046,
+        0.005205,
+        0.005614
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 249,
+      "context": "d sword in his hand.\\n\\nSICINIUS:\\n",
+      "target": "W",
+      "prediction": "H",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.927662,
+        2.976863,
+        2.912539,
+        2.927744,
+        2.859426,
+        2.860277,
+        2.926836,
+        3.050393
+      ],
+      "actual_losses": [
+        2.055099,
+        2.051867,
+        2.157234,
+        2.125082,
+        2.113477,
+        2.153284,
+        2.242898,
+        2.423292
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 250,
+      "context": " sword in his hand.\\n\\nSICINIUS:\\nW",
+      "target": "h",
+      "prediction": "h",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.340143,
+        1.014744,
+        1.320096,
+        1.459684,
+        1.511827,
+        1.529646,
+        1.542081,
+        1.551025
+      ],
+      "actual_losses": [
+        0.636645,
+        0.523302,
+        0.557521,
+        0.58986,
+        0.583562,
+        0.560239,
+        0.53642,
+        0.513063
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 251,
+      "context": "sword in his hand.\\n\\nSICINIUS:\\nWh",
+      "target": "a",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.483791,
+        1.58728,
+        1.519057,
+        1.464494,
+        1.472674,
+        1.493626,
+        1.509597,
+        1.518248
+      ],
+      "actual_losses": [
+        1.402928,
+        1.325636,
+        1.375545,
+        1.349434,
+        1.320513,
+        1.300882,
+        1.2865,
+        1.27567
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 252,
+      "context": "word in his hand.\\n\\nSICINIUS:\\nWha",
+      "target": "t",
+      "prediction": "t",
+      "used_depth": 3,
+      "predicted_losses": [
+        1.405369,
+        0.478408,
+        0.190633,
+        0.180955,
+        0.194476,
+        0.211061,
+        0.226397,
+        0.239207
+      ],
+      "actual_losses": [
+        0.184754,
+        0.093899,
+        0.105224,
+        0.111706,
+        0.11201,
+        0.110876,
+        0.10957,
+        0.108353
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 253,
+      "context": "ord in his hand.\\n\\nSICINIUS:\\nWhat",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.560374,
+        0.815088,
+        0.893966,
+        0.937313,
+        0.946074,
+        0.938538,
+        0.932868,
+        0.933533
+      ],
+      "actual_losses": [
+        0.590531,
+        0.310809,
+        0.249065,
+        0.250105,
+        0.259307,
+        0.26579,
+        0.270731,
+        0.274763
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 254,
+      "context": "rd in his hand.\\n\\nSICINIUS:\\nWhat ",
+      "target": "t",
+      "prediction": "m",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.802228,
+        3.154577,
+        3.104527,
+        3.097432,
+        3.094015,
+        3.093064,
+        3.092887,
+        3.092923
+      ],
+      "actual_losses": [
+        2.52807,
+        2.254751,
+        2.149107,
+        2.096442,
+        2.065627,
+        2.042677,
+        2.023747,
+        2.007208
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 255,
+      "context": "d in his hand.\\n\\nSICINIUS:\\nWhat t",
+      "target": "h",
+      "prediction": "h",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.982203,
+        0.967119,
+        0.932644,
+        0.929103,
+        0.919893,
+        0.912805,
+        0.906798,
+        0.902439
+      ],
+      "actual_losses": [
+        0.400169,
+        0.378726,
+        0.332108,
+        0.325199,
+        0.31463,
+        0.308505,
+        0.303849,
+        0.300285
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 256,
+      "context": " in his hand.\\n\\nSICINIUS:\\nWhat th",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.016185,
+        0.826294,
+        0.763499,
+        0.728074,
+        0.724321,
+        0.736123,
+        0.752477,
+        0.769072
+      ],
+      "actual_losses": [
+        0.298321,
+        0.357711,
+        0.34955,
+        0.3439,
+        0.346473,
+        0.348929,
+        0.350308,
+        0.351297
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 257,
+      "context": "in his hand.\\n\\nSICINIUS:\\nWhat the",
+      "target": "n",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.194378,
+        1.172859,
+        1.211938,
+        1.216741,
+        1.232014,
+        1.256985,
+        1.286014,
+        1.315536
+      ],
+      "actual_losses": [
+        3.131396,
+        3.537704,
+        3.698206,
+        3.851505,
+        4.007664,
+        4.153293,
+        4.28405,
+        4.395037
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 258,
+      "context": "n his hand.\\n\\nSICINIUS:\\nWhat then",
+      "target": "?",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.095375,
+        0.512741,
+        1.071393,
+        1.106978,
+        1.150074,
+        1.202158,
+        1.257695,
+        1.322219
+      ],
+      "actual_losses": [
+        3.529761,
+        2.914506,
+        2.411381,
+        2.41696,
+        2.447453,
+        2.465036,
+        2.491819,
+        2.540318
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 259,
+      "context": " his hand.\\n\\nSICINIUS:\\nWhat then?",
+      "target": "\\n",
+      "prediction": "\\n",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.687768,
+        0.39582,
+        0.447791,
+        0.535631,
+        0.578982,
+        0.588663,
+        0.594337,
+        0.60562
+      ],
+      "actual_losses": [
+        2.106597,
+        0.939981,
+        0.530521,
+        0.44796,
+        0.452271,
+        0.474127,
+        0.497588,
+        0.516353
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 260,
+      "context": "his hand.\\n\\nSICINIUS:\\nWhat then?\\n",
+      "target": "\\n",
+      "prediction": "\\n",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.479591,
+        1.168621,
+        1.261324,
+        1.366367,
+        1.312547,
+        1.273221,
+        1.444136,
+        2.007835
+      ],
+      "actual_losses": [
+        0.856372,
+        0.770655,
+        0.767872,
+        0.609376,
+        0.529298,
+        0.430673,
+        0.370413,
+        0.903053
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 261,
+      "context": "is hand.\\n\\nSICINIUS:\\nWhat then?\\n\\n",
+      "target": "V",
+      "prediction": "C",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.38607,
+        2.303916,
+        2.170777,
+        2.102097,
+        2.036088,
+        2.0088,
+        2.008472,
+        2.012412
+      ],
+      "actual_losses": [
+        2.087915,
+        2.079471,
+        2.159611,
+        2.177341,
+        2.154481,
+        2.155428,
+        2.166962,
+        2.176911
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 262,
+      "context": "s hand.\\n\\nSICINIUS:\\nWhat then?\\n\\nV",
+      "target": "I",
+      "prediction": "O",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.851586,
+        0.92598,
+        0.741562,
+        0.646349,
+        0.643868,
+        0.644951,
+        0.633191,
+        0.611541
+      ],
+      "actual_losses": [
+        3.308505,
+        3.042717,
+        2.674639,
+        2.66252,
+        2.5965,
+        2.491521,
+        2.407948,
+        2.345444
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 263,
+      "context": " hand.\\n\\nSICINIUS:\\nWhat then?\\n\\nVI",
+      "target": "R",
+      "prediction": "R",
+      "used_depth": 3,
+      "predicted_losses": [
+        0.524815,
+        0.286241,
+        0.148988,
+        0.17981,
+        0.267094,
+        0.348394,
+        0.415559,
+        0.472381
+      ],
+      "actual_losses": [
+        0.217056,
+        0.107936,
+        0.072375,
+        0.059856,
+        0.065758,
+        0.077593,
+        0.090713,
+        0.104644
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 264,
+      "context": "hand.\\n\\nSICINIUS:\\nWhat then?\\n\\nVIR",
+      "target": "G",
+      "prediction": "G",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.132902,
+        -0.094948,
+        0.006359,
+        0.055647,
+        0.073606,
+        0.08814,
+        0.107448,
+        0.127384
+      ],
+      "actual_losses": [
+        0.130186,
+        0.092414,
+        0.079075,
+        0.077725,
+        0.081065,
+        0.087764,
+        0.096964,
+        0.10745
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 265,
+      "context": "and.\\n\\nSICINIUS:\\nWhat then?\\n\\nVIRG",
+      "target": "I",
+      "prediction": "I",
+      "used_depth": 3,
+      "predicted_losses": [
+        0.338086,
+        0.304883,
+        0.159644,
+        0.083894,
+        0.041704,
+        0.012364,
+        -0.009614,
+        -0.024554
+      ],
+      "actual_losses": [
+        0.131564,
+        0.048239,
+        0.030495,
+        0.025218,
+        0.025475,
+        0.027349,
+        0.029523,
+        0.03165
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 266,
+      "context": "nd.\\n\\nSICINIUS:\\nWhat then?\\n\\nVIRGI",
+      "target": "L",
+      "prediction": "L",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.576232,
+        0.335646,
+        0.295141,
+        0.413738,
+        0.535744,
+        0.633851,
+        0.696544,
+        0.731702
+      ],
+      "actual_losses": [
+        0.383048,
+        0.145643,
+        0.109509,
+        0.091067,
+        0.080578,
+        0.074487,
+        0.071959,
+        0.071944
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 267,
+      "context": "d.\\n\\nSICINIUS:\\nWhat then?\\n\\nVIRGIL",
+      "target": "I",
+      "prediction": "I",
+      "used_depth": 5,
+      "predicted_losses": [
+        0.871622,
+        0.808459,
+        0.516539,
+        0.308215,
+        0.166522,
+        0.081895,
+        0.062634,
+        0.070259
+      ],
+      "actual_losses": [
+        0.377806,
+        0.165356,
+        0.124342,
+        0.138553,
+        0.152489,
+        0.174025,
+        0.202344,
+        0.227956
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 268,
+      "context": ".\\n\\nSICINIUS:\\nWhat then?\\n\\nVIRGILI",
+      "target": "A",
+      "prediction": "A",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.237945,
+        0.366793,
+        0.344355,
+        0.363485,
+        0.404832,
+        0.4534,
+        0.505699,
+        0.557238
+      ],
+      "actual_losses": [
+        0.100913,
+        0.056323,
+        0.043405,
+        0.040768,
+        0.044306,
+        0.047204,
+        0.048173,
+        0.049827
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 269,
+      "context": "\\n\\nSICINIUS:\\nWhat then?\\n\\nVIRGILIA",
+      "target": ":",
+      "prediction": ":",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.126711,
+        0.146561,
+        0.047877,
+        -0.006544,
+        -0.047837,
+        -0.076355,
+        -0.085312,
+        -0.072347
+      ],
+      "actual_losses": [
+        0.061175,
+        0.027182,
+        0.020072,
+        0.019578,
+        0.019278,
+        0.019894,
+        0.021813,
+        0.025254
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 270,
+      "context": "\\nSICINIUS:\\nWhat then?\\n\\nVIRGILIA:",
+      "target": "\\n",
+      "prediction": "\\n",
+      "used_depth": 1,
+      "predicted_losses": [
+        -0.214233,
+        -0.080986,
+        -0.238964,
+        -0.293723,
+        -0.301077,
+        -0.310453,
+        -0.321154,
+        -0.328216
+      ],
+      "actual_losses": [
+        0.025178,
+        0.005259,
+        0.003439,
+        0.003699,
+        0.004365,
+        0.005023,
+        0.00547,
+        0.00574
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 271,
+      "context": "SICINIUS:\\nWhat then?\\n\\nVIRGILIA:\\n",
+      "target": "W",
+      "prediction": "H",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.545174,
+        2.756202,
+        2.719359,
+        2.707843,
+        2.626474,
+        2.65376,
+        2.73953,
+        2.85095
+      ],
+      "actual_losses": [
+        2.405079,
+        2.280636,
+        2.439381,
+        2.293974,
+        2.170748,
+        2.113586,
+        2.122288,
+        2.182131
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 272,
+      "context": "ICINIUS:\\nWhat then?\\n\\nVIRGILIA:\\nW",
+      "target": "h",
+      "prediction": "h",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.20617,
+        0.957957,
+        1.308181,
+        1.46476,
+        1.523755,
+        1.546005,
+        1.557797,
+        1.564126
+      ],
+      "actual_losses": [
+        0.680401,
+        0.514546,
+        0.489763,
+        0.460858,
+        0.446321,
+        0.431695,
+        0.417939,
+        0.404497
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 273,
+      "context": "CINIUS:\\nWhat then?\\n\\nVIRGILIA:\\nWh",
+      "target": "a",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.481476,
+        1.604071,
+        1.523902,
+        1.47058,
+        1.481448,
+        1.503168,
+        1.518743,
+        1.526734
+      ],
+      "actual_losses": [
+        1.459828,
+        1.329046,
+        1.380869,
+        1.362434,
+        1.336321,
+        1.31668,
+        1.301827,
+        1.291312
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 274,
+      "context": "INIUS:\\nWhat then?\\n\\nVIRGILIA:\\nWha",
+      "target": "t",
+      "prediction": "t",
+      "used_depth": 3,
+      "predicted_losses": [
+        1.412407,
+        0.52152,
+        0.232326,
+        0.217858,
+        0.233546,
+        0.252301,
+        0.268723,
+        0.281855
+      ],
+      "actual_losses": [
+        0.189555,
+        0.098722,
+        0.109264,
+        0.114791,
+        0.114048,
+        0.112037,
+        0.110072,
+        0.108415
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 275,
+      "context": "NIUS:\\nWhat then?\\n\\nVIRGILIA:\\nWhat",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.567284,
+        0.788397,
+        0.874906,
+        0.915198,
+        0.915671,
+        0.903573,
+        0.893615,
+        0.889356
+      ],
+      "actual_losses": [
+        0.514545,
+        0.270894,
+        0.216707,
+        0.216181,
+        0.221398,
+        0.226088,
+        0.230539,
+        0.234262
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 276,
+      "context": "IUS:\\nWhat then?\\n\\nVIRGILIA:\\nWhat ",
+      "target": "t",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.831163,
+        3.151423,
+        3.104405,
+        3.09588,
+        3.091793,
+        3.09037,
+        3.089918,
+        3.089829
+      ],
+      "actual_losses": [
+        2.534756,
+        2.252583,
+        2.145758,
+        2.091675,
+        2.060363,
+        2.037324,
+        2.018505,
+        2.002183
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 277,
+      "context": "US:\\nWhat then?\\n\\nVIRGILIA:\\nWhat t",
+      "target": "h",
+      "prediction": "h",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.004546,
+        1.006398,
+        0.974103,
+        0.969712,
+        0.960172,
+        0.953039,
+        0.94713,
+        0.942695
+      ],
+      "actual_losses": [
+        0.416259,
+        0.383249,
+        0.336036,
+        0.330436,
+        0.321074,
+        0.315598,
+        0.311368,
+        0.308107
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 278,
+      "context": "S:\\nWhat then?\\n\\nVIRGILIA:\\nWhat th",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.052081,
+        0.838264,
+        0.778735,
+        0.747377,
+        0.744643,
+        0.757628,
+        0.775566,
+        0.793904
+      ],
+      "actual_losses": [
+        0.304194,
+        0.369833,
+        0.363571,
+        0.359035,
+        0.360463,
+        0.361731,
+        0.362127,
+        0.362297
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 279,
+      "context": ":\\nWhat then?\\n\\nVIRGILIA:\\nWhat the",
+      "target": "n",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.209831,
+        1.186167,
+        1.224289,
+        1.228477,
+        1.243718,
+        1.268933,
+        1.298452,
+        1.328555
+      ],
+      "actual_losses": [
+        3.105123,
+        3.503746,
+        3.633197,
+        3.767338,
+        3.912467,
+        4.051656,
+        4.178723,
+        4.288627
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 280,
+      "context": "\\nWhat then?\\n\\nVIRGILIA:\\nWhat then",
+      "target": "!",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.090332,
+        0.465234,
+        1.042644,
+        1.079323,
+        1.107384,
+        1.147992,
+        1.193957,
+        1.248075
+      ],
+      "actual_losses": [
+        5.988311,
+        5.879922,
+        5.310519,
+        5.020062,
+        4.842953,
+        4.770175,
+        4.768222,
+        4.806707
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 281,
+      "context": "What then?\\n\\nVIRGILIA:\\nWhat then!",
+      "target": "\\n",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.785106,
+        0.840018,
+        1.040561,
+        1.116494,
+        1.162493,
+        1.197999,
+        1.219747,
+        1.231284
+      ],
+      "actual_losses": [
+        2.627351,
+        1.513259,
+        1.362461,
+        1.339021,
+        1.359065,
+        1.374916,
+        1.384162,
+        1.390503
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 282,
+      "context": "hat then?\\n\\nVIRGILIA:\\nWhat then!\\n",
+      "target": "H",
+      "prediction": "\\n",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.208092,
+        1.964314,
+        1.882304,
+        1.753742,
+        1.682034,
+        1.629759,
+        1.790397,
+        2.304589
+      ],
+      "actual_losses": [
+        3.455234,
+        3.020136,
+        3.029382,
+        3.111052,
+        3.113042,
+        3.188855,
+        3.385972,
+        3.329535
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 283,
+      "context": "at then?\\n\\nVIRGILIA:\\nWhat then!\\nH",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.165982,
+        1.195176,
+        1.244367,
+        1.176937,
+        1.124962,
+        1.088793,
+        1.063385,
+        1.047047
+      ],
+      "actual_losses": [
+        1.027122,
+        0.978711,
+        1.123389,
+        1.041163,
+        0.962695,
+        0.879873,
+        0.80753,
+        0.750766
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 284,
+      "context": "t then?\\n\\nVIRGILIA:\\nWhat then!\\nHe",
+      "target": "'",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.645186,
+        1.439653,
+        1.41587,
+        1.44409,
+        1.464516,
+        1.477776,
+        1.488246,
+        1.499306
+      ],
+      "actual_losses": [
+        3.404459,
+        3.374655,
+        3.252065,
+        3.106791,
+        2.980942,
+        2.891704,
+        2.834614,
+        2.799243
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 285,
+      "context": " then?\\n\\nVIRGILIA:\\nWhat then!\\nHe'",
+      "target": "l",
+      "prediction": "s",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.377939,
+        1.391448,
+        1.24515,
+        0.973702,
+        0.89698,
+        0.876778,
+        0.866542,
+        0.858527
+      ],
+      "actual_losses": [
+        2.73832,
+        2.338358,
+        2.076513,
+        1.898519,
+        1.806916,
+        1.740285,
+        1.691755,
+        1.649312
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 286,
+      "context": "then?\\n\\nVIRGILIA:\\nWhat then!\\nHe'l",
+      "target": "d",
+      "prediction": "l",
+      "used_depth": 1,
+      "predicted_losses": [
+        0.25143,
+        0.323991,
+        0.450273,
+        0.489179,
+        0.524397,
+        0.663184,
+        0.83228,
+        0.934868
+      ],
+      "actual_losses": [
+        4.037522,
+        4.54021,
+        5.045724,
+        4.986849,
+        4.737071,
+        4.397827,
+        4.438145,
+        4.485619
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 287,
+      "context": "hen?\\n\\nVIRGILIA:\\nWhat then!\\nHe'ld",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.167494,
+        1.339196,
+        1.562957,
+        1.752643,
+        1.798628,
+        1.795602,
+        1.785165,
+        1.777128
+      ],
+      "actual_losses": [
+        0.267285,
+        0.234373,
+        0.370666,
+        0.509212,
+        0.622313,
+        0.734124,
+        0.850495,
+        0.968631
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 288,
+      "context": "en?\\n\\nVIRGILIA:\\nWhat then!\\nHe'ld ",
+      "target": "m",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.063447,
+        3.007192,
+        2.988916,
+        2.973135,
+        2.969428,
+        2.969688,
+        2.971418,
+        2.973754
+      ],
+      "actual_losses": [
+        2.52217,
+        2.354394,
+        2.205943,
+        2.137934,
+        2.103237,
+        2.084862,
+        2.074661,
+        2.069096
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 289,
+      "context": "n?\\n\\nVIRGILIA:\\nWhat then!\\nHe'ld m",
+      "target": "a",
+      "prediction": "y",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.754805,
+        1.518354,
+        1.380462,
+        1.379747,
+        1.392742,
+        1.408697,
+        1.425768,
+        1.445005
+      ],
+      "actual_losses": [
+        1.856894,
+        1.826738,
+        1.629972,
+        1.52799,
+        1.558288,
+        1.597461,
+        1.631019,
+        1.659449
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 290,
+      "context": "?\\n\\nVIRGILIA:\\nWhat then!\\nHe'ld ma",
+      "target": "k",
+      "prediction": "n",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.666286,
+        1.982835,
+        2.023526,
+        2.04081,
+        2.047022,
+        2.05078,
+        2.053516,
+        2.055598
+      ],
+      "actual_losses": [
+        2.780883,
+        1.911066,
+        1.846134,
+        1.826919,
+        1.803852,
+        1.779868,
+        1.756732,
+        1.73543
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 291,
+      "context": "\\n\\nVIRGILIA:\\nWhat then!\\nHe'ld mak",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.115367,
+        1.120632,
+        0.999624,
+        0.914414,
+        0.915414,
+        0.94814,
+        0.980204,
+        1.004999
+      ],
+      "actual_losses": [
+        0.3804,
+        0.110268,
+        0.066768,
+        0.06535,
+        0.074735,
+        0.086865,
+        0.099093,
+        0.110034
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 292,
+      "context": "\\nVIRGILIA:\\nWhat then!\\nHe'ld make",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.943614,
+        0.623468,
+        0.522912,
+        0.590954,
+        0.682993,
+        0.756307,
+        0.814452,
+        0.8669
+      ],
+      "actual_losses": [
+        0.310975,
+        0.303184,
+        0.300735,
+        0.307975,
+        0.315956,
+        0.324422,
+        0.334848,
+        0.344272
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 293,
+      "context": "VIRGILIA:\\nWhat then!\\nHe'ld make ",
+      "target": "a",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.817305,
+        3.009522,
+        3.053178,
+        3.047478,
+        3.039402,
+        3.032797,
+        3.027372,
+        3.022848
+      ],
+      "actual_losses": [
+        2.451241,
+        2.36398,
+        2.357157,
+        2.371218,
+        2.37288,
+        2.37161,
+        2.368959,
+        2.365511
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 294,
+      "context": "IRGILIA:\\nWhat then!\\nHe'ld make a",
+      "target": "n",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.423484,
+        2.430579,
+        2.431757,
+        2.404161,
+        2.384461,
+        2.372329,
+        2.364429,
+        2.358382
+      ],
+      "actual_losses": [
+        1.293467,
+        1.930619,
+        1.783437,
+        1.733568,
+        1.727005,
+        1.728972,
+        1.732358,
+        1.736163
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 295,
+      "context": "RGILIA:\\nWhat then!\\nHe'ld make an",
+      "target": " ",
+      "prediction": "d",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.727239,
+        1.350019,
+        1.280883,
+        1.271901,
+        1.267618,
+        1.260065,
+        1.254256,
+        1.251769
+      ],
+      "actual_losses": [
+        1.889769,
+        2.069366,
+        2.266792,
+        2.344723,
+        2.397116,
+        2.444336,
+        2.486983,
+        2.524352
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 296,
+      "context": "GILIA:\\nWhat then!\\nHe'ld make an ",
+      "target": "e",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.818516,
+        3.171999,
+        3.187823,
+        3.196186,
+        3.197884,
+        3.196699,
+        3.194146,
+        3.191002
+      ],
+      "actual_losses": [
+        3.96453,
+        4.087451,
+        4.26367,
+        4.318381,
+        4.365432,
+        4.405957,
+        4.440259,
+        4.469361
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 297,
+      "context": "ILIA:\\nWhat then!\\nHe'ld make an e",
+      "target": "n",
+      "prediction": "n",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.254686,
+        2.169936,
+        2.039434,
+        2.036174,
+        2.077891,
+        2.124969,
+        2.168604,
+        2.205629
+      ],
+      "actual_losses": [
+        0.998126,
+        0.584082,
+        0.541189,
+        0.565634,
+        0.601511,
+        0.643069,
+        0.686619,
+        0.731736
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 298,
+      "context": "LIA:\\nWhat then!\\nHe'ld make an en",
+      "target": "d",
+      "prediction": "d",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.009901,
+        2.066937,
+        2.043467,
+        2.018872,
+        1.995339,
+        1.980878,
+        1.972425,
+        1.967453
+      ],
+      "actual_losses": [
+        2.219778,
+        1.232443,
+        1.009658,
+        0.977362,
+        0.980854,
+        0.982061,
+        0.978996,
+        0.974753
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 299,
+      "context": "IA:\\nWhat then!\\nHe'ld make an end",
+      "target": " ",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.098546,
+        2.14906,
+        2.153358,
+        2.187844,
+        2.193267,
+        2.189852,
+        2.181958,
+        2.170334
+      ],
+      "actual_losses": [
+        3.096905,
+        3.086487,
+        2.748701,
+        2.52794,
+        2.375845,
+        2.249717,
+        2.144036,
+        2.065846
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 300,
+      "context": "A:\\nWhat then!\\nHe'ld make an end ",
+      "target": "o",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.386523,
+        3.107991,
+        3.104782,
+        3.089975,
+        3.078291,
+        3.069393,
+        3.062128,
+        3.055911
+      ],
+      "actual_losses": [
+        2.104176,
+        2.262505,
+        2.449849,
+        2.525524,
+        2.567005,
+        2.592726,
+        2.610076,
+        2.622532
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 301,
+      "context": ":\\nWhat then!\\nHe'ld make an end o",
+      "target": "f",
+      "prediction": "f",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.760577,
+        1.752411,
+        1.517447,
+        1.467351,
+        1.470293,
+        1.480605,
+        1.492992,
+        1.506628
+      ],
+      "actual_losses": [
+        1.262301,
+        0.990946,
+        0.940027,
+        0.902057,
+        0.919355,
+        0.95412,
+        0.99434,
+        1.036124
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 302,
+      "context": "\\nWhat then!\\nHe'ld make an end of",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.587165,
+        0.420143,
+        0.533202,
+        0.738092,
+        0.897806,
+        1.027016,
+        1.133963,
+        1.221348
+      ],
+      "actual_losses": [
+        0.211607,
+        0.073186,
+        0.075391,
+        0.094685,
+        0.114441,
+        0.135928,
+        0.161334,
+        0.191455
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 303,
+      "context": "What then!\\nHe'ld make an end of ",
+      "target": "t",
+      "prediction": "t",
+      "used_depth": 8,
+      "predicted_losses": [
+        3.236423,
+        2.98721,
+        2.945634,
+        2.953372,
+        2.958696,
+        2.96084,
+        2.960985,
+        2.959904
+      ],
+      "actual_losses": [
+        1.764872,
+        1.893208,
+        1.883498,
+        1.855395,
+        1.829509,
+        1.806749,
+        1.786622,
+        1.768761
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 304,
+      "context": "hat then!\\nHe'ld make an end of t",
+      "target": "h",
+      "prediction": "h",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.879874,
+        0.824724,
+        0.748825,
+        0.7544,
+        0.754445,
+        0.755963,
+        0.757547,
+        0.75919
+      ],
+      "actual_losses": [
+        0.141437,
+        0.163128,
+        0.143608,
+        0.139601,
+        0.135701,
+        0.133411,
+        0.131844,
+        0.130815
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 305,
+      "context": "at then!\\nHe'ld make an end of th",
+      "target": "y",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        0.911009,
+        0.674777,
+        0.615986,
+        0.570762,
+        0.559065,
+        0.570877,
+        0.591382,
+        0.614534
+      ],
+      "actual_losses": [
+        5.303179,
+        4.505026,
+        4.22379,
+        4.085555,
+        3.996452,
+        3.962036,
+        3.975445,
+        4.02667
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 306,
+      "context": "t then!\\nHe'ld make an end of thy",
+      "target": " ",
+      "prediction": " ",
+      "used_depth": 2,
+      "predicted_losses": [
+        0.384301,
+        0.247856,
+        0.148949,
+        0.031044,
+        -0.07753,
+        -0.12465,
+        -0.129935,
+        -0.116833
+      ],
+      "actual_losses": [
+        0.082397,
+        0.026048,
+        0.026243,
+        0.030279,
+        0.034663,
+        0.038234,
+        0.041827,
+        0.04626
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 307,
+      "context": " then!\\nHe'ld make an end of thy ",
+      "target": "p",
+      "prediction": "w",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.657923,
+        3.063864,
+        3.1672,
+        3.17709,
+        3.177569,
+        3.175992,
+        3.173643,
+        3.170902
+      ],
+      "actual_losses": [
+        3.284812,
+        2.277519,
+        2.285977,
+        2.314015,
+        2.319895,
+        2.320715,
+        2.320177,
+        2.319504
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 308,
+      "context": "then!\\nHe'ld make an end of thy p",
+      "target": "o",
+      "prediction": "r",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.910158,
+        1.594437,
+        1.540891,
+        1.59151,
+        1.61764,
+        1.62953,
+        1.637495,
+        1.643787
+      ],
+      "actual_losses": [
+        2.198598,
+        1.331024,
+        1.428452,
+        1.485918,
+        1.480083,
+        1.470068,
+        1.463032,
+        1.458304
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 309,
+      "context": "hen!\\nHe'ld make an end of thy po",
+      "target": "s",
+      "prediction": "w",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.141787,
+        2.234275,
+        2.291148,
+        2.333214,
+        2.346689,
+        2.340772,
+        2.320861,
+        2.295077
+      ],
+      "actual_losses": [
+        3.789322,
+        4.146663,
+        3.784723,
+        3.589685,
+        3.424022,
+        3.302301,
+        3.215473,
+        3.149482
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 310,
+      "context": "en!\\nHe'ld make an end of thy pos",
+      "target": "t",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.291373,
+        1.789245,
+        1.780863,
+        1.855255,
+        1.901353,
+        1.924296,
+        1.938096,
+        1.947004
+      ],
+      "actual_losses": [
+        1.055661,
+        0.630137,
+        0.92078,
+        1.01414,
+        1.005709,
+        0.983078,
+        0.96806,
+        0.959922
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 311,
+      "context": "n!\\nHe'ld make an end of thy post",
+      "target": "e",
+      "prediction": "e",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.464016,
+        1.52369,
+        1.547244,
+        1.611516,
+        1.675754,
+        1.719991,
+        1.751017,
+        1.77474
+      ],
+      "actual_losses": [
+        1.344598,
+        1.425273,
+        1.251798,
+        1.179102,
+        1.165623,
+        1.144381,
+        1.113137,
+        1.08399
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 312,
+      "context": "!\\nHe'ld make an end of thy poste",
+      "target": "r",
+      "prediction": "r",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.348082,
+        1.241197,
+        1.408908,
+        1.508868,
+        1.579629,
+        1.618927,
+        1.638057,
+        1.647317
+      ],
+      "actual_losses": [
+        0.277409,
+        0.289572,
+        0.257583,
+        0.278269,
+        0.286785,
+        0.293227,
+        0.296479,
+        0.297525
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 313,
+      "context": "\\nHe'ld make an end of thy poster",
+      "target": "i",
+      "prediction": " ",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.704079,
+        1.689546,
+        2.058595,
+        2.153867,
+        2.166106,
+        2.171711,
+        2.18287,
+        2.199373
+      ],
+      "actual_losses": [
+        1.742959,
+        1.776193,
+        1.726732,
+        1.835713,
+        1.805033,
+        1.766669,
+        1.738438,
+        1.711405
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 314,
+      "context": "He'ld make an end of thy posteri",
+      "target": "t",
+      "prediction": "c",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.358586,
+        2.141729,
+        2.021059,
+        1.984625,
+        1.966179,
+        1.956568,
+        1.950092,
+        1.942798
+      ],
+      "actual_losses": [
+        2.553596,
+        2.623686,
+        2.419893,
+        2.053124,
+        1.815014,
+        1.703067,
+        1.641609,
+        1.594225
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 315,
+      "context": "e'ld make an end of thy posterit",
+      "target": "y",
+      "prediction": "i",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.868643,
+        1.880814,
+        1.925877,
+        1.988196,
+        2.072883,
+        2.159595,
+        2.243936,
+        2.320283
+      ],
+      "actual_losses": [
+        3.167856,
+        2.239025,
+        2.278191,
+        2.417383,
+        2.547173,
+        2.678632,
+        2.815054,
+        2.948347
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 316,
+      "context": "'ld make an end of thy posterity",
+      "target": ".",
+      "prediction": ",",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.85379,
+        1.776297,
+        1.783343,
+        1.799329,
+        1.814639,
+        1.829441,
+        1.841895,
+        1.851676
+      ],
+      "actual_losses": [
+        2.483782,
+        2.534571,
+        2.572549,
+        2.55881,
+        2.545895,
+        2.53035,
+        2.512032,
+        2.493047
+      ],
+      "correct_at_used_depth": false
+    },
+    {
+      "index": 317,
+      "context": "ld make an end of thy posterity.",
+      "target": "\\n",
+      "prediction": "\\n",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.164711,
+        0.90164,
+        0.94775,
+        1.012583,
+        0.992901,
+        0.970284,
+        0.954063,
+        0.941239
+      ],
+      "actual_losses": [
+        0.016127,
+        0.032463,
+        0.039145,
+        0.04186,
+        0.041791,
+        0.040806,
+        0.040212,
+        0.039877
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 318,
+      "context": "d make an end of thy posterity.\\n",
+      "target": "\\n",
+      "prediction": "\\n",
+      "used_depth": 8,
+      "predicted_losses": [
+        1.124532,
+        1.02675,
+        1.03356,
+        1.066047,
+        0.973355,
+        0.939326,
+        1.145238,
+        1.757818
+      ],
+      "actual_losses": [
+        0.135767,
+        0.395821,
+        0.42713,
+        0.368056,
+        0.364211,
+        0.30247,
+        0.287732,
+        0.749465
+      ],
+      "correct_at_used_depth": true
+    },
+    {
+      "index": 319,
+      "context": " make an end of thy posterity.\\n\\n",
+      "target": "V",
+      "prediction": "C",
+      "used_depth": 8,
+      "predicted_losses": [
+        2.299483,
+        2.298701,
+        2.203237,
+        2.125216,
+        2.050117,
+        2.011463,
+        2.004925,
+        2.005442
+      ],
+      "actual_losses": [
+        2.297525,
+        1.992782,
+        2.12047,
+        2.206116,
+        2.190636,
+        2.18398,
+        2.189701,
+        2.194605
+      ],
+      "correct_at_used_depth": false
+    }
+  ]
+}

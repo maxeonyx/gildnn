@@ -1,0 +1,19 @@
+{
+  "corpus_name": "tinyshakespeare_100k_train_20k_val",
+  "source_file": "C:\\Users\\maxeo\\gildnn\\experiments\\corpora.ignore\\tinyshakespeare_input.txt",
+  "source_sha256": "86c4e6aa9db7c042ec79f339dcb96d42b0075e16b8fc2e86bf0ca57e2dc565ed",
+  "source_total_characters": 1115394,
+  "used_sha256": "5b65e660c7d5d1bda2038213b6ee945f020fc2fba9bf1fee75ec52d741906bef",
+  "used_total_characters": 120000,
+  "train_characters": 100000,
+  "val_characters": 20000,
+  "train_windows": 99968,
+  "val_windows": 19968,
+  "vocab_size": 61,
+  "split": "first_100k_train_next_20k_val",
+  "prompts": [
+    "First Citizen:\\nBefore we proceed",
+    "f, that's off;\\nI would you rathe",
+    " hast spoken words?\\n\\nSICINIUS:\\nO"
+  ]
+}
