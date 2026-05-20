@@ -200,15 +200,28 @@ This window is a strong success if, in addition to the floor above:
 
 - **Local learning (residual)** — NEGATIVE. Stop-gradient boundaries + local prediction heads on residual blocks clearly hurt vs matched end-to-end (best val 2.081 vs 1.644, 3-block). Mechanism works mechanically but LM quality tanks. See `research/questions/local-learning-residual/README.md`.
 - **Attention-residual (depth-only)** — MARGINAL/INCONCLUSIVE. Content-based attention over earlier boundary states shows no stable improvement (transient 0.013 nat edge at peak, regresses to worse by end of training). 33% slower. Not worth pursuing further at this budget. See `research/questions/attention-residual/README.md`.
+- **Async/selective execution** — CUT (NEGATIVE). Learned per-token gating works mechanically (gates learn genuine selectivity, no collapse) but GPU wall-clock is 26-29% WORSE despite 15-32% fewer logical block executions. Per-token conditional execution breaks batched GPU parallelism. Premise falsified at tiny rung; stopped before full standardized. See `research/questions/async-selective/README.md`.
+
+## Assessment of boundary mechanisms
+
+All three isolated boundary mechanisms from the vision have now been tested at ~186K params on TinyShakespeare:
+1. Stop-gradient local learning: clearly negative on quality
+2. Depth attention residuals: marginal, not worth the compute cost
+3. Selective block execution: mechanism works but GPU execution negates compute savings
+
+**None of the proposed boundary mechanisms help at this scale/budget in isolation.**
+
+Possible interpretations:
+- The mechanisms only matter at larger scale (more params, more data, longer contexts)
+- The mechanisms need composition (stop-gradients alone fail, but stop-gradients + async might work differently together)
+- The vision's value lies elsewhere — in the framing/perspective rather than the specific mechanisms
+- TinyShakespeare char-level at 186K params is too small/simple to expose the benefits
 
 ## Immediate next step
 
-Pick the next Phase 3 experiment. Remaining candidates from PLAN.md:
-- **3b: GPU utilization research** — what programs fit best on RTX 3090? Measure wall-clock, utilization, memory bandwidth.
-- **3d: Async execution** — can blocks update without full synchrony? Volatile shared memory, stale reads.
+With all three boundary mechanisms tested and none showing benefit, the remaining Phase 3 candidates are:
+- **3b: GPU utilization research** — what programs fit best on RTX 3090? Measure wall-clock, utilization, memory bandwidth. This grounds future performance claims.
+- **Scale-up probe** — run one or two of the mechanisms (e.g. depth attention) at a larger scale (more params, longer context, word-level) to see if the picture changes.
+- **Dictation review** — re-read dictations to check whether the original vision had other mechanisms or ideas not yet tested.
 
-Both previous boundary mechanisms (stop-gradient local learning, depth attention) showed no benefit at this scale. The next experiment should either:
-1. Test async/selective computation (3d) — the most distinct remaining mechanism
-2. Or pivot to GPU utilization research (3b) which grounds all future performance claims
-
-Recommendation: **3d (async/selective)** is the highest-value discriminating experiment remaining — it tests whether modules can skip updates without quality loss, which is the core compute-efficiency claim of the architecture.
+Recommendation: **Dictation review first** — before running more experiments, check whether we've actually tested what Max intended or whether the operationalizations missed the point. Then decide between scale-up and GPU utilization research.
