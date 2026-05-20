@@ -207,23 +207,24 @@ This window is a strong success if, in addition to the floor above:
 - **Self-prediction / compute compression** — NEGATIVE. Adding auxiliary KL loss (shallow logits → detached deep logits) to the dynamic-depth GRU. At every fixed depth, the self-prediction variant is slightly worse (Δ +0.011 to +0.018 nats). Halting frontier also worse. See `research/questions/self-prediction-compute-compression/README.md`.
 
 - **Async GRU combination** — QUALIFIED POSITIVE at 1M. GRU modules in the async shared-memory architecture: converges, no measurable throughput overhead (108K vs 104K tok/s), but best-val is +0.006 nats worse than sync in a single-seed run. See `research/questions/async-gru/README.md`.
-- **Async GRU scale-up** — POSITIVE. At 11M params (d_model=512), the 1M quality gap disappears into seed noise: mean best-val gap -0.003 ± 0.009 across 5 seeds (signs flip between seeds). Throughput: async ~1.6% slower at 11M (no utilization improvement from width alone measured by wall-clock). See `research/questions/async-gru-scaleup/README.md`.
+- **Async GRU scale-up (100k data)** — POSITIVE on saturated data. At 11M params (d_model=512), best-val gap is noise on the 100k/20k slice (mean -0.003 ± 0.009 across 5 seeds). But both variants saturate by step 750-1000 — ceiling masks real differences. Throughput: async ~1.6% slower at 11M. See `research/questions/async-gru-scaleup/README.md`.
+- **Async GRU larger-corpus calibration** — MODIFYING. On 900k/100k TinyShakespeare (model still improving at step 5000), async is +0.012 nats worse than sync. The earlier "parity" at 100k was a saturation artifact. The async quality cost is real and consistent: +0.006 at 1M, +0.012 at 11M with headroom. See `experiments/async_gru_corpus/`.
 
 ## Assessment
 
-Ten experiments/investigations completed. The picture is now clear:
+Eleven experiments/investigations completed. The honest picture:
 
 1. **RNNs are significantly faster** than transformers on this hardware — and the profiler shows exactly why (Tensor Core paths, kernel consolidation, weight reuse)
-2. **Async shared-memory semantics** don't break training and **have no measurable quality cost at 11M scale** — the +0.006 penalty at 1M disappears into seed noise at 11M
+2. **Async shared-memory semantics** work — training is stable, mechanism is correct — but **there is a small consistent quality cost** (~0.006–0.012 nats, or ~0.4–0.8% relative) that does not disappear at scale when data headroom exists
 3. **Boundary tricks for quality** don't work at this scale (local learning, attention residuals, causal triangle, self-prediction)
 4. **The hardware story is understood** — arithmetic intensity, not "fits in cache," is the right mental model
 
-The async execution model is now **validated at scale**: no quality cost, training is stable, mechanism is correct. The remaining questions are about what to build on top of this foundation.
+The async execution model is **mechanically validated** but has a measurable quality penalty. The next question is whether additional mechanisms (e.g., a global communication channel) can close that gap — or whether the gap is acceptable given the execution benefits async provides.
 
 ## Immediate next step
 
 Candidates, roughly prioritized:
 
-1. **Broadcast router** — global communication channel to all modules. The async modules currently only communicate via the shared residual stream with stale reads; a cheap broadcast/routing mechanism could let them coordinate without synchronization.
-2. **Larger dataset** — 100k/20k TinyShakespeare is saturated by 11M params (both variants peak by step 750-1000). Moving to a larger corpus would let us test whether async remains cost-free in a regime where the model can actually learn more.
+1. **Minimal graph-vs-global-channel ablation** — test whether a central bottleneck (read-all, broadcast-one) helps modules compensate for stale reads. This is the core architectural question from the dictations ("broadcast router"). Run on the 900k/100k slice where differences are visible.
+2. **Multi-seed larger-corpus confirmation** — the +0.012 gap is single-seed. 3-5 seeds would establish whether this is stable.
 3. **Loop management tooling** — dictation 2026-05-20-14 asks for better visibility into the loop
