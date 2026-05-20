@@ -201,3 +201,59 @@ Before we proceed to the people and the people the people the people the people 
 ```
 
 At this tiny rung the async mechanism remains viable in the narrow sense that it trains, matches wall-clock closely, and stays near the synchronous control on validation metrics. But it is not yet a positive modeling result: the sync control is still slightly better, and both samples are still clearly weak.
+
+Abbreviated epoch histories from `tiny_training_report.json`:
+
+| Epoch | Sync train loss | Sync val loss | Async train loss | Async val loss |
+|---|---:|---:|---:|---:|
+| 1 | `2.150638` | `1.917576` | `2.141671` | `1.918959` |
+| 3 | `1.677279` | `1.757193` | `1.680880` | `1.755139` |
+| 6 | `1.517257` | `1.660350` | `1.526490` | `1.658197` |
+| 9 | `1.422598` | `1.656889` | `1.434969` | `1.664431` |
+| 12 | `1.348393` | `1.669227` | `1.362514` | `1.668071` |
+
+## Stage 6 conclusion
+
+### Mechanism question
+
+**Yes.** The prototype demonstrated volatile shared-memory semantics mechanically.
+
+- The only changed variable between control and variant was committed-memory visibility.
+- Zero-staleness equivalence passed exactly.
+- The stale-read witness trace showed different modules reading different committed versions within the same logical tick: `[1, 0, 0]`, then `[2, 1, 0]`, then `[3, 2, 1]`.
+
+So this work did demonstrate the semantics Max asked about: dense execution with stale shared-memory reads.
+
+### Training question
+
+**Yes, at tiny scale.** The mechanism can be optimized, and the async variant matched the synchronous control closely enough that the difference is currently small.
+
+- Both variants memorized one fixed batch cleanly.
+- On the tiny matched rung, validation loss and validation accuracy stayed close across training.
+- The async variant was not obviously unstable or optimization-broken.
+
+So the training answer is positive at this rung: stale-read semantics are trainable in a matched tiny experiment.
+
+### Systems question
+
+**Promising, but not yet a win.** This implementation path is compatible with the performance motivation in the limited sense that it did not introduce obvious overhead, but it also did not yet unlock a real systems advantage.
+
+- Stage 3 showed dense module compute dominating forward time, with bookkeeping staying small.
+- Wall-clock stayed effectively matched between sync and async in both the timing probe and the tiny training rung.
+- There is no evidence yet that stale-read semantics alone produce a speedup.
+
+The hoped-for advantage would come from **true hardware-level async** — e.g. independent CUDA streams or other execution that reduces synchronization cost in reality, not just in semantics. This prototype demonstrates the semantics for that direction, but it does **not** yet implement literal hardware-level async.
+
+## Settled vs unsettled
+
+Settled here:
+
+- volatile shared-memory semantics were demonstrated mechanically
+- the mechanism is trainable at tiny scale
+- this PyTorch path is a fair dense-compute vehicle for the idea
+
+Still unsettled:
+
+- whether stop-gradient variants help
+- whether larger or longer training changes the quality sign
+- whether true hardware-level async can turn these semantics into a real speed advantage
