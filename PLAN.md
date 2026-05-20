@@ -206,22 +206,24 @@ This window is a strong success if, in addition to the floor above:
 - **Async volatile-memory prototype** — POSITIVE (mechanism viable). Dense execution with stale shared-memory reads: mechanically verified, trains within noise of sync control (best val 1.658 vs 1.657), no wall-clock overhead. Demonstrates the execution model Max asked for. See `research/questions/async-volatile-memory/README.md`.
 - **Self-prediction / compute compression** — NEGATIVE. Adding auxiliary KL loss (shallow logits → detached deep logits) to the dynamic-depth GRU. At every fixed depth, the self-prediction variant is slightly worse (Δ +0.011 to +0.018 nats). Halting frontier also worse. See `research/questions/self-prediction-compute-compression/README.md`.
 
+- **Async GRU combination** — QUALIFIED POSITIVE. GRU modules in the async shared-memory architecture: converges, no measurable throughput overhead (108K vs 104K tok/s), but best-val is +0.006 nats worse than sync in a single-seed run (not proven to be noise). Final-val gap larger (+0.051) suggesting async may worsen late generalization. Mechanism is proven viable; quality cost needs multi-seed confirmation. See `research/questions/async-gru/README.md`.
+
 ## Assessment
 
-Eight experiments/investigations completed. The picture is now clear:
+Nine experiments/investigations completed. The picture is now clear:
 
 1. **RNNs are significantly faster** than transformers on this hardware — and the profiler shows exactly why (Tensor Core paths, kernel consolidation, weight reuse)
-2. **Async shared-memory semantics** don't break training (volatile-memory prototype)
+2. **Async shared-memory semantics** don't break training — proven both with linear modules (noise-level cost) and GRU modules (small but real cost)
 3. **Boundary tricks for quality** don't work at this scale (local learning, attention residuals, causal triangle, self-prediction)
 4. **The hardware story is understood** — arithmetic intensity, not "fits in cache," is the right mental model
 
-This points toward: **RNN-based architecture + async execution model** as the productive direction. The next experiments should build on GRU's proven throughput advantage and the async semantics that work.
+This points toward: **RNN-based architecture + async execution model** as the productive direction. The async+GRU combination is mechanically sound; the question now is whether scaling up reduces the quality gap (bigger models may tolerate stale reads better).
 
 ## Immediate next step
 
 Candidates, roughly prioritized:
 
-1. **Combine async + GRU** — run the volatile-memory prototype with GRU modules instead of linear modules. Does the throughput advantage survive when real recurrent computation is the module?
-2. **Scale up** — current experiments are all ~186K-1M params. The GPU utilization story suggests scaling width first (bigger GEMMs = better Tensor Core utilization). Try ~10M param GRU with async semantics.
+1. **Scale up** — current experiments are all ~1M params. The GPU utilization story suggests scaling width first (bigger GEMMs = better Tensor Core utilization). Try ~10M param async GRU and see if quality gap shrinks.
+2. **Multi-seed async GRU** — confirm whether the +0.006 best-val gap is noise or real. 3-5 seeds would resolve this.
 3. **Broadcast router** — global communication channel to all modules
 4. **Loop management tooling** — dictation 2026-05-20-14 asks for better visibility into the loop
