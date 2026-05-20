@@ -1,0 +1,12 @@
+{
+  "parameter_count": 185923,
+  "runtime_seconds": 50.90481500001624,
+  "final_val_total_loss": 4.723962637094351,
+  "final_val_lm_loss": 2.5403204331031213,
+  "final_val_local_loss_total": 2.183642185651339,
+  "final_val_accuracy": 0.2909655448717949,
+  "best_val_lm_loss": 2.54032,
+  "best_val_accuracy": 0.290966,
+  "best_epoch": 4,
+  "prompt": "First Citizen:\\nBefore we proceed"
+}

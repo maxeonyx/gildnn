@@ -1,0 +1,26 @@
+{
+  "prompt": "First Citizen:\\nBefore we proceed",
+  "sample_length": 200,
+  "checkpoints": [
+    {
+      "epoch": 0,
+      "val_lm_loss": 4.331267,
+      "sample": "First Citizen:\nBefore we proceedsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsUTsU"
+    },
+    {
+      "epoch": 1,
+      "val_lm_loss": 1.90793,
+      "sample": "First Citizen:\nBefore we proceed to the to the he here the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the t"
+    },
+    {
+      "epoch": 2,
+      "val_lm_loss": 1.809376,
+      "sample": "First Citizen:\nBefore we proceed the people the people,\nAnd the prome strod the prome the people the people the people the prome,\nAnd the prome the people the people the people the prome,\nAnd the prome the people the people the peop"
+    },
+    {
+      "epoch": 4,
+      "val_lm_loss": 1.707826,
+      "sample": "First Citizen:\nBefore we proceed the people and the people and the power the people to the power the power the people to the power the power the people to the power the power the people to the power the power the people to the power"
+    }
+  ]
+}

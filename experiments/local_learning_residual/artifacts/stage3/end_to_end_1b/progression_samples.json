@@ -1,0 +1,26 @@
+{
+  "prompt": "First Citizen:\\nBefore we proceed",
+  "sample_length": 200,
+  "checkpoints": [
+    {
+      "epoch": 0,
+      "val_lm_loss": 4.086522,
+      "sample": "First Citizen:\nBefore we proceedJvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"
+    },
+    {
+      "epoch": 1,
+      "val_lm_loss": 2.009207,
+      "sample": "First Citizen:\nBefore we proceed to the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the "
+    },
+    {
+      "epoch": 2,
+      "val_lm_loss": 1.82023,
+      "sample": "First Citizen:\nBefore we proceed the stand the such the such all stranger the such the such a stong the such a such a such ston the such a such the such a ston the such a ston the such a ston the such a ston the such a ston the such"
+    },
+    {
+      "epoch": 4,
+      "val_lm_loss": 1.731269,
+      "sample": "First Citizen:\nBefore we proceed the prompon the prompon the with the prompon the with the prompon the with the prompon the with the prompon the with the prompon the with the prompon the with the prompon the with the prompon the wit"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "context_size": 32,
+  "train_characters": 100000,
+  "val_characters": 20000,
+  "d_model": 72,
+  "batch_size": 256,
+  "eval_batch_size": 512,
+  "learning_rate": 0.003,
+  "gradient_clip_norm": 1.0,
+  "local_loss_weight": 1.0,
+  "seed": 42,
+  "stage2_batch_size": 32,
+  "stage2_steps": 1500,
+  "stage2_learning_rate": 0.01,
+  "stage2_log_interval": 25,
+  "stage3_epochs": 4,
+  "sample_length": 320,
+  "progression_sample_length": 200,
+  "sample_checkpoints": [
+    0,
+    1,
+    2,
+    4
+  ],
+  "stage": "stage2",
+  "variant": "local_6b"
+}

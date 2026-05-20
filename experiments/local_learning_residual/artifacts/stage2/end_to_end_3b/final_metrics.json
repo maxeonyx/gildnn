@@ -1,0 +1,10 @@
+{
+  "steps_run": 13,
+  "final_total_loss": 0.019988011568784714,
+  "final_lm_loss": 0.019988011568784714,
+  "final_local_loss_total": 0.0,
+  "final_accuracy": 1.0,
+  "memorized_batch": true,
+  "initial_local_components": [],
+  "final_local_components": []
+}

@@ -1,0 +1,12 @@
+{
+  "model_family": "end_to_end",
+  "variant": "end_to_end_3b",
+  "parameter_count": 185935,
+  "context_size": 32,
+  "d_model": 72,
+  "num_blocks": 3,
+  "ff_hidden": 254,
+  "num_heads": 4,
+  "has_local_heads": false,
+  "local_loss_weight": 1.0
+}

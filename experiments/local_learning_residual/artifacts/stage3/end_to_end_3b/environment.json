@@ -1,0 +1,18 @@
+{
+  "git_sha": "011903a6d77a31d4c41aa49b06219cd136327e79",
+  "git_working_tree_clean": false,
+  "git_status_short": [
+    " M experiments/local_learning_residual/artifacts/stage1_checks/mechanical_trust.json",
+    " M experiments/local_learning_residual/model.py",
+    " M experiments/local_learning_residual/run_checks.py",
+    " M research/questions/local-learning-residual/README.md",
+    "?? experiments/local_learning_residual/artifacts/stage2/",
+    "?? experiments/local_learning_residual/artifacts/stage3/",
+    "?? experiments/local_learning_residual/run_experiments.py"
+  ],
+  "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+  "torch_version": "2.11.0+cu128",
+  "device": "cuda",
+  "cuda_is_available": true,
+  "cuda_device_name": "NVIDIA GeForce RTX 3090"
+}

@@ -38,12 +38,12 @@ class RunConfig:
 
 
 PLANNED_VARIANTS = (
-    VariantSpec(family="end_to_end", num_blocks=1, ff_hidden=1203),
-    VariantSpec(family="end_to_end", num_blocks=3, ff_hidden=400),
-    VariantSpec(family="end_to_end", num_blocks=6, ff_hidden=199),
-    VariantSpec(family="local", num_blocks=1, ff_hidden=1167),
-    VariantSpec(family="local", num_blocks=3, ff_hidden=364),
-    VariantSpec(family="local", num_blocks=6, ff_hidden=163),
+    VariantSpec(family="end_to_end", num_blocks=1, ff_hidden=1057, num_heads=4),
+    VariantSpec(family="end_to_end", num_blocks=3, ff_hidden=254, num_heads=4),
+    VariantSpec(family="end_to_end", num_blocks=6, ff_hidden=53, num_heads=4),
+    VariantSpec(family="local", num_blocks=1, ff_hidden=1021, num_heads=4),
+    VariantSpec(family="local", num_blocks=3, ff_hidden=218, num_heads=4),
+    VariantSpec(family="local", num_blocks=6, ff_hidden=17, num_heads=4),
 )
 
 

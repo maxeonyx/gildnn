@@ -16,6 +16,7 @@ class VariantSpec:
     family: Family
     num_blocks: int
     ff_hidden: int
+    num_heads: int
 
     @property
     def label(self) -> str:
@@ -58,15 +59,33 @@ def rms(tensor: Tensor) -> float:
 
 
 class ResidualFfnBlock(nn.Module):
-    def __init__(self, *, d_model: int, ff_hidden: int) -> None:
+    def __init__(self, *, d_model: int, ff_hidden: int, num_heads: int) -> None:
         super().__init__()
-        self.norm = nn.LayerNorm(d_model)
+        self.attention_norm = nn.LayerNorm(d_model)
+        self.attention = nn.MultiheadAttention(
+            embed_dim=d_model,
+            num_heads=num_heads,
+            dropout=0.0,
+            batch_first=True,
+        )
+        self.ffn_norm = nn.LayerNorm(d_model)
         self.up = nn.Linear(d_model, ff_hidden)
         self.down = nn.Linear(ff_hidden, d_model)
 
-    def forward(self, residual: Tensor) -> tuple[Tensor, Tensor]:
-        delta = self.down(F.gelu(self.up(self.norm(residual))))
-        return residual + delta, delta
+    def forward(self, residual: Tensor, *, causal_mask: Tensor) -> tuple[Tensor, Tensor]:
+        attention_input = self.attention_norm(residual)
+        attention_delta, _ = self.attention(
+            attention_input,
+            attention_input,
+            attention_input,
+            attn_mask=causal_mask,
+            need_weights=False,
+        )
+        residual_after_attention = residual + attention_delta
+        ffn_delta = self.down(F.gelu(self.up(self.ffn_norm(residual_after_attention))))
+        output_residual = residual_after_attention + ffn_delta
+        total_delta = output_residual - residual
+        return output_residual, total_delta
 
 
 class ResidualLocalLearningModel(nn.Module):
@@ -88,7 +107,11 @@ class ResidualLocalLearningModel(nn.Module):
         self.position_embedding = nn.Embedding(context_size, d_model)
         self.blocks = nn.ModuleList(
             [
-                ResidualFfnBlock(d_model=d_model, ff_hidden=variant.ff_hidden)
+                ResidualFfnBlock(
+                    d_model=d_model,
+                    ff_hidden=variant.ff_hidden,
+                    num_heads=variant.num_heads,
+                )
                 for _ in range(variant.num_blocks)
             ]
         )
@@ -99,6 +122,17 @@ class ResidualLocalLearningModel(nn.Module):
         )
         self.final_norm = nn.LayerNorm(d_model)
         self.lm_head = nn.Linear(d_model, vocab_size)
+
+    def causal_mask(self, *, device: torch.device) -> Tensor:
+        return torch.triu(
+            torch.ones(
+                self.context_size,
+                self.context_size,
+                device=device,
+                dtype=torch.bool,
+            ),
+            diagonal=1,
+        )
 
     def embedded_tokens(self, tokens: Tensor) -> Tensor:
         sequence_length = tokens.shape[1]
@@ -111,10 +145,11 @@ class ResidualLocalLearningModel(nn.Module):
 
     def run(self, tokens: Tensor) -> ModelRun:
         residual = self.embedded_tokens(tokens)
+        causal_mask = self.causal_mask(device=tokens.device)
         block_states: list[BlockState] = []
         for block_index, block in enumerate(self.blocks):
             block_input = residual
-            block_output, delta = block(block_input)
+            block_output, delta = block(block_input, causal_mask=causal_mask)
             predicted_delta = None
             if self.local_heads is not None:
                 predicted_delta = self.local_heads[block_index](block_output)

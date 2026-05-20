@@ -1,0 +1,54 @@
+{
+  "steps_run": 214,
+  "final_total_loss": 7.109812259674072,
+  "final_lm_loss": 0.019124822691082954,
+  "final_local_loss_total": 7.090687274932861,
+  "final_accuracy": 1.0,
+  "memorized_batch": true,
+  "initial_local_components": [
+    {
+      "block_index": 1,
+      "predicted_delta_rms": 0.8503552079200745,
+      "target_delta_rms": 0.2740854024887085,
+      "zero_predictor_mse": 0.07512281090021133,
+      "learned_mse": 0.79041987657547
+    },
+    {
+      "block_index": 2,
+      "predicted_delta_rms": 0.8945502638816833,
+      "target_delta_rms": 0.2943357527256012,
+      "zero_predictor_mse": 0.08663353323936462,
+      "learned_mse": 0.8845414519309998
+    },
+    {
+      "block_index": 3,
+      "predicted_delta_rms": 0.8702490925788879,
+      "target_delta_rms": 0.2943357527256012,
+      "zero_predictor_mse": 0.08663353323936462,
+      "learned_mse": 0.8559399843215942
+    }
+  ],
+  "final_local_components": [
+    {
+      "block_index": 1,
+      "predicted_delta_rms": 0.9790613651275635,
+      "target_delta_rms": 1.0025603771209717,
+      "zero_predictor_mse": 1.005127191543579,
+      "learned_mse": 0.46331363916397095
+    },
+    {
+      "block_index": 2,
+      "predicted_delta_rms": 1.8239011764526367,
+      "target_delta_rms": 2.876115560531616,
+      "zero_predictor_mse": 8.272040367126465,
+      "learned_mse": 5.652506351470947
+    },
+    {
+      "block_index": 3,
+      "predicted_delta_rms": 2.9296302795410156,
+      "target_delta_rms": 2.876115560531616,
+      "zero_predictor_mse": 8.272040367126465,
+      "learned_mse": 0.9748671650886536
+    }
+  ]
+}
