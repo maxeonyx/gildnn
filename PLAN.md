@@ -199,9 +199,16 @@ This window is a strong success if, in addition to the floor above:
 ## Completed experiments
 
 - **Local learning (residual)** — NEGATIVE. Stop-gradient boundaries + local prediction heads on residual blocks clearly hurt vs matched end-to-end (best val 2.081 vs 1.644, 3-block). Mechanism works mechanically but LM quality tanks. See `research/questions/local-learning-residual/README.md`.
+- **Attention-residual (depth-only)** — MARGINAL/INCONCLUSIVE. Content-based attention over earlier boundary states shows no stable improvement (transient 0.013 nat edge at peak, regresses to worse by end of training). 33% slower. Not worth pursuing further at this budget. See `research/questions/attention-residual/README.md`.
 
 ## Immediate next step
 
-**3c: Attention residual transformer.** This is the core mechanism experiment for the clarified architecture. Max's dictation says looped blocks with attention residual connections are "essentially a transformer" — test whether using attention across depth (and optionally across depth+sequence in a causal triangle) gives useful behavior.
+Pick the next Phase 3 experiment. Remaining candidates from PLAN.md:
+- **3b: GPU utilization research** — what programs fit best on RTX 3090? Measure wall-clock, utilization, memory bandwidth.
+- **3d: Async execution** — can blocks update without full synchrony? Volatile shared memory, stale reads.
 
-This directly tests the residual-stream boundary mechanism that's central to the vision, without stop-gradients or local losses (those were negative).
+Both previous boundary mechanisms (stop-gradient local learning, depth attention) showed no benefit at this scale. The next experiment should either:
+1. Test async/selective computation (3d) — the most distinct remaining mechanism
+2. Or pivot to GPU utilization research (3b) which grounds all future performance claims
+
+Recommendation: **3d (async/selective)** is the highest-value discriminating experiment remaining — it tests whether modules can skip updates without quality loss, which is the core compute-efficiency claim of the architecture.
