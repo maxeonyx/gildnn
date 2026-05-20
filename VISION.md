@@ -8,18 +8,22 @@ These start separately. Combining them is a stretch goal contingent on both maki
 
 ### Thread 1: Cortical column network
 
-A recurrent transformer where computation is distributed across many small stateful blocks arranged in a graph — loosely inspired by the structure of the neocortex, but the biological analogy is motivational, not prescriptive. The interesting questions are engineering and empirical, not biological.
+Distributed computation across many residual blocks arranged in a graph or schedule, with unusual boundary rules — loosely inspired by the structure of the neocortex, but the biological analogy is motivational, not prescriptive. The interesting questions are engineering and empirical, not biological.
+
+**Architecture clarification (2026-05-20):** a column/node/module is currently understood as a **single residual block** (e.g. one transformer-style block or one FFN block), operating on a **shared residual stream of uniform width `d_model`**. It is not a thick recurrent mini-stack with its own internal hidden dimension. The boundary between modules is simply the residual stream at `d_model`. The interesting design questions are at those boundaries. Recurrence is a possible later direction, not the current thing being tested.
 
 The motivating intuitions:
 
-- A standard transformer processes a sequence synchronously through depth. What if instead you had many small recurrent units arranged spatially, each maintaining local state, each running at its own rate?
-- Each unit (column) makes predictions about its own **next input** (the latent it will receive from surrounding nodes and the global broadcast at the next time step) — a local self-supervised objective on the incoming residual stream, not on its own output. Does useful computation emerge from this?
+- A standard transformer processes a sequence synchronously through depth. What if instead you had many residual blocks with nonstandard coupling across depth, time, or graph structure — each governed by different boundary rules?
+- Each block predicts its own **next incoming residual stream** (the latent it will receive at the block boundary at the next step) — a local self-supervised objective on the incoming signal, not on the block's own output. Does useful computation emerge from this?
 - Predictive heads draw from all residual blocks, including raw inputs — not just the final layer.
-- Inputs are initially handled by adjacent columns; columns start as feedforward blocks and gain recurrence as the system scales.
+- Blocks start as plain residual units. Whether looped reuse across time adds anything useful is a later question, not an assumption.
 - Columns communicate through some combination of local graph edges and a global channel. The relative roles of these are not settled.
 - The graph should ideally match the GPU architecture — not a theoretical topology imposed on hardware that ignores it.
-- Updates propagate based on something like surprisal — a column that hasn't changed much doesn't need to recompute. This could make the system sparse and efficient, or it could be a disaster. Unknown.
-- Gradients between columns are minimally coupled — each column learns somewhat independently. This opens a communication-game dynamic that may or may not lead anywhere useful.
+- Updates propagate based on something like surprisal — a block that hasn't changed much doesn't need to recompute. This could make the system sparse and efficient, or it could be a disaster. Unknown.
+- Gradients between blocks are minimally coupled — each block learns somewhat independently, with explicit stop-gradient boundaries. This opens a communication-game dynamic that may or may not lead anywhere useful.
+
+**On looped blocks across time:** if blocks are looped or unrolled across time with attention-style residual connections, the architecture becomes close to a transformer with reused/looped blocks. This is a useful grounding analogy. Stop gradients across time and stop gradients across depth are the same kind of mechanism in this framing.
 
 **Everything above is a hypothesis to be tested, not a design specification.** The open questions below are the actual research agenda.
 
@@ -27,15 +31,18 @@ The motivating intuitions:
 
 These are not rhetorical. They are genuinely unresolved and will each need experiments.
 
-- **What is a column's residual stream?** A persistent hidden state? A token-conditioned activation? A stream of incoming messages plus local memory? The answer shapes the whole system.
-- **What is the global communication channel?** Current intuition: a stateful broadcast router — a central component that reads from all columns and broadcasts a single mixed message back. But all-to-all attention is also possible and worth trying. Are there many broadcast channels? Unknown.
-- **What exactly is unhooked?** No global gradient propagation is the intent. But embeddings may need partial global gradient. No gradients through time across columns is likely right but not confirmed. Less gradient coupling = more modularity, but how much less?
-- **What is bidirectional propagation?** Bidirectional over graph edges? Backward-in-time smoothing? Iterative relaxation? Not designed yet.
-- **What triggers a column update?** Currently framed as surprisal — large change in incoming residual stream. But surprise relative to what? Who measures it? What happens during dormancy? Entirely open.
+- **What exactly is the block boundary?** If modules are single residual blocks on a uniform `d_model` stream, what information is allowed to cross each boundary unchanged, detached, mixed, or delayed?
+- **Which cross-boundary mechanisms matter most?** Stop gradients, attention residual paths, async/shared-memory behavior, selective updates, or some combination?
+- **What is the global communication channel?** Current intuition: a stateful broadcast router — a central component that reads from all blocks and broadcasts a single mixed message back. But all-to-all attention is also possible and worth trying. Are there many broadcast channels? Unknown.
+- **What exactly is unhooked?** No global gradient propagation is the intent. But embeddings may need partial global gradient. No gradients through time across blocks is likely right but not confirmed. Less gradient coupling = more modularity, but how much less?
+- **What is bidirectional propagation?** Bidirectional over graph edges via cross-boundary residual or attention structure? Not designed yet.
+- **What triggers a block update?** Currently framed as surprisal — large change in incoming residual stream. But surprise relative to what? Who measures it? What happens during dormancy? Entirely open.
 - **What is the I/O contract for the architecture?** How does input enter the system and how does output leave? Entirely open.
-- **How real can async execution be?** True per-column event queues are hostile to GPU efficiency. A semi-async masked approximation (masked dense updates, bucketed by activity) is one possible path. Whether "real" async is achievable, or even meaningfully different, is unknown. The full unsynchronised vision — even at GPU level — is the aspiration; the practical path is to be discovered.
+- **How real can async execution be?** True per-block event queues are hostile to GPU efficiency. A semi-async masked approximation (masked dense updates, bucketed by activity) is one possible path. Whether "real" async is achievable, or even meaningfully different, is unknown.
 - **Does the graph structure matter?** If a global channel does most of the work, graph locality may be cosmetic. This is a key thing to find out — not to assume either way.
 - **Do unhooked gradients produce useful specialization or protocol breakdown?** Unknown. Worth finding out.
+- **What role, if any, should time-unrolling play?** Since looped blocks across time resemble a transformer with reused blocks, when is that a useful simplification versus a distraction? Open.
+- **Whether a block is always full attention+FFN or sometimes FFN-only.** Not settled.
 
 ### Thread 2: Dynamic computation depth
 
@@ -102,7 +109,8 @@ Not "achieved state of the art." Good outcomes here are:
 
 ## A note on the research object
 
-The most interesting part of the Thread 1 vision is probably not "graph transformer with columns" by itself. It's the combination of persistent modular state, local predictive learning, event-driven updates, and limited inter-module communication — and whether useful distributed computation and emergent communication protocols can arise from that setup.
+The most interesting part of the Thread 1 vision is probably not "graph transformer with columns" by itself. It's the combination of modular residual computation, local predictive learning at block boundaries, limited gradient coupling, and nonstandard residual/attention paths — and whether useful distributed computation and emergent communication protocols can arise from that setup.
 
-A risk worth staying alert to: unrestricted all-to-all attention between columns may bypass the interesting parts entirely. If every column can cheaply read every other's state, the graph becomes decorative and async execution becomes meaningless. Communication channels probably need a bottleneck — or sharply different roles — to preserve the locality the architecture is trying to explore. See `research/questions/broadcast-router/` and `research/questions/graph-vs-global-channel/`.
+Recurrence and persistent per-module hidden state are possible later extensions, not current defining traits. The current design question is what happens at block boundaries with a shared `d_model` residual stream.
 
+A risk worth staying alert to: unrestricted all-to-all attention between blocks may bypass the interesting parts entirely. If every block can cheaply read every other's state, the graph becomes decorative and async execution becomes meaningless. Communication channels probably need a bottleneck — or sharply different roles — to preserve the locality the architecture is trying to explore. See `research/questions/broadcast-router/` and `research/questions/graph-vs-global-channel/`.

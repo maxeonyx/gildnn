@@ -10,6 +10,7 @@ Working file. Rewrite it as the state changes.
 - The current priority is thorough isolated experiments on the individual performance/mechanism pieces: local learning, stop gradients, asynchronous/asynchronized modules, keeping weights in memory, processing activations in place, and replacing depth with width / propagation across timesteps.
 - "Predictive chain" remains a useful experiment label for one simplification, but it is not the project goal. It should not silently drive the plan.
 - There is partially completed chain+dynamic-depth work in `experiments/chain_dynamic_depth/`, but that thread is currently paused in planning until it is explicitly re-scoped.
+- **Architecture clarification (2026-05-20):** new dictation simplifies the module concept. A node/module is currently a **single residual block on a uniform `d_model` residual stream**, not a recurrent mini-stack with its own hidden width. The interface between modules is the residual stream itself. The interesting mechanisms are at block boundaries: stop gradients, async, attention residual connections. This changes the interpretation of Phase 3 and some already-written docs.
 
 ## Execution phases with clear sequencing
 
@@ -49,40 +50,41 @@ End state required to leave Phase 2:
 
 - The two strongest completed threads are now anchored to the same comparison frame future work will use.
 
-### Phase 3 — Isolated mechanism experiments for fast recurrent training
+### Phase 3 — Isolated mechanism experiments on the simplified block architecture
 
-Objective: test the individual pieces Max actually cares about before composing them.
+Objective: test the individual pieces Max actually cares about, in the simplified frame where a module is a single residual block on a shared `d_model` stream.
 
-#### 3a. Local learning / stop gradients (first)
+#### 3a. Local learning / stop gradients on single-block modules
 
-Not a "chain" from one end to the other. Each module predicts its own input (A→A), with auxiliary bits hanging off. The boundary/shape of a "local module" is itself experimental — maybe ~3 nodes.
+Each **block boundary** predicts its own next incoming residual stream (A→A), with an auxiliary local head. In the clarified architecture, a module is **one residual block**, not a 3-layer recurrent stack.
 
-Key questions:
-- Does a multi-module model beat a single-module model?
-- Does adding more modules improve performance?
-- How does it compare at same params / same FLOPs / same wall-clock time?
+The main question is no longer "how thick is a local module?" but:
+- Does splitting a model into multiple stop-gradient-separated residual blocks help or hurt?
+- Where should the detach boundaries go?
+- What local target should be predicted?
+- Does a multi-block local-learning system beat a matched single-block or ordinary baseline?
+
+Comparison design: **single-block local-learning control** vs **multi-block local-learning variants**, with `d_model` uniform across all variants.
+
+Note: the first local-learning experiment in `research/questions/local-learning/` tested a different (now-superseded) interpretation — detached recurrent stacks, not single residual blocks. That result narrows one branch of the design tree but does not directly answer this question.
 
 #### 3b. GPU utilization research
 
-What kind of GPU programs actually fit best on the RTX 3090? Can RNNs get significantly more FLOPs out of the GPU than transformers? Measure wall-clock, actual utilization, memory bandwidth. This grounds all future performance claims.
+What kind of GPU programs actually fit best on the RTX 3090? Can residual block architectures get significantly more FLOPs out of the GPU than transformers? Measure wall-clock, actual utilization, memory bandwidth. This grounds all future performance claims.
 
-#### 3c. Attention residual transformer
+#### 3c. Attention residual transformer (core mechanism experiment)
+
+This is now a central mechanism experiment for the clarified architecture, not a side curiosity. The dictation says looped blocks with attention residual connections are essentially a transformer — so this subsection tests the core boundary/residual idea cleanly, without prematurely adding async or richer graph machinery.
 
 Multiple variants:
 - Attention over depth only
 - Attention over depth AND sequence length in a causal triangle (can't attend to same layer at previous step)
 
-Motivation: to parallelize across time by adding only one depth per timestep for the RNN. The causal triangle shows how this could work.
+Motivation: this demonstrates the mechanism for time-unrolled / looped-block behavior. Stop gradients across time and across depth are the same kind of mechanism in this framing.
 
-Note: Max doesn't want too much transformer focus. This experiment serves the RNN goal — it demonstrates the mechanism that will later apply to RNN depth.
+#### 3d. Async execution without synchrony
 
-#### 3d. Stop gradients / overlapping stop gradients
-
-Even just a tiny example of training with stop gradients or overlapping stop gradients. This is separate from the async question — it's about whether local learning works at all.
-
-#### 3e. Async execution without synchrony
-
-The important question: can we run modules in parallel with volatile shared memory between them, so they don't have to synchronize at the GPU level? We want to train without synchrony. Even a tiny working example would be valuable.
+Can we run residual block boundary updates without full synchrony — with volatile/shared memory or stale reads between updates? Not asynchronous recurrent hidden-state modules, but asynchronous **block boundary updates** on the shared `d_model` stream.
 
 Rules:
 
@@ -92,10 +94,10 @@ Rules:
 
 Questions this phase should answer:
 
-- Can local learning / stop-gradient style training give useful speed or stability benefits?
-- Can a model learn a useful trigger for whether more computation is worth doing?
-- Can we approximate asynchronous execution without turning the experiment into a completely different architecture?
-- What actual GPU utilization do different architectures achieve on this hardware?
+- Can stop-gradient-separated **residual blocks** learn useful local objectives at all?
+- Do looped / reused residual blocks with attention residual connections show useful behavior before async is added?
+- Can we approximate async block updates without changing the architecture into something else?
+- What actual GPU utilization do these simplified mechanisms achieve on this hardware?
 
 ### Phase 4 — Async/desynchronized execution path on text
 
@@ -196,6 +198,8 @@ This window is a strong success if, in addition to the floor above:
 
 ## Immediate next step
 
-Choose the first isolated post-baseline mechanism question. The leading candidate is local learning (3a) — multi-module A→A prediction with stop gradients, compared against single-module and baselines at same params/FLOPs/wall-clock. Write the report-first README before touching code.
+Choose the first isolated post-baseline mechanism question in the **clarified architecture frame**: single-block vs multi-block local learning on a shared `d_model` residual stream, with explicit stop-gradient boundaries at block interfaces, and report-first design.
+
+Note: the already-run local-learning experiment (`research/questions/local-learning/`) used a now-superseded architecture interpretation (detached recurrent stacks). Review that result before starting the next code run — it informs what to do differently, but it does not directly settle the single-block question.
 
 Also: the baseline reports (`base_experiments/README.md`) need example inputs and outputs at different loss stages from multiple models. Max wants to see what the models actually produce as they train, not just final numbers.

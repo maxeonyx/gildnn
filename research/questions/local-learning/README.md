@@ -1,10 +1,18 @@
-# Local learning on a small RNN
+# Local learning on a detached recurrent-stack interpretation
 
-This question serves the local-predictive-learning part of [Max's 2026-05-20 dictation](../../../dictations/2026-05-20-9.md) and the broader Thread 1 goal in [VISION.md](../../../VISION.md): can locally trained recurrent modules, with deliberately limited gradient coupling, do something useful before we bring in async execution, graph scheduling, or richer column machinery?
+> **⚠ Superseded architecture — historical record**
+>
+> This experiment was run before the architecture clarification in [dictation 2026-05-20-10](../../../dictations/2026-05-20-10.md). At the time, "module" was interpreted as a small stack of recurrent layers with its own persistent hidden state. That dictation clarified that modules should instead be **single residual blocks on a shared `d_model` residual stream** — not thick recurrent stacks with their own hidden dimension.
+>
+> The results here are valid evidence about the **detached recurrent-stack family** specifically. They are **not** direct evidence about the clarified single-residual-block architecture. Keep this distinction in mind when reading the findings.
+
+This question was intended to serve the local-predictive-learning part of [Max's 2026-05-20 dictation](../../../dictations/2026-05-20-9.md) and the broader Thread 1 goal in [VISION.md](../../../VISION.md): can locally trained modules, with deliberately limited gradient coupling, do something useful before we bring in async execution, graph scheduling, or richer column machinery? The experiment operationalized "module" as a 3-layer recurrent stack — a choice that the later dictation now indicates was the wrong framing for the current core architecture.
 
 ## Status
 
 First comparison slice partly run. The 1-module and 2-module variants now have full standardized results. The 4-module variant passed the mechanical checks but failed the reduced-setting gate badly enough that it was not promoted to the full comparison table as a fair standardized run.
+
+**Interpretive note:** the negative result here is strong evidence against this specific detached recurrent-stack slice. It is not yet evidence against local learning on the clarified single-residual-block architecture — that is a different question requiring a different experiment.
 
 ## Key findings
 
@@ -14,9 +22,9 @@ First comparison slice partly run. The 1-module and 2-module variants now have f
 
 ## The exact question being tested
 
-The first experiment asks a narrower version of the question in the [dictation](../../../dictations/2026-05-20-9.md):
+This experiment asks a narrower question than originally intended, and asks it in an architecture that is now superseded:
 
-> On the fixed TinyShakespeare comparison frame, does a **multi-module local-learning RNN** beat a **single-module local-learning control** at similar parameter count, and does increasing module count help within the first tested range?
+> On the fixed TinyShakespeare comparison frame, does a **multi-module local-learning RNN** (where each module is a 3-layer recurrent stack) beat a **single-module local-learning control** at similar parameter count, and does increasing module count help within the first tested range?
 
 More explicitly, this README is trying to earn an answer to all three of these:
 
@@ -28,7 +36,7 @@ The ordinary vanilla RNN baseline from [base_experiments/README.md](../../../bas
 
 ## The simplification being made
 
-This is a legitimate cut from the broader idea, but it is still a cut.
+This is a legitimate cut from the broader idea, but it is still a cut — and part of the simplification was based on an architecture interpretation now known to be wrong.
 
 For this first slice:
 
@@ -36,6 +44,10 @@ For this first slice:
 - we keep synchronous dense execution,
 - we keep a simple recurrent backbone,
 - we test stop-gradient-separated local learning **without** async or desynchronized execution.
+
+Of those, the first three remain legitimate simplifications. The fourth is legitimate too. But the choice of **what a module means** — a 3-layer recurrent stack with its own hidden state — was an interpretation that the later dictation (2026-05-20-10) contradicts. That dictation says modules should be single residual blocks at uniform `d_model`, not thick recurrent stacks with their own hidden dimension.
+
+So: keeping synchronous execution was a fine cut. Making a module equal a 3-layer recurrent stack was an **architecture interpretation now shown to be wrong** for the current core design.
 
 This means the experiment is **not** testing:
 
@@ -48,9 +60,11 @@ This means the experiment is **not** testing:
 - GPU-program-fit claims beyond ordinary wall-clock timing,
 - the globally best definition of a "local module".
 
-That last point matters. The dictation says a local module is "probably 3 nodes in the chain," but that is a hypothesis, not a requirement. This README makes one simple first interpretation so the question becomes runnable.
+That last point matters. The dictation says a local module is "probably 3 nodes in the chain," but that is a hypothesis, not a requirement. This README made one simple first interpretation so the question became runnable — but that interpretation is now superseded by the later clarification.
 
 ## Initial architecture choice for this first comparison slice
+
+*This section describes the choices made in this now-superseded experiment. The architecture here — detached recurrent stacks — is not the current preferred framing.*
 
 ### What a "local module" means here
 
@@ -65,7 +79,7 @@ The simplest concrete interpretation of "probably 3 nodes" is:
 
 - **one module = 3 recurrent layers** in a small internal stack.
 
-That is a choice for the first slice because it is the smallest interpretation that still gives the module an internal boundary-rich micro-structure instead of collapsing "module" into "single recurrent layer." If this slice is promising, the module depth itself becomes a later question. It is not being swept here.
+That was a choice for the first slice because it is the smallest interpretation that still gives the module an internal boundary-rich micro-structure instead of collapsing "module" into "single recurrent layer." **However, the later dictation (2026-05-20-10) says modules should instead be single residual blocks at uniform `d_model` — so this "3 recurrent layers per module" choice should now be treated as a separate architecture family, not the current preferred design.**
 
 ### What each module predicts
 
@@ -254,9 +268,10 @@ Even a clean positive result here would **not** prove:
 - that this stop-gradient placement is globally best,
 - that local learning beats transformers,
 - that RNNs are a better GPU fit than transformers in general,
-- that limited-gradient modular learning produces useful emergent communication protocols.
+- that limited-gradient modular learning produces useful emergent communication protocols,
+- that local learning works when modules are defined as **single residual blocks with uniform-width residual boundaries** — which is now the preferred architecture framing (see [dictation 2026-05-20-10](../../../dictations/2026-05-20-10.md)).
 
-Likewise, a negative result here would only rule against this **tested slice**, not against every possible local-learning design.
+Likewise, a negative result here only rules against this **tested slice** — detached 3-layer recurrent stacks — not against every possible local-learning design.
 
 ## Results
 
@@ -340,16 +355,17 @@ Two-module variant: module 2's local loss does not leak gradients back into modu
 
 ### What changed in understanding
 
-What narrowed: for this exact stop-gradient placement and this exact TinyShakespeare frame, adding modules did not help. The 1-module control was already enough to get a real result, and the 2-module variant was both worse and slower. The combination of the 4-module reduced-setting collapse, its width of only `80` hidden units per module at this parameter budget, and the failed focused check with auxiliary weight removed now points more toward an architectural limitation of this detached narrow stack than toward a hidden wiring bug.
+What narrowed: for this exact stop-gradient placement and this exact TinyShakespeare frame, adding modules (as 3-layer recurrent stacks) did not help. The 1-module control was already enough to get a real result, and the 2-module variant was both worse and slower. The combination of the 4-module reduced-setting collapse, its width of only `80` hidden units per module at this parameter budget, and the failed focused check with auxiliary weight removed now points more toward an architectural limitation of this detached narrow stack than toward a hidden wiring bug.
 
 What stays open: this does not rule out all local-learning designs, all module boundaries, all local targets, or all credit-routing choices. It only rules against this tested slice: 3-layer local modules, local next-input prediction, and detach-at-every-module-boundary under the ~186K TinyShakespeare frame.
 
+Additionally: the later dictation (2026-05-20-10) clarified that the architecture tested here — detached recurrent stacks with their own hidden dimension — is not the current preferred module design. So the result should be read as narrowing one branch of the design tree (the recurrent-stack branch), not the newly clarified single-residual-block branch. Those are now understood as separate architecture families.
+
 ## Next-step decision rule
 
-After the first fair comparison slice:
+Given the architecture clarification, there is now a fork:
 
-- if `2` modules clearly beats `1`, continue only with the smallest next run that clarifies whether the gain persists,
-- if `2` and `4` both clearly lose to `1`, stop broadening the ladder and either diagnose one concrete failure mode or move on,
-- if results are close enough that parameter tolerance or noise could explain them, tighten the contract before making a stronger claim.
+1. **Switch to the clarified architecture** and run the first **single-residual-block local-learning** experiment on a shared `d_model` stream. This is the higher-priority path — it directly tests the current core architecture.
+2. **Targeted diagnosis within the recurrent-stack family** only if there is a specific concrete reason to think the tested result is an artifact of the setup rather than the architecture. Given the current evidence, this would need justification.
 
-That keeps this question small enough to finish inside the project timebox instead of turning into an architecture sprawl.
+Within the recurrent-stack family specifically: if `2` modules clearly beats `1`, continue only with the smallest next run that clarifies whether the gain persists; if `2` and `4` both clearly lose to `1`, stop broadening the ladder and either diagnose one concrete failure mode or move on.
