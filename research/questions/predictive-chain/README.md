@@ -1,4 +1,10 @@
-# Predictive Chain
+# Predictive Chain — older architecture interpretation
+
+> **⚠ Superseded architecture — historical record**
+>
+> This experiment was run before the architecture clarification in [dictation 2026-05-20-10](../../../dictations/2026-05-20-10.md). At the time, "node" or "module" in the chain was interpreted as a block with its own hidden dimension and recurrent structure — not a single residual block on a shared `d_model` stream. The dictation clarified that modules should be **single residual blocks on a uniform `d_model` residual stream**. The chain structure tested here does not match that clarified design.
+>
+> The results are valid evidence about **this specific chain-of-blocks family**. They are not direct evidence about the clarified single-residual-block architecture.
 
 > ⚠️ **Important caveat:** This experiment tests a feedforward pipeline (input → chain → global task head → output). That is **not** Max's actual predictive processing vision. In the real architecture, node A is both input and output — it receives the input and predicts the next input. Deeper nodes have no direct connection to inputs/outputs; they help only through message passing to their neighbors. The global task head used here sidesteps the hard question: can deeper nodes learn to be useful without any direct ground-truth signal? See [dictation 2026-05-20-4](../../../dictations/2026-05-20-4.md). The results below are still informative (local predictive pressure works, unhooked gradients are viable), but the core architectural hypothesis remains untested.
 

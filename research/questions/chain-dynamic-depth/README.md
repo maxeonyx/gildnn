@@ -1,4 +1,10 @@
-# Chain + Dynamic Depth
+# Chain + Dynamic Depth — older architecture interpretation
+
+> **⚠ Superseded architecture — historical record**
+>
+> This experiment was run before the architecture clarification in [dictation 2026-05-20-10](../../../dictations/2026-05-20-10.md). The "chain" here uses a chain of blocks with their own hidden structures — not single residual blocks on a shared `d_model` residual stream, which is the clarified current design. The dynamic-depth mechanism is evaluated on top of that older chain family.
+>
+> The results are valid evidence about dynamic depth on **this specific architecture**. They are not direct evidence about dynamic depth on the clarified single-residual-block design.
 
 ## Question
 
