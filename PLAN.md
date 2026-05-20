@@ -203,27 +203,24 @@ This window is a strong success if, in addition to the floor above:
 - **Async/selective execution** — CUT (NEGATIVE). Learned per-token gating works mechanically (gates learn genuine selectivity, no collapse) but GPU wall-clock is 26-29% WORSE despite 15-32% fewer logical block executions. Per-token conditional execution breaks batched GPU parallelism. Premise falsified at tiny rung; stopped before full standardized. See `research/questions/async-selective/README.md`.
 - **GPU utilization study** — CONFIRMED Max's hypothesis. At matched params on RTX 3090: GRU is 1.8-2.8x faster training than transformer, LSTM is 1.4-2.5x faster. Decode: GRU 2.5-3.7x faster (constant cost vs transformer's growing KV cache). See `research/questions/gpu-utilization/README.md`.
 - **Causal triangle attention residuals** — NEGATIVE. Extending depth-only attention to attend over depth+sequence in a 2D causal mask. Worse than both baseline (+0.028 nats) and depth-only (+0.049 nats), and 1.8x slower. Mechanism verified correct; the architecture simply doesn't help at this scale. See `research/questions/causal-triangle-attention/README.md`.
+- **Async volatile-memory prototype** — POSITIVE (mechanism viable). Dense execution with stale shared-memory reads: mechanically verified, trains within noise of sync control (best val 1.658 vs 1.657), no wall-clock overhead. Demonstrates the execution model Max asked for. True hardware-level async (independent CUDA streams) not yet implemented but semantics proven. See `research/questions/async-volatile-memory/README.md`.
 
-## Assessment of boundary mechanisms
+## Assessment
 
-All three isolated boundary mechanisms from the vision have been tested at ~186K params on TinyShakespeare:
-1. Stop-gradient local learning: clearly negative on quality
-2. Depth attention residuals: marginal, not worth the compute cost
-3. Selective block execution: mechanism works but GPU execution negates compute savings
+Six isolated experiments completed. The boundary mechanisms that tried to improve quality all failed. But the async volatile-memory prototype succeeded at its actual goal: proving the execution model is viable without speed penalty.
 
-**None of the proposed boundary mechanisms help at this scale/budget in isolation.**
+The emerging picture:
+1. **RNNs are significantly faster** than transformers on this hardware (GPU utilization study)
+2. **Async shared-memory semantics** don't break training (volatile-memory prototype)
+3. **Boundary tricks for quality** don't work at this scale (local learning, attention residuals, causal triangle)
 
-**However — dictation review reveals important framing mismatch.** Max's primary question was never "do these improve quality at tiny scale?" It was "can we make inference/training FAST through async execution and parallelism?" Quality degradation from stop-gradients is *acceptable* to Max if it unlocks performance. The experiments answered the wrong primary question.
-
-Key untested ideas from dictations:
-- **True async/volatile-memory prototype** — even a toy untrained example would satisfy Max
-- **Broadcast router** — global communication channel to all modules
-- **Dynamic depth in isolation** — previously confounded with predictive chain
+This points toward: **RNN-based architecture + async execution model** as the productive direction, not "transformer + boundary tricks."
 
 ## Immediate next step
 
-**True async/volatile-memory prototype.** Max's clearest unfulfilled request: a toy demonstration of modules reading/writing a volatile shared memory asynchronously. This doesn't need to train well — it needs to show the execution model working. This connects directly to the GPU utilization finding (RNNs are faster) by showing how modules could operate independently on a shared state.
+**New dictation (2026-05-20-12)** raises an interesting idea: a network that predicts its own future outputs/latents to compress computation into fewer timesteps. Max notes this might be similar to multi-token prediction or dynamic depth. This connects naturally to the dynamic-depth finding (the model already learned to allocate compute non-uniformly) and could be the next discriminating experiment.
 
-Other candidates after that:
-- Broadcast router experiment
-- Dynamic depth in isolation
+Candidates:
+1. **Self-prediction / compute compression** — from dictation 2026-05-20-12. A network trained to predict not just output from input but to do so "quicker" — predicting its own future internal states.
+2. **Broadcast router** — global communication channel to all modules
+3. **Dynamic depth in isolation** — previously confounded with predictive chain
