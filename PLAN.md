@@ -262,18 +262,21 @@ Key finding: temporal norm management is essential. Mix-add works as well as Lay
 
 **7. Window size ablation** — DONE. k=8,16 diverge at LR=0.003, but k=8 is stable at LR=0.001. Extended k=8 run (15 epochs): **best val 1.672** — only +0.002 from k=4 baseline (1.670). Window size is NOT the efficiency bottleneck; the +0.085 gap to transformer at matched params comes from something else (sequential processing, limited context window vs full-sequence attention, or training dynamics).
 
-**8. Next discriminating experiment:** Swap in **Muon** and rerun the window-size ablation (**k=4, 8, 16**).
+**8. Muon optimizer experiment** — DONE. POSITIVE. Max's hypothesis confirmed.
 
-- Current hypothesis: the k=8/k=16 instability is **probably** gradient explosion through repeated weight matrices across time (`W^T`), not something mix-add is meant to solve.
-- Rationale: mix-add is for avoiding LayerNorm tuning, **not** for training stability. The more principled stability direction is optimizer-level orthogonality / singular values near 1.
-- Implementation notes:
-  - Check whether Muon already exists in PyTorch / a standard library before copying a standalone implementation.
-  - Use **Muon for weight matrices only**.
-  - Use **AdamW for everything else**: embeddings, biases, scalars, mix-add parameters, output projection.
-  - Muon uses a different effective LR scale than Adam, so start from recommended defaults or retune LR.
-  - Turn **weight decay off** for Muon weights; if used at all, apply it only to biases.
+- At Muon default LR=0.02, ALL windows diverged (including k=4) — LR too high for this architecture.
+- At Muon LR=0.01: **k=4 stable (1.671), k=8 stable (1.664), k=16 stable (1.672)**.
+- k=8 is actually BEST — outperforms k=4 at the same LR, which AdamW couldn't achieve (k=8 diverged at AdamW LR=0.003).
+- The instability was gradient explosion through repeated weight matrices (W^T), exactly as Max predicted. Orthogonal optimization eliminates it.
+- Muon + mix-add architecture achieves val 1.664 at k=8 — only +0.032 from transformer anchor (1.632) at much larger param count.
 
-**9. Future work (separate directions, not immediate):**
+**9. Next discriminating experiment:** Now that stability is solved, key questions:
+- **Parameter-matched Muon**: d_model=116 (184K params) with Muon at k=8 — close the gap to transformer?
+- **Longer training with Muon**: k=8 at LR=0.01 for 15+ epochs — how far does it converge?
+- **Multi-block pipelining**: actual async inference demo using the now-stable k=8+ architecture.
+- **Higher Muon LR**: since 0.02 diverged and 0.01 worked, try 0.015 — faster convergence?
+
+**10. Future work (separate directions, not immediate):**
 - **Complex-valued / inherently orthogonal networks:** parameterize weights so they stay orthogonal by construction rather than being pushed there by the optimizer.
 - **Volume-preserving nonlinearities:** train a separate module to implement a volume-preserving transformation (SDiff / Hamiltonian-flow style), then freeze it and use it as the nonlinearity; basis-independent by construction.
 - **Declining batch size + declining LR together:** a side training-process idea, not the main focus right now.
