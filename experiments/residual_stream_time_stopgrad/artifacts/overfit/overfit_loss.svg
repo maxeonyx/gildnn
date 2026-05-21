@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="420" viewBox="0 0 800 420">
+<rect width="100%" height="100%" fill="white" />
+<text x="60" y="20" font-size="16" font-family="monospace">Residual stream across time stop-grad: overfit one batch</text>
+<line x1="60" y1="380" x2="780" y2="380" stroke="black" />
+<line x1="60" y1="30" x2="60" y2="380" stroke="black" />
+<text x="60" y="410" font-size="12" font-family="monospace">x:[0, 25]</text>
+<text x="220" y="410" font-size="12" font-family="monospace">loss:[0.001, 3.952]</text>
+<polyline fill="none" stroke="#2563eb" stroke-width="2" points="60.00,30.00 780.00,380.00" /><rect x="620" y="20" width="12" height="12" fill="#2563eb" /><text x="638" y="30" font-size="12" font-family="monospace">overfit_loss</text>
+</svg>
