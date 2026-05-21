@@ -1,0 +1,1033 @@
+{
+  "batch_shape": [
+    2,
+    64
+  ],
+  "logits_shape": [
+    2,
+    59
+  ],
+  "trace": {
+    "final_stream_rms": 0.6791528463363647,
+    "mix_coefficients": {
+      "token": 0.5,
+      "block": 0.8999999761581421,
+      "time": 0.8999999761581421
+    },
+    "step_traces": [
+      {
+        "time_index": 0,
+        "history_length": 0,
+        "stream_rms": 0.5995388627052307,
+        "block_delta_rms": 0.14634333550930023,
+        "temporal_context_rms": 0.0,
+        "attention_weights": [],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 1,
+        "history_length": 1,
+        "stream_rms": 0.595556914806366,
+        "block_delta_rms": 0.14987924695014954,
+        "temporal_context_rms": 0.21174640953540802,
+        "attention_weights": [
+          1.0
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 2,
+        "history_length": 2,
+        "stream_rms": 0.6220149993896484,
+        "block_delta_rms": 0.1635255217552185,
+        "temporal_context_rms": 0.17135806381702423,
+        "attention_weights": [
+          0.490733,
+          0.509267
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 3,
+        "history_length": 3,
+        "stream_rms": 0.6039368510246277,
+        "block_delta_rms": 0.1370316594839096,
+        "temporal_context_rms": 0.14851367473602295,
+        "attention_weights": [
+          0.311957,
+          0.32443,
+          0.363613
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 4,
+        "history_length": 4,
+        "stream_rms": 0.6197758316993713,
+        "block_delta_rms": 0.13322630524635315,
+        "temporal_context_rms": 0.13297107815742493,
+        "attention_weights": [
+          0.24015,
+          0.253737,
+          0.264438,
+          0.241676
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 5,
+        "history_length": 4,
+        "stream_rms": 0.61786288022995,
+        "block_delta_rms": 0.14567916095256805,
+        "temporal_context_rms": 0.13886302709579468,
+        "attention_weights": [
+          0.246954,
+          0.259647,
+          0.239221,
+          0.254178
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 6,
+        "history_length": 4,
+        "stream_rms": 0.581200897693634,
+        "block_delta_rms": 0.1298636645078659,
+        "temporal_context_rms": 0.1519857496023178,
+        "attention_weights": [
+          0.243235,
+          0.242687,
+          0.259477,
+          0.254601
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 7,
+        "history_length": 4,
+        "stream_rms": 0.6181171536445618,
+        "block_delta_rms": 0.13841512799263,
+        "temporal_context_rms": 0.15074531733989716,
+        "attention_weights": [
+          0.222281,
+          0.2711,
+          0.265866,
+          0.240752
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 8,
+        "history_length": 4,
+        "stream_rms": 0.663805365562439,
+        "block_delta_rms": 0.16151292622089386,
+        "temporal_context_rms": 0.15197476744651794,
+        "attention_weights": [
+          0.244386,
+          0.257915,
+          0.240573,
+          0.257126
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 9,
+        "history_length": 4,
+        "stream_rms": 0.6906260848045349,
+        "block_delta_rms": 0.1573735624551773,
+        "temporal_context_rms": 0.15843164920806885,
+        "attention_weights": [
+          0.265649,
+          0.226667,
+          0.261683,
+          0.246001
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 10,
+        "history_length": 4,
+        "stream_rms": 0.6593906283378601,
+        "block_delta_rms": 0.1571807712316513,
+        "temporal_context_rms": 0.17103545367717743,
+        "attention_weights": [
+          0.257063,
+          0.275158,
+          0.21632,
+          0.251458
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 11,
+        "history_length": 4,
+        "stream_rms": 0.6390582919120789,
+        "block_delta_rms": 0.1576966494321823,
+        "temporal_context_rms": 0.17098233103752136,
+        "attention_weights": [
+          0.267664,
+          0.242198,
+          0.238301,
+          0.251837
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 12,
+        "history_length": 4,
+        "stream_rms": 0.6368241906166077,
+        "block_delta_rms": 0.14908525347709656,
+        "temporal_context_rms": 0.16818679869174957,
+        "attention_weights": [
+          0.243648,
+          0.252358,
+          0.24977,
+          0.254223
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 13,
+        "history_length": 4,
+        "stream_rms": 0.6544709205627441,
+        "block_delta_rms": 0.15210722386837006,
+        "temporal_context_rms": 0.1652684360742569,
+        "attention_weights": [
+          0.267303,
+          0.245274,
+          0.255072,
+          0.232351
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 14,
+        "history_length": 4,
+        "stream_rms": 0.6351564526557922,
+        "block_delta_rms": 0.15296612679958344,
+        "temporal_context_rms": 0.164027601480484,
+        "attention_weights": [
+          0.264209,
+          0.241075,
+          0.231204,
+          0.263512
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 15,
+        "history_length": 4,
+        "stream_rms": 0.604069709777832,
+        "block_delta_rms": 0.15726187825202942,
+        "temporal_context_rms": 0.16491380333900452,
+        "attention_weights": [
+          0.260499,
+          0.232116,
+          0.259039,
+          0.248346
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 16,
+        "history_length": 4,
+        "stream_rms": 0.6358333826065063,
+        "block_delta_rms": 0.1450822800397873,
+        "temporal_context_rms": 0.14913740754127502,
+        "attention_weights": [
+          0.23407,
+          0.25696,
+          0.243331,
+          0.265639
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 17,
+        "history_length": 4,
+        "stream_rms": 0.6489108800888062,
+        "block_delta_rms": 0.12757565081119537,
+        "temporal_context_rms": 0.13428425788879395,
+        "attention_weights": [
+          0.23747,
+          0.259723,
+          0.260693,
+          0.242114
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 18,
+        "history_length": 4,
+        "stream_rms": 0.624384343624115,
+        "block_delta_rms": 0.13618911802768707,
+        "temporal_context_rms": 0.1320679783821106,
+        "attention_weights": [
+          0.259437,
+          0.233581,
+          0.273345,
+          0.233637
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 19,
+        "history_length": 4,
+        "stream_rms": 0.6132596731185913,
+        "block_delta_rms": 0.14553186297416687,
+        "temporal_context_rms": 0.13325408101081848,
+        "attention_weights": [
+          0.239142,
+          0.262519,
+          0.244595,
+          0.253744
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 20,
+        "history_length": 4,
+        "stream_rms": 0.5807772278785706,
+        "block_delta_rms": 0.14089429378509521,
+        "temporal_context_rms": 0.14210285246372223,
+        "attention_weights": [
+          0.262593,
+          0.261041,
+          0.230993,
+          0.245374
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 21,
+        "history_length": 4,
+        "stream_rms": 0.5943770408630371,
+        "block_delta_rms": 0.1364631950855255,
+        "temporal_context_rms": 0.1443709433078766,
+        "attention_weights": [
+          0.296168,
+          0.254789,
+          0.223336,
+          0.225707
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 22,
+        "history_length": 4,
+        "stream_rms": 0.6158765554428101,
+        "block_delta_rms": 0.16136278212070465,
+        "temporal_context_rms": 0.13610196113586426,
+        "attention_weights": [
+          0.27539,
+          0.243611,
+          0.23706,
+          0.24394
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 23,
+        "history_length": 4,
+        "stream_rms": 0.5915768146514893,
+        "block_delta_rms": 0.1436188519001007,
+        "temporal_context_rms": 0.1395150125026703,
+        "attention_weights": [
+          0.276812,
+          0.25794,
+          0.236359,
+          0.228888
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 24,
+        "history_length": 4,
+        "stream_rms": 0.6351266503334045,
+        "block_delta_rms": 0.15747778117656708,
+        "temporal_context_rms": 0.1535516381263733,
+        "attention_weights": [
+          0.25437,
+          0.247443,
+          0.237813,
+          0.260375
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 25,
+        "history_length": 4,
+        "stream_rms": 0.6445814371109009,
+        "block_delta_rms": 0.14866980910301208,
+        "temporal_context_rms": 0.15550436079502106,
+        "attention_weights": [
+          0.225655,
+          0.259527,
+          0.263379,
+          0.251439
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 26,
+        "history_length": 4,
+        "stream_rms": 0.6445508599281311,
+        "block_delta_rms": 0.14570702612400055,
+        "temporal_context_rms": 0.15092627704143524,
+        "attention_weights": [
+          0.248029,
+          0.268737,
+          0.228439,
+          0.254795
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 27,
+        "history_length": 4,
+        "stream_rms": 0.595872163772583,
+        "block_delta_rms": 0.12966689467430115,
+        "temporal_context_rms": 0.1514413207769394,
+        "attention_weights": [
+          0.262281,
+          0.254641,
+          0.264895,
+          0.218184
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 28,
+        "history_length": 4,
+        "stream_rms": 0.617370069026947,
+        "block_delta_rms": 0.14989134669303894,
+        "temporal_context_rms": 0.14594729244709015,
+        "attention_weights": [
+          0.257708,
+          0.257565,
+          0.228523,
+          0.256204
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 29,
+        "history_length": 4,
+        "stream_rms": 0.639650285243988,
+        "block_delta_rms": 0.16740599274635315,
+        "temporal_context_rms": 0.1493791788816452,
+        "attention_weights": [
+          0.276619,
+          0.254551,
+          0.240455,
+          0.228374
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 30,
+        "history_length": 4,
+        "stream_rms": 0.6461734175682068,
+        "block_delta_rms": 0.15827150642871857,
+        "temporal_context_rms": 0.15177062153816223,
+        "attention_weights": [
+          0.27709,
+          0.272348,
+          0.228553,
+          0.222009
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 31,
+        "history_length": 4,
+        "stream_rms": 0.6296809911727905,
+        "block_delta_rms": 0.14267785847187042,
+        "temporal_context_rms": 0.1561257243156433,
+        "attention_weights": [
+          0.253724,
+          0.244529,
+          0.238193,
+          0.263554
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 32,
+        "history_length": 4,
+        "stream_rms": 0.5987945795059204,
+        "block_delta_rms": 0.15077321231365204,
+        "temporal_context_rms": 0.16587239503860474,
+        "attention_weights": [
+          0.250857,
+          0.249627,
+          0.24947,
+          0.250046
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 33,
+        "history_length": 4,
+        "stream_rms": 0.6171218752861023,
+        "block_delta_rms": 0.1554611623287201,
+        "temporal_context_rms": 0.15475378930568695,
+        "attention_weights": [
+          0.256267,
+          0.249234,
+          0.235141,
+          0.259358
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 34,
+        "history_length": 4,
+        "stream_rms": 0.6536394953727722,
+        "block_delta_rms": 0.15659062564373016,
+        "temporal_context_rms": 0.13985024392604828,
+        "attention_weights": [
+          0.241093,
+          0.262372,
+          0.241575,
+          0.254959
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 35,
+        "history_length": 4,
+        "stream_rms": 0.6318561434745789,
+        "block_delta_rms": 0.1492556482553482,
+        "temporal_context_rms": 0.1390228420495987,
+        "attention_weights": [
+          0.26658,
+          0.242995,
+          0.260604,
+          0.229821
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 36,
+        "history_length": 4,
+        "stream_rms": 0.6180791854858398,
+        "block_delta_rms": 0.1454719603061676,
+        "temporal_context_rms": 0.14246901869773865,
+        "attention_weights": [
+          0.270007,
+          0.257794,
+          0.234089,
+          0.23811
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 37,
+        "history_length": 4,
+        "stream_rms": 0.6287990808486938,
+        "block_delta_rms": 0.14909780025482178,
+        "temporal_context_rms": 0.1456775665283203,
+        "attention_weights": [
+          0.255439,
+          0.232071,
+          0.261703,
+          0.250787
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 38,
+        "history_length": 4,
+        "stream_rms": 0.5855149626731873,
+        "block_delta_rms": 0.1495383083820343,
+        "temporal_context_rms": 0.1509474813938141,
+        "attention_weights": [
+          0.237455,
+          0.230348,
+          0.268304,
+          0.263892
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 39,
+        "history_length": 4,
+        "stream_rms": 0.6261217594146729,
+        "block_delta_rms": 0.14878162741661072,
+        "temporal_context_rms": 0.1498272866010666,
+        "attention_weights": [
+          0.245585,
+          0.249082,
+          0.232229,
+          0.273104
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 40,
+        "history_length": 4,
+        "stream_rms": 0.6034167408943176,
+        "block_delta_rms": 0.13648958504199982,
+        "temporal_context_rms": 0.15903474390506744,
+        "attention_weights": [
+          0.250644,
+          0.242892,
+          0.258073,
+          0.248391
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 41,
+        "history_length": 4,
+        "stream_rms": 0.5535525679588318,
+        "block_delta_rms": 0.13143424689769745,
+        "temporal_context_rms": 0.152126282453537,
+        "attention_weights": [
+          0.259848,
+          0.22809,
+          0.262656,
+          0.249407
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 42,
+        "history_length": 4,
+        "stream_rms": 0.6121780276298523,
+        "block_delta_rms": 0.1491466760635376,
+        "temporal_context_rms": 0.14520682394504547,
+        "attention_weights": [
+          0.226275,
+          0.256387,
+          0.243748,
+          0.27359
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 43,
+        "history_length": 4,
+        "stream_rms": 0.603467583656311,
+        "block_delta_rms": 0.14715325832366943,
+        "temporal_context_rms": 0.14383412897586823,
+        "attention_weights": [
+          0.248639,
+          0.243809,
+          0.260525,
+          0.247028
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 44,
+        "history_length": 4,
+        "stream_rms": 0.6114889979362488,
+        "block_delta_rms": 0.1390531063079834,
+        "temporal_context_rms": 0.14919988811016083,
+        "attention_weights": [
+          0.226511,
+          0.23857,
+          0.262402,
+          0.272516
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 45,
+        "history_length": 4,
+        "stream_rms": 0.5853819847106934,
+        "block_delta_rms": 0.12758496403694153,
+        "temporal_context_rms": 0.14673349261283875,
+        "attention_weights": [
+          0.262619,
+          0.258359,
+          0.245523,
+          0.233498
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 46,
+        "history_length": 4,
+        "stream_rms": 0.6064396500587463,
+        "block_delta_rms": 0.14177632331848145,
+        "temporal_context_rms": 0.13699820637702942,
+        "attention_weights": [
+          0.254104,
+          0.252314,
+          0.241405,
+          0.252177
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 47,
+        "history_length": 4,
+        "stream_rms": 0.6485148668289185,
+        "block_delta_rms": 0.16099673509597778,
+        "temporal_context_rms": 0.13288173079490662,
+        "attention_weights": [
+          0.268582,
+          0.27481,
+          0.233327,
+          0.223281
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 48,
+        "history_length": 4,
+        "stream_rms": 0.604503870010376,
+        "block_delta_rms": 0.14216674864292145,
+        "temporal_context_rms": 0.1369025707244873,
+        "attention_weights": [
+          0.261429,
+          0.237294,
+          0.256347,
+          0.24493
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 49,
+        "history_length": 4,
+        "stream_rms": 0.5904138088226318,
+        "block_delta_rms": 0.13608388602733612,
+        "temporal_context_rms": 0.14466170966625214,
+        "attention_weights": [
+          0.255585,
+          0.264836,
+          0.242243,
+          0.237336
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 50,
+        "history_length": 4,
+        "stream_rms": 0.6245087385177612,
+        "block_delta_rms": 0.15775123238563538,
+        "temporal_context_rms": 0.14458775520324707,
+        "attention_weights": [
+          0.27903,
+          0.222637,
+          0.221472,
+          0.276861
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 51,
+        "history_length": 4,
+        "stream_rms": 0.6047521829605103,
+        "block_delta_rms": 0.13418202102184296,
+        "temporal_context_rms": 0.1502557098865509,
+        "attention_weights": [
+          0.229842,
+          0.235906,
+          0.279418,
+          0.254834
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 52,
+        "history_length": 4,
+        "stream_rms": 0.6076110005378723,
+        "block_delta_rms": 0.14238572120666504,
+        "temporal_context_rms": 0.16278019547462463,
+        "attention_weights": [
+          0.235971,
+          0.263568,
+          0.255511,
+          0.24495
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 53,
+        "history_length": 4,
+        "stream_rms": 0.6566171050071716,
+        "block_delta_rms": 0.15794791281223297,
+        "temporal_context_rms": 0.17012764513492584,
+        "attention_weights": [
+          0.237329,
+          0.256322,
+          0.244677,
+          0.261672
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 54,
+        "history_length": 4,
+        "stream_rms": 0.6275246739387512,
+        "block_delta_rms": 0.1356508582830429,
+        "temporal_context_rms": 0.17873013019561768,
+        "attention_weights": [
+          0.23348,
+          0.284792,
+          0.246179,
+          0.23555
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 55,
+        "history_length": 4,
+        "stream_rms": 0.6354363560676575,
+        "block_delta_rms": 0.16382287442684174,
+        "temporal_context_rms": 0.17047227919101715,
+        "attention_weights": [
+          0.254973,
+          0.242069,
+          0.249008,
+          0.25395
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 56,
+        "history_length": 4,
+        "stream_rms": 0.6158440709114075,
+        "block_delta_rms": 0.15539893507957458,
+        "temporal_context_rms": 0.16545584797859192,
+        "attention_weights": [
+          0.237154,
+          0.245287,
+          0.262099,
+          0.25546
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 57,
+        "history_length": 4,
+        "stream_rms": 0.6171713471412659,
+        "block_delta_rms": 0.15494224429130554,
+        "temporal_context_rms": 0.15956933796405792,
+        "attention_weights": [
+          0.253753,
+          0.2397,
+          0.246656,
+          0.259891
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 58,
+        "history_length": 4,
+        "stream_rms": 0.6118001937866211,
+        "block_delta_rms": 0.14656266570091248,
+        "temporal_context_rms": 0.15732812881469727,
+        "attention_weights": [
+          0.264988,
+          0.247586,
+          0.24637,
+          0.241056
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 59,
+        "history_length": 4,
+        "stream_rms": 0.6024549603462219,
+        "block_delta_rms": 0.14130011200904846,
+        "temporal_context_rms": 0.160769522190094,
+        "attention_weights": [
+          0.255793,
+          0.265463,
+          0.239323,
+          0.239421
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 60,
+        "history_length": 4,
+        "stream_rms": 0.6545193791389465,
+        "block_delta_rms": 0.15304268896579742,
+        "temporal_context_rms": 0.1535491943359375,
+        "attention_weights": [
+          0.253581,
+          0.227581,
+          0.27263,
+          0.246207
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 61,
+        "history_length": 4,
+        "stream_rms": 0.6506547331809998,
+        "block_delta_rms": 0.14151108264923096,
+        "temporal_context_rms": 0.15186622738838196,
+        "attention_weights": [
+          0.232174,
+          0.260778,
+          0.267543,
+          0.239505
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 62,
+        "history_length": 4,
+        "stream_rms": 0.6035271286964417,
+        "block_delta_rms": 0.15464988350868225,
+        "temporal_context_rms": 0.15649603307247162,
+        "attention_weights": [
+          0.250629,
+          0.281269,
+          0.240805,
+          0.227297
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      },
+      {
+        "time_index": 63,
+        "history_length": 4,
+        "stream_rms": 0.6791528463363647,
+        "block_delta_rms": 0.1567690521478653,
+        "temporal_context_rms": 0.15920382738113403,
+        "attention_weights": [
+          0.26353,
+          0.237495,
+          0.233945,
+          0.26503
+        ],
+        "mix_token": 0.5,
+        "mix_block": 0.8999999761581421,
+        "mix_time": 0.8999999761581421
+      }
+    ]
+  }
+}

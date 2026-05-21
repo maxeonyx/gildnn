@@ -1,0 +1,26 @@
+{
+  "prompt": "First Citizen:\\nBefore we proceed any further, hear me speak.\\n\\nAl",
+  "sample_length": 120,
+  "checkpoints": [
+    {
+      "epoch": 0,
+      "val_loss": 4.148265,
+      "sample": "First Citizen:\nBefore we proceed any further, hear me speak.\n\nAlMiiiRMiiiiRMiiiiRMiiiiRMiiiiRMiiiiRMiiiiRMiiiiRMiiiiRMiiiiRMiiiiRMiiiiRMiiiiRMiiiiRMiiiiRMiiiiRMiiiiRMiiiiRMiiiiRMiiiiRM"
+    },
+    {
+      "epoch": 1,
+      "val_loss": 2.027934,
+      "sample": "First Citizen:\nBefore we proceed any further, hear me speak.\n\nAll I fris the the and the he and the he and the he and the he and the he and the he and the he and the he and the he and "
+    },
+    {
+      "epoch": 2,
+      "val_loss": 1.875067,
+      "sample": "First Citizen:\nBefore we proceed any further, hear me speak.\n\nAll:\nTo the cound the cond the cond the cond the cond the cond the cond the cond the cond the cond the cond the cond the c"
+    },
+    {
+      "epoch": 3,
+      "val_loss": 1.790906,
+      "sample": "First Citizen:\nBefore we proceed any further, hear me speak.\n\nAll:\nNo me the wart he hear the here he hears the wart he hear the here he hears the wart he hear the here he hears the wa"
+    }
+  ]
+}

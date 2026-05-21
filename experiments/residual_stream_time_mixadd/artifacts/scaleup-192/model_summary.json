@@ -1,0 +1,15 @@
+{
+  "model_family": "residual_stream_time_mixadd",
+  "dictation_source": "dictations/2026-05-21-1.md",
+  "parameter_count": 479102,
+  "context_size": 64,
+  "d_model": 192,
+  "feedforward_dim": 768,
+  "num_heads": 4,
+  "temporal_window": 4,
+  "mix_coefficients": {
+    "token": 0.5,
+    "block": 0.8999999761581421,
+    "time": 0.8999999761581421
+  }
+}
