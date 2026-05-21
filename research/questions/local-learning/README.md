@@ -291,7 +291,7 @@ All results here are **single-seed** results. That is enough to be confident abo
 
 ### Qualitative samples
 
-All full-frame local-learning samples use the same prompt and sample length as the baselines: prompt `First Citizen:\nBefore we proceed`, sample length `320`. Evidence from [`modules_1/sample.txt`](../../../experiments/local_learning/artifacts/modules_1/sample.txt) and [`modules_2/sample.txt`](../../../experiments/local_learning/artifacts/modules_2/sample.txt). The 4-module sample shown here is from the reduced-setting diagnostic, because that variant did not earn a full run.
+All full-frame local-learning samples use the same prompt and sample length as the baselines: prompt `First Citizen:\nBefore we proceed`, sample length `320`. Evidence from the now-deleted `experiments/local_learning/` directory (experiment superseded; samples preserved inline below). The 4-module sample shown here is from the reduced-setting diagnostic, because that variant did not earn a full run.
 
 | Variant | Sample |
 |---|---|
@@ -310,7 +310,7 @@ Before we proceed
 
 ### Gradient-boundary evidence
 
-The non-negotiable check was whether detach boundaries were real rather than assumed. Evidence from [`modules_1/correctness_checks.json`](../../../experiments/local_learning/artifacts/modules_1/correctness_checks.json) and [`modules_2/checks-only/correctness_checks.json`](../../../experiments/local_learning/artifacts/modules_2/checks-only/correctness_checks.json).
+The non-negotiable check was whether detach boundaries were real rather than assumed. Evidence from the now-deleted `experiments/local_learning/` directory (correctness checks preserved inline below).
 
 Single-module control: the local loss updates the module and local head, while the task loss updates the module and LM head, with no accidental coupling into the local head from the task path.
 

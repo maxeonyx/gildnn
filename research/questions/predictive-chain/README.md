@@ -45,7 +45,7 @@ The 8-node version extends this pattern: A through H in a line, each receiving t
                                        └──────── task head ◄── concat(h_A…h_H) ──┘
 ```
 
-### Core forward pass (simplified from [`experiments/pytorch_char_predictive_chain.py`](../../../experiments/pytorch_char_predictive_chain.py))
+### Core forward pass (simplified from the now-deleted `experiments/pytorch_char_predictive_chain.py`)
 
 ```python
 # At each sequence step:
