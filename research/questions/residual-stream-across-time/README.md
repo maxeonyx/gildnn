@@ -329,6 +329,25 @@ Runtime was `257s` vs `606s` — **2.36x faster** — because removing backprop-
 
 **Implications for async:** naive per-timestep stop-gradient is mechanically viable and gives real speed, but the quality hit (+0.223 nats, ~13% relative) is substantial. If async execution requires this detach, it likely needs compensating architectural changes (auxiliary local targets, partial detach every N steps, or better temporal communication) to close the quality gap. Artifacts: [`experiments/residual_stream_time_stopgrad/`](../../../experiments/residual_stream_time_stopgrad/).
 
+### Partial detach (truncated BPTT) sweep
+
+The stop-gradient result raised the question: is the full +0.223 nat cost necessary, or can partial gradient flow recover quality while keeping the speed? Tested detaching every N=2, 4, 8, 16 timesteps — gradient flows within windows of N steps, then is cut.
+
+| Condition | Val loss | Δ from baseline | Runtime | Speed vs full-grad |
+|-----------|----------|----------------|---------|-------------------|
+| Full gradient | 1.670 | — | 606s | 1.0× |
+| N=16 | 1.693 | +0.023 | 321s | 1.89× |
+| N=8 | 1.704 | +0.034 | 286s | 2.12× |
+| **N=4** | **1.711** | **+0.041** | **246s** | **2.46×** |
+| N=2 | 1.762 | +0.092 | 254s | 2.39× |
+| N=1 (full stop-grad) | 1.894 | +0.223 | 257s | 2.36× |
+
+**N=4 is the sweet spot.** It recovers 82% of the stop-gradient quality cost (+0.041 vs +0.223) while matching stop-gradient speed (2.46× vs 2.36× — actually slightly faster due to reduced overhead). Beyond N=4, diminishing returns: N=8 adds only 0.007 more quality for 16% more runtime.
+
+The quality curve has a sharp knee: going from N=1 to N=2 recovers 0.131 nats. N=2 to N=4 recovers another 0.051. N=4 to N=8 only 0.007. Most of the gradient signal flows through 4 timesteps — matching the temporal attention window (k=4).
+
+**For async pipelining:** this means you can break gradient flow every 4 steps with minimal quality cost. A pipeline with 4-step stages would get 2.46× training throughput at only +0.041 nats quality penalty. Artifacts: [`experiments/residual_stream_time_partial_detach/artifacts/sweep/`](../../../experiments/residual_stream_time_partial_detach/artifacts/sweep/).
+
 ---
 
 ## Open questions this report does not close
