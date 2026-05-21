@@ -108,8 +108,65 @@ Same token format, processed sequentially:
 
 ## Results
 
-*(Pending — experiment in progress)*
+### Set-transformer baseline (228K params, 41s training)
+
+| Context patches | MSE | PSNR |
+|-----------------|-----|------|
+| 8 | 0.0521 | 12.83 |
+| 16 | 0.0512 | 12.91 |
+| 32 | 0.0516 | 12.87 |
+| 48 | 0.0513 | 12.90 |
+
+Reference baselines: zero-prediction MSE ~0.088, mean-patch MSE ~0.078. The set-transformer is meaningfully better than trivial.
+
+**Notable:** context fraction barely matters (8 patches → 48 patches gives only -0.001 MSE improvement). This suggests either (a) MNIST is too simple — positional priors dominate, or (b) the model isn't fully utilizing context.
+
+### Residual-stream-across-time probe (229K params, 720s training)
+
+| Context patches | MSE | PSNR |
+|-----------------|-----|------|
+| 8 | 0.0616 | 12.10 |
+| 16 | 0.0607 | 12.17 |
+| 32 | 0.0631 | 12.00 |
+| 48 | 0.0624 | 12.05 |
+
+**Negative.** The recurrent model is:
+- **Worse on quality:** +0.010 MSE gap across all context fractions
+- **Much slower:** 18x slower training (720s vs 41s)
+- **Same flat context curve** — doesn't benefit more from additional patches
+
+Artifacts: [`experiments/image_patches_baseline/artifacts/`](../../../experiments/image_patches_baseline/artifacts/), [`experiments/image_patches_probe/artifacts/`](../../../experiments/image_patches_probe/artifacts/).
 
 ---
 
-*Last updated: 2026-05-22. Design phase.*
+## Interpretation
+
+The hypothesized advantage of the recurrent model — "builds up scene state incrementally, better for streaming/ordering" — does **not** appear on this task. The set-transformer's bidirectional attention is simply the right inductive bias for "what goes at position (r,c) given these other patches?"
+
+The flat context curve in BOTH models is the most interesting finding: going from 8 to 48 context patches barely helps either model. This means:
+1. MNIST positional priors dominate — the model learns "what's typical at (row, col)" regardless of context
+2. The task is too easy at this dataset / patch size to discriminate architectures on context utilization
+
+The recurrent model's slowness is inherent: processing 49 tokens sequentially (worst case) vs the set-transformer's single parallel forward pass. This disadvantage would only grow with more patches.
+
+## What this tells us about the architecture
+
+Combined with the [text results](../residual-stream-across-time/README.md) (+0.071 gap on 900k text):
+
+The residual-stream-across-time architecture is **strictly dominated** by transformers on both tasks tested:
+- Text: worse quality at matched params
+- Images: worse quality AND 18x slower
+
+The architecture's theoretical advantages (pipelining, streaming, local learning) have not translated into measurable improvements on ANY discriminating metric in ANY experiment.
+
+---
+
+## Open questions
+
+- **Would a harder dataset (CIFAR-10) show different relative performance?** Possibly, but unlikely to reverse the 18x speed gap.
+- **Would the recurrent model benefit from a truly sequential reveal task** (where later patches depend on which earlier patches were seen)? Possibly — but that's a different task formulation than Max specified.
+- **Is there a task where streaming processing genuinely helps?** Unknown. Neither text nor image patches have shown one.
+
+---
+
+*Last updated: 2026-05-22. Baseline and probe results.*
