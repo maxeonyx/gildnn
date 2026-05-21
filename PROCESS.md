@@ -79,7 +79,8 @@ This is not a one-time task. Every new dictation is a potential course correctio
 **Important:** dictations update docs synchronously but do NOT trigger immediate experiment changes. When a new dictation arrives:
 - **Do immediately:** update PLAN.md, PROCESS.md, and AGENTS.md to reflect it.
 - **Do NOT immediately:** start new experiments implied by it, or abandon current work because of it.
-- New experiments go into the plan as future work.
+- New experiments go into the plan as future work — they **add to the queue**, not bump the stack.
+- The latest dictation is NOT automatically the highest-priority work. It joins the queue alongside existing planned work.
 - Do not abandon the current experiment unless the dictation explicitly says to.
 
 ### The ladder

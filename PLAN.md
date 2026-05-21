@@ -245,6 +245,7 @@ This window is a strong success if, in addition to the floor above:
 
 ### What remains genuinely open
 
+- **⚠️ Async wall-clock speedup NOT demonstrated.** ([dictation 2026-05-22-3](dictations/2026-05-22-3.md)) All async experiments so far measured quality cost of stale reads. None demonstrated the actual point: that async execution gives a real wall-clock throughput improvement over synchronous. "The only point of it is to get wall clock time speed up." This is the primary open question.
 - **Could multi-block pipelining provide real inference throughput?** Not tested at inference time.
 - **Could a different task (truly streaming, online) show architectural advantage?** All tests used fixed-length batches.
 - **Is the broader "cortical column" vision accessible via a different instantiation?** The mix-add/temporal-attention instantiation doesn't outperform, but other module/boundary designs might.
@@ -252,9 +253,11 @@ This window is a strong success if, in addition to the floor above:
 
 ## Current state (2026-05-22)
 
-The residual-stream-across-time thread is **conclusively characterized**. No further experiments on this architecture are likely to change the overall picture: it's viable but less efficient than transformers on every metric tested.
+The residual-stream-across-time thread is **conclusively characterized** for quality. No further experiments on quality are likely to change the picture: it's viable but less efficient than transformers on every metric tested.
 
-The project has met all stated success criteria and produced honest, well-grounded findings. The remaining ~8 days of the window should focus on:
-1. Final synthesis / decision matrix (what worked, what didn't, what to continue)
-2. Any remaining high-value experiment that would address the genuinely open questions above
+**The async SPEED question is unanswered.** Per [dictation 2026-05-22-3](dictations/2026-05-22-3.md): we proved stale reads don't hurt quality much, but we never proved they HELP throughput. The whole point of async is wall-clock speedup (and secondarily, modules at different rates). The next experiment must demonstrate: async-on vs async-off → measurable wall-clock improvement. This likely requires actual parallel/pipelined execution, not just simulated stale reads.
+
+The remaining ~8 days of the window should focus on:
+1. **Async wall-clock speedup experiment** — the primary open question
+2. Final synthesis / decision matrix
 3. Clean reporting and documentation
