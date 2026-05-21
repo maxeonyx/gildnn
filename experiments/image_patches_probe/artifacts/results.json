@@ -1,0 +1,377 @@
+{
+  "git_sha": "3964e31e67c9b104c4c0eac8c991f298d3973630",
+  "seed": 42,
+  "environment": {
+    "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+    "torch_version": "2.11.0+cu128",
+    "device": "cuda",
+    "cuda_is_available": true,
+    "cuda_device_name": "NVIDIA GeForce RTX 3090"
+  },
+  "dataset": {
+    "name": "MNIST",
+    "image_size": 32,
+    "patch_size": 4,
+    "grid_size": 8,
+    "patch_count": 64,
+    "patch_dim": 16,
+    "train_images": 60000,
+    "val_images": 10000,
+    "context_options": [
+      8,
+      16,
+      32,
+      48
+    ],
+    "order_probabilities": {
+      "random": 0.7,
+      "raster": 0.1,
+      "reverse_raster": 0.1,
+      "column_major": 0.1
+    }
+  },
+  "model": {
+    "name": "residual_stream_patch_predictor",
+    "parameter_count": 228627,
+    "architecture": {
+      "d_model": 112,
+      "feedforward_dim": 768,
+      "num_heads": 4,
+      "temporal_window": 8,
+      "type_embedding_dim": 8,
+      "max_context_patches": 48,
+      "query_patch_representation": "learned_mask_token",
+      "coordinates": "normalized_row_col_concat",
+      "processing_order": "left_to_right_recurrent",
+      "mix_coefficients": {
+        "token": 0.47317931056022644,
+        "block": 0.8813096284866333,
+        "time": 0.8912529349327087
+      }
+    },
+    "optimizer": {
+      "type": "SingleDeviceMuonWithAuxAdam",
+      "muon_learning_rate": 0.003,
+      "muon_min_learning_rate": 0.0003,
+      "adamw_learning_rate": 0.0003,
+      "adamw_min_learning_rate": 3e-05,
+      "adamw_betas": [
+        0.9,
+        0.95
+      ],
+      "weight_decay": 0.0001,
+      "gradient_clip": 1.0,
+      "muon_parameter_names": [
+        "temporal_attention.query.weight",
+        "temporal_attention.key.weight",
+        "temporal_attention.value.weight",
+        "temporal_attention.output.weight",
+        "block.proj_in.weight",
+        "block.proj_out.weight"
+      ],
+      "adamw_parameter_names": [
+        "query_patch_token",
+        "type_embedding.weight",
+        "input_projection.weight",
+        "input_projection.bias",
+        "mix_token.alpha_logit",
+        "mix_block.alpha_logit",
+        "mix_time.alpha_logit",
+        "temporal_attention.query.bias",
+        "temporal_attention.key.bias",
+        "temporal_attention.value.bias",
+        "temporal_attention.output.bias",
+        "block.proj_in.bias",
+        "block.proj_out.bias",
+        "output_norm.weight",
+        "output_norm.bias",
+        "output_head.weight",
+        "output_head.bias"
+      ]
+    },
+    "runtime_seconds": 720.57,
+    "history": [
+      {
+        "epoch": 1,
+        "train_mse": 0.081736,
+        "val_mse": 0.077423,
+        "val_psnr": 11.111294,
+        "muon_learning_rate": 0.00293393,
+        "adamw_learning_rate": 0.00029339
+      },
+      {
+        "epoch": 2,
+        "train_mse": 0.075265,
+        "val_mse": 0.077572,
+        "val_psnr": 11.102938,
+        "muon_learning_rate": 0.00274217,
+        "adamw_learning_rate": 0.00027422
+      },
+      {
+        "epoch": 3,
+        "train_mse": 0.07481,
+        "val_mse": 0.075307,
+        "val_psnr": 11.23165,
+        "muon_learning_rate": 0.00244351,
+        "adamw_learning_rate": 0.00024435
+      },
+      {
+        "epoch": 4,
+        "train_mse": 0.075279,
+        "val_mse": 0.073988,
+        "val_psnr": 11.308386,
+        "muon_learning_rate": 0.00206717,
+        "adamw_learning_rate": 0.00020672
+      },
+      {
+        "epoch": 5,
+        "train_mse": 0.074109,
+        "val_mse": 0.071327,
+        "val_psnr": 11.467475,
+        "muon_learning_rate": 0.00165,
+        "adamw_learning_rate": 0.000165
+      },
+      {
+        "epoch": 6,
+        "train_mse": 0.070182,
+        "val_mse": 0.067746,
+        "val_psnr": 11.691175,
+        "muon_learning_rate": 0.00123283,
+        "adamw_learning_rate": 0.00012328
+      },
+      {
+        "epoch": 7,
+        "train_mse": 0.066726,
+        "val_mse": 0.065129,
+        "val_psnr": 11.862258,
+        "muon_learning_rate": 0.00085649,
+        "adamw_learning_rate": 8.565e-05
+      },
+      {
+        "epoch": 8,
+        "train_mse": 0.062766,
+        "val_mse": 0.064452,
+        "val_psnr": 11.907613,
+        "muon_learning_rate": 0.00055783,
+        "adamw_learning_rate": 5.578e-05
+      },
+      {
+        "epoch": 9,
+        "train_mse": 0.060955,
+        "val_mse": 0.062289,
+        "val_psnr": 12.055853,
+        "muon_learning_rate": 0.00036607,
+        "adamw_learning_rate": 3.661e-05
+      },
+      {
+        "epoch": 10,
+        "train_mse": 0.06072,
+        "val_mse": 0.060885,
+        "val_psnr": 12.154881,
+        "muon_learning_rate": 0.0003,
+        "adamw_learning_rate": 3e-05
+      }
+    ],
+    "evaluation": {
+      "by_context_patches": {
+        "8": {
+          "mse": 0.061644,
+          "psnr": 12.101099,
+          "zero_baseline_mse": 0.087614,
+          "zero_baseline_psnr": 10.574284,
+          "mean_patch_baseline_mse": 0.077256,
+          "mean_patch_baseline_psnr": 11.120678
+        },
+        "16": {
+          "mse": 0.060746,
+          "psnr": 12.164823,
+          "zero_baseline_mse": 0.086259,
+          "zero_baseline_psnr": 10.641954,
+          "mean_patch_baseline_mse": 0.076115,
+          "mean_patch_baseline_psnr": 11.185323
+        },
+        "32": {
+          "mse": 0.063069,
+          "psnr": 12.001856,
+          "zero_baseline_mse": 0.091157,
+          "zero_baseline_psnr": 10.402094,
+          "mean_patch_baseline_mse": 0.079992,
+          "mean_patch_baseline_psnr": 10.969538
+        },
+        "48": {
+          "mse": 0.062351,
+          "psnr": 12.051553,
+          "zero_baseline_mse": 0.089929,
+          "zero_baseline_psnr": 10.461004,
+          "mean_patch_baseline_mse": 0.079049,
+          "mean_patch_baseline_psnr": 11.02106
+        }
+      }
+    }
+  },
+  "baseline_reference": {
+    "git_sha": "c9bd4293da0893707178647c83c6d1162e29eddd",
+    "seed": 42,
+    "environment": {
+      "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+      "torch_version": "2.11.0+cu128",
+      "device": "cuda",
+      "cuda_is_available": true,
+      "cuda_device_name": "NVIDIA GeForce RTX 3090"
+    },
+    "dataset": {
+      "name": "MNIST",
+      "image_size": 32,
+      "patch_size": 4,
+      "patch_count": 64,
+      "patch_dim": 16,
+      "train_images": 60000,
+      "val_images": 10000,
+      "context_options": [
+        8,
+        16,
+        32,
+        48
+      ],
+      "order_probabilities": {
+        "random": 0.7,
+        "raster": 0.1,
+        "reverse_raster": 0.1,
+        "column_major": 0.1
+      }
+    },
+    "model": {
+      "name": "set_transformer_patch_predictor",
+      "parameter_count": 228720,
+      "architecture": {
+        "d_model": 96,
+        "num_heads": 4,
+        "num_layers": 3,
+        "feedforward_dim": 192,
+        "type_embedding_dim": 8,
+        "dropout": 0.0,
+        "max_context_patches": 48,
+        "uses_causal_mask": false,
+        "uses_sequence_position_embedding": false,
+        "query_patch_representation": "learned_mask_token",
+        "coordinates": "normalized_row_col_concat"
+      },
+      "optimizer": {
+        "type": "AdamW",
+        "learning_rate": 0.0003,
+        "min_learning_rate": 3e-05,
+        "weight_decay": 0.0001,
+        "gradient_clip": 1.0
+      },
+      "runtime_seconds": 41.0,
+      "history": [
+        {
+          "epoch": 1,
+          "train_mse": 0.079503,
+          "val_mse": 0.07737,
+          "val_psnr": 11.114281,
+          "learning_rate": 0.00029339
+        },
+        {
+          "epoch": 2,
+          "train_mse": 0.06871,
+          "val_mse": 0.059506,
+          "val_psnr": 12.254405,
+          "learning_rate": 0.00027422
+        },
+        {
+          "epoch": 3,
+          "train_mse": 0.056352,
+          "val_mse": 0.052898,
+          "val_psnr": 12.765648,
+          "learning_rate": 0.00024435
+        },
+        {
+          "epoch": 4,
+          "train_mse": 0.054504,
+          "val_mse": 0.051365,
+          "val_psnr": 12.893363,
+          "learning_rate": 0.00020672
+        },
+        {
+          "epoch": 5,
+          "train_mse": 0.053599,
+          "val_mse": 0.051686,
+          "val_psnr": 12.866281,
+          "learning_rate": 0.000165
+        },
+        {
+          "epoch": 6,
+          "train_mse": 0.052645,
+          "val_mse": 0.051059,
+          "val_psnr": 12.919298,
+          "learning_rate": 0.00012328
+        },
+        {
+          "epoch": 7,
+          "train_mse": 0.052727,
+          "val_mse": 0.052057,
+          "val_psnr": 12.835203,
+          "learning_rate": 8.565e-05
+        },
+        {
+          "epoch": 8,
+          "train_mse": 0.051525,
+          "val_mse": 0.052116,
+          "val_psnr": 12.830251,
+          "learning_rate": 5.578e-05
+        },
+        {
+          "epoch": 9,
+          "train_mse": 0.050809,
+          "val_mse": 0.050836,
+          "val_psnr": 12.938254,
+          "learning_rate": 3.661e-05
+        },
+        {
+          "epoch": 10,
+          "train_mse": 0.050944,
+          "val_mse": 0.050081,
+          "val_psnr": 13.003277,
+          "learning_rate": 3e-05
+        }
+      ],
+      "evaluation": {
+        "by_context_patches": {
+          "8": {
+            "mse": 0.052106,
+            "psnr": 12.831163,
+            "zero_baseline_mse": 0.087614,
+            "zero_baseline_psnr": 10.574284,
+            "mean_patch_baseline_mse": 0.077256,
+            "mean_patch_baseline_psnr": 11.120678
+          },
+          "16": {
+            "mse": 0.051227,
+            "psnr": 12.90498,
+            "zero_baseline_mse": 0.086259,
+            "zero_baseline_psnr": 10.641954,
+            "mean_patch_baseline_mse": 0.076115,
+            "mean_patch_baseline_psnr": 11.185323
+          },
+          "32": {
+            "mse": 0.051626,
+            "psnr": 12.87128,
+            "zero_baseline_mse": 0.091157,
+            "zero_baseline_psnr": 10.402094,
+            "mean_patch_baseline_mse": 0.079992,
+            "mean_patch_baseline_psnr": 10.969538
+          },
+          "48": {
+            "mse": 0.051327,
+            "psnr": 12.896544,
+            "zero_baseline_mse": 0.089929,
+            "zero_baseline_psnr": 10.461004,
+            "mean_patch_baseline_mse": 0.079049,
+            "mean_patch_baseline_psnr": 11.02106
+          }
+        }
+      }
+    }
+  }
+}
