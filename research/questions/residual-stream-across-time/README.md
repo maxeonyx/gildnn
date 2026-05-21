@@ -275,6 +275,30 @@ Once the base probe trains cleanly:
 
 ---
 
+## Experimental results: minimal probe
+
+The theory probe above has now been run in the smallest frame that stayed legible. The tested model is a **single reused residual block** with `d_model=192`, causal attention over the previous `k=4` residual states, plain residual add, and one **shared temporal pre-norm** applied to the stream at the start of each timestep before the FFN block and attention query. Artifacts live under [`experiments/residual_stream_time/`](../../../experiments/residual_stream_time/), with the key runs in [`artifacts/overfit-fast/`](../../../experiments/residual_stream_time/artifacts/overfit-fast/), [`artifacts/scaleup-192/`](../../../experiments/residual_stream_time/artifacts/scaleup-192/), [`artifacts/overfit-timestep-norm/`](../../../experiments/residual_stream_time/artifacts/overfit-timestep-norm/), and [`artifacts/scaleup-192-timestep-norm/`](../../../experiments/residual_stream_time/artifacts/scaleup-192-timestep-norm/).
+
+The most important result is that **temporal pre-norm appears essential in this architecture family**. Without it, the short scale-up run stayed finite but the residual stream norm grew to `1555.07` by the end of the prompt trace, the attention weights drifted toward near-uniform reads over the 4-state window, and generation collapsed to mostly blank continuation ([`scaleup-192/tiny_metrics.json`](../../../experiments/residual_stream_time/artifacts/scaleup-192/tiny_metrics.json), [`scaleup-192/sample.txt`](../../../experiments/residual_stream_time/artifacts/scaleup-192/sample.txt)). An earlier no-pre-norm version was worse again: overfit hit NaNs until attention-side normalization was added ([`overfit-fast/overfit_metrics.json`](../../../experiments/residual_stream_time/artifacts/overfit-fast/overfit_metrics.json)). The current best reading is not "plain add is impossible," but "plain temporal residual accumulation needs a transformer-style read-through norm."
+
+With the added temporal pre-norm, the same reduced scale-up frame (`50K` train chars, `10K` val chars, `3` epochs) reached **validation loss `1.787978` and validation accuracy `47.0%`**, with prompt-trace final stream RMS only `3.33` and clearly non-uniform temporal attention ([`scaleup-192-timestep-norm/tiny_metrics.json`](../../../experiments/residual_stream_time/artifacts/scaleup-192-timestep-norm/tiny_metrics.json)). The generated text is still repetitive, but it is now recognizably English-like:
+
+```text
+First Citizen:
+Before we proceed any further, hear me speak.
+
+All:
+And the prouse the prouse the prouse ...
+```
+
+See [`scaleup-192-timestep-norm/sample.txt`](../../../experiments/residual_stream_time/artifacts/scaleup-192-timestep-norm/sample.txt) and [`scaleup-192-timestep-norm/progression_samples.json`](../../../experiments/residual_stream_time/artifacts/scaleup-192-timestep-norm/progression_samples.json).
+
+This is encouraging but still narrow evidence. The current transformer trust anchor on the standardized comparison frame is about **`1.632` validation loss at ~`186K` parameters** ([`PLAN.md`](../../../PLAN.md), [`research/questions/chain-dynamic-depth/README.md`](../chain-dynamic-depth/README.md)), while this residual-stream-time probe reached **`1.788` at `481,019` parameters** — about `2.6x` larger, and also trained on a smaller/shorter `50K` / `3`-epoch budget. That makes the current result a proof-of-viability, not a fair efficiency comparison. The repetitive generation may still be a training-budget problem rather than a decisive architectural failure.
+
+What this probe now tells us is narrower but useful: **the residual-stream-across-time concept can learn at all, temporal pre-norm looks non-negotiable, and attention over past residual states can become selective and useful rather than decorative**. What it does **not** tell us yet is whether this family can be parameter-efficient relative to transformers, whether diagonal cross-time block coupling improves anything, or whether the async version gains systems throughput without unacceptable quality cost.
+
+---
+
 ## Open questions this report does not close
 
 These remain genuinely open after this analysis:
@@ -288,4 +312,4 @@ These remain genuinely open after this analysis:
 
 ---
 
-*Last updated: 2026-05-21. Theory analysis only — no experimental results yet.*
+*Last updated: 2026-05-21. Theory plus initial minimal-probe results; comparison claims remain provisional.*
