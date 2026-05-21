@@ -11,7 +11,7 @@ Each experiment gets its own subdirectory: `experiments/<experiment-name>/`. The
 - Raw outputs: prediction dumps, loss logs, debug traces, text samples
 - Any artifact that is too messy or verbose for the Max-readable report
 
-Run experiments from the repo root: `python -m experiments.<dir-name>.<script>` or `python -m experiments.<script>` for legacy flat scripts.
+Run experiments from the repo root: `python -m experiments.<dir-name>`
 
 ## What does NOT go here
 
@@ -25,10 +25,6 @@ Run experiments from the repo root: `python -m experiments.<dir-name>.<script>` 
 - Save enough config that a result can be recreated without guesswork
 - Delete dead experiments that taught nothing and are only clutter
 - If two experiments share logic, move that logic into `core/`
-
-## Legacy flat layout
-
-Some older experiments exist as flat `.py` files directly in this directory (not in subdirectories). New experiments should use subdirectories. Flat scripts will be migrated as those threads are revisited.
 
 ## Experiment visibility
 
