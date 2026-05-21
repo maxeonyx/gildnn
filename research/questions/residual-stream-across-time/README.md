@@ -66,7 +66,7 @@ This is why Max keeps coming back to the transformer analogy. In a transformer, 
 
 ## Design tree of architectural choices
 
-The following branches cover the space of meaningful choices. Not all combinations are sensible — pruning reasoning follows each branch.
+The following branches cover the choices Max named across the dictations. This is not necessarily complete — it maps the space as he described it, not as an exhaustive enumeration. Not all combinations are sensible — pruning reasoning follows each branch.
 
 ### 1. Temporal coupling mechanism
 
@@ -86,13 +86,13 @@ s_T = mix(s_{T-1}, block(s_{T-1}, x_T), m)
 ```
 where `mix(a, b, m) = a * sqrt(σ(m)) + b * sqrt(1 - σ(m))`. This is approximately norm-preserving when both inputs are unit-norm. Whether it helps training stability here — where the stream is accumulated over many timesteps — is an open question. It is a candidate to compare against plain add.
 
-**C. Causal attention over past residual states** *(Max's preferred mechanism)*
+**C. Causal attention over past residual states**
 The block at time T has access to a short history `[s_{T-k}, ..., s_{T-1}]` and computes attention-weighted reads over those states, then adds to the stream:
 ```
 context = CausalAttn([s_{T-k}, ..., s_{T-1}])
 s_T = s_{T-1} + block(s_{T-1}, x_T, context)
 ```
-This is what Max explicitly asks for in [2026-05-20-15](../../../dictations/2026-05-20-15.md): *"I'm interested in attention over the past."* The window length `k` is a design choice — short window is cheap and testable; long window approaches full sequence attention over the temporal dimension.
+Max says he is *"interested in attention over the past"* ([2026-05-20-15](../../../dictations/2026-05-20-15.md)) — the same dictation also names mix-add as a candidate. Both are things he wants to explore; neither is declared preferred over the other. The window length `k` is a design choice — short window is cheap and testable; long window approaches full sequence attention over the temporal dimension.
 
 **D. Attention + mix-add**
 Combine C and B: attention over past states, with mix-add combining the result into the stream. This is probably not the first thing to test — it conflates two variables.
@@ -104,27 +104,33 @@ Max is explicit: *"I don't like these gating mechanisms, I like residual streams
 
 How do blocks connect across time?
 
-**A. Same block across time (looped)**
-One block `f` is applied at every timestep. The same weights process the stream at T=0, T=1, T=2, ... This is weight-tied recurrence, but without gating. It directly implements the grounding analogy Max gave: *"a transformer with attention residual connections, but with looped blocks."*
+**B. Diagonal block coupling** *(what Max named explicitly)*
+From [2026-05-20-15](../../../dictations/2026-05-20-15.md): *"Going from residual block A to the next block in the next time step, a diagonal step."*
 
-**B. Diagonal block coupling**
-From [2026-05-20-15](../../../dictations/2026-05-20-15.md): *"Going from residual block A to the next block in the next time step, a diagonal step."* In a multi-block arrangement (say blocks B1, B2, B3 running in sequence within each timestep), instead of B1 at time T only seeing B3's output at T (pure depth coupling), B1 at time T also sees B1's output at T-1 via a residual add. Block Bi at time T reads from block B_{i-1} at T and from block Bi at T-1. This is a diagonal in the (depth × time) grid.
+The diagonal is block-to-*next-block* across time, not same-block across time. In a multi-block arrangement (blocks B1, B2, B3 running in sequence within each timestep), block Bi at time T receives a residual contribution from block B_{i-1} at time T-1 — one step back in time, one step up in depth. That is the diagonal: `(depth i-1, time T-1) → (depth i, time T)`.
 
-Visually:
+Visually, in the (depth × time) grid:
+
 ```
        T=0    T=1    T=2
-B3:    [  ]-->[  ]-->[  ]
-        ↑      ↑      ↑
-B2:    [  ]-->[  ]-->[  ]
-        ↑      ↑      ↑
-B1:    [  ]-->[  ]-->[  ]
+B3:    [  ]   [  ]<\ [  ]
+        ↑      ↑ \  ↑ \
+B2:    [  ]   [  ]<\ [  ]
+        ↑      ↑ \  ↑ \
+B1:    [  ]   [  ]  [  ]
 ```
-In pure depth, arrows are only vertical (↑). In diagonal coupling, each block also has a horizontal arrow from its own previous timestep. The diagonal residual is the horizontal arrow.
+
+Vertical arrows (↑) are depth connections within a timestep. Diagonal arrows (\) are the new cross-time residuals: B1(T-1) → B2(T), B2(T-1) → B3(T), etc. This is distinct from a horizontal connection (same block across time: B1(T-1) → B1(T)) and from the vertical connection (previous depth at same time: B_{i-1}(T) → Bi(T)).
+
+The operational implication: each block in the stack has two incoming residual streams — one from below it at the current timestep, one diagonally from the block below-and-back. These combine before (or as part of) the block's computation. The gradient flow is also diagonal: the diagonal connection must be covered by the stop-gradient choice.
+
+**A. Same block across time (looped / horizontal)**
+One block `f` reused at every timestep. The same weights process the stream at T=0, T=1, T=2, .... This is weight-tied temporal recurrence without gating. It relates to the grounding analogy Max gave — *"a transformer with attention residual connections, but with looped blocks"* — but the connection here is horizontal (same block), not diagonal (next block). This is the control topology: it uses the correct primitive (residual add, no gates) without yet adding the diagonal structure Max named as "the main thing."
 
 **C. Both**
-The full topology: all blocks reused across time, with diagonal residual connections in addition to the standard depth-wise residuals. This is the richest version but also the hardest to build cleanly as a first probe.
+Full topology: diagonal residual connections between adjacent blocks across time, plus standard depth-wise residuals, plus same-block temporal coupling if desired. This is the richest version and the hardest to build cleanly as a first probe.
 
-**Minimal faithful choice:** A is the first thing to test. B requires a multi-block setup; it is a meaningful experiment but should come after A works.
+**What the topology choice implies for the minimal probe:** A (looped single block) is the tractable starting point — it tests the temporal residual primitive without multi-block machinery. B (diagonal) is what Max named as *"the main thing I really want to explore"* — it needs at least two blocks and the diagonal connection wired explicitly. These should be tested in sequence, not combined with other variables on the first run.
 
 ### 3. Gradient coupling
 
@@ -139,7 +145,7 @@ No stop-gradients. Gradients flow through the temporal residual connection acros
 **C. Stop-gradient at selected boundaries only**
 Partial decoupling: detach across certain time boundaries, keep full gradients elsewhere. This is probably not the first thing to explore — it adds a hyperparameter without a clear principled choice for where to put the boundaries.
 
-**What is known:** stop-gradient at timestep boundaries is likely needed to realize the async execution speedup. Whether it also helps or hurts training *quality* is unknown and should be measured. These are two separate questions.
+**Max's expectation:** stop-gradients are probably needed for async throughput gains — he says *"I also do expect stop gradients to be important for async performance in training."* That's an expectation, not a confirmed result. Whether stop-gradients help or hurt training *quality* is a separate and unknown question. These should be measured independently.
 
 ### 4. Async execution semantics
 
@@ -218,48 +224,54 @@ Max's description from [2026-05-20-16](../../../dictations/2026-05-20-16.md) giv
 
 ## Proposed minimal faithful probe
 
-The smallest model that honestly instantiates this architecture, as Max described it.
+One concrete architecture. Not a family of experiments — one set of choices from the design tree, chosen to be the smallest thing that honestly instantiates the concept.
 
-### What it is
+### The probe
 
-A character-level language model on the Karpathy dataset with the following structure:
+A character-level language model (Karpathy dataset) with:
 
-- **One residual block**, `B`, with standard transformer-style internals (LayerNorm → Attention or FFN → residual add). No separate hidden dimension; block input and output are both `d_model`.
-- **Unrolled across time** for a sequence of `T` input characters. At each timestep T, the block takes `s_{T-1}` (the residual stream from the prior timestep) and the input embedding `x_T`, and produces:
+- **One residual block** `B` with standard transformer-style internals (LayerNorm → self-attention → FFN → residual add). Input and output are both `d_model` — no separate hidden dimension.
+- **Unrolled across time.** At each timestep T, the block reads the residual stream from the prior step and the input embedding, then adds its output:
   ```
   s_T = s_{T-1} + B(s_{T-1}, x_T)
   ```
-- **Optional: causal attention over a short history.** The block can attend over `[s_{T-k}, ..., s_{T-1}]` when computing its update. Window size `k` is a hyperparameter (start with `k=4` or `k=8`). This tests mechanism 1C vs 1A in the same codebase by setting `k=0` for the ablation.
-- **Output head:** linear projection from `s_T` to vocabulary logits. Cross-entropy loss against next character.
-- **No broadcast. No local learning. No async execution.** These are orthogonal variables to isolate later.
-- **Stop-gradient variant:** run with and without `detach(s_{T-1})` at the temporal boundary. Measure whether this degrades loss and by how much (this quantifies the cost of the async-enabling change).
+  No gating. No separate hidden state. Plain residual add.
+- **Causal attention over a short window of past residual states** `[s_{T-k}, ..., s_{T-1}]` inside the block, with window `k=4`. This is one of the two temporal coupling mechanisms Max named; it is included because it is what makes this different from a trivial looped FFN.
+- **Output head:** linear projection from `s_T` to vocabulary logits, cross-entropy loss vs next character.
+- **No broadcast. No local learning. No stop-gradient. No async execution.** All deferred.
 
-### Why this is faithful
+That is the probe. One block, one temporal coupling mechanism, plain residual add, global end-to-end gradients.
 
-- Uses residual addition across time, not gating — correct primitive.
-- Reuses one block across time — directly realizes Max's "looped blocks" description.
-- Causal attention over past residual states — Max's preferred temporal coupling mechanism.
-- No GRU, no LSTM, no built-in recurrent unit.
-- The stop-gradient variant measures the async-enabling mechanism in isolation.
+### Why these choices
+
+- Single block keeps the architecture legible and the failure modes interpretable.
+- Plain residual add (not mix-add) as the temporal combinator avoids confounding the coupling question with the norm-preservation question.
+- Window attention `k=4` over past states rather than `k=0` (plain residual) because without it the probe is just a looped FFN — it doesn't test the attention-over-past mechanism Max named. `k=4` is small enough to be fast and large enough for attention to do something.
+- Global gradients as the baseline: establishing that the architecture learns at all before adding the stop-gradient complication.
+
+### Future comparison arms (not part of this probe)
+
+Once the base probe trains cleanly:
+
+- `k=0` ablation: plain residual add with no attention over past — isolates the contribution of the temporal attention.
+- Mix-add at the temporal boundary instead of plain `+`.
+- Stop-gradient at `detach(s_{T-1})` — measures the quality cost of the async-enabling change.
+- Multi-block with diagonal residual connections — the topology Max said is "the main thing."
+- GRU control on the same task and parameter count — not the goal, but a reference point for whether the primitive is viable.
 
 ### What this probe can tell us
 
-- Can this architecture learn to model character-level language at all? (sanity check)
-- Does causal attention over past residual states improve on plain residual add? (mechanism 1C vs 1A)
-- What does stop-gradient at timestep boundaries cost in loss? (quantifies the async-enabling tradeoff)
-- Is mix-add better than plain add at the temporal boundary? (comparison arm)
+- Can this architecture learn character-level language at all?
+- Does the short-window temporal attention produce lower loss than the `k=0` ablation (when that runs later)?
+- Is training stable under plain residual accumulation without norm control?
 
 ### What this probe cannot tell us
 
 - Whether diagonal block coupling (mechanism 2B) helps — needs multi-block architecture.
-- Whether local learning works in this frame — deferred.
-- Whether the broadcast mechanism can learn anything useful — deferred.
-- Whether true async execution gives throughput gains — deferred; requires systems work after the architecture is validated.
-- Whether this scales — one tiny probe on char-level language is evidence of tractability, not performance.
-
-### Comparison against wrong baseline
-
-The probe should include a comparison against a standard GRU on the same task and same parameter count. Not because GRU is the goal — it isn't — but because it is the thing that has been built and run before, and we need to show that the new architecture is at least in the same ballpark before scaling it. If the plain residual-stream-across-time model dramatically underperforms a GRU on a trivial task, that is important information about whether the primitive is even viable, not evidence that we should switch back to GRUs.
+- Whether mix-add helps at the temporal boundary.
+- Whether stop-gradient degrades loss and by how much.
+- Whether local learning or the broadcast mechanism are viable.
+- Whether true async execution gives throughput gains.
 
 ---
 
