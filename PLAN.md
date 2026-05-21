@@ -34,6 +34,12 @@ These are "conditions under which negatives might not generalize" — not promis
 
 ## Completed experiments
 
+### Thread 2 (dynamic computation depth)
+
+- **Dynamic depth / adaptive compute** — POSITIVE. 43% compute savings for 1% quality loss. Multi-exit training stable. See `research/questions/dynamic-depth/README.md`.
+
+### Thread 1 (cortical column / residual-stream-across-time)
+
 - **Local learning (residual)** — NEGATIVE. val 2.081 vs 1.644 end-to-end. See `research/questions/local-learning-residual/README.md`.
 - **Attention-residual (depth-only)** — MARGINAL/INCONCLUSIVE. Transient 0.013 nat edge, regresses, 33% slower. See `research/questions/attention-residual/README.md`.
 - **Async/selective execution** — NEGATIVE. 26-29% slower wall-clock despite fewer executions. See `research/questions/async-selective/README.md`.
