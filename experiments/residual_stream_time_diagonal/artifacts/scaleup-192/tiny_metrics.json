@@ -1,0 +1,964 @@
+{
+  "parameter_count": 777275,
+  "runtime_seconds": 205.05218559999776,
+  "final_val_loss": 1.787626152837142,
+  "final_val_accuracy": 0.47685185185185186,
+  "best_val_loss": 1.787626,
+  "best_val_accuracy": 0.476852,
+  "best_epoch": 3,
+  "prompt": "First Citizen:\\nBefore we proceed any further, hear me speak.\\n\\nAl",
+  "prompt_trace": {
+    "final_stream_rms": 3.845581531524658,
+    "step_traces": [
+      {
+        "time_index": 0,
+        "history_length": 0,
+        "stream_rms": 5.278126239776611,
+        "block1_delta_rms": 4.812228202819824,
+        "diagonal_input_rms": 0.0,
+        "block2_delta_rms": 0.7224202156066895,
+        "temporal_context_rms": 0.0,
+        "attention_weights": []
+      },
+      {
+        "time_index": 1,
+        "history_length": 1,
+        "stream_rms": 6.486332893371582,
+        "block1_delta_rms": 1.687310814857483,
+        "diagonal_input_rms": 4.812228202819824,
+        "block2_delta_rms": 0.5185278654098511,
+        "temporal_context_rms": 0.7963072061538696,
+        "attention_weights": [
+          1.0
+        ]
+      },
+      {
+        "time_index": 2,
+        "history_length": 2,
+        "stream_rms": 3.2350034713745117,
+        "block1_delta_rms": 1.023680329322815,
+        "diagonal_input_rms": 1.687310814857483,
+        "block2_delta_rms": 1.3094154596328735,
+        "temporal_context_rms": 0.8166636824607849,
+        "attention_weights": [
+          0.477052,
+          0.522948
+        ]
+      },
+      {
+        "time_index": 3,
+        "history_length": 3,
+        "stream_rms": 5.616664886474609,
+        "block1_delta_rms": 4.05755090713501,
+        "diagonal_input_rms": 1.023680329322815,
+        "block2_delta_rms": 1.1838792562484741,
+        "temporal_context_rms": 0.8095123767852783,
+        "attention_weights": [
+          0.129741,
+          0.058792,
+          0.811467
+        ]
+      },
+      {
+        "time_index": 4,
+        "history_length": 4,
+        "stream_rms": 6.96159029006958,
+        "block1_delta_rms": 1.6922725439071655,
+        "diagonal_input_rms": 4.05755090713501,
+        "block2_delta_rms": 0.6220412254333496,
+        "temporal_context_rms": 0.6214135885238647,
+        "attention_weights": [
+          0.311068,
+          0.034629,
+          0.286938,
+          0.367366
+        ]
+      },
+      {
+        "time_index": 5,
+        "history_length": 4,
+        "stream_rms": 7.71742057800293,
+        "block1_delta_rms": 2.9512786865234375,
+        "diagonal_input_rms": 1.6922725439071655,
+        "block2_delta_rms": 3.1441001892089844,
+        "temporal_context_rms": 0.6635578274726868,
+        "attention_weights": [
+          0.246283,
+          0.253275,
+          0.175881,
+          0.32456
+        ]
+      },
+      {
+        "time_index": 6,
+        "history_length": 4,
+        "stream_rms": 6.88168478012085,
+        "block1_delta_rms": 2.737921714782715,
+        "diagonal_input_rms": 2.9512786865234375,
+        "block2_delta_rms": 4.4100775718688965,
+        "temporal_context_rms": 0.4571893811225891,
+        "attention_weights": [
+          0.248507,
+          0.175013,
+          0.123118,
+          0.453361
+        ]
+      },
+      {
+        "time_index": 7,
+        "history_length": 4,
+        "stream_rms": 5.783736705780029,
+        "block1_delta_rms": 2.280423402786255,
+        "diagonal_input_rms": 2.737921714782715,
+        "block2_delta_rms": 3.5152223110198975,
+        "temporal_context_rms": 0.7847859859466553,
+        "attention_weights": [
+          0.105969,
+          0.162105,
+          0.165806,
+          0.566119
+        ]
+      },
+      {
+        "time_index": 8,
+        "history_length": 4,
+        "stream_rms": 6.685783863067627,
+        "block1_delta_rms": 4.169563293457031,
+        "diagonal_input_rms": 2.280423402786255,
+        "block2_delta_rms": 1.6539839506149292,
+        "temporal_context_rms": 0.6471982598304749,
+        "attention_weights": [
+          0.34396,
+          0.276661,
+          0.378888,
+          0.000491
+        ]
+      },
+      {
+        "time_index": 9,
+        "history_length": 4,
+        "stream_rms": 8.208314895629883,
+        "block1_delta_rms": 3.4470789432525635,
+        "diagonal_input_rms": 4.169563293457031,
+        "block2_delta_rms": 1.0065102577209473,
+        "temporal_context_rms": 0.7751142382621765,
+        "attention_weights": [
+          0.332113,
+          0.334671,
+          0.022742,
+          0.310474
+        ]
+      },
+      {
+        "time_index": 10,
+        "history_length": 4,
+        "stream_rms": 7.657090663909912,
+        "block1_delta_rms": 2.7860066890716553,
+        "diagonal_input_rms": 3.4470789432525635,
+        "block2_delta_rms": 2.9319276809692383,
+        "temporal_context_rms": 0.972417414188385,
+        "attention_weights": [
+          0.752946,
+          0.164993,
+          0.034727,
+          0.047334
+        ]
+      },
+      {
+        "time_index": 11,
+        "history_length": 4,
+        "stream_rms": 8.873306274414062,
+        "block1_delta_rms": 4.690170764923096,
+        "diagonal_input_rms": 2.7860066890716553,
+        "block2_delta_rms": 2.5005667209625244,
+        "temporal_context_rms": 1.0879850387573242,
+        "attention_weights": [
+          0.552079,
+          0.121933,
+          0.102803,
+          0.223186
+        ]
+      },
+      {
+        "time_index": 12,
+        "history_length": 4,
+        "stream_rms": 6.48296594619751,
+        "block1_delta_rms": 0.8421518802642822,
+        "diagonal_input_rms": 4.690170764923096,
+        "block2_delta_rms": 1.1850361824035645,
+        "temporal_context_rms": 0.785529375076294,
+        "attention_weights": [
+          0.096884,
+          0.194112,
+          0.294496,
+          0.414509
+        ]
+      },
+      {
+        "time_index": 13,
+        "history_length": 4,
+        "stream_rms": 5.734088897705078,
+        "block1_delta_rms": 2.6815366744995117,
+        "diagonal_input_rms": 0.8421518802642822,
+        "block2_delta_rms": 2.5980212688446045,
+        "temporal_context_rms": 0.7948142886161804,
+        "attention_weights": [
+          0.020048,
+          0.056262,
+          0.314781,
+          0.608909
+        ]
+      },
+      {
+        "time_index": 14,
+        "history_length": 4,
+        "stream_rms": 8.816328048706055,
+        "block1_delta_rms": 3.4565086364746094,
+        "diagonal_input_rms": 2.6815366744995117,
+        "block2_delta_rms": 2.8062732219696045,
+        "temporal_context_rms": 0.5937033891677856,
+        "attention_weights": [
+          0.553441,
+          0.086626,
+          0.027652,
+          0.33228
+        ]
+      },
+      {
+        "time_index": 15,
+        "history_length": 4,
+        "stream_rms": 7.333052158355713,
+        "block1_delta_rms": 3.357022762298584,
+        "diagonal_input_rms": 3.4565086364746094,
+        "block2_delta_rms": 1.7805122137069702,
+        "temporal_context_rms": 0.7348470091819763,
+        "attention_weights": [
+          0.118203,
+          0.056283,
+          0.311085,
+          0.514429
+        ]
+      },
+      {
+        "time_index": 16,
+        "history_length": 4,
+        "stream_rms": 5.764619827270508,
+        "block1_delta_rms": 1.790886402130127,
+        "diagonal_input_rms": 3.357022762298584,
+        "block2_delta_rms": 0.5706853270530701,
+        "temporal_context_rms": 0.6522520780563354,
+        "attention_weights": [
+          0.209204,
+          0.160762,
+          0.297021,
+          0.333013
+        ]
+      },
+      {
+        "time_index": 17,
+        "history_length": 4,
+        "stream_rms": 3.935051441192627,
+        "block1_delta_rms": 1.377202033996582,
+        "diagonal_input_rms": 1.790886402130127,
+        "block2_delta_rms": 0.8569650053977966,
+        "temporal_context_rms": 0.5864814519882202,
+        "attention_weights": [
+          0.167037,
+          0.150338,
+          0.487126,
+          0.195498
+        ]
+      },
+      {
+        "time_index": 18,
+        "history_length": 4,
+        "stream_rms": 4.414017200469971,
+        "block1_delta_rms": 2.928356170654297,
+        "diagonal_input_rms": 1.377202033996582,
+        "block2_delta_rms": 0.49170979857444763,
+        "temporal_context_rms": 0.7098010182380676,
+        "attention_weights": [
+          0.334709,
+          0.189601,
+          0.040255,
+          0.435436
+        ]
+      },
+      {
+        "time_index": 19,
+        "history_length": 4,
+        "stream_rms": 4.32526159286499,
+        "block1_delta_rms": 1.4222975969314575,
+        "diagonal_input_rms": 2.928356170654297,
+        "block2_delta_rms": 0.2828490436077118,
+        "temporal_context_rms": 0.5729989409446716,
+        "attention_weights": [
+          0.669741,
+          0.069762,
+          0.01922,
+          0.241277
+        ]
+      },
+      {
+        "time_index": 20,
+        "history_length": 4,
+        "stream_rms": 6.550621032714844,
+        "block1_delta_rms": 4.536614418029785,
+        "diagonal_input_rms": 1.4222975969314575,
+        "block2_delta_rms": 0.9198220372200012,
+        "temporal_context_rms": 0.5913706421852112,
+        "attention_weights": [
+          0.147965,
+          0.402534,
+          0.28495,
+          0.164551
+        ]
+      },
+      {
+        "time_index": 21,
+        "history_length": 4,
+        "stream_rms": 11.3394136428833,
+        "block1_delta_rms": 3.822300434112549,
+        "diagonal_input_rms": 4.536614418029785,
+        "block2_delta_rms": 3.583855152130127,
+        "temporal_context_rms": 0.5485621094703674,
+        "attention_weights": [
+          0.379112,
+          0.054358,
+          0.336993,
+          0.229536
+        ]
+      },
+      {
+        "time_index": 22,
+        "history_length": 4,
+        "stream_rms": 10.884031295776367,
+        "block1_delta_rms": 2.3205387592315674,
+        "diagonal_input_rms": 3.822300434112549,
+        "block2_delta_rms": 7.161331653594971,
+        "temporal_context_rms": 0.3165889084339142,
+        "attention_weights": [
+          0.313308,
+          0.12971,
+          0.167443,
+          0.389539
+        ]
+      },
+      {
+        "time_index": 23,
+        "history_length": 4,
+        "stream_rms": 5.555221080780029,
+        "block1_delta_rms": 1.9182695150375366,
+        "diagonal_input_rms": 2.3205387592315674,
+        "block2_delta_rms": 2.297325372695923,
+        "temporal_context_rms": 0.3363402485847473,
+        "attention_weights": [
+          0.101252,
+          0.118586,
+          0.440412,
+          0.339751
+        ]
+      },
+      {
+        "time_index": 24,
+        "history_length": 4,
+        "stream_rms": 8.636093139648438,
+        "block1_delta_rms": 3.462371349334717,
+        "diagonal_input_rms": 1.9182695150375366,
+        "block2_delta_rms": 3.609435796737671,
+        "temporal_context_rms": 0.32041603326797485,
+        "attention_weights": [
+          0.427,
+          0.398011,
+          0.174797,
+          0.000192
+        ]
+      },
+      {
+        "time_index": 25,
+        "history_length": 4,
+        "stream_rms": 7.609982490539551,
+        "block1_delta_rms": 1.5897362232208252,
+        "diagonal_input_rms": 3.462371349334717,
+        "block2_delta_rms": 3.8137753009796143,
+        "temporal_context_rms": 0.3469671905040741,
+        "attention_weights": [
+          0.38121,
+          0.276241,
+          0.222331,
+          0.120218
+        ]
+      },
+      {
+        "time_index": 26,
+        "history_length": 4,
+        "stream_rms": 6.128758430480957,
+        "block1_delta_rms": 1.9503610134124756,
+        "diagonal_input_rms": 1.5897362232208252,
+        "block2_delta_rms": 3.8110103607177734,
+        "temporal_context_rms": 0.5294544100761414,
+        "attention_weights": [
+          0.227133,
+          0.025851,
+          0.139204,
+          0.607812
+        ]
+      },
+      {
+        "time_index": 27,
+        "history_length": 4,
+        "stream_rms": 5.388790130615234,
+        "block1_delta_rms": 3.9042208194732666,
+        "diagonal_input_rms": 1.9503610134124756,
+        "block2_delta_rms": 0.7068514823913574,
+        "temporal_context_rms": 0.525154173374176,
+        "attention_weights": [
+          0.334371,
+          0.206001,
+          0.293653,
+          0.165976
+        ]
+      },
+      {
+        "time_index": 28,
+        "history_length": 4,
+        "stream_rms": 8.779572486877441,
+        "block1_delta_rms": 4.4110589027404785,
+        "diagonal_input_rms": 3.9042208194732666,
+        "block2_delta_rms": 0.19761158525943756,
+        "temporal_context_rms": 0.7243229150772095,
+        "attention_weights": [
+          0.180928,
+          0.275635,
+          0.377122,
+          0.166316
+        ]
+      },
+      {
+        "time_index": 29,
+        "history_length": 4,
+        "stream_rms": 8.04246997833252,
+        "block1_delta_rms": 2.7993922233581543,
+        "diagonal_input_rms": 4.4110589027404785,
+        "block2_delta_rms": 0.24795061349868774,
+        "temporal_context_rms": 0.5373726487159729,
+        "attention_weights": [
+          0.626052,
+          0.168918,
+          0.021078,
+          0.183952
+        ]
+      },
+      {
+        "time_index": 30,
+        "history_length": 4,
+        "stream_rms": 8.257020950317383,
+        "block1_delta_rms": 3.5263636112213135,
+        "diagonal_input_rms": 2.7993922233581543,
+        "block2_delta_rms": 0.9315599799156189,
+        "temporal_context_rms": 0.872793436050415,
+        "attention_weights": [
+          0.510878,
+          0.176158,
+          0.084633,
+          0.22833
+        ]
+      },
+      {
+        "time_index": 31,
+        "history_length": 4,
+        "stream_rms": 7.424093723297119,
+        "block1_delta_rms": 3.14066743850708,
+        "diagonal_input_rms": 3.5263636112213135,
+        "block2_delta_rms": 0.29938769340515137,
+        "temporal_context_rms": 0.3852415680885315,
+        "attention_weights": [
+          0.238854,
+          0.176103,
+          0.448817,
+          0.136227
+        ]
+      },
+      {
+        "time_index": 32,
+        "history_length": 4,
+        "stream_rms": 7.299689769744873,
+        "block1_delta_rms": 2.9907236099243164,
+        "diagonal_input_rms": 3.14066743850708,
+        "block2_delta_rms": 1.7031733989715576,
+        "temporal_context_rms": 0.3541351854801178,
+        "attention_weights": [
+          0.104912,
+          0.342836,
+          0.288123,
+          0.264129
+        ]
+      },
+      {
+        "time_index": 33,
+        "history_length": 4,
+        "stream_rms": 7.639878273010254,
+        "block1_delta_rms": 1.545750617980957,
+        "diagonal_input_rms": 2.9907236099243164,
+        "block2_delta_rms": 4.6951727867126465,
+        "temporal_context_rms": 0.2609184682369232,
+        "attention_weights": [
+          0.173209,
+          0.199149,
+          0.133179,
+          0.494463
+        ]
+      },
+      {
+        "time_index": 34,
+        "history_length": 4,
+        "stream_rms": 3.9791042804718018,
+        "block1_delta_rms": 2.061556100845337,
+        "diagonal_input_rms": 1.545750617980957,
+        "block2_delta_rms": 0.7291773557662964,
+        "temporal_context_rms": 0.31016865372657776,
+        "attention_weights": [
+          0.022512,
+          0.31071,
+          0.490417,
+          0.176361
+        ]
+      },
+      {
+        "time_index": 35,
+        "history_length": 4,
+        "stream_rms": 7.046317100524902,
+        "block1_delta_rms": 4.103744983673096,
+        "diagonal_input_rms": 2.061556100845337,
+        "block2_delta_rms": 0.9991422891616821,
+        "temporal_context_rms": 0.37614160776138306,
+        "attention_weights": [
+          0.160515,
+          0.396066,
+          0.187893,
+          0.255526
+        ]
+      },
+      {
+        "time_index": 36,
+        "history_length": 4,
+        "stream_rms": 10.166308403015137,
+        "block1_delta_rms": 2.576817512512207,
+        "diagonal_input_rms": 4.103744983673096,
+        "block2_delta_rms": 4.157741069793701,
+        "temporal_context_rms": 0.3465193510055542,
+        "attention_weights": [
+          0.476172,
+          0.262635,
+          0.134485,
+          0.126708
+        ]
+      },
+      {
+        "time_index": 37,
+        "history_length": 4,
+        "stream_rms": 7.479846954345703,
+        "block1_delta_rms": 3.1020090579986572,
+        "diagonal_input_rms": 2.576817512512207,
+        "block2_delta_rms": 3.1453311443328857,
+        "temporal_context_rms": 0.35793644189834595,
+        "attention_weights": [
+          0.177252,
+          0.350079,
+          0.026858,
+          0.445811
+        ]
+      },
+      {
+        "time_index": 38,
+        "history_length": 4,
+        "stream_rms": 6.731576919555664,
+        "block1_delta_rms": 2.5151724815368652,
+        "diagonal_input_rms": 3.1020090579986572,
+        "block2_delta_rms": 2.0781424045562744,
+        "temporal_context_rms": 0.6611524820327759,
+        "attention_weights": [
+          0.186017,
+          0.103783,
+          0.061041,
+          0.649159
+        ]
+      },
+      {
+        "time_index": 39,
+        "history_length": 4,
+        "stream_rms": 5.362891674041748,
+        "block1_delta_rms": 3.0076730251312256,
+        "diagonal_input_rms": 2.5151724815368652,
+        "block2_delta_rms": 1.077412486076355,
+        "temporal_context_rms": 0.6321945786476135,
+        "attention_weights": [
+          0.183944,
+          0.335942,
+          0.330912,
+          0.149202
+        ]
+      },
+      {
+        "time_index": 40,
+        "history_length": 4,
+        "stream_rms": 6.889062404632568,
+        "block1_delta_rms": 3.5689878463745117,
+        "diagonal_input_rms": 3.0076730251312256,
+        "block2_delta_rms": 0.7197739481925964,
+        "temporal_context_rms": 0.3832593262195587,
+        "attention_weights": [
+          0.543929,
+          0.022595,
+          0.063394,
+          0.370082
+        ]
+      },
+      {
+        "time_index": 41,
+        "history_length": 4,
+        "stream_rms": 7.285955429077148,
+        "block1_delta_rms": 3.2678520679473877,
+        "diagonal_input_rms": 3.5689878463745117,
+        "block2_delta_rms": 0.504527747631073,
+        "temporal_context_rms": 0.6648653745651245,
+        "attention_weights": [
+          0.506146,
+          0.271104,
+          0.067842,
+          0.154908
+        ]
+      },
+      {
+        "time_index": 42,
+        "history_length": 4,
+        "stream_rms": 7.1858015060424805,
+        "block1_delta_rms": 2.281505823135376,
+        "diagonal_input_rms": 3.2678520679473877,
+        "block2_delta_rms": 1.558258295059204,
+        "temporal_context_rms": 0.7283594608306885,
+        "attention_weights": [
+          0.245984,
+          0.104585,
+          0.482336,
+          0.167094
+        ]
+      },
+      {
+        "time_index": 43,
+        "history_length": 4,
+        "stream_rms": 5.598189830780029,
+        "block1_delta_rms": 1.9038883447647095,
+        "diagonal_input_rms": 2.281505823135376,
+        "block2_delta_rms": 0.9767036437988281,
+        "temporal_context_rms": 0.6952990293502808,
+        "attention_weights": [
+          0.147498,
+          0.461998,
+          0.098939,
+          0.291566
+        ]
+      },
+      {
+        "time_index": 44,
+        "history_length": 4,
+        "stream_rms": 7.242959499359131,
+        "block1_delta_rms": 4.752571105957031,
+        "diagonal_input_rms": 1.9038883447647095,
+        "block2_delta_rms": 0.4667356312274933,
+        "temporal_context_rms": 0.5786551833152771,
+        "attention_weights": [
+          0.432551,
+          0.133313,
+          0.209589,
+          0.224548
+        ]
+      },
+      {
+        "time_index": 45,
+        "history_length": 4,
+        "stream_rms": 10.933097839355469,
+        "block1_delta_rms": 4.7990593910217285,
+        "diagonal_input_rms": 4.752571105957031,
+        "block2_delta_rms": 2.4240829944610596,
+        "temporal_context_rms": 0.3832136392593384,
+        "attention_weights": [
+          0.190832,
+          0.161502,
+          0.320084,
+          0.327583
+        ]
+      },
+      {
+        "time_index": 46,
+        "history_length": 4,
+        "stream_rms": 9.417069435119629,
+        "block1_delta_rms": 1.1044594049453735,
+        "diagonal_input_rms": 4.7990593910217285,
+        "block2_delta_rms": 4.367819309234619,
+        "temporal_context_rms": 0.46413454413414,
+        "attention_weights": [
+          0.071657,
+          0.103419,
+          0.008894,
+          0.816029
+        ]
+      },
+      {
+        "time_index": 47,
+        "history_length": 4,
+        "stream_rms": 3.786500930786133,
+        "block1_delta_rms": 1.6709539890289307,
+        "diagonal_input_rms": 1.1044594049453735,
+        "block2_delta_rms": 1.0078622102737427,
+        "temporal_context_rms": 0.41610240936279297,
+        "attention_weights": [
+          0.426338,
+          0.07502,
+          0.30298,
+          0.195662
+        ]
+      },
+      {
+        "time_index": 48,
+        "history_length": 4,
+        "stream_rms": 5.132684230804443,
+        "block1_delta_rms": 2.7691729068756104,
+        "diagonal_input_rms": 1.6709539890289307,
+        "block2_delta_rms": 0.5429120659828186,
+        "temporal_context_rms": 0.3160303831100464,
+        "attention_weights": [
+          0.164921,
+          0.151298,
+          0.29685,
+          0.386931
+        ]
+      },
+      {
+        "time_index": 49,
+        "history_length": 4,
+        "stream_rms": 5.8717875480651855,
+        "block1_delta_rms": 2.3038723468780518,
+        "diagonal_input_rms": 2.7691729068756104,
+        "block2_delta_rms": 0.544015645980835,
+        "temporal_context_rms": 0.3372930586338043,
+        "attention_weights": [
+          0.19359,
+          0.63395,
+          0.073564,
+          0.098896
+        ]
+      },
+      {
+        "time_index": 50,
+        "history_length": 4,
+        "stream_rms": 11.60163688659668,
+        "block1_delta_rms": 3.4918417930603027,
+        "diagonal_input_rms": 2.3038723468780518,
+        "block2_delta_rms": 6.386882781982422,
+        "temporal_context_rms": 0.3580893874168396,
+        "attention_weights": [
+          0.506799,
+          0.003092,
+          0.246523,
+          0.243586
+        ]
+      },
+      {
+        "time_index": 51,
+        "history_length": 4,
+        "stream_rms": 7.595392227172852,
+        "block1_delta_rms": 3.5455572605133057,
+        "diagonal_input_rms": 3.4918417930603027,
+        "block2_delta_rms": 1.4581398963928223,
+        "temporal_context_rms": 0.35541731119155884,
+        "attention_weights": [
+          0.01527,
+          0.117906,
+          0.213314,
+          0.65351
+        ]
+      },
+      {
+        "time_index": 52,
+        "history_length": 4,
+        "stream_rms": 5.659332275390625,
+        "block1_delta_rms": 1.7739603519439697,
+        "diagonal_input_rms": 3.5455572605133057,
+        "block2_delta_rms": 0.4408772885799408,
+        "temporal_context_rms": 0.38466015458106995,
+        "attention_weights": [
+          0.247474,
+          0.242494,
+          0.123299,
+          0.386734
+        ]
+      },
+      {
+        "time_index": 53,
+        "history_length": 4,
+        "stream_rms": 11.712638854980469,
+        "block1_delta_rms": 5.067271709442139,
+        "diagonal_input_rms": 1.7739603519439697,
+        "block2_delta_rms": 5.273376941680908,
+        "temporal_context_rms": 0.3704720735549927,
+        "attention_weights": [
+          0.444886,
+          0.285869,
+          0.127677,
+          0.141568
+        ]
+      },
+      {
+        "time_index": 54,
+        "history_length": 4,
+        "stream_rms": 9.448966979980469,
+        "block1_delta_rms": 2.71152663230896,
+        "diagonal_input_rms": 5.067271709442139,
+        "block2_delta_rms": 2.7069406509399414,
+        "temporal_context_rms": 0.4559469521045685,
+        "attention_weights": [
+          0.061067,
+          0.500112,
+          0.189986,
+          0.248835
+        ]
+      },
+      {
+        "time_index": 55,
+        "history_length": 4,
+        "stream_rms": 6.5400261878967285,
+        "block1_delta_rms": 1.9195133447647095,
+        "diagonal_input_rms": 2.71152663230896,
+        "block2_delta_rms": 2.6529412269592285,
+        "temporal_context_rms": 0.5493344664573669,
+        "attention_weights": [
+          0.418495,
+          0.497348,
+          0.079267,
+          0.00489
+        ]
+      },
+      {
+        "time_index": 56,
+        "history_length": 4,
+        "stream_rms": 4.545588970184326,
+        "block1_delta_rms": 1.9287008047103882,
+        "diagonal_input_rms": 1.9195133447647095,
+        "block2_delta_rms": 0.5837535858154297,
+        "temporal_context_rms": 0.49654421210289,
+        "attention_weights": [
+          0.301201,
+          0.417807,
+          0.114182,
+          0.166811
+        ]
+      },
+      {
+        "time_index": 57,
+        "history_length": 4,
+        "stream_rms": 7.1656317710876465,
+        "block1_delta_rms": 3.708139657974243,
+        "diagonal_input_rms": 1.9287008047103882,
+        "block2_delta_rms": 0.5533962249755859,
+        "temporal_context_rms": 0.5250685214996338,
+        "attention_weights": [
+          0.363665,
+          0.136602,
+          0.352888,
+          0.146845
+        ]
+      },
+      {
+        "time_index": 58,
+        "history_length": 4,
+        "stream_rms": 8.498774528503418,
+        "block1_delta_rms": 3.339125633239746,
+        "diagonal_input_rms": 3.708139657974243,
+        "block2_delta_rms": 0.4573119282722473,
+        "temporal_context_rms": 0.4513743221759796,
+        "attention_weights": [
+          0.334526,
+          0.190125,
+          0.009022,
+          0.466327
+        ]
+      },
+      {
+        "time_index": 59,
+        "history_length": 4,
+        "stream_rms": 11.093613624572754,
+        "block1_delta_rms": 6.949497222900391,
+        "diagonal_input_rms": 3.339125633239746,
+        "block2_delta_rms": 0.7589195966720581,
+        "temporal_context_rms": 0.5813544392585754,
+        "attention_weights": [
+          0.346269,
+          0.086061,
+          0.107275,
+          0.460396
+        ]
+      },
+      {
+        "time_index": 60,
+        "history_length": 4,
+        "stream_rms": 11.851567268371582,
+        "block1_delta_rms": 3.0156331062316895,
+        "diagonal_input_rms": 6.949497222900391,
+        "block2_delta_rms": 2.0457913875579834,
+        "temporal_context_rms": 0.45686498284339905,
+        "attention_weights": [
+          0.354243,
+          0.177305,
+          0.086882,
+          0.38157
+        ]
+      },
+      {
+        "time_index": 61,
+        "history_length": 4,
+        "stream_rms": 9.42431640625,
+        "block1_delta_rms": 3.8341403007507324,
+        "diagonal_input_rms": 3.0156331062316895,
+        "block2_delta_rms": 2.2631144523620605,
+        "temporal_context_rms": 0.6306502223014832,
+        "attention_weights": [
+          0.023609,
+          0.143112,
+          0.015639,
+          0.81764
+        ]
+      },
+      {
+        "time_index": 62,
+        "history_length": 4,
+        "stream_rms": 6.1499433517456055,
+        "block1_delta_rms": 1.810747742652893,
+        "diagonal_input_rms": 3.8341403007507324,
+        "block2_delta_rms": 1.7618194818496704,
+        "temporal_context_rms": 0.5385952591896057,
+        "attention_weights": [
+          0.330991,
+          0.002123,
+          0.001776,
+          0.66511
+        ]
+      },
+      {
+        "time_index": 63,
+        "history_length": 4,
+        "stream_rms": 3.845581531524658,
+        "block1_delta_rms": 0.6555836200714111,
+        "diagonal_input_rms": 1.810747742652893,
+        "block2_delta_rms": 2.8892452716827393,
+        "temporal_context_rms": 0.628607988357544,
+        "attention_weights": [
+          0.166627,
+          0.000104,
+          0.549102,
+          0.284167
+        ]
+      }
+    ]
+  }
+}

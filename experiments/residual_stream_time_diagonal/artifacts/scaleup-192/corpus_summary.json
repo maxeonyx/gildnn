@@ -1,0 +1,12 @@
+{
+  "source_file": "C:\\Users\\maxeo\\gildnn\\experiments\\corpora.ignore\\tinyshakespeare_input.txt",
+  "source_total_characters": 1115394,
+  "train_characters": 50000,
+  "val_characters": 10000,
+  "used_total_characters": 60000,
+  "val_start": 50000,
+  "val_stop": 60000,
+  "train_windows": 49936,
+  "val_windows": 9936,
+  "vocab_size": 59
+}
