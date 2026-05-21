@@ -15,8 +15,8 @@ Key findings:
 
 ## What's left to do
 
-1. **Daily report for 2026-05-22** — due after 4pm. Big day: async wall-clock experiment + inference pipelining test + final synthesis + cleanup.
-2. **Process any new dictations** — none pending as of 11:36am May 22.
+1. **Process any new dictations** — none pending as of 11:36am May 22.
+2. **Weekly report for week of May 19** — already exists (`research/weekly/2026-05-21.md`).
 
 ## If Max provides new direction
 
