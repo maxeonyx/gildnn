@@ -1,0 +1,138 @@
+{
+  "git_sha": "ccaa26ad503a670e673320f6dc1e79296ae5bac8",
+  "seed": 42,
+  "environment": {
+    "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+    "torch_version": "2.11.0+cu128",
+    "device": "cuda",
+    "cuda_is_available": true,
+    "cuda_device_name": "NVIDIA GeForce RTX 3090"
+  },
+  "dataset": {
+    "text_file": "C:\\Users\\maxeo\\gildnn\\experiments\\corpora.ignore\\tinyshakespeare_input.txt",
+    "context_size": 64,
+    "train_characters": 900000,
+    "val_characters": 100000,
+    "train_windows": 899936,
+    "val_windows": 99936,
+    "vocab_size": 65,
+    "val_start": 900000
+  },
+  "model": {
+    "name": "orthogonal_residual_stream_time",
+    "parameterization": "exp_map_skew_symmetric",
+    "parameter_count": 182588,
+    "architecture": {
+      "d_model": 216,
+      "feedforward_dim": 216,
+      "num_heads": 4,
+      "temporal_window": 8,
+      "context_size": 64,
+      "orthogonal_layers": [
+        "block.proj_in",
+        "block.proj_out",
+        "temporal_attention.query",
+        "temporal_attention.key",
+        "temporal_attention.value",
+        "temporal_attention.output"
+      ],
+      "regular_layers": [
+        "token_embedding",
+        "position_embedding",
+        "mix_token.alpha_logit",
+        "mix_block.alpha_logit",
+        "mix_time.alpha_logit",
+        "output"
+      ]
+    }
+  },
+  "optimizer": {
+    "type": "AdamW",
+    "learning_rate": 0.0003,
+    "min_learning_rate": 3e-05,
+    "weight_decay": 0.0,
+    "gradient_clip": 1.0
+  },
+  "benchmarks": {
+    "matrix_exp_refresh_ms": 42.1051,
+    "forward_ms": 130.6992,
+    "sample_batch_size": 32
+  },
+  "runtime_seconds": 6459.3,
+  "best_epoch": 5,
+  "best_val_loss": 1.972015,
+  "best_val_accuracy": 0.420819,
+  "final_val_loss": 1.972015,
+  "final_val_accuracy": 0.420819,
+  "orthogonality_monitor_layer": "block.proj_in",
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 2.327145,
+      "train_accuracy": 0.345175,
+      "val_loss": 2.174619,
+      "val_accuracy": 0.369827,
+      "learning_rate": 0.0003,
+      "orthogonality_error": 0.00450196,
+      "epoch_seconds": 1214.24
+    },
+    {
+      "epoch": 2,
+      "train_loss": 2.047868,
+      "train_accuracy": 0.407243,
+      "val_loss": 2.063454,
+      "val_accuracy": 0.398475,
+      "learning_rate": 0.00027422,
+      "orthogonality_error": 0.00436083,
+      "epoch_seconds": 1203.21
+    },
+    {
+      "epoch": 3,
+      "train_loss": 1.960681,
+      "train_accuracy": 0.42862,
+      "val_loss": 2.018025,
+      "val_accuracy": 0.408311,
+      "learning_rate": 0.00020672,
+      "orthogonality_error": 0.00447248,
+      "epoch_seconds": 1209.63
+    },
+    {
+      "epoch": 4,
+      "train_loss": 1.911452,
+      "train_accuracy": 0.440909,
+      "val_loss": 1.994384,
+      "val_accuracy": 0.416667,
+      "learning_rate": 0.00012328,
+      "orthogonality_error": 0.00452995,
+      "epoch_seconds": 1420.62
+    },
+    {
+      "epoch": 5,
+      "train_loss": 1.882896,
+      "train_accuracy": 0.448573,
+      "val_loss": 1.972015,
+      "val_accuracy": 0.420819,
+      "learning_rate": 5.578e-05,
+      "orthogonality_error": 0.00451417,
+      "epoch_seconds": 1411.61
+    }
+  ],
+  "comparison_targets": {
+    "transformer": {
+      "parameter_count": 190000,
+      "val_loss": 1.535
+    },
+    "residual_stream_time_muon": {
+      "parameter_count": 185000,
+      "val_loss": 1.606
+    }
+  },
+  "comparison": {
+    "final_val_minus_muon": 0.366015,
+    "final_val_minus_transformer": 0.437015,
+    "muon_target_val_loss": 1.606,
+    "transformer_target_val_loss": 1.535,
+    "muon_target_parameter_count": 185000,
+    "transformer_target_parameter_count": 190000
+  }
+}
