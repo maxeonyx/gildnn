@@ -252,9 +252,13 @@ The GRU work tells us stale reads are mechanically stable and GPU hardware is we
 
 Key finding: temporal norm management is essential. Mix-add works as well as LayerNorm. The architecture IS viable.
 
-**3. Extended training** — IN PROGRESS. Running mix-add probe at 100k chars / 5 epochs to see convergence behavior. Background process PID in `runs/active.lock`.
+**3. Extended training** — DONE. Mix-add probe at 100k chars / 5 epochs: **val loss 1.670** (only 0.038 from transformer anchor 1.632). Still improving at epoch 5. The architecture converges toward transformer quality with more training. One training spike at epoch 4 (recovered). See `experiments/residual_stream_time_mixadd/artifacts/extended-100k-5ep/`.
 
-**4. Next after extended run:** assess the val loss trajectory. If converging toward transformer, the architecture is competitive given more training. If plateauing, there's a fundamental efficiency gap to investigate.
+**4. Next discriminating experiment:** The architecture works and converges. The next questions per Max's priorities:
+- **Async speed demonstration** — Max explicitly said throughput benefit "hasn't been demonstrated yet." Can stale-read execution make this architecture faster despite the sequential dependency?
+- **Parameter efficiency** — 479K params for val 1.67 vs transformer's 186K for 1.63. Can we close this gap (different d_model, deeper model, or is it architectural)?
+- **Diagonal coupling at larger scale** — inconclusive at 2 blocks. Try 3-4 blocks with more training.
+- **Stop-gradient across time** — prerequisite for async, local learning.
 
 **5. Future work (from dictations, not immediate):**
 - Mix-add as default over LayerNorm in all experiments

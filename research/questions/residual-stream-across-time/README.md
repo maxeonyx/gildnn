@@ -305,6 +305,14 @@ Result at the same frame (d_model=192, 50k chars, 3 epochs): **validation loss `
 
 This confirms mix-add is a viable norm-management mechanism. It achieves parity with LayerNorm without any normalization layers. Artifacts: [`experiments/residual_stream_time_mixadd/artifacts/scaleup-192/`](../../../experiments/residual_stream_time_mixadd/artifacts/scaleup-192/).
 
+### Extended training (100k chars, 5 epochs)
+
+The mix-add probe was trained longer to test convergence: `d_model=192`, 100k chars, 5 epochs. Result: **validation loss `1.670509`** at `479K` params — only `0.038` nats from the transformer anchor (`1.632` at `186K` params). The loss was still improving at epoch 5 (trajectory: 1.98 → 1.83 → 1.76 → 1.72 → 1.67), suggesting it has not yet converged.
+
+One training instability was observed: train loss spiked to `51.02` at epoch 4, but recovered by epoch 5 (val loss continued improving). This suggests mix-add prevents catastrophic divergence but doesn't eliminate all instability.
+
+The gap to the transformer (`0.038` nats) at `2.6x` the parameter count means the architecture is **qualitatively viable but not yet parameter-efficient**. Whether this is a fundamental limitation or an optimization/tuning issue remains open. Artifacts: [`experiments/residual_stream_time_mixadd/artifacts/extended-100k-5ep/`](../../../experiments/residual_stream_time_mixadd/artifacts/extended-100k-5ep/).
+
 ### Diagonal coupling (2-block variant)
 
 Tested block-1 at time T feeding into block-2 at time T+1, per Max's description of "diagonal residual streams" in [dictation 2026-05-20-15](../../../dictations/2026-05-20-15.md). Two distinct FFN blocks with the diagonal residual connection wired explicitly.
