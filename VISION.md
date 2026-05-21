@@ -17,7 +17,7 @@ The motivating intuitions:
 - A standard transformer processes a sequence synchronously through depth. What if instead you had many residual blocks with nonstandard coupling across depth, time, or graph structure — each governed by different boundary rules?
 - Each block predicts its own **next incoming residual stream** (the latent it will receive at the block boundary at the next step) — a local self-supervised objective on the incoming signal, not on the block's own output. Does useful computation emerge from this?
 - Predictive heads draw from all residual blocks, including raw inputs — not just the final layer.
-- Blocks start as plain residual units. Whether looped reuse across time adds anything useful is a later question, not an assumption.
+- Blocks start as plain residual units. **Residual coupling across time** — where blocks maintain a residual stream across timesteps with attention over past states — is a **current core question**, not a later assumption. The temporal residual stream accumulates additions (no gating/forgetting), and temporal attention reads over past states. Max's preferred norm-management for this is **learned mix-add** (convex combination with a learned scalar), not LayerNorm.
 - Columns communicate through some combination of local graph edges and a global channel. The relative roles of these are not settled.
 - The graph should ideally match the GPU architecture — not a theoretical topology imposed on hardware that ignores it.
 - Updates propagate based on something like surprisal — a block that hasn't changed much doesn't need to recompute. This could make the system sparse and efficient, or it could be a disaster. Unknown.
