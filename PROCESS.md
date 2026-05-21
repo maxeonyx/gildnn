@@ -239,17 +239,20 @@ This prevents silent multi-hour waits where Max has no idea what's happening. Th
 
 ## Background training runs and multiple workstreams
 
-Long training runs must not block other work. The process supports multiple concurrent workstreams.
+Long training runs must not block the agent. This is a significant process requirement per [dictation 2026-05-21-3](dictations/2026-05-21-3.md).
 
 Rules:
 
+- **Never block on a training run expected to take >5 minutes.** Start it in the background (e.g. `Start-Process` on Windows), capture the PID and log path, then continue with other work.
 - At most one large training run (>10 min) at a time.
 - One small/fast experiment can run alongside a large run.
 - While any run is active, do other useful work: theory, integration, reporting, small experiments.
 - Do not wait idly for any run to complete.
 - Check progress from logs without tight polling.
 
-Use `runs/active.lock` to record the active large run. Remove it when the run ends or fails. Small runs (<5 min) do not need lock files.
+**Subagent instruction requirement:** When delegating experiment work that may run >5 minutes, explicitly tell the subagent: "Start the experiment in the background and immediately stop. Return the PID and log path. Do NOT block waiting for it to finish." The subagent must reply with: "I have started the experiment and I'm stopping here as requested. Resume me when you're ready to check on the experiment."
+
+Use `runs/active.lock` to record the active large run (PID, log path, start time, expected duration). Remove it when the run ends or fails. Small runs (<5 min) do not need lock files.
 
 ---
 
