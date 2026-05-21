@@ -443,20 +443,69 @@ The efficiency gap is likely intrinsic: k=8 temporal attention window provides m
 
 Artifacts: [`experiments/scale_900k/artifacts/`](../../../experiments/scale_900k/artifacts/).
 
+### Partial detach at 900k scale
+
+At 100k, partial detach every N=4 steps cost +0.041 nats but gave 2.46x training speed. At 900k:
+
+| Variant | Val Loss | Time (5 epochs) |
+|---------|----------|-----------------|
+| Full backprop (reference) | 1.606 | 5650s |
+| Partial detach N=4 | **1.606** | 6152s (0.92x — slower) |
+
+**Quality cost: essentially zero** (+0.0008 nats). The model doesn't need long-range gradient flow through time — 4-step backprop is sufficient.
+
+**Speed advantage: gone.** At 900k, the forward pass (temporal attention at each step) dominates wall-clock, not backprop-through-time. The speed benefit seen at 100k was due to BPTT being a larger fraction of total time on a smaller dataset.
+
+Artifacts: [`experiments/partial_detach_900k/artifacts/`](../../../experiments/partial_detach_900k/artifacts/).
+
+### Image patch modality test
+
+Tested on MNIST arbitrary-order patch prediction (32×32, 8×8 grid, 4×4 patches). See [`research/questions/image-patches/`](../image-patches/) for full details.
+
+| Model | Params | MSE | PSNR | Train Time |
+|-------|--------|-----|------|-----------|
+| Set-transformer (bidirectional) | 229K | **0.050** | **13.0** | **41s** |
+| Residual-stream-time (sequential) | 229K | 0.061 | 12.1 | 720s |
+
+**Negative.** The architecture is worse AND 18x slower on image patches. The hypothesized streaming advantage does not materialize — the set-transformer's bidirectional attention is the right inductive bias for this task.
+
+### Orthogonal parameterization (exp-map)
+
+Tested enforced orthogonality (via matrix exponential of skew-symmetric matrices). See [`research/questions/orthogonal-parameterization/`](../orthogonal-parameterization/).
+
+| Model | Params | Val Loss | Train Time |
+|-------|--------|----------|-----------|
+| Residual-stream + Muon | 185K | 1.606 | ~5 min |
+| Residual-stream + exp-map orthogonal | 183K | **1.972** | **108 min** |
+
+**Stability confirmed:** trains stably at k=8 with plain AdamW. This is the third confirmation that orthogonality IS the key stability mechanism.
+
+**Quality destroyed:** +0.366 gap to Muon version. Exact orthogonality over-constrains the network — it can only rotate/reflect, not scale/project. The square-matrix constraint eliminates the FFN expansion bottleneck. Muon's "near-orthogonal" is strictly better than "exactly orthogonal."
+
 ---
+
+## Summary of findings
+
+The residual-stream-across-time architecture has been comprehensively characterized:
+
+| Property | Finding |
+|----------|---------|
+| **Viable?** | Yes — trains, converges, produces reasonable output |
+| **Stable?** | With Muon (near-orthogonal optimizer) — yes at any window size |
+| **Quality vs transformer (text)?** | Worse: +0.071 at 900k, gap widens with more data |
+| **Quality vs transformer (images)?** | Worse: +0.011 MSE, and 18x slower |
+| **Speed advantage (partial detach)?** | Zero quality cost but no wall-clock improvement at scale |
+| **Orthogonal weights (structural)?** | Stable but over-constrained (+0.366 quality loss) |
+| **Key mechanism?** | Orthogonality for stability (confirmed 3 ways) |
+| **Practical conclusion?** | Muon is the right approach — optimizer pressure, not structural constraint |
 
 ## Open questions this report does not close
 
-These remain genuinely open after this analysis:
-
-- **Is this architecture parameter-efficient vs transformers?** ANSWERED: NO. Gap is +0.071 at matched params on 900k data, and transformer benefits more from additional data. The architecture is genuinely less efficient for text.
-- **Could larger temporal windows help?** Possibly, but k=8 already provides diminishing returns. The fundamental issue is sequential processing vs parallel full-sequence attention.
-- **Does diagonal coupling help at larger scale?** Inconclusive at 2 blocks / this budget. May need 3+ blocks or longer training.
-- **Can the stop-gradient quality cost be reduced?** +0.223 nats is too much for "free async." Partial detach (every N steps), auxiliary local targets, or deeper temporal attention might help.
-- **Does async execution provide actual wall-clock throughput benefit on real hardware?** The 2.36x speedup from removing backprop-through-time is training-only. Inference pipelining is the real async speed question.
-- **Does the broadcast require a reward signal?** Max is tentatively yes but explicitly uncertain.
-- **Is this architecture worth pursuing despite the efficiency gap?** It may have advantages in OTHER dimensions: pipelinability, local learning, streaming processing. The quality gap on text doesn't necessarily kill the broader vision.
+- **Can the efficiency gap be closed?** The gap is architectural: k=8 temporal window vs full-sequence attention (ctx=64). Larger windows might help but sequential processing is inherently limited.
+- **Does this architecture have advantages in truly streaming/online settings?** Not tested — all experiments used fixed-length batches. A true streaming benchmark might show different results.
+- **Could non-square orthogonal-like constraints help?** (e.g., semi-orthogonal: W^T W ≈ I but W not square) — might get stability without the capacity reduction.
+- **Is the broader "cortical column" vision dead?** Not necessarily — but the specific instantiation tested (mix-add, temporal attention, sequential processing) doesn't outperform transformers on any metric.
 
 ---
 
-*Last updated: 2026-05-22. Theory, minimal-probe, mix-add, extended, diagonal, stop-gradient, partial-detach, window-ablation, Muon, cosine schedule, and 900k scale-up results.*
+*Last updated: 2026-05-22. Full characterization: text, images, orthogonal parameterization, partial detach at scale.*
