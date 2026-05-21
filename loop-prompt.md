@@ -33,7 +33,3 @@ Redo from scratch is allowed. Deleting clutter is good. Following the process on
 
 
 
-User messages may follow:
-
-(ignore this one please, it's already been investigated:)
-
