@@ -297,19 +297,34 @@ This is encouraging but still narrow evidence. The current transformer trust anc
 
 What this probe now tells us is narrower but useful: **the residual-stream-across-time concept can learn at all, temporal pre-norm looks non-negotiable, and attention over past residual states can become selective and useful rather than decorative**. What it does **not** tell us yet is whether this family can be parameter-efficient relative to transformers, whether diagonal cross-time block coupling improves anything, or whether the async version gains systems throughput without unacceptable quality cost.
 
+### Mix-add variant (no LayerNorm)
+
+Per [dictation 2026-05-21-1](../../../dictations/2026-05-21-1.md), Max prefers **learned mix-add** over LayerNorm for residual stream norm management. A variant was tested with all LayerNorm removed and every residual addition replaced by a learned scalar convex combination: `x_new = sigmoid(α) * x + (1 - sigmoid(α)) * delta`. Three per-site learned alphas: token injection, block update, temporal update.
+
+Result at the same frame (d_model=192, 50k chars, 3 epochs): **validation loss `1.790906` at `479,102` parameters** — essentially identical to the LN variant (`1.787978`). Final stream RMS: `1.01` (vs `3.33` with LN, vs `1555` with no norm control). Learned mix values: token `0.49`, block `0.88`, time `0.93` — the model learned to keep ~88-93% of the existing stream on each update, effectively setting its own forgetting rate.
+
+This confirms mix-add is a viable norm-management mechanism. It achieves parity with LayerNorm without any normalization layers. Artifacts: [`experiments/residual_stream_time_mixadd/artifacts/scaleup-192/`](../../../experiments/residual_stream_time_mixadd/artifacts/scaleup-192/).
+
+### Diagonal coupling (2-block variant)
+
+Tested block-1 at time T feeding into block-2 at time T+1, per Max's description of "diagonal residual streams" in [dictation 2026-05-20-15](../../../dictations/2026-05-20-15.md). Two distinct FFN blocks with the diagonal residual connection wired explicitly.
+
+Result: **validation loss `1.787626` at `777,275` parameters** — effectively identical loss to the single-block probe (`1.787978` at `481K`) but at 1.6x the parameter cost. **Inconclusive**: the diagonal connection neither helped nor hurt at this scale/budget. The signal might require more blocks, more training, or more data to emerge. Artifacts: [`experiments/residual_stream_time_diagonal/artifacts/scaleup-192/`](../../../experiments/residual_stream_time_diagonal/artifacts/scaleup-192/).
+
 ---
 
 ## Open questions this report does not close
 
 These remain genuinely open after this analysis:
 
-- **Does the temporal residual stream actually learn anything useful in practice?** Unknown until the probe runs.
+- **Is this architecture parameter-efficient vs transformers?** Unknown. Current probe is 2.6x larger for worse loss, but severely undertrained. Extended run in progress.
+- **Does diagonal coupling help at larger scale?** Inconclusive at 2 blocks / this budget. May need 3+ blocks or longer training.
 - **What window size for causal attention over past states?** Not derivable from first principles; needs ablation.
-- **Where exactly do stop-gradients go?** Per-timestep boundary is one choice; per-block-boundary-within-timestep is another. Exact placement matters for what "local" means.
-- **Can local learning work without end-to-end gradients?** The concept analysis above identifies the key failure modes but doesn't resolve them.
+- **Where exactly do stop-gradients go?** Per-timestep boundary is one choice; per-block-boundary-within-timestep is another.
+- **Can local learning work without end-to-end gradients?** Concept analysis identifies failure modes but doesn't resolve them.
 - **Does the broadcast require a reward signal?** Max is tentatively yes but explicitly uncertain.
-- **What is the right d_model for a first probe?** Small enough to iterate fast; large enough for attention to do something. Starting guess: 128 or 256.
+- **Does async execution provide actual throughput benefit in this architecture?** Not tested yet.
 
 ---
 
-*Last updated: 2026-05-21. Theory plus initial minimal-probe results; comparison claims remain provisional.*
+*Last updated: 2026-05-21. Theory, minimal-probe, mix-add, and diagonal results. Extended training in progress.*
