@@ -210,23 +210,41 @@ This window is a strong success if, in addition to the floor above:
 - **Async GRU scale-up (100k data)** — POSITIVE on saturated data. At 11M params (d_model=512), best-val gap is noise on the 100k/20k slice (mean -0.003 ± 0.009 across 5 seeds). But both variants saturate by step 750-1000 — ceiling masks real differences. Throughput: async ~1.6% slower at 11M. See `research/questions/async-gru-scaleup/README.md`.
 - **Async GRU larger-corpus calibration** — MODIFYING. On 900k/100k TinyShakespeare (model still improving at step 5000), async was +0.012 nats worse than sync on one seed. A second run (broadcast experiment control) showed only +0.002. True gap likely in the range 0.002–0.012; multi-seed needed. See `experiments/async_gru_corpus/`.
 - **Broadcast channel** — NEGATIVE. Simple mean-pool broadcast (read all module deltas, project, add to shared state) actively hurt: async+broadcast was +0.005 worse than plain async. The naive global channel doesn't compensate for stale reads. See `experiments/broadcast_channel/`.
+- **Multi-seed 900k/100k async calibration** — CALIBRATING. 5 seeds on 11M/900k: mean async penalty +0.0055 ± 0.0046 nats (95% CI crosses zero). The gap is real but tiny and not statistically significant. See `experiments/async_gru_corpus/artifacts/multiseed_corpus_report.json`.
 
 ## Assessment
 
-Twelve experiments/investigations completed. The honest picture:
+Thirteen experiments/investigations completed. Useful data, but **direction correction needed** per dictations 2026-05-20-15 and 2026-05-20-16.
 
-1. **RNNs are significantly faster** than transformers on this hardware — and the profiler shows exactly why (Tensor Core paths, kernel consolidation, weight reuse)
-2. **Async shared-memory semantics** work — training is stable, mechanism is correct — but **there is a small quality cost** (likely 0.002–0.012 nats, seed-dependent) that does not disappear at scale
-3. **Simple global communication doesn't help** — mean-pool broadcast channel makes things worse, not better
-4. **Boundary tricks for quality** don't work at this scale (local learning, attention residuals, causal triangle, self-prediction)
-5. **The hardware story is understood** — arithmetic intensity, not "fits in cache," is the right mental model
+### What the experiments established (still valid as evidence)
 
-The async execution model is **mechanically validated** with a small quality penalty. Neither scaling width nor adding a naive global channel eliminates the penalty. The gap may be an inherent cost of staleness — acceptable if the execution model has other benefits (true parallelism, hardware flexibility). The dictations describe a more sophisticated "stateful broadcast router" with attention, which remains untested.
+1. **RNNs are significantly faster** than transformers on this hardware — Tensor Core paths, kernel consolidation, weight reuse
+2. **Stale-read/shared-memory semantics** are mechanically stable and trainable
+3. **The async quality cost is small** (~0.005 nats mean, not significant from 5 seeds) — whether on GRU or other architectures
+4. **Simple global communication doesn't help** — mean-pool broadcast channel made things worse
+5. **Per-token conditional sparsity breaks GPU parallelism**
+6. **The hardware story is understood** — arithmetic intensity is the right mental model
 
-## Immediate next step
+### What we got wrong (dictation 2026-05-20-15)
 
-Candidates, roughly prioritized:
+Max does NOT want stock GRU/RNN gating mechanisms. The experiments used the wrong architectural primitive. His actual interest:
 
-1. **Multi-seed 900k/100k calibration** — we have two runs (+0.012 and +0.002 async penalty). 3-5 more seeds would establish the true magnitude of the async cost in the non-saturated regime. This is the most important open number.
-2. **Stateful/attention-based broadcast** — the negative was on a naive mean-pool. Max's dictation describes something more like attention with state. But this is more complex and less likely to be cheap.
-3. **Loop management tooling** — dictation 2026-05-20-14 asks for better visibility into the loop
+- **Residual streams across time** — the same residual concept from transformers, but across timesteps
+- **Attention over the past** — as temporal coupling mechanism
+- **Learned mix-add operator** — for combining residual stream across time
+- **Diagonal residual connections** — block A at time T to next block at time T+1
+- **Async as speed** — true parallel execution giving FLOPs/sec improvement, not accuracy
+- **Time compression/dilation** — different modules at different effective rates via stale reads
+- **Theory first** — concept clarification should be majority of reports; experiments follow understanding
+
+The GRU work tells us stale reads are mechanically stable and GPU hardware is well-understood. But it does NOT address the architecture Max wants to explore.
+
+## Immediate next step (REORIENTED)
+
+**1. Theory-first architecture analysis** — write a Max-readable report that operationalizes "residual streams across time" into concrete architecture/design choices. Map the design tree: temporal coupling mechanisms, residual topology, gradient coupling, async semantics, broadcast scope. This is the MAJORITY of the next deliverable per Max's explicit request.
+
+**2. Minimal faithful architecture probe** — after the theoretical analysis, build the smallest model that faithfully instantiates residual-stream-across-time with attention-over-past. Compare against transformer anchor.
+
+**3. Only then:** async/stale-read execution in that architecture family, targeting actual speed improvement.
+
+See `REORIENT.ignore.md` for the full analysis of what changed and why.
