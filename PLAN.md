@@ -2,268 +2,54 @@
 
 Working file. Rewrite it as the state changes.
 
-## Current situation
+## Current state (2026-05-22)
 
-- The trust foundation for text is now in place: `base_experiments/` has a trustworthy transformer anchor and a trustworthy vanilla RNN anchor on the fixed TinyShakespeare frame.
-- The predictive-chain and dynamic-depth reports have been re-framed against that baseline anchor so they no longer overclaim.
-- New dictations changed the near-term priority. Early composition of predictive chain + dynamic depth is **not** the main thing Max wants right now.
-- The current priority is thorough isolated experiments on the individual performance/mechanism pieces: local learning, stop gradients, asynchronous/asynchronized modules, keeping weights in memory, processing activations in place, and replacing depth with width / propagation across timesteps.
-- "Predictive chain" remains a useful experiment label for one simplification, but it is not the project goal. It should not silently drive the plan.
-- There is partially completed chain+dynamic-depth work in `experiments/chain_dynamic_depth/`, but that thread is currently paused in planning until it is explicitly re-scoped.
-- **Architecture clarification (2026-05-20):** new dictation simplifies the module concept. A node/module is currently a **single residual block on a uniform `d_model` residual stream**, not a recurrent mini-stack with its own hidden width. The interface between modules is the residual stream itself. The interesting mechanisms are at block boundaries: stop gradients, async, attention residual connections. This changes the interpretation of Phase 3 and some already-written docs.
+**The project is at its natural conclusion.** All success criteria (floor AND strong) are met. The final synthesis is written (`research/SYNTHESIS.md`). 18 experiments completed. The residual-stream-across-time architecture and its proposed enhancements are comprehensively characterized.
 
-## Execution phases with clear sequencing
+Key findings:
+- Architecture is viable but strictly dominated by transformers (+0.071 nats text, worse on images)
+- Async stale-read semantics are quality-neutral (+0.005, not significant)
+- Async execution provides NO wall-clock speedup on single GPU (definitively falsified)
+- Muon/orthogonality is the stability mechanism (confirmed 3 ways)
+- GRUs are 2-3× faster than transformers on this hardware
 
-### Global rules for every phase
+## What's left to do
 
-1. Every experiment starts with its report folder/README first: question, simplification, hypotheses, comparison target, and placeholders for evidence.
-2. No new architectural thread starts without a baseline for that modality/task to compare against.
-3. Base experiments follow the same ladder as everything else: overfit one batch, tiny run, inspect outputs, then scale.
-4. Base experiments also get cheap correctness tests where mistakes are easy and expensive: data slicing/targets, embedding lookup shape/content, loss masking/accounting, sampling/generation path, and any modality-specific preprocessing.
-5. Keep experiment scope small, but move quickly from one discriminating experiment to the next. Do not spend days polishing an already-answered question.
+1. **Daily report for 2026-05-22** — due after 4pm. Big day: async wall-clock experiment + inference pipelining test + final synthesis.
+2. **Weekly report** — check if this week's exists (Thursday rule).
+3. **Cleanup** — legacy flat `.py` files in `experiments/` could be removed. `chain_dynamic_depth/` is stale.
 
-### Phase 1 — Trust foundation for text baselines (done)
+## If Max provides new direction
 
-Objective: make text results interpretable enough that later custom-architecture comparisons mean something.
+Process new dictations per PROCESS.md. Queue new experiments; don't bump the stack.
 
-Done:
+## Possible future directions (documented, not planned)
 
-- Transformer anchor: ~186K params, best val loss 1.632
-- Vanilla RNN anchor: ~186K params, best val loss 1.706
-- Cheap correctness checks and comparison frame documented in `base_experiments/README.md`
+From `research/SYNTHESIS.md`:
+- Multi-GPU async (requires different hardware)
+- GRUs as cheap layers in standard architectures (exploit speed without recurrence)
+- Larger scale test of the 0.071 gap
+- Different tasks where temporal recurrence might matter more
 
-End state required to leave Phase 1:
-
-- At least one text baseline is trustworthy enough to be the comparison anchor.
-- The base-experiment path has cheap correctness tests.
-- The comparison frame for future reports is fixed: parameter count, loss, compute cost, and important execution constraints.
-
-### Phase 2 — Re-ground the current findings against the new trust anchor (done)
-
-Done:
-
-- Predictive-chain report weakened where the standardized anchors made the old parity framing misleading
-- Dynamic-depth report anchored against the standardized frame with honest comparability limits
-- Future comparisons now have a fixed text comparison frame
-
-End state required to leave Phase 2:
-
-- The two strongest completed threads are now anchored to the same comparison frame future work will use.
-
-### Phase 3 — Isolated mechanism experiments on the simplified block architecture
-
-Objective: test the individual pieces Max actually cares about, in the simplified frame where a module is a single residual block on a shared `d_model` stream.
-
-#### 3a. Local learning / stop gradients on single-block modules
-
-Each **block boundary** predicts its own next incoming residual stream (A→A), with an auxiliary local head. In the clarified architecture, a module is **one residual block**, not a 3-layer recurrent stack.
-
-The main question is no longer "how thick is a local module?" but:
-- Does splitting a model into multiple stop-gradient-separated residual blocks help or hurt?
-- Where should the detach boundaries go?
-- What local target should be predicted?
-- Does a multi-block local-learning system beat a matched single-block or ordinary baseline?
-
-Comparison design: **single-block local-learning control** vs **multi-block local-learning variants**, with `d_model` uniform across all variants.
-
-Note: the first local-learning experiment in `research/questions/local-learning/` tested a different (now-superseded) interpretation — detached recurrent stacks, not single residual blocks. That result narrows one branch of the design tree but does not directly answer this question.
-
-#### 3b. GPU utilization research
-
-What kind of GPU programs actually fit best on the RTX 3090? Can residual block architectures get significantly more FLOPs out of the GPU than transformers? Measure wall-clock, actual utilization, memory bandwidth. This grounds all future performance claims.
-
-#### 3c. Attention residual transformer (core mechanism experiment)
-
-This is now a central mechanism experiment for the clarified architecture, not a side curiosity. The dictation says looped blocks with attention residual connections are essentially a transformer — so this subsection tests the core boundary/residual idea cleanly, without prematurely adding async or richer graph machinery.
-
-Multiple variants:
-- Attention over depth only
-- Attention over depth AND sequence length in a causal triangle (can't attend to same layer at previous step)
-
-Motivation: this demonstrates the mechanism for time-unrolled / looped-block behavior. Stop gradients across time and across depth are the same kind of mechanism in this framing.
-
-#### 3d. Async execution without synchrony
-
-Can we run residual block boundary updates without full synchrony — with volatile/shared memory or stale reads between updates? Not asynchronous recurrent hidden-state modules, but asynchronous **block boundary updates** on the shared `d_model` stream.
-
-Rules:
-
-- Prefer the cheapest isolated experiment that could produce real evidence about one of those pieces.
-- Do not smuggle composition back in by changing several mechanisms at once.
-- If a simplification came from an earlier agent rather than the dictations, keep that fact visible in the write-up.
-
-Questions this phase should answer:
-
-- Can stop-gradient-separated **residual blocks** learn useful local objectives at all?
-- Do looped / reused residual blocks with attention residual connections show useful behavior before async is added?
-- Can we approximate async block updates without changing the architecture into something else?
-- What actual GPU utilization do these simplified mechanisms achieve on this hardware?
-
-### Phase 4 — Async/desynchronized execution path on text
-
-Objective: once the individual pieces above are better grounded, test the asynchronous path more directly.
-
-Do this in escalating steps, stopping as soon as the answer is clear:
-
-1. Build the smallest graph/shared-memory prototype that actually targets the async question.
-   - Do **not** repeat the earlier "more skip connections on Shakespeare" experiment and call that async.
-   - Use sparse local communication plus a clearly limited shared/global memory path.
-2. Add a trigger signal for whether a block should update.
-   - Prefer the mechanism closest to Max's current thinking: a cheap predictive head that estimates whether further computation will help, or a clearly-defined surprisal proxy if loss-prediction is not yet workable.
-3. If selective updates show real signal, run a semi-async approximation:
-   - masked/bucketed updates,
-   - stale reads allowed,
-   - dense GPU-friendly execution where possible.
-4. Compare against the synchronous equivalent, not just against standard baselines.
-
-Questions this phase should answer:
-
-- Can the model learn a useful update signal at all?
-- Does skipping updates save meaningful compute without collapsing quality?
-- Does graph locality still matter once a shared/global path exists, or does the global path bypass the interesting part?
-
-### Phase 5 — Contingent composition work
-
-Objective: only after the isolated pieces are understood well enough, test whether any composition is actually justified.
-
-Candidates may include:
-
-- dynamic depth inside the predictive-chain family
-- loss-prediction-driven triggering inside another local-learning family
-
-This phase is contingent, not automatic. If the isolated experiments do not justify composition, skip it.
-
-### Phase 6 — Second modality: arbitrary-order image patches
-
-Objective: open the second modality in the vision, but do it with the same discipline as text.
-
-1. Start with the baseline, not the custom architecture.
-   - Create the image-patch question/report first.
-   - Build the smallest ordinary recurrent or transformer-style patch baseline that can handle arbitrary patch order honestly.
-   - Add modality-specific correctness checks: patch extraction/reassembly, order handling, masking/subset conditioning, and shape-agnostic path where claimed.
-2. Once there is a patch baseline, run **one** architectural transfer from the text work.
-   - Prefer the single mechanism that looked most promising in Phases 3-4.
-   - Default priority: selective/dynamic compute first, full graph complexity second.
-3. Aim for a result that narrows the question, not a big image system.
-
-This phase exists because image patches are part of the stated vision, and a text-only finish would leave too much of Max's agenda untouched.
-
-### Phase 7 — Final combination and synthesis
-
-Objective: spend the last part of the window on the strongest surviving combined idea, not on cleanup for its own sake.
-
-1. If Phases 3 and 4 both produced positive signal, run one final combination experiment that uses the best mechanism from each.
-   - Likely candidates:
-     - dynamic depth inside a predictive-chain / small-graph model
-     - loss-prediction-driven triggering for selective updates
-2. If the combination does **not** look justified, do not force it. Use the time to tighten the strongest positive or strongest negative result into a clean final report.
-3. End the window with a clear decision matrix:
-   - what worked,
-   - what failed,
-   - what remained ambiguous,
-   - what would be the first thing worth continuing after this billing window.
-
-## Stop conditions / success criteria
-
-### Hard gates
-
-- Do not leave Phase 1 until at least one text baseline is trustworthy.
-- Do not start image-patch architecture work until there is an image-patch baseline.
-- Do not keep expanding graph complexity if the comparison needed to interpret it is missing.
-
-### Success floor for this window
-
-This window is successful if all of the following are true:
-
-1. `base-experiments/` contains trustworthy text baselines with correctness checks, enough to anchor honest comparison.
-2. Predictive-chain and dynamic-depth are re-stated against that comparison frame.
-3. At least two real post-baseline experiments test the individual performance/mechanism pieces Max called out.
-4. At least one experiment directly tests selective/dynamic computation rather than only static architecture.
-
-### Strong success for this window
-
-This window is a strong success if, in addition to the floor above:
-
-1. The async/selective-update path yields a clear positive or negative answer that narrows the cortical-column design space.
-2. The image-patch modality has at least a baseline plus one first architectural probe.
-3. Any composition work that survives is clearly justified by the isolated experiments rather than assumed up front.
-4. The final state of the repo answers not just "can we trust the comparisons?" but also "which of Max's architectural ideas are now worth pushing further, and which are not?"
-
-### Explicit cut rules
-
-- Do not spend multiple days polishing baseline quality once the trust question is answered well enough to compare.
-- Do not repeat an experiment class that already gave a clear answer unless the new version changes the actual hypothesis being tested.
-- If time gets tight, cut contingent composition work before cutting the highest-value isolated mechanism experiments.
-- If one late-phase thread is blocked, switch to the next discriminating experiment rather than burning the remaining window on setup/debugging.
+These are "conditions under which negatives might not generalize" — not promising leads.
 
 ## Completed experiments
 
-- **Local learning (residual)** — NEGATIVE. Stop-gradient boundaries + local prediction heads on residual blocks clearly hurt vs matched end-to-end (best val 2.081 vs 1.644, 3-block). Mechanism works mechanically but LM quality tanks. See `research/questions/local-learning-residual/README.md`.
-- **Attention-residual (depth-only)** — MARGINAL/INCONCLUSIVE. Content-based attention over earlier boundary states shows no stable improvement (transient 0.013 nat edge at peak, regresses to worse by end of training). 33% slower. Not worth pursuing further at this budget. See `research/questions/attention-residual/README.md`.
-- **Async/selective execution** — CUT (NEGATIVE). Learned per-token gating works mechanically (gates learn genuine selectivity, no collapse) but GPU wall-clock is 26-29% WORSE despite 15-32% fewer logical block executions. Per-token conditional execution breaks batched GPU parallelism. Premise falsified at tiny rung; stopped before full standardized. See `research/questions/async-selective/README.md`.
-- **GPU utilization study** — CONFIRMED Max's hypothesis, then EXTENDED with full hardware deep dive. GRU 1.8-2.8x faster training, 2.5-3.7x faster decode. Profiler reveals WHY: GRU hits Tensor Core paths (CUTLASS tensorop kernels) even in FP32 while transformer at this scale stays on CUDA cores. GRU spends 69% of time in GPU kernels vs transformer's 51%. Sequence length sweep shows GRU holds 1.2-1.4M tok/s flat from ctx=32 to ctx=1024 while transformer drops from 530K to 276K. See `research/questions/gpu-utilization/README.md`.
-- **Causal triangle attention residuals** — NEGATIVE. Extending depth-only attention to attend over depth+sequence in a 2D causal mask. Worse than both baseline (+0.028 nats) and depth-only (+0.049 nats), and 1.8x slower. See `research/questions/causal-triangle-attention/README.md`.
-- **Async volatile-memory prototype** — POSITIVE (mechanism viable). Dense execution with stale shared-memory reads: mechanically verified, trains within noise of sync control (best val 1.658 vs 1.657), no wall-clock overhead. Demonstrates the execution model Max asked for. See `research/questions/async-volatile-memory/README.md`.
-- **Self-prediction / compute compression** — NEGATIVE. Adding auxiliary KL loss (shallow logits → detached deep logits) to the dynamic-depth GRU. At every fixed depth, the self-prediction variant is slightly worse (Δ +0.011 to +0.018 nats). Halting frontier also worse. See `research/questions/self-prediction-compute-compression/README.md`.
-- **Async GRU combination** — QUALIFIED POSITIVE at 1M. GRU modules in the async shared-memory architecture: converges, no measurable throughput overhead (108K vs 104K tok/s), but best-val is +0.006 nats worse than sync in a single-seed run. See `research/questions/async-gru/README.md`.
-- **Async GRU scale-up (100k data)** — POSITIVE on saturated data. At 11M params (d_model=512), best-val gap is noise on the 100k/20k slice (mean -0.003 ± 0.009 across 5 seeds). But both variants saturate by step 750-1000 — ceiling masks real differences. Throughput: async ~1.6% slower at 11M. See `research/questions/async-gru-scaleup/README.md`.
-- **Async GRU larger-corpus calibration** — MODIFYING. On 900k/100k TinyShakespeare (model still improving at step 5000), async was +0.012 nats worse than sync on one seed. A second run (broadcast experiment control) showed only +0.002. True gap likely in the range 0.002–0.012; multi-seed needed. See `experiments/async_gru_corpus/`.
-- **Broadcast channel** — NEGATIVE. Simple mean-pool broadcast (read all module deltas, project, add to shared state) actively hurt: async+broadcast was +0.005 worse than plain async. The naive global channel doesn't compensate for stale reads. See `experiments/broadcast_channel/`.
-- **Multi-seed 900k/100k async calibration** — CALIBRATING. 5 seeds on 11M/900k: mean async penalty +0.0055 ± 0.0046 nats (95% CI crosses zero). The gap is real but tiny and not statistically significant. See `experiments/async_gru_corpus/artifacts/multiseed_corpus_report.json`.
-- **Image patches (MNIST)** — NEGATIVE for residual-stream-time. Set-transformer baseline (229K, MSE 0.050, 41s) vs residual-stream probe (229K, MSE 0.061, 720s). Architecture is worse AND 18x slower on arbitrary-order patch prediction. See `research/questions/image-patches/README.md`.
-- **Orthogonal parameterization (exp-map)** — STABILITY CONFIRMED, QUALITY NEGATIVE. Structural orthogonality prevents divergence at k=8 with plain AdamW (no Muon needed). But exact orthogonality over-constrains: val 1.972 vs Muon's 1.606 (+0.366 gap). Network needs non-orthogonal degrees of freedom. matrix_exp also 30-50x runtime cost. See `research/questions/orthogonal-parameterization/README.md`.
-- **Partial detach at 900k** — ZERO QUALITY COST but no speed advantage. Detach every 4 steps: val 1.606 (same as full BPTT). Model doesn't need long-range gradient flow. But forward pass (temporal attention) dominates wall-clock at scale, not BPTT. See `experiments/partial_detach_900k/artifacts/`.
-
-## Assessment
-
-**All success criteria met** (floor AND strong). 17+ experiments completed across text, images, and architectural variants.
-
-### What the project established
-
-1. **RNNs are significantly faster** than transformers on this hardware (GRU specifically)
-2. **Stale-read/shared-memory semantics** are mechanically stable and trainable
-3. **The async quality cost is tiny** (~0.005 nats, not significant at 5 seeds)
-4. **Simple global communication doesn't help** — broadcast channel made things worse
-5. **Per-token conditional sparsity breaks GPU parallelism**
-6. **The hardware story is understood** — arithmetic intensity is the right mental model
-7. **Residual-stream-across-time is viable** — trains, converges, produces reasonable output
-8. **Muon is essential for stability** and near-orthogonal is better than exact orthogonal
-9. **The architecture is less efficient than transformers** on text (+0.071) AND images (+0.011 MSE, 18x slower)
-10. **Gradient flow through time is unnecessary** — 4-step BPTT matches full BPTT at 900k scale
-11. **The orthogonality mechanism is fully understood** — confirmed from 3 independent angles (Muon, exp-map, partial detach indifference)
-
-### Key negative results (design space narrowed)
-
-- Local learning at block boundaries: tanks quality
-- Attention-residual paths: marginal/inconclusive, too slow
-- Causal triangle attention: worse on all axes
-- Selective/dynamic computation: GPU-hostile
-- Self-prediction/compute compression: slightly worse
-- Broadcast channel: actively harmful
-- Exact orthogonal weights: over-constrained
-- Residual-stream-time on images: worse AND slower
-
-### What remains genuinely open
-
-- **⚠️ Async wall-clock speedup NOT demonstrated.** ([dictation 2026-05-22-3](dictations/2026-05-22-3.md)) All async experiments so far measured quality cost of stale reads. None demonstrated the actual point: that async execution gives a real wall-clock throughput improvement over synchronous. "The only point of it is to get wall clock time speed up." This is the primary open question.
-- **Could multi-block pipelining provide real inference throughput?** Not tested at inference time.
-- **Could a different task (truly streaming, online) show architectural advantage?** All tests used fixed-length batches.
-- **Is the broader "cortical column" vision accessible via a different instantiation?** The mix-add/temporal-attention instantiation doesn't outperform, but other module/boundary designs might.
-- **Volume-preserving nonlinearities (Hamiltonian flow)?** Theoretically interesting but practically expensive. Deferred.
-
-## Current state (2026-05-22)
-
-The residual-stream-across-time thread is **conclusively characterized** for quality. No further experiments on quality are likely to change the picture: it's viable but less efficient than transformers on every metric tested.
-
-**The async SPEED question is answered for single-GPU PyTorch: NO.** Per [dictation 2026-05-22-3](dictations/2026-05-22-3.md), we ran the minimal async test — CUDA streams with pipelined block execution vs sequential and parallel baselines. Result: async is always slower or equal. Sequential (one stream) is always fastest. The GPU already handles internal parallelism; explicit stream management only adds overhead. See `research/questions/async-execution/README.md`.
-
-Possible paths forward for async speed:
-- Multi-GPU (different devices, eliminates contention) — not available in this setup
-- Custom persistent CUDA kernels — high cost, uncertain payoff
-- Different hardware (neuromorphic, multi-chip)
-- Inference pipeline parallelism across tokens during generation — untested but different framing
-
-The remaining ~8 days of the window should focus on:
-1. Final synthesis / decision matrix
-2. Any genuinely new direction from Max
-3. Clean reporting and documentation
+- **Local learning (residual)** — NEGATIVE. val 2.081 vs 1.644 end-to-end. See `research/questions/local-learning-residual/README.md`.
+- **Attention-residual (depth-only)** — MARGINAL/INCONCLUSIVE. Transient 0.013 nat edge, regresses, 33% slower. See `research/questions/attention-residual/README.md`.
+- **Async/selective execution** — NEGATIVE. 26-29% slower wall-clock despite fewer executions. See `research/questions/async-selective/README.md`.
+- **GPU utilization study** — POSITIVE. GRU 1.8-2.8× faster training, 2.5-3.7× faster decode. See `research/questions/gpu-utilization/README.md`.
+- **Causal triangle attention** — NEGATIVE. +0.028 nats, 1.8× slower. See `research/questions/causal-triangle-attention/README.md`.
+- **Async volatile-memory prototype** — POSITIVE. Stale reads train within noise of sync. See `research/questions/async-volatile-memory/README.md`.
+- **Self-prediction / compute compression** — NEGATIVE. +0.011 to +0.018 nats at every depth. See `research/questions/self-prediction-compute-compression/README.md`.
+- **Async GRU combination** — QUALIFIED POSITIVE. Converges, +0.006 nats worse (single seed). See `research/questions/async-gru/README.md`.
+- **Async GRU scale-up (100k data)** — POSITIVE on saturated data. Gap is noise at 5 seeds. See `research/questions/async-gru-scaleup/README.md`.
+- **Multi-seed 900k async calibration** — CALIBRATED. +0.0055 ± 0.0046 nats (not significant). See `experiments/async_gru_corpus/`.
+- **Broadcast channel** — NEGATIVE. +0.005 worse than plain async. See `experiments/broadcast_channel/`.
+- **Image patches (MNIST)** — NEGATIVE. MSE 0.061 vs 0.050, 18× slower. See `research/questions/image-patches/README.md`.
+- **Orthogonal parameterization (exp-map)** — STABILITY CONFIRMED, QUALITY NEGATIVE. val 1.972 vs 1.606. See `research/questions/orthogonal-parameterization/README.md`.
+- **Partial detach at 900k** — NEUTRAL. Zero quality cost, zero speed benefit. See `experiments/partial_detach_900k/`.
+- **900k scale-up** — DECISIVE. +0.071 nats vs transformer at matched params. See `experiments/scale_900k/`.
+- **Muon optimizer** — POSITIVE. Enables k=8 window, 27% gap reduction. See `experiments/muon_window_ablation/`.
+- **Async wall-clock (training)** — NEGATIVE. Sequential always fastest. See `research/questions/async-execution/README.md`.
+- **Async wall-clock (inference)** — NEGATIVE. 0.50-0.86× (worse). See `research/questions/async-execution/README.md`.
