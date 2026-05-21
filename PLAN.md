@@ -268,7 +268,8 @@ Key finding: temporal norm management is essential. Mix-add works as well as Lay
 - At Muon LR=0.01: **k=4 stable (1.671), k=8 stable (1.664), k=16 stable (1.672)**.
 - k=8 is actually BEST — outperforms k=4 at the same LR, which AdamW couldn't achieve (k=8 diverged at AdamW LR=0.003).
 - The instability was gradient explosion through repeated weight matrices (W^T), exactly as Max predicted. Orthogonal optimization eliminates it.
-- Muon + mix-add architecture achieves val 1.664 at k=8 — only +0.032 from transformer anchor (1.632) at much larger param count.
+- **Parameter-matched (184K, k=8, Muon):** val 1.694 — gap to transformer narrows from +0.085 (AdamW/k=4) to **+0.062**. 27% gap reduction.
+- Still declining at epoch 5 — more training would likely narrow the gap further.
 
 **9. Next discriminating experiment:** Now that stability is solved, key questions:
 - **Parameter-matched Muon**: d_model=116 (184K params) with Muon at k=8 — close the gap to transformer?
