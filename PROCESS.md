@@ -76,6 +76,12 @@ When a new dictation appears in `dictations/`, it triggers a full process review
 
 This is not a one-time task. Every new dictation is a potential course correction. Treat it as authoritative over all derived files.
 
+**Important:** dictations update docs synchronously but do NOT trigger immediate experiment changes. When a new dictation arrives:
+- **Do immediately:** update PLAN.md, PROCESS.md, and AGENTS.md to reflect it.
+- **Do NOT immediately:** start new experiments implied by it, or abandon current work because of it.
+- New experiments go into the plan as future work.
+- Do not abandon the current experiment unless the dictation explicitly says to.
+
 ### The ladder
 
 Every experiment climbs this ladder before scaling:
