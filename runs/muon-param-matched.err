@@ -1,0 +1,4 @@
+C:\Users\maxeo\gildnn\experiments\muon_window_ablation\param_matched.py:7: SyntaxWarning: invalid escape sequence '\.'
+  Run: & .\.venv\Scripts\python.exe -u -m experiments.muon_window_ablation.param_matched
+C:\Users\maxeo\gildnn\.venv\Lib\site-packages\torch\_subclasses\functional_tensor.py:307: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\pytorch\torch\csrc\utils\tensor_numpy.cpp:84.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
