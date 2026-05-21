@@ -254,13 +254,15 @@ Key finding: temporal norm management is essential. Mix-add works as well as Lay
 
 **3. Extended training** — DONE. Mix-add probe at 100k chars / 5 epochs: **val loss 1.670** (only 0.038 from transformer anchor 1.632). Still improving at epoch 5. The architecture converges toward transformer quality with more training. One training spike at epoch 4 (recovered). See `experiments/residual_stream_time_mixadd/artifacts/extended-100k-5ep/`.
 
-**4. Next discriminating experiment:** The architecture works and converges. The next questions per Max's priorities:
-- **Async speed demonstration** — Max explicitly said throughput benefit "hasn't been demonstrated yet." Can stale-read execution make this architecture faster despite the sequential dependency?
-- **Parameter efficiency** — 479K params for val 1.67 vs transformer's 186K for 1.63. Can we close this gap (different d_model, deeper model, or is it architectural)?
-- **Diagonal coupling at larger scale** — inconclusive at 2 blocks. Try 3-4 blocks with more training.
-- **Stop-gradient across time** — prerequisite for async, local learning.
+**4. Stop-gradient across time** — DONE. Detaching gradients between timesteps: val loss **1.894** vs baseline 1.670 — **+0.223 nats cost**. Training was 2.36x faster (no backprop-through-time). The quality hit is too large for "free async" but the throughput gain is real. See `experiments/residual_stream_time_stopgrad/`.
 
-**5. Future work (from dictations, not immediate):**
+**5. Next discriminating experiment:** The stop-gradient result clarifies the async path: raw detach gives speed but costs quality. Options:
+- **Partial detach** — detach every N timesteps (e.g., every 4). Keep some temporal gradient while enabling partial pipelining. Cheapest single-variable follow-up.
+- **Parameter-matched comparison** — reduce d_model to match transformer's 186K params. Answers the efficiency question.
+- **Longer training** — 10+ epochs on full-gradient mix-add. See if the 0.038 gap to transformer closes.
+- **Window size ablation** — k=4 vs k=8, k=16.
+
+**6. Future work (from dictations, not immediate):**
 - Mix-add as default over LayerNorm in all experiments
 - Async/stale-read execution for throughput (speed demonstration)
 - Diagonal coupling at larger scale / more blocks

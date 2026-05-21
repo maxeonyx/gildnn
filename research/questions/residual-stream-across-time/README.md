@@ -319,20 +319,29 @@ Tested block-1 at time T feeding into block-2 at time T+1, per Max's description
 
 Result: **validation loss `1.787626` at `777,275` parameters** — effectively identical loss to the single-block probe (`1.787978` at `481K`) but at 1.6x the parameter cost. **Inconclusive**: the diagonal connection neither helped nor hurt at this scale/budget. The signal might require more blocks, more training, or more data to emerge. Artifacts: [`experiments/residual_stream_time_diagonal/artifacts/scaleup-192/`](../../../experiments/residual_stream_time_diagonal/artifacts/scaleup-192/).
 
+### Stop-gradient across time
+
+The key async prerequisite: what happens if we detach the stream between timesteps, so no gradient flows backward through time? Each timestep trains only on its own local gradient — the same regime required for true pipelined async execution.
+
+Result: **validation loss `1.893501`** vs full-gradient baseline `1.670509` — a cost of **+0.223 nats**. Loss trajectory: `2.07 → 1.98 → 1.95 → 1.92 → 1.89` (compare baseline: `1.98 → 1.83 → 1.76 → 1.72 → 1.67`). Training was stable (no spikes), overfit still works perfectly, but convergence is slower and the floor is higher.
+
+Runtime was `257s` vs `606s` — **2.36x faster** — because removing backprop-through-time eliminates the sequential gradient dependency. This demonstrates the throughput benefit of detaching, but the quality cost is currently too high to call it free.
+
+**Implications for async:** naive per-timestep stop-gradient is mechanically viable and gives real speed, but the quality hit (+0.223 nats, ~13% relative) is substantial. If async execution requires this detach, it likely needs compensating architectural changes (auxiliary local targets, partial detach every N steps, or better temporal communication) to close the quality gap. Artifacts: [`experiments/residual_stream_time_stopgrad/`](../../../experiments/residual_stream_time_stopgrad/).
+
 ---
 
 ## Open questions this report does not close
 
 These remain genuinely open after this analysis:
 
-- **Is this architecture parameter-efficient vs transformers?** Unknown. Current probe is 2.6x larger for worse loss, but severely undertrained. Extended run in progress.
+- **Is this architecture parameter-efficient vs transformers?** Unknown. Current probe is 2.6x larger for similar loss. Extended training reached 1.670 (still improving) — may converge further.
 - **Does diagonal coupling help at larger scale?** Inconclusive at 2 blocks / this budget. May need 3+ blocks or longer training.
 - **What window size for causal attention over past states?** Not derivable from first principles; needs ablation.
-- **Where exactly do stop-gradients go?** Per-timestep boundary is one choice; per-block-boundary-within-timestep is another.
-- **Can local learning work without end-to-end gradients?** Concept analysis identifies failure modes but doesn't resolve them.
+- **Can the stop-gradient quality cost be reduced?** +0.223 nats is too much for "free async." Partial detach (every N steps), auxiliary local targets, or deeper temporal attention might help.
+- **Does async execution provide actual wall-clock throughput benefit on real hardware?** The 2.36x speedup from removing backprop-through-time is training-only. Inference pipelining is the real async speed question.
 - **Does the broadcast require a reward signal?** Max is tentatively yes but explicitly uncertain.
-- **Does async execution provide actual throughput benefit in this architecture?** Not tested yet.
 
 ---
 
-*Last updated: 2026-05-21. Theory, minimal-probe, mix-add, and diagonal results. Extended training in progress.*
+*Last updated: 2026-05-21. Theory, minimal-probe, mix-add, extended, diagonal, and stop-gradient results.*
