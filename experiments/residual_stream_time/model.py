@@ -101,6 +101,7 @@ class ResidualStreamTimeCharModel(nn.Module):
         self.context_size = config.context_size
         self.token_embedding = nn.Embedding(vocab_size, config.d_model)
         self.position_embedding = nn.Embedding(config.context_size, config.d_model)
+        self.timestep_norm = nn.LayerNorm(config.d_model)
         self.temporal_attention = TemporalWindowAttention(
             d_model=config.d_model,
             num_heads=config.num_heads,
@@ -127,7 +128,8 @@ class ResidualStreamTimeCharModel(nn.Module):
         step_traces: list[ResidualStepTrace] = []
 
         for time_index in range(self.context_size):
-            block_input = stream + embeddings[:, time_index, :]
+            normalized_stream = self.timestep_norm(stream)
+            block_input = normalized_stream + embeddings[:, time_index, :]
             past_states = history[-self.config.temporal_window :]
             if past_states:
                 stacked_past = torch.stack(past_states, dim=1)

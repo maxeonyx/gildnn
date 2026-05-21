@@ -1,0 +1,9 @@
+{
+  "model_family": "residual_stream_time",
+  "parameter_count": 481019,
+  "context_size": 64,
+  "d_model": 192,
+  "feedforward_dim": 768,
+  "num_heads": 6,
+  "temporal_window": 4
+}
