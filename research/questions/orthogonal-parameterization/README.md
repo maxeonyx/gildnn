@@ -76,8 +76,49 @@ This is **deferred** because:
 
 ## Results
 
-*(Pending — experiment in progress)*
+### Exp-map orthogonal RNN (182K params, 900k TinyShakespeare, 5 epochs)
+
+| Epoch | Train Loss | Val Loss | Orth Error (‖WᵀW - I‖) |
+|-------|-----------|----------|------------------------|
+| 1 | 2.327 | 2.175 | 0.0045 |
+| 2 | 2.048 | 2.064 | 0.0044 |
+| 3 | 1.961 | 2.018 | 0.0045 |
+| 4 | 1.912 | 1.994 | 0.0045 |
+| 5 | 1.883 | **1.972** | 0.0045 |
+
+Training time: **108 minutes** (vs ~3 min for Muon version, ~2 min for transformer).
+
+### Comparison
+
+| Model | Params | Val Loss | Gap to Transformer |
+|-------|--------|----------|-------------------|
+| Transformer | 190K | 1.535 | — |
+| Residual-stream + Muon | 185K | 1.606 | +0.071 |
+| Residual-stream + exp-map | 183K | **1.972** | **+0.437** |
+
+### Interpretation
+
+**The stability hypothesis is fully confirmed:** structural orthogonality prevents divergence at k=8 with plain AdamW. No Muon needed. This is the third independent confirmation that orthogonality is THE mechanism for stability in repeated-weight architectures.
+
+**But exact orthogonality massively over-constrains the network.** The +0.366 gap between exp-map and Muon is much larger than the +0.071 gap between Muon and transformer. The network needs non-orthogonal degrees of freedom to be expressive.
+
+Why this happens:
+1. **Square FFN:** orthogonal matrices must be square, so the feedforward can't expand (d→4d→d becomes d→d→d). This eliminates the capacity bottleneck that FFN expansion provides.
+2. **Reduced expressiveness:** orthogonal transformations preserve norms but can only rotate/reflect — they can't scale or project. The network can't selectively amplify or suppress dimensions.
+3. **matrix_exp cost:** 42ms per weight refresh, making training 30-50x slower. Not viable for rapid iteration.
+
+### Conclusion
+
+**Muon is the right approach.** It provides enough orthogonal pressure for stability while leaving enough freedom for expressiveness. Exact orthogonality is too much of a constraint.
+
+This also answers Max's question from [dictation 2026-05-21-5](../../../dictations/2026-05-21-5.md): "can we parameterize weight matrices so they stay orthogonal?" — Yes, and it works for stability, but it kills expressiveness. The optimizer-level approach (Muon) is strictly better.
+
+### On the volume-preserving direction
+
+The deeper vision (unitary layers + Hamiltonian-flow nonlinearities) might address the expressiveness gap — the flow could provide the nonlinear capacity that orthogonal layers alone lack. But given that the simpler version (orthogonal + GELU) underperforms so badly, and that Hamiltonian flows are expensive to compute, this direction seems unlikely to produce a practical architecture within the project's timebox.
+
+Artifacts: [`experiments/orthogonal_rnn/artifacts/`](../../../experiments/orthogonal_rnn/artifacts/).
 
 ---
 
-*Last updated: 2026-05-22. Theory and design phase.*
+*Last updated: 2026-05-22. Experiment complete — negative on quality, positive on stability mechanism.*
