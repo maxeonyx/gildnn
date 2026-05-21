@@ -244,6 +244,7 @@ Long training runs must not block the agent. This is a significant process requi
 Rules:
 
 - **Never block on a training run expected to take >5 minutes.** Start it in the background (e.g. `Start-Process` on Windows), capture the PID and log path, then continue with other work.
+- **Use unbuffered Python output** for background runs: set `$env:PYTHONUNBUFFERED = '1'` before `Start-Process`, or pass `-u` to the Python interpreter. Without this, stdout is buffered and logs appear empty until the process ends.
 - At most one large training run (>10 min) at a time.
 - One small/fast experiment can run alongside a large run.
 - While any run is active, do other useful work: theory, integration, reporting, small experiments.
