@@ -1,277 +1,168 @@
-﻿# loop.ps1
-# Run this with no arguments.
+﻿# loop.ps1 — gildnn autonomous loop manager
 #
-# User-facing behavior:
-# - if the loop is not running, start it in the background
-# - show the current status
-# - tail the loop log
+# HOW IT WORKS:
+# This script uses Windows Task Scheduler to detach the loop from your
+# terminal. When you run it, it registers a scheduled task that calls back
+# into this same script with the hidden "run" action. That second invocation
+# is the actual forever-loop (launch OpenCode, wait, relaunch). Because Task
+# Scheduler owns that process, closing your terminal/SSH/tmux won't kill it.
 #
-# Agent note:
-# - do not change the no-arg behavior above
-# - test loop changes with the dummy-command path, not Max's real loop
+# The task has no triggers — it doesn't run on boot or login. It only runs
+# when you start it. It re-registers the same task name each time (no clutter).
+#
+# USAGE:
+#   .\loop.ps1                  — start if needed, show status, tail logs
+#   .\loop.ps1 stop             — stop the loop
+#   .\loop.ps1 -DummyCommand    — test mode (fake iterations, separate runtime dir)
 
 param(
-    [string]$Action = 'console',
-
-    [Alias('h')]
-    [switch]$Help,
-
+    [Parameter(Position = 0)]
+    [string]$Action = '',
     [switch]$DummyCommand,
-
-    [int]$MaxIterations = 0,
-
-    [string]$RuntimeName = 'loop-runtime.ignore'
+    [int]$MaxIterations = 0
 )
 
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 
 $sessionId = 'ses_1c007665effen45IK4eRb2NBcn'
-$runtimeDir = Join-Path $PSScriptRoot (Join-Path 'runs' $RuntimeName)
+$runtimeName = if ($DummyCommand) { 'loop-dummy.ignore' } else { 'loop-runtime.ignore' }
+$runtimeDir = Join-Path $PSScriptRoot 'runs' $runtimeName
 $stdoutLog = Join-Path $runtimeDir 'stdout.log'
-$stderrLog = Join-Path $runtimeDir 'stderr.log'
+$taskName = if ($DummyCommand) { 'gildnn-loop-dummy' } else { 'gildnn-loop' }
 $pidFile = Join-Path $runtimeDir 'loop.pid'
-$metaFile = Join-Path $runtimeDir 'loop-state.json'
-
-function Show-Help {
-    Write-Output 'Usage:'
-    Write-Output '  .\loop.ps1'
-    Write-Output '  .\loop.ps1 help'
-    Write-Output '  .\loop.ps1 --help'
-    Write-Output '  .\loop.ps1 <action>'
-    Write-Output ''
-    Write-Output 'Default behavior with no arguments:'
-    Write-Output '  - start the loop if it is not running'
-    Write-Output '  - show the current status'
-    Write-Output '  - tail the loop log'
-    Write-Output ''
-    Write-Output 'Actions:'
-    Write-Output '  start    Start the loop in the background if needed'
-    Write-Output '  status   Show whether the loop is running'
-    Write-Output '  logs     Tail the loop stdout log'
-    Write-Output '  stop     Stop the loop if it is running'
-    Write-Output '  restart  Restart the loop'
-    Write-Output '  help     Show this help'
-    Write-Output ''
-    Write-Output 'Agent/test options:'
-    Write-Output '  -DummyCommand              Run a dummy command instead of OpenCode'
-    Write-Output '  -MaxIterations <n>         Stop after n iterations'
-    Write-Output '  -RuntimeName <name>        Use a separate .ignore runtime dir under runs/'
-}
-
-function Ensure-RuntimeDir {
-    New-Item -ItemType Directory -Path $runtimeDir -Force | Out-Null
-}
 
 function Get-LoopProcess {
-    if (-not (Test-Path -LiteralPath $pidFile)) {
-        return $null
-    }
-
+    if (-not (Test-Path -LiteralPath $pidFile)) { return $null }
     $pidText = (Get-Content -LiteralPath $pidFile -Raw).Trim()
-    if (-not $pidText) {
-        return $null
-    }
-
+    if (-not $pidText) { return $null }
     $loopPid = 0
-    if (-not [int]::TryParse($pidText, [ref]$loopPid)) {
-        return $null
-    }
-
-    try {
-        return Get-Process -Id $loopPid -ErrorAction Stop
-    }
-    catch {
-        return $null
-    }
+    if (-not [int]::TryParse($pidText, [ref]$loopPid)) { return $null }
+    try { return Get-Process -Id $loopPid -ErrorAction Stop }
+    catch { return $null }
 }
 
-function Write-StateFile {
-    param(
-        [int]$LoopPid
+function Ensure-LoopTask {
+    $pwsh = (Get-Command pwsh).Source
+    $arguments = @(
+        '-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden',
+        '-ExecutionPolicy', 'Bypass', '-File', "`"$PSCommandPath`"",
+        'run'
     )
+    if ($DummyCommand) { $arguments += '-DummyCommand' }
+    if ($MaxIterations -gt 0) { $arguments += '-MaxIterations'; $arguments += $MaxIterations }
 
-    $state = [pscustomobject]@{
-        pid = $LoopPid
-        sessionId = $sessionId
-        startedAt = (Get-Date).ToString('o')
-        repoRoot = $PSScriptRoot
-        stdoutLog = $stdoutLog
-        stderrLog = $stderrLog
-    }
-    $state | ConvertTo-Json | Set-Content -LiteralPath $metaFile
-}
-
-function Show-Status {
-    $proc = Get-LoopProcess
-    if ($null -eq $proc) {
-        Write-Output 'Loop status: not running'
-        Write-Output "Repo: $PSScriptRoot"
-        Write-Output "Stdout log: $stdoutLog"
-        Write-Output "Stderr log: $stderrLog"
-        return
-    }
-
-    Write-Output 'Loop status: running'
-    Write-Output "PID: $($proc.Id)"
-    Write-Output "Started: $($proc.StartTime.ToString('yyyy-MM-dd HH:mm:ss'))"
-    Write-Output "Session: $sessionId"
-    Write-Output "Repo: $PSScriptRoot"
-    Write-Output "Stdout log: $stdoutLog"
-    Write-Output "Stderr log: $stderrLog"
+    $action = New-ScheduledTaskAction -Execute $pwsh -Argument ($arguments -join ' ')
+    $principal = New-ScheduledTaskPrincipal -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType Interactive
+    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -Hidden
+    $task = New-ScheduledTask -Action $action -Principal $principal -Settings $settings
+    Register-ScheduledTask -TaskName $taskName -InputObject $task -Force | Out-Null
 }
 
 function Start-Loop {
-    Ensure-RuntimeDir
-
+    New-Item -ItemType Directory -Path $runtimeDir -Force | Out-Null
     $existing = Get-LoopProcess
     if ($null -ne $existing) {
         Write-Output "Loop already running (PID $($existing.Id))."
-        Show-Status
         return
     }
-
-    $pwsh = (Get-Command pwsh).Source
-    $argumentList = @(
-        '-NoProfile'
-        '-ExecutionPolicy'
-        'Bypass'
-        '-File'
-        $PSCommandPath
-        '-Action'
-        'run'
-        '-RuntimeName'
-        $RuntimeName
-    )
-    if ($DummyCommand) {
-        $argumentList += '-DummyCommand'
-    }
-    if ($MaxIterations -gt 0) {
-        $argumentList += '-MaxIterations'
-        $argumentList += $MaxIterations
-    }
-    $proc = Start-Process -FilePath $pwsh -ArgumentList $argumentList -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -PassThru -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog
-    Set-Content -LiteralPath $pidFile -Value $proc.Id
-    Write-StateFile -LoopPid $proc.Id
-
-    Write-Output "Started loop in background (PID $($proc.Id))."
-    Write-Output "Stdout log: $stdoutLog"
-    Write-Output "Stderr log: $stderrLog"
+    Ensure-LoopTask
+    Start-ScheduledTask -TaskName $taskName
+    $deadline = (Get-Date).AddSeconds(10)
+    do {
+        Start-Sleep -Milliseconds 250
+        $proc = Get-LoopProcess
+    } while ($null -eq $proc -and (Get-Date) -lt $deadline)
+    if ($null -ne $proc) { Write-Output "Started (PID $($proc.Id))." }
+    else { Write-Output "Task started — waiting for PID..." }
 }
 
 function Stop-Loop {
     $proc = Get-LoopProcess
-    if ($null -eq $proc) {
-        Write-Output 'Loop is not running.'
-        return
-    }
-
-    Stop-Process -Id $proc.Id
+    if ($null -eq $proc) { Write-Output 'Loop is not running.'; return }
+    Stop-Process -Id $proc.Id -Force
     Remove-Item -LiteralPath $pidFile -ErrorAction SilentlyContinue
-    Write-Output "Stopped loop process $($proc.Id)."
+    try { Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue } catch {}
+    Write-Output "Stopped (PID $($proc.Id))."
 }
 
 function Follow-Logs {
-    Ensure-RuntimeDir
-
     if (-not (Test-Path -LiteralPath $stdoutLog)) {
         New-Item -ItemType File -Path $stdoutLog -Force | Out-Null
-    }
-
-    Write-Output "Following $stdoutLog"
-    if ((Test-Path -LiteralPath $stderrLog) -and (Get-Item -LiteralPath $stderrLog).Length -gt 0) {
-        Write-Output "Note: stderr also has output: $stderrLog"
     }
     Get-Content -LiteralPath $stdoutLog -Tail 80 -Wait
 }
 
-function Enter-ConsoleMode {
-    $proc = Get-LoopProcess
-    if ($null -eq $proc) {
-        Start-Loop
-        Start-Sleep -Seconds 1
-    }
-
-    Show-Status
-    Write-Output ''
-    Follow-Logs
-}
+# --- The forever-loop (invoked by the scheduled task, not by the user) ---
 
 function Run-Loop {
-    Ensure-RuntimeDir
+    New-Item -ItemType Directory -Path $runtimeDir -Force | Out-Null
+    Set-Content -LiteralPath $pidFile -Value $PID
+    $null = New-Item -ItemType File -Path $stdoutLog -Force
 
-    Write-Output 'Starting gildnn loop in background. Press Ctrl+C in the child process to stop.'
-    Write-Output ''
+    function Log($msg) { $msg | Out-File -LiteralPath $stdoutLog -Append -Encoding utf8 }
 
-    $crashCount = 0
-    $iteration = 0
-    $lastLaunch = Get-Date
-
-    while ($true) {
-        $iteration++
-        $now = Get-Date
-        $mode = if ($DummyCommand) { 'dummy command' } else { 'OpenCode' }
-        Write-Output "[$($now.ToString('yyyy-MM-dd HH:mm:ss'))] Launching $mode iteration $iteration (session $sessionId)..."
-
-        $prompt = Get-Content -Path "$PSScriptRoot\loop-prompt.md" -Raw
-        Write-Output $prompt
-
-        if ($DummyCommand) {
-            & pwsh -NoProfile -Command "Write-Output ('dummy iteration ' + $iteration); exit 0"
-            $exitCode = $LASTEXITCODE
-        }
-        else {
-            opencode run --agent arrange --model github-copilot-max/claude-opus-4.6 --variant high --session $sessionId $prompt
-            $exitCode = $LASTEXITCODE
-        }
-
-        $elapsed = ((Get-Date) - $lastLaunch).TotalSeconds
+    try {
+        Log "Loop started at $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+        $crashCount = 0
+        $iteration = 0
         $lastLaunch = Get-Date
-        Write-Output "[$($lastLaunch.ToString('yyyy-MM-dd HH:mm:ss'))] $mode exited (code $exitCode, ran ${elapsed}s, iteration $iteration)"
 
-        if ($MaxIterations -gt 0 -and $iteration -ge $MaxIterations) {
-            Write-Output "Reached max iterations ($MaxIterations). Loop finished."
-            break
-        }
+        while ($true) {
+            $iteration++
+            $mode = if ($DummyCommand) { 'dummy' } else { 'OpenCode' }
+            Log "[$(Get-Date -Format 'HH:mm:ss')] iteration $iteration — launching $mode"
 
-        if ($elapsed -lt 30) {
-            $crashCount++
+            $prompt = Get-Content -Path "$PSScriptRoot\loop-prompt.md" -Raw
+
             if ($DummyCommand) {
-                $backoff = 1
+                & pwsh -NoProfile -Command "Write-Output ('dummy iteration ' + $iteration); exit 0" 2>&1 | Out-File -LiteralPath $stdoutLog -Append -Encoding utf8
+                $exitCode = $LASTEXITCODE
             }
             else {
-                $backoff = [Math]::Min(60 * $crashCount, 300)
+                opencode run --agent arrange --model github-copilot-max/claude-opus-4.6 --variant high --session $sessionId $prompt 2>&1 | Out-File -LiteralPath $stdoutLog -Append -Encoding utf8
+                $exitCode = $LASTEXITCODE
             }
-            Write-Output "Fast exit #$crashCount. Waiting ${backoff}s before relaunch..."
-            Start-Sleep -Seconds $backoff
+
+            $elapsed = ((Get-Date) - $lastLaunch).TotalSeconds
+            $lastLaunch = Get-Date
+            Log "[$(Get-Date -Format 'HH:mm:ss')] exited (code $exitCode, ${elapsed}s)"
+
+            if ($MaxIterations -gt 0 -and $iteration -ge $MaxIterations) {
+                Log "Reached max iterations ($MaxIterations). Done."
+                break
+            }
+
+            if ($elapsed -lt 30) {
+                $crashCount++
+                $backoff = if ($DummyCommand) { 1 } else { [Math]::Min(60 * $crashCount, 300) }
+                Log "Fast exit #$crashCount — waiting ${backoff}s"
+                Start-Sleep -Seconds $backoff
+            }
+            else {
+                $crashCount = 0
+                Log 'Waiting 10s...'
+                Start-Sleep -Seconds 10
+            }
         }
-        else {
-            $crashCount = 0
-            Write-Output 'Waiting 10s before relaunch...'
-            Start-Sleep -Seconds 10
-        }
+    }
+    finally {
+        Remove-Item -LiteralPath $pidFile -ErrorAction SilentlyContinue
     }
 }
 
-$normalizedAction = $Action.ToLowerInvariant()
+# --- Entry point ---
 
-if ($Help -or $normalizedAction -eq 'help' -or $Action -eq '--help') {
-    Show-Help
-    return
-}
-
-switch ($normalizedAction) {
-    'console' { Enter-ConsoleMode }
-    'start' { Start-Loop }
-    'run' { Run-Loop }
-    'status' { Show-Status }
-    'logs' { Follow-Logs }
+switch ($Action.ToLowerInvariant()) {
     'stop' { Stop-Loop }
-    'restart' {
-        Stop-Loop
-        Start-Loop
-    }
+    'run'  { Run-Loop }
     default {
-        throw "Unknown action '$Action'. Run .\loop.ps1 --help for usage."
+        Start-Loop
+        $proc = Get-LoopProcess
+        if ($null -eq $proc) { Write-Output 'Loop: not running' }
+        else { Write-Output "Loop: running (PID $($proc.Id), started $($proc.StartTime.ToString('yyyy-MM-dd HH:mm:ss')))" }
+        Write-Output "Log:  $stdoutLog"
+        Write-Output ''
+        Follow-Logs
     }
 }
