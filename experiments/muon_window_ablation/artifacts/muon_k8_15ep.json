@@ -1,0 +1,81 @@
+{
+  "muon_lr": 0.01,
+  "epochs": 15,
+  "d_model": 192,
+  "references": {
+    "transformer": 1.632,
+    "previous_muon_k8_5ep": 1.664
+  },
+  "result": {
+    "k": 8,
+    "muon_lr": 0.01,
+    "params": 479872,
+    "epochs": 10,
+    "best_val": 1.66126,
+    "final_val": 4.156791,
+    "diverged": true,
+    "runtime": 1414.1,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 2.542875,
+        "val_loss": 2.023682,
+        "val_accuracy": 0.4219
+      },
+      {
+        "epoch": 2,
+        "train_loss": 1.816396,
+        "val_loss": 1.812159,
+        "val_accuracy": 0.475321
+      },
+      {
+        "epoch": 3,
+        "train_loss": 1.627105,
+        "val_loss": 1.722785,
+        "val_accuracy": 0.49363
+      },
+      {
+        "epoch": 4,
+        "train_loss": 1.515835,
+        "val_loss": 1.684638,
+        "val_accuracy": 0.504765
+      },
+      {
+        "epoch": 5,
+        "train_loss": 1.43719,
+        "val_loss": 1.682953,
+        "val_accuracy": 0.50938
+      },
+      {
+        "epoch": 6,
+        "train_loss": 1.379578,
+        "val_loss": 1.66126,
+        "val_accuracy": 0.506922
+      },
+      {
+        "epoch": 7,
+        "train_loss": 1.338384,
+        "val_loss": 1.665415,
+        "val_accuracy": 0.511687
+      },
+      {
+        "epoch": 8,
+        "train_loss": 1.307287,
+        "val_loss": 1.674516,
+        "val_accuracy": 0.514547
+      },
+      {
+        "epoch": 9,
+        "train_loss": 1.362146,
+        "val_loss": 1.790075,
+        "val_accuracy": 0.482293
+      },
+      {
+        "epoch": 10,
+        "train_loss": 64.18772,
+        "val_loss": 4.156791,
+        "val_accuracy": 0.138894
+      }
+    ]
+  }
+}

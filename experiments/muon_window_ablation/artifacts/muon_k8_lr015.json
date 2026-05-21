@@ -1,0 +1,51 @@
+{
+  "muon_lr": 0.015,
+  "epochs": 5,
+  "d_model": 192,
+  "references": {
+    "transformer": 1.632,
+    "muon_lr_0.01_k8_5ep": 1.664
+  },
+  "result": {
+    "k": 8,
+    "muon_lr": 0.015,
+    "params": 479872,
+    "epochs": 5,
+    "best_val": 1.696517,
+    "final_val": 20.6975,
+    "diverged": true,
+    "runtime": 706.8,
+    "history": [
+      {
+        "epoch": 1,
+        "train_loss": 2.401594,
+        "val_loss": 1.945289,
+        "val_accuracy": 0.435042
+      },
+      {
+        "epoch": 2,
+        "train_loss": 1.753317,
+        "val_loss": 1.77778,
+        "val_accuracy": 0.481691
+      },
+      {
+        "epoch": 3,
+        "train_loss": 1.605695,
+        "val_loss": 1.696517,
+        "val_accuracy": 0.496087
+      },
+      {
+        "epoch": 4,
+        "train_loss": 1.531415,
+        "val_loss": 1.745722,
+        "val_accuracy": 0.480839
+      },
+      {
+        "epoch": 5,
+        "train_loss": 22.44071,
+        "val_loss": 20.6975,
+        "val_accuracy": 0.031752
+      }
+    ]
+  }
+}
