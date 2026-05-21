@@ -260,7 +260,7 @@ Key finding: temporal norm management is essential. Mix-add works as well as Lay
 
 **6. Parameter-matched comparison** — DONE. At d_model=116 (184K params ≈ transformer's 186K): val loss **1.717** vs transformer **1.632** — gap of **+0.085 nats**. The architecture IS less efficient at matched params, but only moderately. The d=192 model (1.670) benefits from excess capacity. See `experiments/residual_stream_time_partial_detach/artifacts/param_matched/`.
 
-**7. Window size ablation** — DONE (MIXED). k=8 and k=16 diverge at LR=0.003. BUT at LR=0.001, k=8 is stable AND **0.024 nats better** than k=4 (1.757 vs 1.781). The larger window DOES help — divergence was purely training stability, not architectural. See `experiments/residual_stream_time_partial_detach/artifacts/window_stable/`.
+**7. Window size ablation** — DONE. k=8,16 diverge at LR=0.003, but k=8 is stable at LR=0.001. Extended k=8 run (15 epochs): **best val 1.672** — only +0.002 from k=4 baseline (1.670). Window size is NOT the efficiency bottleneck; the +0.085 gap to transformer at matched params comes from something else (sequential processing, limited context window vs full-sequence attention, or training dynamics).
 
 **8. Next discriminating experiment:** The architecture has more headroom than initially thought. Key directions:
 - **k=8 with LR scheduling** — warmup + decay might give both stability and convergence. Could beat the k=4/LR=0.003 baseline of 1.670.
