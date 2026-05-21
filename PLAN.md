@@ -241,10 +241,24 @@ The GRU work tells us stale reads are mechanically stable and GPU hardware is we
 
 ## Immediate next step (REORIENTED)
 
-**1. Theory-first architecture analysis** — write a Max-readable report that operationalizes "residual streams across time" into concrete architecture/design choices. Map the design tree: temporal coupling mechanisms, residual topology, gradient coupling, async semantics, broadcast scope. This is the MAJORITY of the next deliverable per Max's explicit request.
+**1. Theory-first architecture analysis** — DONE. See `research/questions/residual-stream-across-time/README.md`.
 
-**2. Minimal faithful architecture probe** — after the theoretical analysis, build the smallest model that faithfully instantiates residual-stream-across-time with attention-over-past. Compare against transformer anchor.
+**2. Minimal faithful architecture probe** — DONE (basic). Results:
+- Without norm control: broken (stream RMS explodes to 1555)
+- With temporal pre-norm (LayerNorm): val loss 1.788 at 481K params
+- With learned mix-add (no LN): val loss 1.791 at 479K params — **matches LN, Max's preferred approach**
+- Diagonal coupling (2 blocks): val loss 1.788 at 777K — inconclusive (same loss, more params)
+- For reference: transformer anchor 1.63 at 186K params
 
-**3. Only then:** async/stale-read execution in that architecture family, targeting actual speed improvement.
+Key finding: temporal norm management is essential. Mix-add works as well as LayerNorm. The architecture IS viable.
 
-See `REORIENT.ignore.md` for the full analysis of what changed and why.
+**3. Extended training** — IN PROGRESS. Running mix-add probe at 100k chars / 5 epochs to see convergence behavior. Background process PID in `runs/active.lock`.
+
+**4. Next after extended run:** assess the val loss trajectory. If converging toward transformer, the architecture is competitive given more training. If plateauing, there's a fundamental efficiency gap to investigate.
+
+**5. Future work (from dictations, not immediate):**
+- Mix-add as default over LayerNorm in all experiments
+- Async/stale-read execution for throughput (speed demonstration)
+- Diagonal coupling at larger scale / more blocks
+- Broadcast mechanism (attention-based, async)
+- Local learning concept clarification
