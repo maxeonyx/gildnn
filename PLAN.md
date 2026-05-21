@@ -271,13 +271,22 @@ Key finding: temporal norm management is essential. Mix-add works as well as Lay
 - **Parameter-matched (184K, k=8, Muon):** val 1.694 — gap to transformer narrows from +0.085 (AdamW/k=4) to **+0.062**. 27% gap reduction.
 - Still declining at epoch 5 — more training would likely narrow the gap further.
 
-**9. Next discriminating experiment:** Now that stability is solved, key questions:
-- **Parameter-matched Muon**: d_model=116 (184K params) with Muon at k=8 — close the gap to transformer?
-- **Longer training with Muon**: k=8 at LR=0.01 for 15+ epochs — how far does it converge?
-- **Multi-block pipelining**: actual async inference demo using the now-stable k=8+ architecture.
-- **Higher Muon LR**: since 0.02 diverged and 0.01 worked, try 0.015 — faster convergence?
+**9. 900k scale-up** — DONE. DECISIVE NEGATIVE on parameter efficiency.
 
-**10. Future work (separate directions, not immediate):**
+- Residual-stream-time (Muon, k=8, 185K params): val 1.606
+- Transformer control (190K params): val 1.535
+- **Gap: +0.071 nats at matched params on 900k data**
+- Gap persists and even widens vs 100k results (+0.045 best on 100k)
+- Transformer benefits MORE from additional data (+0.097 improvement) than residual model (+0.071)
+- The architecture is genuinely less parameter-efficient for text. The gap is architectural (sequential processing, limited temporal context), not training-dynamic.
+
+**10. Assessment:** The residual-stream-across-time architecture is:
+- **Viable** (trains, converges, produces reasonable text)
+- **Mechanistically interesting** (Muon confirms orthogonal stability theory, partial detach gives useful speed/quality tradeoffs)
+- **Less efficient than transformers** for pure text quality at matched params (+0.071 gap)
+- **Potentially useful for other properties** (pipelining, streaming, local learning) — but those haven't been tested as discriminating experiments yet
+
+**11. Future work (separate directions, not immediate):**
 - **Complex-valued / inherently orthogonal networks:** parameterize weights so they stay orthogonal by construction rather than being pushed there by the optimizer.
 - **Volume-preserving nonlinearities:** train a separate module to implement a volume-preserving transformation (SDiff / Hamiltonian-flow style), then freeze it and use it as the nonlinearity; basis-independent by construction.
 - **Declining batch size + declining LR together:** a side training-process idea, not the main focus right now.
