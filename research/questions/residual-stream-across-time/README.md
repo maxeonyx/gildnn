@@ -348,6 +348,23 @@ The quality curve has a sharp knee: going from N=1 to N=2 recovers 0.131 nats. N
 
 **For async pipelining:** this means you can break gradient flow every 4 steps with minimal quality cost. A pipeline with 4-step stages would get 2.46× training throughput at only +0.041 nats quality penalty. Artifacts: [`experiments/residual_stream_time_partial_detach/artifacts/sweep/`](../../../experiments/residual_stream_time_partial_detach/artifacts/sweep/).
 
+### Parameter-matched comparison (185K params)
+
+The d_model=192 probe uses 479K params — 2.6× the transformer anchor's 186K. To test whether the architecture is fundamentally less parameter-efficient (vs just benefiting from extra capacity), tested at d_model=116 giving 184K params.
+
+| Model | Params | Val loss | Gap |
+|-------|--------|----------|-----|
+| Transformer anchor | 186K | 1.632 | — |
+| **Residual-stream-time (d=116)** | **184K** | **1.717** | **+0.085** |
+| Residual-stream-time (d=192) | 479K | 1.670 | +0.038 |
+
+At matched parameters, the architecture is **+0.085 nats worse** than the transformer. This is a moderate but real efficiency gap — the architecture needs about 2.6× more parameters to reach transformer-comparable quality. This is likely because:
+1. The sequential timestep loop prevents parallelism over positions (transformer processes all positions simultaneously)
+2. Temporal attention (k=4 window) provides less context than full-sequence self-attention
+3. Mix-add bounding may limit representational capacity compared to unbounded residual streams
+
+The gap is not catastrophic (0.085 nats ≈ 5% relative), and the architecture offers properties transformers don't (temporal locality, pipelineable execution, constant memory per timestep). Whether this tradeoff is worthwhile depends on the application. Artifacts: [`experiments/residual_stream_time_partial_detach/artifacts/param_matched/`](../../../experiments/residual_stream_time_partial_detach/artifacts/param_matched/).
+
 ---
 
 ## Open questions this report does not close

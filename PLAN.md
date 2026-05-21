@@ -258,13 +258,15 @@ Key finding: temporal norm management is essential. Mix-add works as well as Lay
 
 **5. Partial detach sweep** — DONE. Tested N=2, 4, 8, 16. **N=4 is the sweet spot:** val loss 1.711 (+0.041 from baseline) at 2.46× speed. Full stop-grad costs +0.223; partial detach every 4 steps costs only +0.041 at the same speed. Sharp knee in the curve — matches temporal attention window k=4. See `experiments/residual_stream_time_partial_detach/artifacts/sweep/`.
 
-**6. Next discriminating experiment:** The async tradeoff is now quantified. Open directions:
-- **Parameter-matched comparison** — reduce d_model to match transformer's 186K params. Answers the efficiency question separate from training budget.
-- **Longer training** — 10+ epochs on full-gradient mix-add. See if 0.038 gap closes.
-- **Window size ablation** — k=4 vs k=8, k=16 (now also interesting because k=4 matches the partial-detach sweet spot).
-- **Multi-block pipelining** — actually demonstrate async inference with multiple blocks running in parallel using 4-step pipeline stages.
+**6. Parameter-matched comparison** — DONE. At d_model=116 (184K params ≈ transformer's 186K): val loss **1.717** vs transformer **1.632** — gap of **+0.085 nats**. The architecture IS less efficient at matched params, but only moderately. The d=192 model (1.670) benefits from excess capacity. See `experiments/residual_stream_time_partial_detach/artifacts/param_matched/`.
 
-**7. Future work (from dictations, not immediate):**
+**7. Next discriminating experiment:** Architecture is now well-characterized on the basic axis. Key open directions:
+- **Window size ablation** — k=4 vs k=8, k=16. Might close the efficiency gap (more context = better predictions).
+- **Longer training** — 10+ epochs on full-gradient to find the convergence floor.
+- **Multi-block pipelining** — demonstrate actual async inference throughput with pipeline stages.
+- **Integration into core/** — the mix-add architecture is proven enough to become shared code.
+
+**8. Future work (from dictations, not immediate):**
 - Mix-add as default over LayerNorm in all experiments
 - Async/stale-read execution for throughput (speed demonstration)
 - Diagonal coupling at larger scale / more blocks
