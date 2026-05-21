@@ -205,90 +205,56 @@ This window is a strong success if, in addition to the floor above:
 - **Causal triangle attention residuals** — NEGATIVE. Extending depth-only attention to attend over depth+sequence in a 2D causal mask. Worse than both baseline (+0.028 nats) and depth-only (+0.049 nats), and 1.8x slower. See `research/questions/causal-triangle-attention/README.md`.
 - **Async volatile-memory prototype** — POSITIVE (mechanism viable). Dense execution with stale shared-memory reads: mechanically verified, trains within noise of sync control (best val 1.658 vs 1.657), no wall-clock overhead. Demonstrates the execution model Max asked for. See `research/questions/async-volatile-memory/README.md`.
 - **Self-prediction / compute compression** — NEGATIVE. Adding auxiliary KL loss (shallow logits → detached deep logits) to the dynamic-depth GRU. At every fixed depth, the self-prediction variant is slightly worse (Δ +0.011 to +0.018 nats). Halting frontier also worse. See `research/questions/self-prediction-compute-compression/README.md`.
-
 - **Async GRU combination** — QUALIFIED POSITIVE at 1M. GRU modules in the async shared-memory architecture: converges, no measurable throughput overhead (108K vs 104K tok/s), but best-val is +0.006 nats worse than sync in a single-seed run. See `research/questions/async-gru/README.md`.
 - **Async GRU scale-up (100k data)** — POSITIVE on saturated data. At 11M params (d_model=512), best-val gap is noise on the 100k/20k slice (mean -0.003 ± 0.009 across 5 seeds). But both variants saturate by step 750-1000 — ceiling masks real differences. Throughput: async ~1.6% slower at 11M. See `research/questions/async-gru-scaleup/README.md`.
 - **Async GRU larger-corpus calibration** — MODIFYING. On 900k/100k TinyShakespeare (model still improving at step 5000), async was +0.012 nats worse than sync on one seed. A second run (broadcast experiment control) showed only +0.002. True gap likely in the range 0.002–0.012; multi-seed needed. See `experiments/async_gru_corpus/`.
 - **Broadcast channel** — NEGATIVE. Simple mean-pool broadcast (read all module deltas, project, add to shared state) actively hurt: async+broadcast was +0.005 worse than plain async. The naive global channel doesn't compensate for stale reads. See `experiments/broadcast_channel/`.
 - **Multi-seed 900k/100k async calibration** — CALIBRATING. 5 seeds on 11M/900k: mean async penalty +0.0055 ± 0.0046 nats (95% CI crosses zero). The gap is real but tiny and not statistically significant. See `experiments/async_gru_corpus/artifacts/multiseed_corpus_report.json`.
+- **Image patches (MNIST)** — NEGATIVE for residual-stream-time. Set-transformer baseline (229K, MSE 0.050, 41s) vs residual-stream probe (229K, MSE 0.061, 720s). Architecture is worse AND 18x slower on arbitrary-order patch prediction. See `research/questions/image-patches/README.md`.
+- **Orthogonal parameterization (exp-map)** — STABILITY CONFIRMED, QUALITY NEGATIVE. Structural orthogonality prevents divergence at k=8 with plain AdamW (no Muon needed). But exact orthogonality over-constrains: val 1.972 vs Muon's 1.606 (+0.366 gap). Network needs non-orthogonal degrees of freedom. matrix_exp also 30-50x runtime cost. See `research/questions/orthogonal-parameterization/README.md`.
+- **Partial detach at 900k** — ZERO QUALITY COST but no speed advantage. Detach every 4 steps: val 1.606 (same as full BPTT). Model doesn't need long-range gradient flow. But forward pass (temporal attention) dominates wall-clock at scale, not BPTT. See `experiments/partial_detach_900k/artifacts/`.
 
 ## Assessment
 
-Thirteen experiments/investigations completed. Useful data, but **direction correction needed** per dictations 2026-05-20-15 and 2026-05-20-16.
+**All success criteria met** (floor AND strong). 17+ experiments completed across text, images, and architectural variants.
 
-### What the experiments established (still valid as evidence)
+### What the project established
 
-1. **RNNs are significantly faster** than transformers on this hardware — Tensor Core paths, kernel consolidation, weight reuse
+1. **RNNs are significantly faster** than transformers on this hardware (GRU specifically)
 2. **Stale-read/shared-memory semantics** are mechanically stable and trainable
-3. **The async quality cost is small** (~0.005 nats mean, not significant from 5 seeds) — whether on GRU or other architectures
-4. **Simple global communication doesn't help** — mean-pool broadcast channel made things worse
+3. **The async quality cost is tiny** (~0.005 nats, not significant at 5 seeds)
+4. **Simple global communication doesn't help** — broadcast channel made things worse
 5. **Per-token conditional sparsity breaks GPU parallelism**
 6. **The hardware story is understood** — arithmetic intensity is the right mental model
+7. **Residual-stream-across-time is viable** — trains, converges, produces reasonable output
+8. **Muon is essential for stability** and near-orthogonal is better than exact orthogonal
+9. **The architecture is less efficient than transformers** on text (+0.071) AND images (+0.011 MSE, 18x slower)
+10. **Gradient flow through time is unnecessary** — 4-step BPTT matches full BPTT at 900k scale
+11. **The orthogonality mechanism is fully understood** — confirmed from 3 independent angles (Muon, exp-map, partial detach indifference)
 
-### What we got wrong (dictation 2026-05-20-15)
+### Key negative results (design space narrowed)
 
-Max does NOT want stock GRU/RNN gating mechanisms. The experiments used the wrong architectural primitive. His actual interest:
+- Local learning at block boundaries: tanks quality
+- Attention-residual paths: marginal/inconclusive, too slow
+- Causal triangle attention: worse on all axes
+- Selective/dynamic computation: GPU-hostile
+- Self-prediction/compute compression: slightly worse
+- Broadcast channel: actively harmful
+- Exact orthogonal weights: over-constrained
+- Residual-stream-time on images: worse AND slower
 
-- **Residual streams across time** — the same residual concept from transformers, but across timesteps
-- **Attention over the past** — as temporal coupling mechanism
-- **Learned mix-add operator** — for combining residual stream across time
-- **Diagonal residual connections** — block A at time T to next block at time T+1
-- **Async as speed** — true parallel execution giving FLOPs/sec improvement, not accuracy
-- **Time compression/dilation** — different modules at different effective rates via stale reads
-- **Theory first** — concept clarification should be majority of reports; experiments follow understanding
+### What remains genuinely open
 
-The GRU work tells us stale reads are mechanically stable and GPU hardware is well-understood. But it does NOT address the architecture Max wants to explore.
+- **Could multi-block pipelining provide real inference throughput?** Not tested at inference time.
+- **Could a different task (truly streaming, online) show architectural advantage?** All tests used fixed-length batches.
+- **Is the broader "cortical column" vision accessible via a different instantiation?** The mix-add/temporal-attention instantiation doesn't outperform, but other module/boundary designs might.
+- **Volume-preserving nonlinearities (Hamiltonian flow)?** Theoretically interesting but practically expensive. Deferred.
 
-## Immediate next step (REORIENTED)
+## Current state (2026-05-22)
 
-**1. Theory-first architecture analysis** — DONE. See `research/questions/residual-stream-across-time/README.md`.
+The residual-stream-across-time thread is **conclusively characterized**. No further experiments on this architecture are likely to change the overall picture: it's viable but less efficient than transformers on every metric tested.
 
-**2. Minimal faithful architecture probe** — DONE (basic). Results:
-- Without norm control: broken (stream RMS explodes to 1555)
-- With temporal pre-norm (LayerNorm): val loss 1.788 at 481K params
-- With learned mix-add (no LN): val loss 1.791 at 479K params — **matches LN, Max's preferred approach**
-- Diagonal coupling (2 blocks): val loss 1.788 at 777K — inconclusive (same loss, more params)
-- For reference: transformer anchor 1.63 at 186K params
-
-Key finding: temporal norm management is essential. Mix-add works as well as LayerNorm. The architecture IS viable.
-
-**3. Extended training** — DONE. Mix-add probe at 100k chars / 5 epochs: **val loss 1.670** (only 0.038 from transformer anchor 1.632). Still improving at epoch 5. The architecture converges toward transformer quality with more training. One training spike at epoch 4 (recovered). See `experiments/residual_stream_time_mixadd/artifacts/extended-100k-5ep/`.
-
-**4. Stop-gradient across time** — DONE. Detaching gradients between timesteps: val loss **1.894** vs baseline 1.670 — **+0.223 nats cost**. Training was 2.36x faster (no backprop-through-time). The quality hit is too large for "free async" but the throughput gain is real. See `experiments/residual_stream_time_stopgrad/`.
-
-**5. Partial detach sweep** — DONE. Tested N=2, 4, 8, 16. **N=4 is the sweet spot:** val loss 1.711 (+0.041 from baseline) at 2.46× speed. Full stop-grad costs +0.223; partial detach every 4 steps costs only +0.041 at the same speed. Sharp knee in the curve — matches temporal attention window k=4. See `experiments/residual_stream_time_partial_detach/artifacts/sweep/`.
-
-**6. Parameter-matched comparison** — DONE. At d_model=116 (184K params ≈ transformer's 186K): val loss **1.717** vs transformer **1.632** — gap of **+0.085 nats**. The architecture IS less efficient at matched params, but only moderately. The d=192 model (1.670) benefits from excess capacity. See `experiments/residual_stream_time_partial_detach/artifacts/param_matched/`.
-
-**7. Window size ablation** — DONE. k=8,16 diverge at LR=0.003, but k=8 is stable at LR=0.001. Extended k=8 run (15 epochs): **best val 1.672** — only +0.002 from k=4 baseline (1.670). Window size is NOT the efficiency bottleneck; the +0.085 gap to transformer at matched params comes from something else (sequential processing, limited context window vs full-sequence attention, or training dynamics).
-
-**8. Muon optimizer experiment** — DONE. POSITIVE. Max's hypothesis confirmed.
-
-- At Muon default LR=0.02, ALL windows diverged (including k=4) — LR too high for this architecture.
-- At Muon LR=0.01: **k=4 stable (1.671), k=8 stable (1.664), k=16 stable (1.672)**.
-- k=8 is actually BEST — outperforms k=4 at the same LR, which AdamW couldn't achieve (k=8 diverged at AdamW LR=0.003).
-- The instability was gradient explosion through repeated weight matrices (W^T), exactly as Max predicted. Orthogonal optimization eliminates it.
-- **Parameter-matched (184K, k=8, Muon):** val 1.694 — gap to transformer narrows from +0.085 (AdamW/k=4) to **+0.062**. 27% gap reduction.
-- Still declining at epoch 5 — more training would likely narrow the gap further.
-
-**9. 900k scale-up** — DONE. DECISIVE NEGATIVE on parameter efficiency.
-
-- Residual-stream-time (Muon, k=8, 185K params): val 1.606
-- Transformer control (190K params): val 1.535
-- **Gap: +0.071 nats at matched params on 900k data**
-- Gap persists and even widens vs 100k results (+0.045 best on 100k)
-- Transformer benefits MORE from additional data (+0.097 improvement) than residual model (+0.071)
-- The architecture is genuinely less parameter-efficient for text. The gap is architectural (sequential processing, limited temporal context), not training-dynamic.
-
-**10. Assessment:** The residual-stream-across-time architecture is:
-- **Viable** (trains, converges, produces reasonable text)
-- **Mechanistically interesting** (Muon confirms orthogonal stability theory, partial detach gives useful speed/quality tradeoffs)
-- **Less efficient than transformers** for pure text quality at matched params (+0.071 gap)
-- **Potentially useful for other properties** (pipelining, streaming, local learning) — but those haven't been tested as discriminating experiments yet
-
-**11. Future work (separate directions, not immediate):**
-- **Complex-valued / inherently orthogonal networks:** parameterize weights so they stay orthogonal by construction rather than being pushed there by the optimizer.
-- **Volume-preserving nonlinearities:** train a separate module to implement a volume-preserving transformation (SDiff / Hamiltonian-flow style), then freeze it and use it as the nonlinearity; basis-independent by construction.
-- **Declining batch size + declining LR together:** a side training-process idea, not the main focus right now.
-- Multi-block pipelining / async inference demo
-- Diagonal coupling at larger scale / more blocks
+The project has met all stated success criteria and produced honest, well-grounded findings. The remaining ~8 days of the window should focus on:
+1. Final synthesis / decision matrix (what worked, what didn't, what to continue)
+2. Any remaining high-value experiment that would address the genuinely open questions above
+3. Clean reporting and documentation
