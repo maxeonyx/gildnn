@@ -3,7 +3,9 @@ name = "gildnn"
 version = "0.1.0"
 requires-python = "==3.12.*"
 dependencies = [
+    "numpy>=2.4.6",
     "torch==2.11.0+cu128",
+    "torchvision>=0.26.0",
 ]
 
 [[tool.uv.index]]
