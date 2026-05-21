@@ -260,18 +260,13 @@ Key finding: temporal norm management is essential. Mix-add works as well as Lay
 
 **6. Parameter-matched comparison** — DONE. At d_model=116 (184K params ≈ transformer's 186K): val loss **1.717** vs transformer **1.632** — gap of **+0.085 nats**. The architecture IS less efficient at matched params, but only moderately. The d=192 model (1.670) benefits from excess capacity. See `experiments/residual_stream_time_partial_detach/artifacts/param_matched/`.
 
-**7. Window size ablation** — DONE (NEGATIVE). Both k=8 and k=16 diverge catastrophically. The mix-add architecture has a stability boundary at k≈4 with current LR/clip settings. Larger temporal windows amplify gradients through attention until explosion. k=4 is both the stability limit and the partial-detach sweet spot — likely the same underlying constraint. See `experiments/residual_stream_time_partial_detach/artifacts/window_ablation/`.
+**7. Window size ablation** — DONE (MIXED). k=8 and k=16 diverge at LR=0.003. BUT at LR=0.001, k=8 is stable AND **0.024 nats better** than k=4 (1.757 vs 1.781). The larger window DOES help — divergence was purely training stability, not architectural. See `experiments/residual_stream_time_partial_detach/artifacts/window_stable/`.
 
-**8. Next discriminating experiment:** The architecture is now thoroughly characterized:
-- Works at k=4, d=192: val 1.670 (near transformer)
-- Moderate efficiency gap: +0.085 at matched params
-- Async tradeoff: N=4 partial detach gives 2.46× speed for +0.041 nats
-- Stability limit: k>4 diverges with mix-add
-
-Open directions:
-- **Stabilize larger windows** — add RMSNorm to attention Q/K, or reduce LR. Could close efficiency gap.
-- **Multi-block pipelining** — actual async inference demo with 4-step pipeline stages.
-- **Move to a different experiment family** — the residual-stream-across-time thread is well-explored. Consider image patches (Phase 6) or other Phase 3 mechanisms.
+**8. Next discriminating experiment:** The architecture has more headroom than initially thought. Key directions:
+- **k=8 with LR scheduling** — warmup + decay might give both stability and convergence. Could beat the k=4/LR=0.003 baseline of 1.670.
+- **Longer training at LR=0.001** — k=8 was still declining at epoch 5. Run 10-20 epochs.
+- **Stabilize k=8 at higher LR** — add QK-norm to attention, keep LR=0.003.
+- **Multi-block pipelining** — actual async inference demo.
 
 **9. Future work (from dictations, not immediate):**
 - Mix-add as default over LayerNorm in all experiments
