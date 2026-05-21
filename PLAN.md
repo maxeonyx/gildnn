@@ -255,9 +255,15 @@ This window is a strong success if, in addition to the floor above:
 
 The residual-stream-across-time thread is **conclusively characterized** for quality. No further experiments on quality are likely to change the picture: it's viable but less efficient than transformers on every metric tested.
 
-**The async SPEED question is unanswered.** Per [dictation 2026-05-22-3](dictations/2026-05-22-3.md): we proved stale reads don't hurt quality much, but we never proved they HELP throughput. The whole point of async is wall-clock speedup (and secondarily, modules at different rates). The next experiment must demonstrate: async-on vs async-off → measurable wall-clock improvement. This likely requires actual parallel/pipelined execution, not just simulated stale reads.
+**The async SPEED question is answered for single-GPU PyTorch: NO.** Per [dictation 2026-05-22-3](dictations/2026-05-22-3.md), we ran the minimal async test — CUDA streams with pipelined block execution vs sequential and parallel baselines. Result: async is always slower or equal. Sequential (one stream) is always fastest. The GPU already handles internal parallelism; explicit stream management only adds overhead. See `research/questions/async-execution/README.md`.
+
+Possible paths forward for async speed:
+- Multi-GPU (different devices, eliminates contention) — not available in this setup
+- Custom persistent CUDA kernels — high cost, uncertain payoff
+- Different hardware (neuromorphic, multi-chip)
+- Inference pipeline parallelism across tokens during generation — untested but different framing
 
 The remaining ~8 days of the window should focus on:
-1. **Async wall-clock speedup experiment** — the primary open question
-2. Final synthesis / decision matrix
+1. Final synthesis / decision matrix
+2. Any genuinely new direction from Max
 3. Clean reporting and documentation
