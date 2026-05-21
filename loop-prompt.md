@@ -31,5 +31,3 @@ The experiment ladder is mandatory:
 
 Redo from scratch is allowed. Deleting clutter is good. Following the process on a small clear result is better than improvising a grand blocked plan.
 
-
-
