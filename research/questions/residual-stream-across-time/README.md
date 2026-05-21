@@ -365,6 +365,24 @@ At matched parameters, the architecture is **+0.085 nats worse** than the transf
 
 The gap is not catastrophic (0.085 nats ≈ 5% relative), and the architecture offers properties transformers don't (temporal locality, pipelineable execution, constant memory per timestep). Whether this tradeoff is worthwhile depends on the application. Artifacts: [`experiments/residual_stream_time_partial_detach/artifacts/param_matched/`](../../../experiments/residual_stream_time_partial_detach/artifacts/param_matched/).
 
+### Window size ablation (k=8, k=16): stability constraint
+
+Tested whether larger temporal attention windows improve quality. Result: **both k=8 and k=16 diverge catastrophically** during training.
+
+| Window (k) | Val loss | Outcome |
+|------------|----------|---------|
+| k=4 (baseline) | 1.670 | Stable (one spike at epoch 4, recovered) |
+| k=8 | 7.01 (diverged) | Fatal: train loss hit 573B at epoch 4 |
+| k=16 | NaN (diverged) | Fatal: went NaN at epoch 5 |
+
+This reveals a **stability boundary** in the mix-add architecture. The temporal attention mechanism amplifies gradient signals proportionally to window size, and mix-add alone doesn't bound these gradients. The instability seen in the baseline (train spike to 51.02 at epoch 4 that recovered) was a warning — k=4 is already near the edge.
+
+This means k=4 isn't just a convenient choice — it's approximately the largest stable window for this architecture at LR=0.003 with gradient clip 1.0. To increase the temporal context, one would need: lower learning rate, stronger gradient clipping, attention-side normalization (e.g., RMSNorm on Q/K projections), or a fundamentally different temporal coupling mechanism.
+
+**Note:** this does NOT mean the partial-detach sweet spot at N=4 is "because k=4" — the partial detach result was obtained with k=4 fixed. Rather, both results point to the same underlying constraint: the architecture's effective information horizon is ~4 timesteps with current normalization.
+
+Artifacts: [`experiments/residual_stream_time_partial_detach/artifacts/window_ablation/`](../../../experiments/residual_stream_time_partial_detach/artifacts/window_ablation/).
+
 ---
 
 ## Open questions this report does not close
