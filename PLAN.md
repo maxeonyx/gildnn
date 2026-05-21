@@ -262,15 +262,20 @@ Key finding: temporal norm management is essential. Mix-add works as well as Lay
 
 **7. Window size ablation** — DONE. k=8,16 diverge at LR=0.003, but k=8 is stable at LR=0.001. Extended k=8 run (15 epochs): **best val 1.672** — only +0.002 from k=4 baseline (1.670). Window size is NOT the efficiency bottleneck; the +0.085 gap to transformer at matched params comes from something else (sequential processing, limited context window vs full-sequence attention, or training dynamics).
 
-**8. Next discriminating experiment:** The architecture has more headroom than initially thought. Key directions:
-- **k=8 with LR scheduling** — warmup + decay might give both stability and convergence. Could beat the k=4/LR=0.003 baseline of 1.670.
-- **Longer training at LR=0.001** — k=8 was still declining at epoch 5. Run 10-20 epochs.
-- **Stabilize k=8 at higher LR** — add QK-norm to attention, keep LR=0.003.
-- **Multi-block pipelining** — actual async inference demo.
+**8. Next discriminating experiment:** Swap in **Muon** and rerun the window-size ablation (**k=4, 8, 16**).
 
-**9. Future work (from dictations, not immediate):**
-- Mix-add as default over LayerNorm in all experiments
-- Async/stale-read execution for throughput (speed demonstration)
+- Current hypothesis: the k=8/k=16 instability is **probably** gradient explosion through repeated weight matrices across time (`W^T`), not something mix-add is meant to solve.
+- Rationale: mix-add is for avoiding LayerNorm tuning, **not** for training stability. The more principled stability direction is optimizer-level orthogonality / singular values near 1.
+- Implementation notes:
+  - Check whether Muon already exists in PyTorch / a standard library before copying a standalone implementation.
+  - Use **Muon for weight matrices only**.
+  - Use **AdamW for everything else**: embeddings, biases, scalars, mix-add parameters, output projection.
+  - Muon uses a different effective LR scale than Adam, so start from recommended defaults or retune LR.
+  - Turn **weight decay off** for Muon weights; if used at all, apply it only to biases.
+
+**9. Future work (separate directions, not immediate):**
+- **Complex-valued / inherently orthogonal networks:** parameterize weights so they stay orthogonal by construction rather than being pushed there by the optimizer.
+- **Volume-preserving nonlinearities:** train a separate module to implement a volume-preserving transformation (SDiff / Hamiltonian-flow style), then freeze it and use it as the nonlinearity; basis-independent by construction.
+- **Declining batch size + declining LR together:** a side training-process idea, not the main focus right now.
+- Multi-block pipelining / async inference demo
 - Diagonal coupling at larger scale / more blocks
-- Broadcast mechanism (attention-based, async)
-- Local learning concept clarification
