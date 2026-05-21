@@ -59,6 +59,23 @@ Do not build on unverified assumptions. If a result is not grounded enough that 
 
 ## Experiment discipline
 
+### Theory first
+
+Before running experiments, do conceptual analysis. Often this means multiple rounds of thinker review before any code is written. The theory work should clarify: what exactly is being tested, what the expected outcome is, what alternatives were considered and rejected, and why this specific experiment is the cheapest honest test.
+
+Theory-first is not optional process overhead. It is the primary output for many research questions. Concept clarification should often be the majority of a report — including avenues not pursued and why.
+
+### Incorporating new dictations
+
+When a new dictation appears in `dictations/`, it triggers a full process review:
+
+1. Read the new dictation carefully.
+2. Check whether it changes or corrects anything in PROCESS.md, AGENTS.md (root and per-directory), PLAN.md, or VISION.md.
+3. Update all affected files. New dictations often correct architectural direction, process, or both.
+4. Only then proceed with the corrected direction.
+
+This is not a one-time task. Every new dictation is a potential course correction. Treat it as authoritative over all derived files.
+
 ### The ladder
 
 Every experiment climbs this ladder before scaling:
@@ -214,18 +231,19 @@ This prevents silent multi-hour waits where Max has no idea what's happening. Th
 
 **Orchestrators must instruct subagents to report back before each new run.** When delegating experiment work, explicitly tell the subagent: "Report back to me with results before launching any new training run — including retries of failed runs, even if the fix seems obvious. Do not chain runs without returning first. Each run that exceeds ~30 seconds is a separate report-back cycle."
 
-## Background training runs
+## Background training runs and multiple workstreams
 
-If a run will take longer than about 5–10 minutes, run it in the background.
+Long training runs must not block other work. The process supports multiple concurrent workstreams.
 
 Rules:
 
-- Start at most one training run at a time.
-- While a run is active, do not wait idly.
-- Do cleanup, integration, reporting, or analysis while it runs.
+- At most one large training run (>10 min) at a time.
+- One small/fast experiment can run alongside a large run.
+- While any run is active, do other useful work: theory, integration, reporting, small experiments.
+- Do not wait idly for any run to complete.
 - Check progress from logs without tight polling.
 
-Use `runs/active.lock` to record the active run. Remove it when the run ends or fails.
+Use `runs/active.lock` to record the active large run. Remove it when the run ends or fails. Small runs (<5 min) do not need lock files.
 
 ---
 
