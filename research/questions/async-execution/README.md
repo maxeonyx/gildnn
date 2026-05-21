@@ -111,14 +111,29 @@ On a **single GPU**, async execution via CUDA streams cannot provide wall-clock 
 - **Different hardware:** accelerators designed for independent module execution (neuromorphic, multi-chip)
 - **Inference pipeline parallelism:** during autoregressive generation, pipelining across tokens rather than within a token might help if latency-bound
 
-None of these are "find the right design on this GPU."
+### Inference regime (batch_size=1, seq_len=1, timesteps=256)
+
+Simulating autoregressive token-by-token generation — the regime where blocks process tiny tensors and the GPU should theoretically be under-occupied:
+
+| blocks | d_model | sequential (ms) | parallel (ms) | async (ms) | async vs parallel |
+|--------|---------|-----------------|---------------|------------|-------------------|
+| 4 | 128 | 153.30 ±10.19 | 244.21 ±10.72 | 282.99 ±12.17 | **0.86×** |
+| 4 | 256 | 176.03 ±10.86 | 272.05 ±9.96 | 335.79 ±30.81 | **0.81×** |
+| 4 | 512 | 206.36 ±10.57 | 298.55 ±14.62 | 365.65 ±46.54 | **0.82×** |
+| 8 | 128 | 341.24 ±69.79 | 508.44 ±59.96 | 1022.34 ±315.12 | **0.50×** |
+
+**Even worse than training regime.** At tiny per-token tensors, stream/event overhead completely dominates. Sequential is 1.45-1.59× faster than parallel; async is 0.50-0.86× of parallel. The overhead of CUDA stream management (event recording, synchronization, stream switching) far exceeds any potential kernel overlap benefit when each kernel does microseconds of actual work.
+
+This rules out inference pipelining as a path to async speedup on a single GPU.
 
 ## Next steps
 
-The wall-clock speedup question is answered for single-GPU PyTorch: **no.** Further work on async speedup would require:
+The wall-clock speedup question is fully answered for single-GPU PyTorch in BOTH regimes (training and inference): **no.** The CUDA stream/event mechanism adds more overhead than any kernel overlap could recover.
 
-1. Multi-GPU (not available in this setup)
-2. Custom CUDA kernels (high implementation cost, uncertain payoff)
-3. A fundamentally different framing of what "async" means for this architecture
+Further work on async speedup would require:
 
-This result should be reported clearly to Max. The async mechanism has value for other reasons (module independence, different update rates) but NOT for single-GPU speed.
+1. Multi-GPU (genuinely separate devices, eliminates SM contention)
+2. Custom persistent CUDA kernels (bypass stream/event overhead entirely)
+3. Hardware designed for independent module execution
+
+The async mechanism has potential value for other reasons (module independence, different update rates, conceptual architecture) but NOT for single-GPU speed on any workload tested.
