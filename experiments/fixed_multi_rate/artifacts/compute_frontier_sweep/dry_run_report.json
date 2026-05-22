@@ -1,0 +1,1132 @@
+{
+  "config": {
+    "training_steps": 4,
+    "eval_interval": 2,
+    "batch_size": 64,
+    "eval_batch_size": 512,
+    "learning_rate": 0.0003,
+    "seed": 42,
+    "warmup_steps": 3,
+    "context_size": 32,
+    "dataset_vocab_size": 61,
+    "model_vocab_size": 67,
+    "schedule_seed": 42,
+    "trainer": "GraphTrainer",
+    "d_model": 128,
+    "feedforward_dim": 256,
+    "temporal_window": 4,
+    "num_heads": 4,
+    "flops_proxy_formula": "avg_evals_per_token * 2 * d_model * feedforward_dim"
+  },
+  "environment": {
+    "git_sha": "29e044ae0acb2f35d23743fa2ae96e60557fa8ad",
+    "git_working_tree_clean": false,
+    "git_status_short": [
+      " M runs/dictations_seen.json",
+      "?? dictations/2026-05-22-17.md",
+      "?? experiments/fixed_multi_rate/artifacts/compute_frontier_sweep/",
+      "?? runs/compute_frontier_sweep.py",
+      "?? runs/test_json.tmp",
+      "?? runs/test_write.tmp"
+    ],
+    "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+    "torch_version": "2.11.0+cu128",
+    "device": "cuda",
+    "cuda_device_name": "NVIDIA GeForce RTX 3090"
+  },
+  "timing": {
+    "overall_wall_seconds": 42.749949
+  },
+  "variants": [
+    {
+      "key": "sequential_2block_rate11",
+      "family": "sequential_all_rate_1",
+      "label": "sequential_2block_rate11",
+      "class_name": "MultiRateResidualModel",
+      "num_blocks": 2,
+      "rates": [
+        1,
+        1
+      ],
+      "readout_mode": "last"
+    },
+    {
+      "key": "parallel_2block_rate12",
+      "family": "parallel_multi_rate",
+      "label": "parallel_2block_rate12_all",
+      "class_name": "ParallelDiagonalModel",
+      "num_blocks": 2,
+      "rates": [
+        1,
+        2
+      ],
+      "readout_mode": "all"
+    },
+    {
+      "key": "sequential_4block_rate1",
+      "family": "sequential_all_rate_1",
+      "label": "sequential_4block_rate1111",
+      "class_name": "MultiRateResidualModel",
+      "num_blocks": 4,
+      "rates": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "readout_mode": "last"
+    },
+    {
+      "key": "parallel_4block_rate1248",
+      "family": "parallel_multi_rate",
+      "label": "parallel_4block_rate1248_all",
+      "class_name": "ParallelDiagonalModel",
+      "num_blocks": 4,
+      "rates": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "readout_mode": "all"
+    },
+    {
+      "key": "sequential_6block_rate1",
+      "family": "sequential_all_rate_1",
+      "label": "sequential_6block_rate111111",
+      "class_name": "MultiRateResidualModel",
+      "num_blocks": 6,
+      "rates": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "readout_mode": "last"
+    },
+    {
+      "key": "parallel_6block_rate112248",
+      "family": "parallel_multi_rate",
+      "label": "parallel_6block_rate112248_all",
+      "class_name": "ParallelDiagonalModel",
+      "num_blocks": 6,
+      "rates": [
+        1,
+        1,
+        2,
+        2,
+        4,
+        8
+      ],
+      "readout_mode": "all"
+    },
+    {
+      "key": "sequential_8block_rate1",
+      "family": "sequential_all_rate_1",
+      "label": "sequential_8block_rate11111111",
+      "class_name": "MultiRateResidualModel",
+      "num_blocks": 8,
+      "rates": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "readout_mode": "last"
+    },
+    {
+      "key": "parallel_8block_rate11224488",
+      "family": "parallel_multi_rate",
+      "label": "parallel_8block_rate11224488_all",
+      "class_name": "ParallelDiagonalModel",
+      "num_blocks": 8,
+      "rates": [
+        1,
+        1,
+        2,
+        2,
+        4,
+        4,
+        8,
+        8
+      ],
+      "readout_mode": "all"
+    }
+  ],
+  "results": [
+    {
+      "key": "sequential_2block_rate11",
+      "family": "sequential_all_rate_1",
+      "label": "sequential_2block_rate11",
+      "class_name": "MultiRateResidualModel",
+      "num_blocks": 2,
+      "rates": [
+        1,
+        1
+      ],
+      "readout_mode": "last",
+      "d_model": 128,
+      "feedforward_dim": 256,
+      "parameter_count": 219208,
+      "evals_per_block": [
+        32,
+        32
+      ],
+      "total_block_evals_per_forward": 64,
+      "avg_evals_per_token": 2.0,
+      "flops_proxy": 131072.0,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.260119,
+          "val_accuracy": 0.007061
+        },
+        {
+          "step": 4,
+          "val_loss": 4.193088,
+          "val_accuracy": 0.013622
+        }
+      ],
+      "best_checkpoint": {
+        "step": 4,
+        "val_loss": 4.193088,
+        "val_accuracy": 0.013622
+      },
+      "final_checkpoint": {
+        "step": 4,
+        "val_loss": 4.193088,
+        "val_accuracy": 0.013622
+      },
+      "final_training_loss": 4.209262,
+      "wall_seconds": 2.412791
+    },
+    {
+      "key": "parallel_2block_rate12",
+      "family": "parallel_multi_rate",
+      "label": "parallel_2block_rate12_all",
+      "class_name": "ParallelDiagonalModel",
+      "num_blocks": 2,
+      "rates": [
+        1,
+        2
+      ],
+      "readout_mode": "all",
+      "d_model": 128,
+      "feedforward_dim": 256,
+      "parameter_count": 153161,
+      "evals_per_block": [
+        32,
+        16
+      ],
+      "total_block_evals_per_forward": 48,
+      "avg_evals_per_token": 1.5,
+      "flops_proxy": 98304.0,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.284616,
+          "val_accuracy": 0.005459
+        },
+        {
+          "step": 4,
+          "val_loss": 4.224625,
+          "val_accuracy": 0.009465
+        }
+      ],
+      "best_checkpoint": {
+        "step": 4,
+        "val_loss": 4.224625,
+        "val_accuracy": 0.009465
+      },
+      "final_checkpoint": {
+        "step": 4,
+        "val_loss": 4.224625,
+        "val_accuracy": 0.009465
+      },
+      "final_training_loss": 4.166843,
+      "wall_seconds": 1.147215
+    },
+    {
+      "key": "sequential_4block_rate1",
+      "family": "sequential_all_rate_1",
+      "label": "sequential_4block_rate1111",
+      "class_name": "MultiRateResidualModel",
+      "num_blocks": 4,
+      "rates": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "readout_mode": "last",
+      "d_model": 128,
+      "feedforward_dim": 256,
+      "parameter_count": 351052,
+      "evals_per_block": [
+        32,
+        32,
+        32,
+        32
+      ],
+      "total_block_evals_per_forward": 128,
+      "avg_evals_per_token": 4.0,
+      "flops_proxy": 262144.0,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.24162,
+          "val_accuracy": 0.005409
+        },
+        {
+          "step": 4,
+          "val_loss": 4.182064,
+          "val_accuracy": 0.009665
+        }
+      ],
+      "best_checkpoint": {
+        "step": 4,
+        "val_loss": 4.182064,
+        "val_accuracy": 0.009665
+      },
+      "final_checkpoint": {
+        "step": 4,
+        "val_loss": 4.182064,
+        "val_accuracy": 0.009665
+      },
+      "final_training_loss": 4.190158,
+      "wall_seconds": 3.256926
+    },
+    {
+      "key": "parallel_4block_rate1248",
+      "family": "parallel_multi_rate",
+      "label": "parallel_4block_rate1248_all",
+      "class_name": "ParallelDiagonalModel",
+      "num_blocks": 4,
+      "rates": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "readout_mode": "all",
+      "d_model": 128,
+      "feedforward_dim": 256,
+      "parameter_count": 285007,
+      "evals_per_block": [
+        32,
+        16,
+        8,
+        4
+      ],
+      "total_block_evals_per_forward": 60,
+      "avg_evals_per_token": 1.875,
+      "flops_proxy": 122880.0,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.253326,
+          "val_accuracy": 0.017177
+        },
+        {
+          "step": 4,
+          "val_loss": 4.209011,
+          "val_accuracy": 0.024339
+        }
+      ],
+      "best_checkpoint": {
+        "step": 4,
+        "val_loss": 4.209011,
+        "val_accuracy": 0.024339
+      },
+      "final_checkpoint": {
+        "step": 4,
+        "val_loss": 4.209011,
+        "val_accuracy": 0.024339
+      },
+      "final_training_loss": 4.247349,
+      "wall_seconds": 1.621418
+    },
+    {
+      "key": "sequential_6block_rate1",
+      "family": "sequential_all_rate_1",
+      "label": "sequential_6block_rate111111",
+      "class_name": "MultiRateResidualModel",
+      "num_blocks": 6,
+      "rates": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "readout_mode": "last",
+      "d_model": 128,
+      "feedforward_dim": 256,
+      "parameter_count": 482896,
+      "evals_per_block": [
+        32,
+        32,
+        32,
+        32,
+        32,
+        32
+      ],
+      "total_block_evals_per_forward": 192,
+      "avg_evals_per_token": 6.0,
+      "flops_proxy": 393216.0,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.197291,
+          "val_accuracy": 0.029948
+        },
+        {
+          "step": 4,
+          "val_loss": 4.14476,
+          "val_accuracy": 0.04347
+        }
+      ],
+      "best_checkpoint": {
+        "step": 4,
+        "val_loss": 4.14476,
+        "val_accuracy": 0.04347
+      },
+      "final_checkpoint": {
+        "step": 4,
+        "val_loss": 4.14476,
+        "val_accuracy": 0.04347
+      },
+      "final_training_loss": 4.184811,
+      "wall_seconds": 4.099567
+    },
+    {
+      "key": "parallel_6block_rate112248",
+      "family": "parallel_multi_rate",
+      "label": "parallel_6block_rate112248_all",
+      "class_name": "ParallelDiagonalModel",
+      "num_blocks": 6,
+      "rates": [
+        1,
+        1,
+        2,
+        2,
+        4,
+        8
+      ],
+      "readout_mode": "all",
+      "d_model": 128,
+      "feedforward_dim": 256,
+      "parameter_count": 416853,
+      "evals_per_block": [
+        32,
+        32,
+        16,
+        16,
+        8,
+        4
+      ],
+      "total_block_evals_per_forward": 108,
+      "avg_evals_per_token": 3.375,
+      "flops_proxy": 221184.0,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.274087,
+          "val_accuracy": 0.013171
+        },
+        {
+          "step": 4,
+          "val_loss": 4.227011,
+          "val_accuracy": 0.01863
+        }
+      ],
+      "best_checkpoint": {
+        "step": 4,
+        "val_loss": 4.227011,
+        "val_accuracy": 0.01863
+      },
+      "final_checkpoint": {
+        "step": 4,
+        "val_loss": 4.227011,
+        "val_accuracy": 0.01863
+      },
+      "final_training_loss": 4.254774,
+      "wall_seconds": 2.729475
+    },
+    {
+      "key": "sequential_8block_rate1",
+      "family": "sequential_all_rate_1",
+      "label": "sequential_8block_rate11111111",
+      "class_name": "MultiRateResidualModel",
+      "num_blocks": 8,
+      "rates": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "readout_mode": "last",
+      "d_model": 128,
+      "feedforward_dim": 256,
+      "parameter_count": 614740,
+      "evals_per_block": [
+        32,
+        32,
+        32,
+        32,
+        32,
+        32,
+        32,
+        32
+      ],
+      "total_block_evals_per_forward": 256,
+      "avg_evals_per_token": 8.0,
+      "flops_proxy": 524288.0,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.192563,
+          "val_accuracy": 0.015325
+        },
+        {
+          "step": 4,
+          "val_loss": 4.14269,
+          "val_accuracy": 0.027294
+        }
+      ],
+      "best_checkpoint": {
+        "step": 4,
+        "val_loss": 4.14269,
+        "val_accuracy": 0.027294
+      },
+      "final_checkpoint": {
+        "step": 4,
+        "val_loss": 4.14269,
+        "val_accuracy": 0.027294
+      },
+      "final_training_loss": 4.158242,
+      "wall_seconds": 5.080365
+    },
+    {
+      "key": "parallel_8block_rate11224488",
+      "family": "parallel_multi_rate",
+      "label": "parallel_8block_rate11224488_all",
+      "class_name": "ParallelDiagonalModel",
+      "num_blocks": 8,
+      "rates": [
+        1,
+        1,
+        2,
+        2,
+        4,
+        4,
+        8,
+        8
+      ],
+      "readout_mode": "all",
+      "d_model": 128,
+      "feedforward_dim": 256,
+      "parameter_count": 548699,
+      "evals_per_block": [
+        32,
+        32,
+        16,
+        16,
+        8,
+        8,
+        4,
+        4
+      ],
+      "total_block_evals_per_forward": 120,
+      "avg_evals_per_token": 3.75,
+      "flops_proxy": 245760.0,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.237042,
+          "val_accuracy": 0.007712
+        },
+        {
+          "step": 4,
+          "val_loss": 4.193518,
+          "val_accuracy": 0.011769
+        }
+      ],
+      "best_checkpoint": {
+        "step": 4,
+        "val_loss": 4.193518,
+        "val_accuracy": 0.011769
+      },
+      "final_checkpoint": {
+        "step": 4,
+        "val_loss": 4.193518,
+        "val_accuracy": 0.011769
+      },
+      "final_training_loss": 4.195789,
+      "wall_seconds": 3.220552
+    }
+  ],
+  "by_family": {
+    "parallel_multi_rate": [
+      {
+        "key": "parallel_2block_rate12",
+        "family": "parallel_multi_rate",
+        "label": "parallel_2block_rate12_all",
+        "class_name": "ParallelDiagonalModel",
+        "num_blocks": 2,
+        "rates": [
+          1,
+          2
+        ],
+        "readout_mode": "all",
+        "d_model": 128,
+        "feedforward_dim": 256,
+        "parameter_count": 153161,
+        "evals_per_block": [
+          32,
+          16
+        ],
+        "total_block_evals_per_forward": 48,
+        "avg_evals_per_token": 1.5,
+        "flops_proxy": 98304.0,
+        "checkpoints": [
+          {
+            "step": 0,
+            "val_loss": 4.284616,
+            "val_accuracy": 0.005459
+          },
+          {
+            "step": 4,
+            "val_loss": 4.224625,
+            "val_accuracy": 0.009465
+          }
+        ],
+        "best_checkpoint": {
+          "step": 4,
+          "val_loss": 4.224625,
+          "val_accuracy": 0.009465
+        },
+        "final_checkpoint": {
+          "step": 4,
+          "val_loss": 4.224625,
+          "val_accuracy": 0.009465
+        },
+        "final_training_loss": 4.166843,
+        "wall_seconds": 1.147215
+      },
+      {
+        "key": "parallel_4block_rate1248",
+        "family": "parallel_multi_rate",
+        "label": "parallel_4block_rate1248_all",
+        "class_name": "ParallelDiagonalModel",
+        "num_blocks": 4,
+        "rates": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "readout_mode": "all",
+        "d_model": 128,
+        "feedforward_dim": 256,
+        "parameter_count": 285007,
+        "evals_per_block": [
+          32,
+          16,
+          8,
+          4
+        ],
+        "total_block_evals_per_forward": 60,
+        "avg_evals_per_token": 1.875,
+        "flops_proxy": 122880.0,
+        "checkpoints": [
+          {
+            "step": 0,
+            "val_loss": 4.253326,
+            "val_accuracy": 0.017177
+          },
+          {
+            "step": 4,
+            "val_loss": 4.209011,
+            "val_accuracy": 0.024339
+          }
+        ],
+        "best_checkpoint": {
+          "step": 4,
+          "val_loss": 4.209011,
+          "val_accuracy": 0.024339
+        },
+        "final_checkpoint": {
+          "step": 4,
+          "val_loss": 4.209011,
+          "val_accuracy": 0.024339
+        },
+        "final_training_loss": 4.247349,
+        "wall_seconds": 1.621418
+      },
+      {
+        "key": "parallel_6block_rate112248",
+        "family": "parallel_multi_rate",
+        "label": "parallel_6block_rate112248_all",
+        "class_name": "ParallelDiagonalModel",
+        "num_blocks": 6,
+        "rates": [
+          1,
+          1,
+          2,
+          2,
+          4,
+          8
+        ],
+        "readout_mode": "all",
+        "d_model": 128,
+        "feedforward_dim": 256,
+        "parameter_count": 416853,
+        "evals_per_block": [
+          32,
+          32,
+          16,
+          16,
+          8,
+          4
+        ],
+        "total_block_evals_per_forward": 108,
+        "avg_evals_per_token": 3.375,
+        "flops_proxy": 221184.0,
+        "checkpoints": [
+          {
+            "step": 0,
+            "val_loss": 4.274087,
+            "val_accuracy": 0.013171
+          },
+          {
+            "step": 4,
+            "val_loss": 4.227011,
+            "val_accuracy": 0.01863
+          }
+        ],
+        "best_checkpoint": {
+          "step": 4,
+          "val_loss": 4.227011,
+          "val_accuracy": 0.01863
+        },
+        "final_checkpoint": {
+          "step": 4,
+          "val_loss": 4.227011,
+          "val_accuracy": 0.01863
+        },
+        "final_training_loss": 4.254774,
+        "wall_seconds": 2.729475
+      },
+      {
+        "key": "parallel_8block_rate11224488",
+        "family": "parallel_multi_rate",
+        "label": "parallel_8block_rate11224488_all",
+        "class_name": "ParallelDiagonalModel",
+        "num_blocks": 8,
+        "rates": [
+          1,
+          1,
+          2,
+          2,
+          4,
+          4,
+          8,
+          8
+        ],
+        "readout_mode": "all",
+        "d_model": 128,
+        "feedforward_dim": 256,
+        "parameter_count": 548699,
+        "evals_per_block": [
+          32,
+          32,
+          16,
+          16,
+          8,
+          8,
+          4,
+          4
+        ],
+        "total_block_evals_per_forward": 120,
+        "avg_evals_per_token": 3.75,
+        "flops_proxy": 245760.0,
+        "checkpoints": [
+          {
+            "step": 0,
+            "val_loss": 4.237042,
+            "val_accuracy": 0.007712
+          },
+          {
+            "step": 4,
+            "val_loss": 4.193518,
+            "val_accuracy": 0.011769
+          }
+        ],
+        "best_checkpoint": {
+          "step": 4,
+          "val_loss": 4.193518,
+          "val_accuracy": 0.011769
+        },
+        "final_checkpoint": {
+          "step": 4,
+          "val_loss": 4.193518,
+          "val_accuracy": 0.011769
+        },
+        "final_training_loss": 4.195789,
+        "wall_seconds": 3.220552
+      }
+    ],
+    "sequential_all_rate_1": [
+      {
+        "key": "sequential_2block_rate11",
+        "family": "sequential_all_rate_1",
+        "label": "sequential_2block_rate11",
+        "class_name": "MultiRateResidualModel",
+        "num_blocks": 2,
+        "rates": [
+          1,
+          1
+        ],
+        "readout_mode": "last",
+        "d_model": 128,
+        "feedforward_dim": 256,
+        "parameter_count": 219208,
+        "evals_per_block": [
+          32,
+          32
+        ],
+        "total_block_evals_per_forward": 64,
+        "avg_evals_per_token": 2.0,
+        "flops_proxy": 131072.0,
+        "checkpoints": [
+          {
+            "step": 0,
+            "val_loss": 4.260119,
+            "val_accuracy": 0.007061
+          },
+          {
+            "step": 4,
+            "val_loss": 4.193088,
+            "val_accuracy": 0.013622
+          }
+        ],
+        "best_checkpoint": {
+          "step": 4,
+          "val_loss": 4.193088,
+          "val_accuracy": 0.013622
+        },
+        "final_checkpoint": {
+          "step": 4,
+          "val_loss": 4.193088,
+          "val_accuracy": 0.013622
+        },
+        "final_training_loss": 4.209262,
+        "wall_seconds": 2.412791
+      },
+      {
+        "key": "sequential_4block_rate1",
+        "family": "sequential_all_rate_1",
+        "label": "sequential_4block_rate1111",
+        "class_name": "MultiRateResidualModel",
+        "num_blocks": 4,
+        "rates": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "readout_mode": "last",
+        "d_model": 128,
+        "feedforward_dim": 256,
+        "parameter_count": 351052,
+        "evals_per_block": [
+          32,
+          32,
+          32,
+          32
+        ],
+        "total_block_evals_per_forward": 128,
+        "avg_evals_per_token": 4.0,
+        "flops_proxy": 262144.0,
+        "checkpoints": [
+          {
+            "step": 0,
+            "val_loss": 4.24162,
+            "val_accuracy": 0.005409
+          },
+          {
+            "step": 4,
+            "val_loss": 4.182064,
+            "val_accuracy": 0.009665
+          }
+        ],
+        "best_checkpoint": {
+          "step": 4,
+          "val_loss": 4.182064,
+          "val_accuracy": 0.009665
+        },
+        "final_checkpoint": {
+          "step": 4,
+          "val_loss": 4.182064,
+          "val_accuracy": 0.009665
+        },
+        "final_training_loss": 4.190158,
+        "wall_seconds": 3.256926
+      },
+      {
+        "key": "sequential_6block_rate1",
+        "family": "sequential_all_rate_1",
+        "label": "sequential_6block_rate111111",
+        "class_name": "MultiRateResidualModel",
+        "num_blocks": 6,
+        "rates": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "readout_mode": "last",
+        "d_model": 128,
+        "feedforward_dim": 256,
+        "parameter_count": 482896,
+        "evals_per_block": [
+          32,
+          32,
+          32,
+          32,
+          32,
+          32
+        ],
+        "total_block_evals_per_forward": 192,
+        "avg_evals_per_token": 6.0,
+        "flops_proxy": 393216.0,
+        "checkpoints": [
+          {
+            "step": 0,
+            "val_loss": 4.197291,
+            "val_accuracy": 0.029948
+          },
+          {
+            "step": 4,
+            "val_loss": 4.14476,
+            "val_accuracy": 0.04347
+          }
+        ],
+        "best_checkpoint": {
+          "step": 4,
+          "val_loss": 4.14476,
+          "val_accuracy": 0.04347
+        },
+        "final_checkpoint": {
+          "step": 4,
+          "val_loss": 4.14476,
+          "val_accuracy": 0.04347
+        },
+        "final_training_loss": 4.184811,
+        "wall_seconds": 4.099567
+      },
+      {
+        "key": "sequential_8block_rate1",
+        "family": "sequential_all_rate_1",
+        "label": "sequential_8block_rate11111111",
+        "class_name": "MultiRateResidualModel",
+        "num_blocks": 8,
+        "rates": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "readout_mode": "last",
+        "d_model": 128,
+        "feedforward_dim": 256,
+        "parameter_count": 614740,
+        "evals_per_block": [
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32,
+          32
+        ],
+        "total_block_evals_per_forward": 256,
+        "avg_evals_per_token": 8.0,
+        "flops_proxy": 524288.0,
+        "checkpoints": [
+          {
+            "step": 0,
+            "val_loss": 4.192563,
+            "val_accuracy": 0.015325
+          },
+          {
+            "step": 4,
+            "val_loss": 4.14269,
+            "val_accuracy": 0.027294
+          }
+        ],
+        "best_checkpoint": {
+          "step": 4,
+          "val_loss": 4.14269,
+          "val_accuracy": 0.027294
+        },
+        "final_checkpoint": {
+          "step": 4,
+          "val_loss": 4.14269,
+          "val_accuracy": 0.027294
+        },
+        "final_training_loss": 4.158242,
+        "wall_seconds": 5.080365
+      }
+    ]
+  },
+  "frontier_points": [
+    {
+      "variant": "sequential_2block_rate11",
+      "family": "sequential_all_rate_1",
+      "num_blocks": 2,
+      "rates": [
+        1,
+        1
+      ],
+      "avg_evals_per_token": 2.0,
+      "flops_proxy": 131072.0,
+      "final_val_loss": 4.193088,
+      "final_val_accuracy": 0.013622
+    },
+    {
+      "variant": "parallel_2block_rate12",
+      "family": "parallel_multi_rate",
+      "num_blocks": 2,
+      "rates": [
+        1,
+        2
+      ],
+      "avg_evals_per_token": 1.5,
+      "flops_proxy": 98304.0,
+      "final_val_loss": 4.224625,
+      "final_val_accuracy": 0.009465
+    },
+    {
+      "variant": "sequential_4block_rate1",
+      "family": "sequential_all_rate_1",
+      "num_blocks": 4,
+      "rates": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "avg_evals_per_token": 4.0,
+      "flops_proxy": 262144.0,
+      "final_val_loss": 4.182064,
+      "final_val_accuracy": 0.009665
+    },
+    {
+      "variant": "parallel_4block_rate1248",
+      "family": "parallel_multi_rate",
+      "num_blocks": 4,
+      "rates": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "avg_evals_per_token": 1.875,
+      "flops_proxy": 122880.0,
+      "final_val_loss": 4.209011,
+      "final_val_accuracy": 0.024339
+    },
+    {
+      "variant": "sequential_6block_rate1",
+      "family": "sequential_all_rate_1",
+      "num_blocks": 6,
+      "rates": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "avg_evals_per_token": 6.0,
+      "flops_proxy": 393216.0,
+      "final_val_loss": 4.14476,
+      "final_val_accuracy": 0.04347
+    },
+    {
+      "variant": "parallel_6block_rate112248",
+      "family": "parallel_multi_rate",
+      "num_blocks": 6,
+      "rates": [
+        1,
+        1,
+        2,
+        2,
+        4,
+        8
+      ],
+      "avg_evals_per_token": 3.375,
+      "flops_proxy": 221184.0,
+      "final_val_loss": 4.227011,
+      "final_val_accuracy": 0.01863
+    },
+    {
+      "variant": "sequential_8block_rate1",
+      "family": "sequential_all_rate_1",
+      "num_blocks": 8,
+      "rates": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "avg_evals_per_token": 8.0,
+      "flops_proxy": 524288.0,
+      "final_val_loss": 4.14269,
+      "final_val_accuracy": 0.027294
+    },
+    {
+      "variant": "parallel_8block_rate11224488",
+      "family": "parallel_multi_rate",
+      "num_blocks": 8,
+      "rates": [
+        1,
+        1,
+        2,
+        2,
+        4,
+        4,
+        8,
+        8
+      ],
+      "avg_evals_per_token": 3.75,
+      "flops_proxy": 245760.0,
+      "final_val_loss": 4.193518,
+      "final_val_accuracy": 0.011769
+    }
+  ]
+}
