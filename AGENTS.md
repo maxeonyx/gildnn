@@ -87,7 +87,7 @@ Evidence in question READMEs must be **embedded inline** in the markdown (tables
 | `VISION.md` | Motivating ideas, open questions, research threads | Starting fresh, orienting on goals |
 | `PROCESS.md` | How work is done — experiment discipline, loop, reporting | Deciding how to proceed |
 | `PLAN.md` | Prioritized next work — rewritten not appended | Picking up after a handover |
-| `loop.ps1` | Outer restart loop — relaunches OpenCode on exit, reuses session ID | Understanding how the loop works |
+| `loop.ps1` | Outer restart loop — uses Task Scheduler (NOT terminal child). Do not revert to terminal-based loop. | Understanding how the loop works |
 | `research/daily/` | Daily output narratives for Max | Reviewing recent progress |
 | `research/weekly/` | Weekly synthesis narratives for Max | Weekly review |
 | `research/questions/` | Per-question reports — Max-readable, inline evidence only | Investigating a specific open question |
