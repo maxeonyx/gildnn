@@ -1,0 +1,167 @@
+{
+  "config": {
+    "context_size": 32,
+    "d_model": 128,
+    "feedforward_dim": 256,
+    "temporal_window": 4,
+    "num_heads": 4,
+    "batch_size": 64,
+    "eval_batch_size": 512,
+    "learning_rate": 0.003,
+    "training_steps": 5,
+    "eval_interval": 5,
+    "seed": 42,
+    "num_blocks": 4,
+    "control_rates": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "multi_rates": [
+      1,
+      1,
+      2,
+      4
+    ],
+    "overfit_steps": 5,
+    "overfit_loss_threshold": 0.001,
+    "timing_warmup_passes": 2,
+    "timing_passes": 5
+  },
+  "environment": {
+    "git_sha": "f6e7a7caa0a41cdbb0fd2324feb566aad3fc51c3",
+    "git_working_tree_clean": false,
+    "git_status_short": [
+      " M core/fixed_window_char.py",
+      "?? experiments/fixed_multi_rate/"
+    ],
+    "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+    "torch_version": "2.11.0+cu128",
+    "device": "cuda",
+    "cuda_device_name": "NVIDIA GeForce RTX 3090"
+  },
+  "model": {
+    "parameter_count": 349507,
+    "num_blocks": 4,
+    "control_rates": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "multi_rates": [
+      1,
+      1,
+      2,
+      4
+    ],
+    "all_rate_1_mix_coefficients": {
+      "token": 0.5001795291900635,
+      "time": 0.899939775466919,
+      "blocks": [
+        0.8997162580490112,
+        0.899906575679779,
+        0.8998312950134277,
+        0.8998409509658813
+      ]
+    },
+    "multi_rate_mix_coefficients": {
+      "token": 0.5002217292785645,
+      "time": 0.8999641537666321,
+      "blocks": [
+        0.8997628688812256,
+        0.8999462723731995,
+        0.8998202085494995,
+        0.899779736995697
+      ]
+    }
+  },
+  "overfit": {
+    "trace": [
+      {
+        "step": 0,
+        "loss": 4.154878,
+        "accuracy": 0.015625
+      },
+      {
+        "step": 5,
+        "loss": 2.826983,
+        "accuracy": 0.265625
+      }
+    ],
+    "final_loss": 2.826983,
+    "final_accuracy": 0.265625,
+    "memorized": false,
+    "hit_step": null,
+    "steps_run": 5
+  },
+  "comparison_history": [
+    {
+      "step": 0,
+      "all_rate_1": {
+        "val_loss": 4.135908,
+        "val_accuracy": 0.011468,
+        "forward_ms_per_batch": 99.20352
+      },
+      "multi_rate": {
+        "val_loss": 4.136047,
+        "val_accuracy": 0.008714,
+        "forward_ms_per_batch": 83.80012
+      },
+      "comparison": {
+        "val_loss_delta": 0.000139,
+        "forward_ms_delta": -15.4034,
+        "speedup_percent": 15.52707
+      }
+    },
+    {
+      "step": 5,
+      "all_rate_1": {
+        "val_loss": 3.45127,
+        "val_accuracy": 0.147436,
+        "forward_ms_per_batch": 92.08412
+      },
+      "multi_rate": {
+        "val_loss": 3.456325,
+        "val_accuracy": 0.145182,
+        "forward_ms_per_batch": 80.4793
+      },
+      "comparison": {
+        "val_loss_delta": 0.005055,
+        "forward_ms_delta": -11.60482,
+        "speedup_percent": 12.602412
+      }
+    }
+  ],
+  "summary": {
+    "final": {
+      "step": 5,
+      "all_rate_1": {
+        "val_loss": 3.45127,
+        "val_accuracy": 0.147436,
+        "forward_ms_per_batch": 92.08412
+      },
+      "multi_rate": {
+        "val_loss": 3.456325,
+        "val_accuracy": 0.145182,
+        "forward_ms_per_batch": 80.4793
+      },
+      "comparison": {
+        "val_loss_delta": 0.005055,
+        "forward_ms_delta": -11.60482,
+        "speedup_percent": 12.602412
+      }
+    },
+    "best_all_rate_1": {
+      "step": 5,
+      "val_loss": 3.45127,
+      "val_accuracy": 0.147436
+    },
+    "best_multi_rate": {
+      "step": 5,
+      "val_loss": 3.456325,
+      "val_accuracy": 0.145182
+    }
+  }
+}

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 import random
 
 import torch
@@ -38,6 +39,97 @@ class FixedWindowCharDataset:
 
     def decode(self, tokens: list[int]) -> str:
         return "".join(self.itos[token] for token in tokens)
+
+
+def _encode_windows(
+    text: str,
+    *,
+    context_size: int,
+    stoi: dict[str, int],
+) -> tuple[Tensor, Tensor]:
+    if len(text) <= context_size:
+        raise ValueError("Text split must be longer than the context size.")
+    encoded = torch.tensor([stoi[char] for char in text], dtype=torch.long)
+    inputs = []
+    targets = []
+    for start in range(len(encoded) - context_size):
+        stop = start + context_size
+        inputs.append(encoded[start:stop])
+        targets.append(encoded[stop])
+    return torch.stack(inputs), torch.stack(targets)
+
+
+def _choose_validation_text(
+    text: str,
+    *,
+    train_text: str,
+    val_characters: int,
+) -> str:
+    start = len(train_text)
+    stop = start + val_characters
+    candidate = text[start:stop]
+    if len(candidate) < val_characters:
+        raise ValueError(
+            f"Need validation slice of {val_characters} characters, got {len(candidate)}."
+        )
+    if set(candidate).issubset(set(train_text)):
+        return candidate
+
+    max_start = len(text) - val_characters
+    for candidate_start in range(start + 1, max_start + 1):
+        candidate_stop = candidate_start + val_characters
+        candidate = text[candidate_start:candidate_stop]
+        if set(candidate).issubset(set(train_text)):
+            return candidate
+
+    missing = sorted(set(text[start : max_start + val_characters]) - set(train_text))
+    raise ValueError(
+        "Could not find a validation slice whose characters are all present in the training slice. "
+        f"Missing training vocabulary coverage for: {missing}"
+    )
+
+
+def load_dataset(
+    *,
+    context_size: int,
+    text_file: Path | None = None,
+    train_characters: int = 100_000,
+    val_characters: int = 20_000,
+) -> tuple[tuple[Tensor, Tensor], tuple[Tensor, Tensor], int]:
+    repo_root = Path(__file__).resolve().parents[1]
+    resolved_text_file = text_file or (
+        repo_root / "experiments" / "corpora.ignore" / "tinyshakespeare_input.txt"
+    )
+    raw_text = resolved_text_file.read_text(encoding="utf-8")
+    required_characters = train_characters + val_characters
+    if len(raw_text) < required_characters:
+        raise ValueError(
+            f"Need at least {required_characters} characters, got {len(raw_text)}."
+        )
+
+    train_text = raw_text[:train_characters]
+    val_text = _choose_validation_text(
+        raw_text,
+        train_text=train_text,
+        val_characters=val_characters,
+    )
+    train_dataset = FixedWindowCharDataset(train_text, context_size=context_size)
+    missing_val_chars = sorted(set(val_text) - set(train_text))
+    if missing_val_chars:
+        raise ValueError(
+            f"Validation text contains characters absent from training text: {missing_val_chars}"
+        )
+
+    val_inputs, val_targets = _encode_windows(
+        val_text,
+        context_size=context_size,
+        stoi=train_dataset.stoi,
+    )
+    return (
+        (train_dataset.inputs, train_dataset.targets),
+        (val_inputs, val_targets),
+        train_dataset.vocab_size,
+    )
 
 
 def set_seed(seed: int) -> None:
