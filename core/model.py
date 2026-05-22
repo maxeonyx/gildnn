@@ -454,3 +454,83 @@ class MultiRateResidualModel(nn.Module):
         if trace is None:
             raise RuntimeError("Trace missing.")
         return logits, trace
+
+
+class ParallelDiagonalModel(nn.Module):
+    def __init__(
+        self,
+        *,
+        vocab_size: int,
+        context_size: int,
+        d_model: int,
+        feedforward_dim: int,
+        num_blocks: int,
+        token_mix_init: float = 0.5,
+        block_mix_init: float = 0.9,
+    ) -> None:
+        super().__init__()
+        if num_blocks <= 0:
+            raise ValueError(f"ParallelDiagonalModel requires at least one block, got {num_blocks}.")
+        self.context_size = context_size
+        self.d_model = d_model
+        self.feedforward_dim = feedforward_dim
+        self.num_blocks = num_blocks
+        self.token_embedding = nn.Embedding(vocab_size, d_model)
+        self.position_embedding = nn.Embedding(context_size, d_model)
+        self.token_mixes = nn.ModuleList([MixAdd(init=token_mix_init) for _ in range(num_blocks)])
+        self.blocks = nn.ModuleList(
+            [
+                ResidualFeedForwardBlock(
+                    d_model=d_model,
+                    feedforward_dim=feedforward_dim,
+                )
+                for _ in range(num_blocks)
+            ]
+        )
+        self.block_mixes = nn.ModuleList([MixAdd(init=block_mix_init) for _ in range(num_blocks)])
+        self.output = nn.Linear(d_model, vocab_size)
+
+    def embedded_tokens(self, tokens: Int[Tensor, "batch context"]) -> Float[Tensor, "batch context d_model"]:
+        sequence_length = tokens.shape[1]
+        if sequence_length != self.context_size:
+            raise ValueError(f"Expected context length {self.context_size}, got {sequence_length}.")
+        positions = torch.arange(sequence_length, device=tokens.device)
+        return self.token_embedding(tokens) + repeat(
+            self.position_embedding(positions),
+            "context d_model -> batch context d_model",
+            batch=tokens.shape[0],
+        )
+
+    @torch.no_grad()
+    def mix_coefficients(self) -> dict[str, object]:
+        return {
+            "token": [mix.coefficient_value() for mix in self.token_mixes],
+            "blocks": [mix.coefficient_value() for mix in self.block_mixes],
+        }
+
+    def forward(self, tokens: Int[Tensor, "batch context"]) -> Float[Tensor, "batch vocab"]:
+        embeddings = self.embedded_tokens(tokens)
+        batch_size = tokens.shape[0]
+        previous_states = [
+            torch.zeros(batch_size, self.d_model, device=tokens.device, dtype=embeddings.dtype)
+            for _ in range(self.num_blocks)
+        ]
+
+        for time_index in range(self.context_size):
+            token_state = embeddings[:, time_index, :]
+            current_states: list[Tensor] = []
+            for block_index, (token_mix, block, block_mix) in enumerate(
+                zip(self.token_mixes, self.blocks, self.block_mixes, strict=True)
+            ):
+                previous_state = previous_states[block_index]
+                token_and_state = token_mix(previous_state, token_state)
+                if block_index == 0:
+                    block_input = token_and_state
+                else:
+                    neighbor_state = previous_states[block_index - 1]
+                    block_input = 0.5 * (token_and_state + neighbor_state)
+                block_delta = block(block_input)
+                current_states.append(block_mix(block_input, block_delta))
+            previous_states = current_states
+
+        return self.output(previous_states[-1])
