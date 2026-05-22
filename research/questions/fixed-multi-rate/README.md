@@ -100,6 +100,14 @@ This is the first positive wall-clock result in the project. The key insight: pr
 
 14.8% from rates [1,1,2,4] with 4 blocks. More aggressive rates or more blocks could give larger savings.
 
+### Max's interpretation ([dictation 2026-05-22-10](../../../dictations/2026-05-22-10.md))
+
+> "multi-rate means that a certain part of the network is attempting to predict further in the future"
+
+Max sees the multi-rate constraint as an inductive bias: a rate-4 block's output must be "generic enough to be useful across 4 steps" — the gradient from step t+4 back to step t pressures it toward longer-timescale features. This is similar to how the sequential bottleneck was the useful thing in prior experiments: constraining update frequency forces more slowly-varying, generalizable representations.
+
+The fact that multi-rate achieves *better* val loss (not just equal) is consistent with this being a useful regularizer, not just a compute trick.
+
 ## Next steps
 
 1. **Longer training run** (5000+ steps) to confirm the quality gap stays neutral at convergence
