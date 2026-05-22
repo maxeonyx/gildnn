@@ -356,9 +356,9 @@ Start with just 3 points to find whether a crossover exists: `(64, 128)`, `(64, 
 
 - Whether async is useful for multi-GPU or multi-device
 - Whether different-rate modules (time dilation) have value independent of speed
-- The quality question (already answered elsewhere: stale reads are fine)
-- Which of the paths forward (A-D) will actually deliver measurable speedup
-- Whether SM-partitioned persistent kernels beat CUDA Graphs for our specific workload (needs measurement)
+- **Whether architecturally independent blocks preserve quality** — the benchmark used synthetic independent blocks. The current `MultiRateResidualModel` has sequential block dependencies. A parallel-blocks experiment is testing this (May 2026).
+- Whether persistent kernels (Triton, Linux) would outperform CUDA Graphs for this workload
+- Whether the 28% block-subsystem improvement translates to meaningful end-to-end training speedup once loss/backward/optimizer are included
 
 ## References
 
