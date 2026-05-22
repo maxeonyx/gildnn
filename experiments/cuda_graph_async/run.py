@@ -36,9 +36,10 @@ class CorrectnessStats:
 
 
 DEFAULT_SWEEP = (
-    SweepPoint(batch_size=64, seq_len=128, d_model=128, num_blocks=4, timesteps=32),
-    SweepPoint(batch_size=64, seq_len=128, d_model=512, num_blocks=4, timesteps=32),
-    SweepPoint(batch_size=256, seq_len=128, d_model=256, num_blocks=4, timesteps=32),
+    # timesteps=8 to avoid OOM (CUDA Graphs pin all intermediates; ts=32 OOMs at 30GB)
+    SweepPoint(batch_size=64, seq_len=128, d_model=128, num_blocks=4, timesteps=8),
+    SweepPoint(batch_size=64, seq_len=128, d_model=512, num_blocks=4, timesteps=8),
+    SweepPoint(batch_size=256, seq_len=128, d_model=256, num_blocks=4, timesteps=8),
 )
 
 
