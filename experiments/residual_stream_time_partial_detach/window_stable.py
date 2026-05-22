@@ -1,4 +1,4 @@
-"""Window stability fix: k=8 at lower LR (0.001 vs 0.003).
+r"""Window stability fix: k=8 at lower LR (0.001 vs 0.003).
 
 Tests whether the k=8 divergence is a hyperparameter issue or architectural.
 If k=8 is stable at LR=0.001, the efficiency gap might close.
@@ -18,7 +18,7 @@ from torch.nn import functional as F
 from base_experiments.transformer import build_fixed_length_split
 from core.fixed_window_char import set_seed
 
-from experiments.residual_stream_time_mixadd.model import (
+from core.model import (
     ResidualStreamTimeMixAddCharModel,
     ResidualStreamTimeMixAddConfig,
     count_parameters,

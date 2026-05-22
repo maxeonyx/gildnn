@@ -11,7 +11,7 @@ from torch import Tensor, nn
 from torch.nn import functional as F
 
 from core.fixed_window_char import load_dataset, resolve_device, set_seed
-from experiments.residual_stream_time_mixadd.model import count_parameters
+from core.model import count_parameters
 
 from .run import (
     RunConfig,

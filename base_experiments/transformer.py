@@ -20,7 +20,7 @@ from core.fixed_window_char import (
     resolve_device,
     set_seed,
 )
-from core.tiny_char_transformer import (
+from legacy_models.tiny_char_transformer import (
     PlainResidualCombine,
     TinyTransformerCharModel,
     count_parameters,

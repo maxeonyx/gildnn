@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 
-from core.async_gru_char_model import (
+from legacy_models.async_gru_char_model import (
     AsyncGRUCharModel,
     ForwardTrace,
     TickTrace,
@@ -59,4 +59,3 @@ def with_overrides(
             else memorization_learning_rate
         ),
     )
-

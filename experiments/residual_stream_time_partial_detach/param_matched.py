@@ -1,4 +1,4 @@
-"""Parameter-matched comparison: d_model=116 (185K params) vs transformer (186K params).
+r"""Parameter-matched comparison: d_model=116 (185K params) vs transformer (186K params).
 
 Answers: is the architecture fundamentally less parameter-efficient than transformers,
 or does the d_model=192 result (1.670 at 479K) reflect excess capacity?
@@ -18,7 +18,7 @@ from torch.nn import functional as F
 from base_experiments.transformer import build_fixed_length_split
 from core.fixed_window_char import set_seed
 
-from experiments.residual_stream_time_mixadd.model import (
+from core.model import (
     ResidualStreamTimeMixAddCharModel,
     ResidualStreamTimeMixAddConfig,
     count_parameters,

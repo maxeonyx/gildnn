@@ -1,4 +1,4 @@
-"""Parameter-matched Muon test: d_model=116, k=8, Muon LR=0.01, 5 epochs.
+r"""Parameter-matched Muon test: d_model=116, k=8, Muon LR=0.01, 5 epochs.
 
 Previous parameter-matched result (AdamW, k=4, d=116): val 1.717 at 184K params.
 Transformer anchor: val 1.632 at 186K params.
@@ -19,7 +19,7 @@ from torch.nn import functional as F
 
 from base_experiments.transformer import build_fixed_length_split
 from core.fixed_window_char import set_seed
-from experiments.residual_stream_time_mixadd.model import (
+from core.model import (
     ResidualStreamTimeMixAddCharModel,
     ResidualStreamTimeMixAddConfig,
     count_parameters,

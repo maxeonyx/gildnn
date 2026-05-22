@@ -13,10 +13,8 @@ from torch import Tensor, nn
 from torch.nn import functional as F
 
 from core.fixed_window_char import load_dataset, resolve_device, set_seed
-from experiments.residual_stream_time_mixadd.model import (
-    MixAdd,
-    ResidualFeedForwardBlock,
-    TemporalWindowAttention,
+from core.model import (
+    MultiRateResidualModel,
     count_parameters,
 )
 
@@ -45,32 +43,6 @@ class RunConfig:
     final_timing_passes: int = 1_000
     control_diagonal: bool = False
     multi_diagonal: bool = False
-
-
-@dataclass(frozen=True)
-class BlockTrace:
-    block_index: int
-    rate: int
-    executed: bool
-    used_delta_rms: float
-    diagonal_input_rms: float
-    diagonal_applied: bool
-    diagonal_matches_previous_delta: bool
-
-
-@dataclass(frozen=True)
-class TimeStepTrace:
-    time_index: int
-    blocks: list[BlockTrace]
-
-
-@dataclass(frozen=True)
-class ForwardTrace:
-    step_traces: list[TimeStepTrace]
-
-
-def tensor_rms(tensor: Tensor) -> float:
-    return torch.sqrt(torch.mean(tensor.detach().float().square())).item()
 
 
 def parse_rate_tuple(value: str) -> tuple[int, ...]:
@@ -128,215 +100,6 @@ def write_json(path: Path, payload: object) -> None:
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
-class ScheduledResidualBlock(nn.Module):
-    def __init__(
-        self,
-        *,
-        d_model: int,
-        feedforward_dim: int,
-        rate: int,
-        mix_init: float,
-        diagonal_enabled: bool,
-    ) -> None:
-        super().__init__()
-        if rate <= 0:
-            raise ValueError(f"Block rate must be positive, got {rate}.")
-        self.rate = rate
-        self.diagonal_enabled = diagonal_enabled
-        self.block = ResidualFeedForwardBlock(
-            d_model=d_model,
-            feedforward_dim=feedforward_dim,
-        )
-        self.mix = MixAdd(init=mix_init)
-        self.register_buffer("cached_output", torch.zeros(0), persistent=False)
-        self.register_buffer("last_delta", torch.zeros(0), persistent=False)
-
-    def reset_cache(self, *, device: torch.device, dtype: torch.dtype) -> None:
-        self.cached_output = torch.zeros(0, device=device, dtype=dtype)
-        self.last_delta = torch.zeros(0, device=device, dtype=dtype)
-
-    def forward(
-        self,
-        stream: Tensor,
-        *,
-        time_index: int,
-        diagonal_input: Tensor | None = None,
-        capture_trace: bool = False,
-        block_index: int | None = None,
-    ) -> tuple[Tensor, BlockTrace | None]:
-        expected_diagonal = diagonal_input is not None and self.diagonal_enabled
-        if not expected_diagonal:
-            diagonal_term = torch.zeros_like(stream)
-        else:
-            diagonal_term = diagonal_input
-        should_execute = (
-            time_index % self.rate == 0
-            or self.cached_output.numel() == 0
-            or self.cached_output.shape != stream.shape
-        )
-        if should_execute:
-            block_input = stream + diagonal_term if expected_diagonal else stream
-            block_output = self.block(block_input)
-            self.cached_output = block_output
-            self.last_delta = block_output
-        else:
-            block_output = self.cached_output
-        mixed_stream = self.mix(stream, block_output)
-        if not capture_trace:
-            return mixed_stream, None
-        if block_index is None:
-            raise ValueError("block_index is required when capture_trace=True.")
-        trace = BlockTrace(
-            block_index=block_index,
-            rate=self.rate,
-            executed=should_execute,
-            used_delta_rms=tensor_rms(block_output),
-            diagonal_input_rms=tensor_rms(diagonal_term),
-            diagonal_applied=expected_diagonal and should_execute,
-            diagonal_matches_previous_delta=True,
-        )
-        return mixed_stream, trace
-
-    def mix_coefficient(self) -> float:
-        return self.mix.coefficient_value()
-
-
-class FixedMultiRateCharModel(nn.Module):
-    def __init__(
-        self,
-        *,
-        vocab_size: int,
-        context_size: int,
-        d_model: int,
-        feedforward_dim: int,
-        temporal_window: int,
-        num_heads: int,
-        rates: tuple[int, ...],
-        diagonal_enabled: bool,
-    ) -> None:
-        super().__init__()
-        self.context_size = context_size
-        self.d_model = d_model
-        self.temporal_window = temporal_window
-        self.token_embedding = nn.Embedding(vocab_size, d_model)
-        self.position_embedding = nn.Embedding(context_size, d_model)
-        self.mix_token = MixAdd(init=0.5)
-        self.mix_time = MixAdd(init=0.9)
-        self.diagonal_enabled = diagonal_enabled
-        self.temporal_attention = TemporalWindowAttention(
-            d_model=d_model,
-            num_heads=num_heads,
-        )
-        self.blocks = nn.ModuleList(
-            [
-                ScheduledResidualBlock(
-                    d_model=d_model,
-                    feedforward_dim=feedforward_dim,
-                    rate=rate,
-                    mix_init=0.9,
-                    diagonal_enabled=diagonal_enabled,
-                )
-                for rate in rates
-            ]
-        )
-        self.output = nn.Linear(d_model, vocab_size)
-
-    def embedded_tokens(self, tokens: Tensor) -> Tensor:
-        sequence_length = tokens.shape[1]
-        if sequence_length != self.context_size:
-            raise ValueError(f"Expected context length {self.context_size}, got {sequence_length}.")
-        positions = torch.arange(sequence_length, device=tokens.device)
-        return self.token_embedding(tokens) + self.position_embedding(positions).unsqueeze(0)
-
-    def _reset_caches(self, *, device: torch.device, dtype: torch.dtype) -> None:
-        for block in self.blocks:
-            block.reset_cache(device=device, dtype=dtype)
-
-    def mix_coefficients(self) -> dict[str, object]:
-        return {
-            "token": self.mix_token.coefficient_value(),
-            "time": self.mix_time.coefficient_value(),
-            "blocks": [block.mix_coefficient() for block in self.blocks],
-            "diagonal_enabled": self.diagonal_enabled,
-        }
-
-    def _forward_impl(self, tokens: Tensor, *, capture_trace: bool) -> tuple[Tensor, ForwardTrace | None]:
-        embeddings = self.embedded_tokens(tokens)
-        batch_size = tokens.shape[0]
-        stream = torch.zeros(batch_size, self.d_model, device=tokens.device, dtype=embeddings.dtype)
-        history: list[Tensor] = []
-        step_traces: list[TimeStepTrace] = []
-        self._reset_caches(device=tokens.device, dtype=embeddings.dtype)
-        previous_timestep_deltas = [torch.zeros_like(stream) for _ in self.blocks]
-
-        for time_index in range(self.context_size):
-            stream = self.mix_token(stream, embeddings[:, time_index, :])
-            past_states = history[-self.temporal_window :]
-            if past_states:
-                stacked_past = torch.stack(past_states, dim=1)
-            else:
-                stacked_past = torch.empty(
-                    batch_size,
-                    0,
-                    self.d_model,
-                    device=tokens.device,
-                    dtype=embeddings.dtype,
-                )
-            temporal_context, _ = self.temporal_attention(stream, stacked_past, capture_weights=False)
-            block_traces: list[BlockTrace] = []
-            for block_index, block in enumerate(self.blocks):
-                diagonal_input = None
-                if block_index > 0:
-                    diagonal_input = previous_timestep_deltas[block_index - 1]
-                stream, block_trace = block(
-                    stream,
-                    time_index=time_index,
-                    diagonal_input=diagonal_input,
-                    capture_trace=capture_trace,
-                    block_index=block_index,
-                )
-                if capture_trace:
-                    if block_trace is None:
-                        raise RuntimeError("Missing block trace.")
-                    diagonal_matches_previous = True
-                    if diagonal_input is not None:
-                        diagonal_matches_previous = torch.allclose(
-                            diagonal_input,
-                            previous_timestep_deltas[block_index - 1],
-                        )
-                    block_traces.append(
-                        BlockTrace(
-                            block_index=block_trace.block_index,
-                            rate=block_trace.rate,
-                            executed=block_trace.executed,
-                            used_delta_rms=block_trace.used_delta_rms,
-                            diagonal_input_rms=block_trace.diagonal_input_rms,
-                            diagonal_applied=block_trace.diagonal_applied,
-                            diagonal_matches_previous_delta=diagonal_matches_previous,
-                        )
-                    )
-            previous_timestep_deltas = [block.last_delta.clone() for block in self.blocks]
-            stream = self.mix_time(stream, temporal_context)
-            history.append(stream)
-            if capture_trace:
-                step_traces.append(TimeStepTrace(time_index=time_index, blocks=block_traces))
-
-        logits = self.output(stream)
-        if not capture_trace:
-            return logits, None
-        return logits, ForwardTrace(step_traces=step_traces)
-
-    def forward(self, tokens: Tensor) -> Tensor:
-        logits, _ = self._forward_impl(tokens, capture_trace=False)
-        return logits
-
-    def forward_with_trace(self, tokens: Tensor) -> tuple[Tensor, ForwardTrace]:
-        logits, trace = self._forward_impl(tokens, capture_trace=True)
-        if trace is None:
-            raise RuntimeError("Trace missing.")
-        return logits, trace
-
-
 def build_model(
     *,
     vocab_size: int,
@@ -344,8 +107,8 @@ def build_model(
     rates: tuple[int, ...],
     device: torch.device,
     diagonal_enabled: bool,
-) -> FixedMultiRateCharModel:
-    return FixedMultiRateCharModel(
+ ) -> MultiRateResidualModel:
+    return MultiRateResidualModel(
         vocab_size=vocab_size,
         context_size=config.context_size,
         d_model=config.d_model,
@@ -418,7 +181,7 @@ def fixed_step_indices(size: int, *, steps: int, batch_size: int, seed: int, dev
     ]
 
 
-def run_diagonal_smoke_check(model: FixedMultiRateCharModel, inputs: Tensor) -> dict[str, object]:
+def run_diagonal_smoke_check(model: MultiRateResidualModel, inputs: Tensor) -> dict[str, object]:
     sample_inputs = inputs[:2]
     logits, trace = model.forward_with_trace(sample_inputs)
     diagonal_block_traces = [
@@ -455,19 +218,19 @@ def run_diagonal_smoke_check(model: FixedMultiRateCharModel, inputs: Tensor) -> 
     }
 
 
-def compare_diagonal_paths(model: FixedMultiRateCharModel, inputs: Tensor) -> dict[str, object]:
+def compare_diagonal_paths(model: MultiRateResidualModel, inputs: Tensor) -> dict[str, object]:
     if not model.diagonal_enabled:
         raise ValueError("Diagonal path comparison requires diagonal_enabled=True.")
     sample_inputs = inputs[:2]
     diagonal_logits = model(sample_inputs)
-    no_diagonal_model = FixedMultiRateCharModel(
+    no_diagonal_model = MultiRateResidualModel(
         vocab_size=model.output.out_features,
         context_size=model.context_size,
         d_model=model.d_model,
-        feedforward_dim=model.blocks[0].block.proj_in.out_features,
+        feedforward_dim=model.feedforward_dim,
         temporal_window=model.temporal_window,
-        num_heads=model.temporal_attention.num_heads,
-        rates=tuple(block.rate for block in model.blocks),
+        num_heads=model.num_heads,
+        rates=model.rates,
         diagonal_enabled=False,
     ).to(sample_inputs.device)
     no_diagonal_model.load_state_dict(model.state_dict(), strict=False)

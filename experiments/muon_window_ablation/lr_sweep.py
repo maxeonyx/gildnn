@@ -1,4 +1,4 @@
-"""Muon LR sweep: find stable range for k=4, then test k=8,16 at that LR.
+r"""Muon LR sweep: find stable range for k=4, then test k=8,16 at that LR.
 
 Muon default LR=0.02 caused all windows to diverge at epoch 3.
 Test: LR=0.005, 0.003, 0.001 for k=4 first (3 epochs each — fast).
@@ -19,7 +19,7 @@ from torch.nn import functional as F
 
 from base_experiments.transformer import build_fixed_length_split
 from core.fixed_window_char import set_seed
-from experiments.residual_stream_time_mixadd.model import (
+from core.model import (
     ResidualStreamTimeMixAddCharModel,
     ResidualStreamTimeMixAddConfig,
     count_parameters,

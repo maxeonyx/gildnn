@@ -1,4 +1,4 @@
-"""Extended k=8 run: 15 epochs at LR=0.001 to test convergence floor.
+r"""Extended k=8 run: 15 epochs at LR=0.001 to test convergence floor.
 
 k=8 at LR=0.001 gave val 1.757 in 5 epochs (still declining).
 k=4 at LR=0.003 gave val 1.670 in 5 epochs (still declining).
@@ -19,7 +19,7 @@ from torch.nn import functional as F
 from base_experiments.transformer import build_fixed_length_split
 from core.fixed_window_char import set_seed
 
-from experiments.residual_stream_time_mixadd.model import (
+from core.model import (
     ResidualStreamTimeMixAddCharModel,
     ResidualStreamTimeMixAddConfig,
     count_parameters,

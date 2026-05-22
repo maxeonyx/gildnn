@@ -5,7 +5,7 @@ from dataclasses import dataclass, replace
 import torch
 from torch import Tensor, nn
 
-from core.async_gru_char_model import ForwardTrace, ResidualGRUModule, TickTrace, count_parameters
+from legacy_models.async_gru_char_model import ForwardTrace, ResidualGRUModule, TickTrace, count_parameters
 
 
 @dataclass(frozen=True)

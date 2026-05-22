@@ -1,4 +1,4 @@
-"""Muon Phase 2 continuation: k=8 and k=16 at Muon LR=0.01, 5 epochs.
+r"""Muon Phase 2 continuation: k=8 and k=16 at Muon LR=0.01, 5 epochs.
 
 Phase 1 already found LR=0.01 is optimal for k=4.
 k=4 at LR=0.01/5ep achieved val 1.670 — identical to AdamW baseline.
@@ -19,7 +19,7 @@ from torch.nn import functional as F
 
 from base_experiments.transformer import build_fixed_length_split
 from core.fixed_window_char import set_seed
-from experiments.residual_stream_time_mixadd.model import (
+from core.model import (
     ResidualStreamTimeMixAddCharModel,
     ResidualStreamTimeMixAddConfig,
     count_parameters,

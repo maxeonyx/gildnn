@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from core.async_gru_char_model import (
+from legacy_models.async_gru_char_model import (
     AsyncGRUCharModel,
     ForwardTrace,
     TickTrace,
