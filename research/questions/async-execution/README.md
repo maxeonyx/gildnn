@@ -144,12 +144,75 @@ The question is **NOT closed.** What's closed is only the PyTorch-streams approa
 
 The path to actual async speedup requires going below PyTorch: persistent kernels, fused batched kernels, or CUDA Graphs. These bypass the per-launch overhead that dominated our measurements.
 
+---
+
+## Triton feasibility assessment (May 2026)
+
+**Can Triton implement persistent kernels for our use case?** Yes — confirmed possible and officially supported since Triton 3.0 (late 2024).
+
+### The pattern
+
+```python
+@triton.jit
+def persistent_multi_block(task_queue, block_a_weights, block_b_weights, shared_state, ...):
+    pid = tl.program_id(0)  # 0..81 on RTX 3090 (82 SMs)
+    # Partition: programs 0-40 run Block A, programs 41-81 run Block B
+    if pid < NUM_BLOCK_A_PROGRAMS:
+        # Block A work loop
+        while True:
+            task_id = tl.atomic_add(task_queue_a, 1)
+            if task_id >= num_tasks: return
+            # Read shared state (stale by design — no sync)
+            state = tl.load(shared_state + ...)
+            # Compute
+            out = matmul_tile(block_a_weights, state)
+            # Write results back
+            tl.store(shared_state + ..., out)
+    else:
+        # Block B work loop (same pattern, different weights)
+        ...
+```
+
+### Key facts
+
+| Capability | Status on GA102 / Triton |
+|---|---|
+| Persistent kernels (internal loops) | ✅ Supported. Official tutorial: `triton-lang.org/main/getting-started/tutorials/09-persistent-matmul.html` |
+| Atomics for task scheduling | ✅ `tl.atomic_add`, `tl.atomic_cas` |
+| SM affinity control | ❌ No hardware guarantee. Workaround: launch grid=(82,), use program_id as pseudo-SM-id. Near-1:1 in practice. |
+| Global memory stale reads | ✅ Just `tl.load` — no sync needed (this IS our stale-read semantics) |
+| Grid-wide sync barrier | ❌ No `cooperative_groups` equivalent. Not needed for our async pattern. |
+| Coexistence with torch.compile | ✅ First-class. Use `torch.library.custom_op` to register. |
+| CUDA Graphs capture | ✅ Triton kernels are just PTX — capture and replay normally. |
+
+### Simplest viable prototype
+
+1. **Single persistent Triton kernel**, grid=(82,)
+2. Programs 0–N run Block A tiles, programs N+1–81 run Block B tiles
+3. Communication: `tl.load` from global memory (inherently stale — exactly what we want)
+4. No barriers between blocks. Each block writes its output to global memory; the other block reads it whenever it next loops.
+5. Outer loop: CUDA Graphs to eliminate per-timestep launch overhead
+
+### What Triton cannot do (where raw CUDA would be needed)
+
+- Hardware SM pinning (only MPS on Linux)
+- Shared memory across thread blocks
+- Complex warp-cooperative patterns beyond basic shuffles
+- Thread Block Clusters (Hopper only, irrelevant for GA102)
+
+### Implications for the project
+
+The persistent kernel path is **implementable in Triton today** on this machine. No need for raw CUDA C, no need for Linux, no need for a different framework. The official persistent matmul tutorial is the starting template. The prototype can live alongside torch.compile'd forward paths — custom Triton ops are first-class in PyTorch's compilation stack.
+
+---
+
 ## What this does NOT settle
 
 - Whether async is useful for multi-GPU or multi-device
 - Whether different-rate modules (time dilation) have value independent of speed
 - The quality question (already answered elsewhere: stale reads are fine)
 - Which of the paths forward (A-D) will actually deliver measurable speedup
+- Whether SM-partitioned persistent kernels beat CUDA Graphs for our specific workload (needs measurement)
 
 ## References
 
@@ -158,3 +221,6 @@ The path to actual async speedup requires going below PyTorch: persistent kernel
 - [MPS Documentation](https://docs.nvidia.com/deploy/mps/index.html)
 - [Persistent Threads paper (Gupta et al.)](https://arxiv.org/abs/2012.13259)
 - [NVIDIA CUTLASS](https://github.com/NVIDIA/cutlass)
+- [Triton Persistent Matmul Tutorial](https://triton-lang.org/main/getting-started/tutorials/09-persistent-matmul.html)
+- [FlagGems — open-source Triton ops](https://github.com/FlagOpen/FlagGems)
+- [Liger-Kernel — fused Triton transformer ops](https://github.com/linkedin/Liger-Kernel)
