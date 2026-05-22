@@ -79,7 +79,7 @@ These are genuinely unresolved. Each needs experiments.
 - **Can local learning scale?** Does it work at all? Does it work badly? Does it work well but without performance benefits? The exact details of how local modules work probably matter a lot.
 - **What GPU programs fit best on the RTX 3090?** RNNs might get significantly more FLOPs out of a GPU than transformers — genuinely uncertain, needs measuring. What's the largest parameter shape that just sits in cache, repeatedly processing data?
 - **What role should time-unrolling play?** Since looped blocks across time resemble a transformer with reused blocks, when is that a useful simplification?
-- **Compilation backend:** torch.compile (Triton), JAX, IREE, or something else? Eager PyTorch is fine for experiments but not for things that need to be long-lived and reused. JAX/IREE require Linux. Migration to Linux is possible but low priority for now.
+- **Compilation backend:** decided PyTorch + `torch.compile` (Triton) for stable paths, custom CUDA/Triton for async research. JAX/IREE possible later but not needed — the hardest part (persistent kernels) goes below both frameworks. See `research/questions/backend-choice/README.md`.
 
 ## Datasets
 
