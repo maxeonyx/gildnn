@@ -2,93 +2,102 @@
 
 Personal discovery project. The goal is to understand what these ideas do when actually implemented and run — not to publish, not to compete with anyone. Redoing prior work is fine. Being surprised is good.
 
-## Two independent research threads
+## The core goal: async wall-clock speedup
 
-These start separately. Combining them is a stretch goal contingent on both making sense individually.
+The central motivation is making recurrent inference *fast*. Not accuracy-first — speed-first. The hypothesis: if you have many small residual blocks that don't need to synchronize with each other, you can keep all parameters resident in GPU memory and process activations in place, replacing depth with width and propagation across timesteps rather than within. Blocks communicate via stale reads from volatile memory. They don't wait for each other. The GPU's many parallel units execute at their own speeds.
 
-### Thread 1: Cortical column network
+This is the thing that might actually give wall-clock speedup. If it doesn't give wall-clock speedup, we're not doing it right yet.
 
-Distributed computation across many residual blocks arranged in a graph or schedule, with unusual boundary rules — loosely inspired by the structure of the neocortex, but the biological analogy is motivational, not prescriptive. The interesting questions are engineering and empirical, not biological.
+A secondary advantage: modules running at different rates. Some iterate rapidly, some update infrequently, some handle different timescales. Not by hard-coded schedules but by the stale-reads mechanism — pack more into one area of the GPU for a rapidly-iterating module, swap between five in another area, swap between a hundred in a third. Multi-rate execution means a certain part of the network is implicitly attempting to predict further into the future.
 
-**Architecture clarification (2026-05-20):** a column/node/module is currently understood as a **single residual block** (e.g. one transformer-style block or one FFN block), operating on a **shared residual stream of uniform width `d_model`**. It is not a thick recurrent mini-stack with its own internal hidden dimension. The boundary between modules is simply the residual stream at `d_model`. The interesting design questions are at those boundaries. Recurrence is a possible later direction, not the current thing being tested.
+**Current experimental status:** A fixed multi-rate experiment (blocks at rates 1, 1, 2, 4) showed *better* validation loss than all-rate-1, suggesting a useful inductive bias — constraining how often something updates forces it to learn more slowly-varying, generalizable representations. Wall-clock speedup has not yet been demonstrated. That's the next thing to prove.
 
-The motivating intuitions:
+## The architecture: diagonal residual connections across time and depth
 
-- A standard transformer processes a sequence synchronously through depth. What if instead you had many residual blocks with nonstandard coupling across depth, time, or graph structure — each governed by different boundary rules?
-- Each block predicts its own **next incoming residual stream** (the latent it will receive at the block boundary at the next step) — a local self-supervised objective on the incoming signal, not on the block's own output. Does useful computation emerge from this?
-- Predictive heads draw from all residual blocks, including raw inputs — not just the final layer.
-- Blocks start as plain residual units. **Residual coupling across time** — where blocks maintain a residual stream across timesteps with attention over past states — is a **current core question**, not a later assumption. The temporal residual stream accumulates additions (no gating/forgetting), and temporal attention reads over past states. Max's preferred norm-management for this is **learned mix-add** (convex combination with a learned scalar), not LayerNorm.
-- Columns communicate through some combination of local graph edges and a global channel. The relative roles of these are not settled.
-- The graph should ideally match the GPU architecture — not a theoretical topology imposed on hardware that ignores it.
-- Updates propagate based on something like surprisal — a block that hasn't changed much doesn't need to recompute. This could make the system sparse and efficient, or it could be a disaster. Unknown.
-- Gradients between blocks are minimally coupled — each block learns somewhat independently, with explicit stop-gradient boundaries. This opens a communication-game dynamic that may or may not lead anywhere useful.
+The design is many separate small residual blocks arranged in a graph. A block is a **single residual block** (e.g. one transformer-style block or one FFN block), operating on a **shared residual stream of uniform width `d_model`**. Not a thick recurrent mini-stack with its own internal hidden dimension. The boundary between modules is simply the residual stream at `d_model`.
 
-**On looped blocks across time:** if blocks are looped or unrolled across time with attention-style residual connections, the architecture becomes close to a transformer with reused/looped blocks. This is a useful grounding analogy. Stop gradients across time and stop gradients across depth are the same kind of mechanism in this framing.
+The interesting connections are **diagonal** — from residual block A at time t to the next block at time t+1. Residual streams across time, across depth, and diagonally across time and depth. This is the main structural idea to explore.
 
-**Everything above is a hypothesis to be tested, not a design specification.** The open questions below are the actual research agenda.
+Each block's job: predict its own next incoming residual stream — a local self-supervised objective on the incoming signal, not on its own output. The first node connected to the input predicts that input at the next step, and that is the output. Deeper nodes learn by producing messages that help their neighbors produce good predictions. Whether deeper nodes learn interesting things given they're not directly connected to input — that's the experiment.
 
-#### Open questions — Thread 1
+Gradients between blocks are minimally coupled — explicit stop-gradient boundaries. Less gradient coupling = more modularity. How much less is still open, but as unhooked as possible is the direction. Stop gradients across time and stop gradients across depth are the same kind of mechanism in this framing — if you unroll blocks across time with attention-style residual connections, the architecture becomes close to a transformer with reused/looped blocks.
 
-These are not rhetorical. They are genuinely unresolved and will each need experiments.
+### Self-prediction
 
-- **What exactly is the block boundary?** If modules are single residual blocks on a uniform `d_model` stream, what information is allowed to cross each boundary unchanged, detached, mixed, or delayed?
-- **Which cross-boundary mechanisms matter most?** Stop gradients, attention residual paths, async/shared-memory behavior, selective updates, or some combination?
-- **What is the global communication channel?** Current intuition: a stateful broadcast router — a central component that reads from all blocks and broadcasts a single mixed message back. But all-to-all attention is also possible and worth trying. Are there many broadcast channels? Unknown.
-- **What exactly is unhooked?** No global gradient propagation is the intent. But embeddings may need partial global gradient. No gradients through time across blocks is likely right but not confirmed. Less gradient coupling = more modularity, but how much less?
-- **What is bidirectional propagation?** Bidirectional over graph edges via cross-boundary residual or attention structure? Not designed yet.
-- **What triggers a block update?** Currently framed as surprisal — large change in incoming residual stream. But surprise relative to what? Who measures it? What happens during dormancy? Entirely open.
-- **What is the I/O contract for the architecture?** How does input enter the system and how does output leave? Entirely open.
-- **How real can async execution be?** True per-block event queues are hostile to GPU efficiency. A semi-async masked approximation (masked dense updates, bucketed by activity) is one possible path. Whether "real" async is achievable, or even meaningfully different, is unknown.
-- **Does the graph structure matter?** If a global channel does most of the work, graph locality may be cosmetic. This is a key thing to find out — not to assume either way.
+The network should predict not just its inputs, but its own outputs and internal latents. Can we compress computation naturally into fewer timesteps? Rather than forcing a network to process one token given its size, have a network that learns to process many tokens or look further ahead. Self-prediction is the training mechanism: a prediction head that estimates what the network itself will produce, trained to match the actual next-step output.
+
+An attention mechanism that predicts attention for the current timestep *and* the next timestep — in training we use the former, in inference we use the latter (which was trained to predict the former at the next step). This allows pipelining computation without waiting for the current step to finish.
+
+### Dynamic depth (computation per token)
+
+Use the same model weights multiple times in sequence to produce a single output token. Iterate on internal state. Train a loss-prediction head that estimates when additional computation is no longer helping. At training: run multiple rollouts (1 pass, 2 passes, 4 passes — exponential schedule), record loss at each depth. The loss predictor learns to predict those losses. At inference: use the head's output to decide when to stop.
+
+This is well-trodden territory. The goal is understanding whether and how it works on our tasks.
+
+### Dynamic token count output
+
+The complementary direction: instead of one token per timestep, predict *many* tokens ahead. A loss-prediction head estimates loss for a given number of output tokens. In training we build that capability; at inference we dynamically select how many tokens to sample without having to separately train for it. The loss predictor over a set of possibilities — for dynamic depth, how many loops; for dynamic token count, how many tokens to sample. Ideally these would be orthogonal.
+
+### The broadcast mechanism
+
+A stateful broadcast component that reads from all modules and broadcasts a mixed message back. Not all-to-all attention between every block — a central bottleneck. It takes in all columns but outputs the same mix to all. Maybe many broadcast channels. It must stale-read from everything (otherwise it forces synchronization, killing throughput) and its outputs must be stale-read by modules.
+
+How the broadcast itself learns what's important is unclear. Maybe self-prediction. Maybe influenced by reward modelling. Without a reward model, probably try without the broadcast — it probably can't learn to do anything useful with purely local learning. This is genuinely open.
+
+**Unrestricted all-to-all attention between blocks may bypass the interesting parts entirely.** If every block cheaply reads every other's state, the graph becomes decorative and async execution meaningless. Communication channels probably need a bottleneck to preserve locality.
+
+### Residual stream management: mix-add over norms
+
+The mix-add operator: `mix(a, b, m) = a * sqrt(σ(m)) + b * sqrt(1 - σ(m))`. A principled way to add two vectors that keeps the distribution approximately normally distributed and norm-preserving. Three variants: fixed hyperparameter, learned static parameter, data-dependent learned parameter. Learned mix-add is preferred — it lets the network set its own forgetting threshold in the residual stream.
+
+Mix-add is not a fix for training stability — it's a fix for having to tune the residual backbone. You can still get exploding activations. Training stability is the optimizer's job.
+
+The preference: attempt architectures without LayerNorm/BatchNorm where possible. Those are hacks unless justified. Worth comparing mix-add against plain residual + norms.
+
+### Muon optimizer for RNN stability
+
+Gradients explode in RNNs because the same weight matrix W applied T times compounds singular values multiplicatively. If W drifts away from orthogonal even slightly, that drift gets amplified to the T-th power. Muon keeps weight matrices near-orthogonal throughout training — orthogonal matrices have singular values exactly 1, so gradients flow back arbitrarily far without exploding or vanishing. Particularly well-suited for architectures where the same module repeats across time.
+
+### Exploratory direction: complex-valued networks and volume-preserving nonlinearities
+
+An interesting side direction (not the main focus): if weight matrices were parameterized to be inherently orthogonal/unitary, activations neither grow nor shrink by construction. Complex-valued networks may offer this. Element-wise nonlinearities privilege a basis (arbitrary, breaks rotational symmetry) — ideally the nonlinearity operates on the geometry of the representation, not individual coordinates. Volume-preserving diffeomorphisms (divergence-free vector fields, Hamiltonian flows) as learned nonlinearities are theoretically attractive. Whether parameterizable cheaply enough is open.
+
+## Open questions
+
+These are genuinely unresolved. Each needs experiments.
+
+- **Does async actually give wall-clock speedup?** The only point of async is speed. If we can't demonstrate it, we're not doing it right yet.
+- **What exactly is the block boundary?** What information crosses unchanged, detached, mixed, or delayed?
+- **What triggers a block update?** Currently framed as surprisal or fixed rates. But surprise relative to what? Who measures it? Multi-rate by stale reads is one concrete operationalization that works.
 - **Do unhooked gradients produce useful specialization or protocol breakdown?** Unknown. Worth finding out.
-- **What role, if any, should time-unrolling play?** Since looped blocks across time resemble a transformer with reused blocks, when is that a useful simplification versus a distraction? Open.
-- **Whether a block is always full attention+FFN or sometimes FFN-only.** Not settled.
-
-### Thread 2: Dynamic computation depth
-
-A separate idea: use the same model weights multiple times per output token, iterating on internal state, with a learned halting criterion.
-
-The intuition: for easy tokens, one forward pass is enough. For hard tokens, more passes produce better predictions. A loss-prediction head estimates when additional computation is no longer helping, enabling adaptive inference-time compute.
-
-Training: run multiple rollouts per token (1 pass, 2 passes, 4 passes, etc. — exponential schedule). Record loss at each depth. Train the loss-prediction head to predict those losses. At inference, use the head's output to decide when to stop. Dynamic hierarchical encodings might be relevant here — the representation at each depth could encode a different level of abstraction.
-
-This is well-trodden territory. The goal is not novelty — it's understanding whether and how it works on our tasks, and eventually whether it composes with Thread 1.
-
-Starting point: get this working on a standard recurrent model or transformer before involving cortical columns at all.
-
-## GPU utilization as a research question
-
-There is a whole research avenue around understanding what kind of GPU programs fit best on the RTX 3090. Max's hypothesis is that RNNs might get significantly more FLOPs out of a GPU than transformers — but this is genuinely uncertain and needs to be measured. Performance comparisons between architectures should include wall-clock time and actual GPU utilization, not just parameter counts and theoretical FLOPs. The hardware constrains what "fast" means in practice.
-
-## Comparison goals
-
-Before claiming any architecture works, it needs to be compared against:
-
-- **Ordinary transformer baseline** — same parameter count, standard attention + FFN, no recurrence
-- **Ordinary RNN** — a basic recurrent model; the simplest possible stateful baseline
-
-These aren't just baselines to beat. They're the reference points that make results interpretable.
+- **What does the graph structure buy?** If a global channel does most of the work, graph locality may be cosmetic.
+- **Can local learning scale?** Does it work at all? Does it work badly? Does it work well but without performance benefits? The exact details of how local modules work probably matter a lot.
+- **What GPU programs fit best on the RTX 3090?** RNNs might get significantly more FLOPs out of a GPU than transformers — genuinely uncertain, needs measuring. What's the largest parameter shape that just sits in cache, repeatedly processing data?
+- **What role should time-unrolling play?** Since looped blocks across time resemble a transformer with reused blocks, when is that a useful simplification?
+- **Compilation backend:** torch.compile (Triton), JAX, IREE, or something else? Eager PyTorch is fine for experiments but not for things that need to be long-lived and reused. JAX/IREE require Linux. Migration to Linux is possible but low priority for now.
 
 ## Datasets
 
 **Primary:**
 
 - **Character-level English** — character-by-character language modelling, Karpathy-style. After training, the model should be interactive: type at it, see what it generates.
-- **Arbitrary-order image patches** — images split into patches, presented in many orderings during training (raster, reverse raster, vertical, knight's move, random — random should be a high proportion). Model learns to predict any patch given any subset in any order. At inference: fill in missing patches, extend outward, etc. Model should be shape-agnostic over image size. The RNN statefulness matters here: re-presenting patches in a different order requires replaying the RNN from scratch — inference-time task design must account for this.
 
 **Stretch:**
 
-- **Structured prompt-space text** — separate positional encoding spaces for system/developer/user/conversation, rather than a flat sequence. Interesting for self-modifying agent behaviour: appending to the system prompt has different semantics than appending to conversation. Not a priority.
+- **Arbitrary-order image patches** — images split into patches, presented in many orderings during training. Model learns to predict any patch given any subset in any order. Interesting properties: at inference, fill in missing patches, extend outward, choose an optimal sampling order. This connects to Max's master's work (maxeonyx/msc on GitHub). Not the core thing to explore right now — return to it after async is working.
+- **Structured prompt-space text** — separate positional encoding spaces for system/developer/user/conversation. Interesting for self-modifying agents. Not a priority.
 - **Image-text unified** — a natural extension once both modalities work independently.
-- Other tasks TBD — see `research/questions/` for emerging candidates.
 
-Note: arbitrary-order text (applying the arbitrary-order patch idea to text tokens) is not a goal — it doesn't make sense as a task in the way arbitrary-order image patches do.
+Note: arbitrary-order text (applying the arbitrary-order patch idea to text tokens) is not a goal.
 
-## The Mix-Add operation
+## Comparison goals
 
-A candidate residual update operation from [modularity-loss](https://github.com/maxeonyx/modularity-loss). It aims to be approximately norm-preserving when combining two branch vectors. Max has found it stabilises training in practice, but whether the norm-preservation holds under real conditions is an open question. Worth comparing against plain residual + RMSNorm.
+Before claiming any architecture works, compare against:
 
-See `research/questions/mix-add/` for the full formula, caveats, and open sub-questions.
+- **Ordinary transformer baseline** — same parameter count, standard attention + FFN
+- **Ordinary RNN** — the simplest possible stateful baseline (not GRU/LSTM — those are from the past and not what's being explored here; prefer attention over time or mix-add residual across time)
+
+These aren't just baselines to beat. They're the reference points that make results interpretable. Comparisons should include wall-clock time and actual GPU utilization, not just parameter counts and theoretical FLOPs.
 
 ## What good outcomes look like
 
@@ -106,11 +115,4 @@ Not "achieved state of the art." Good outcomes here are:
 - Beating benchmarks
 - A large codebase
 - Architectural decisions made by intuition and never tested
-
-## A note on the research object
-
-The most interesting part of the Thread 1 vision is probably not "graph transformer with columns" by itself. It's the combination of modular residual computation, local predictive learning at block boundaries, limited gradient coupling, and nonstandard residual/attention paths — and whether useful distributed computation and emergent communication protocols can arise from that setup.
-
-Recurrence and persistent per-module hidden state are possible later extensions, not current defining traits. The current design question is what happens at block boundaries with a shared `d_model` residual stream.
-
-A risk worth staying alert to: unrestricted all-to-all attention between blocks may bypass the interesting parts entirely. If every block can cheaply read every other's state, the graph becomes decorative and async execution becomes meaningless. Communication channels probably need a bottleneck — or sharply different roles — to preserve the locality the architecture is trying to explore. See `research/questions/broadcast-router/` and `research/questions/graph-vs-global-channel/`.
+- Stock RNN mechanisms (GRU, LSTM) unless explicitly compared against the ideas here
