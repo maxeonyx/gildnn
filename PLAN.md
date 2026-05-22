@@ -6,8 +6,8 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 - [x] **Whole-step CUDA Graph: CONFIRMED** — 10.86x real-world speedup (373s→34s for 2000 steps), quality identical (±0.004 noise). Python dispatch overhead was 90%+ of training time.
 - [x] **GraphTrainer integrated into core/** — `core/training.py` now has `GraphTrainer` class + `capturable_adamw()` helper.
-- [x] **20K matched-FLOP: TIE** — Multi-rate 1.784 vs control 1.787, delta -0.004 (within noise). The +0.018 gap from 2K steps has CLOSED. Multi-rate is compute-equivalent with structural benefits. Caveats: used AdamW (not Adam like original), single seed, CUDA Graph training.
-- [ ] **Multi-seed 20K confirmation** — Run seeds 43, 44 to confirm the TIE result holds. Single seed is suggestive but not decisive per process rules.
+- [x] **20K matched-FLOP: TIE (3-seed confirmed)** — Avg delta -0.001 (seeds: -0.004, -0.014, +0.014). The +0.018 gap from 2K steps completely vanishes at longer training. Multi-rate is compute-equivalent with structural benefits.
+- [ ] **Multi-seed 20K confirmation** — ~~Run seeds 43, 44 to confirm the TIE result holds.~~ **DONE** — confirmed. See above.
 
 ### Matched-FLOP decision tree
 
