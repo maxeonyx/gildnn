@@ -206,6 +206,96 @@ The persistent kernel path is **implementable in Triton today** on this machine.
 
 ---
 
+## Experiment 2: Persistent kernel microbenchmark (planned)
+
+### Hypothesis
+
+A single persistent Triton kernel with SM-partitioned blocks achieves measurable wall-clock improvement over sequential execution for training steps (forward + backward + optimizer).
+
+### Scale feasibility assessment
+
+**Honest concern:** At `d_model=128` with a `128→256→128` FFN, each block-step produces very few output tiles. Partitioning ~20 SMs to one block likely leaves most idle. The GPU isn't compute-bound at this scale — it's memory-bound.
+
+**Evidence from multi-rate results:** The `[1,2,4,8]` rate schedule reduces block executions from 4.0 to 1.875 per step (53% reduction) but only gives 20.7% end-to-end speedup. This implies blocks are ~39% of total step time. Even perfect elimination of block time only yields ~39% overall. A 15% block-subsystem speedup translates to ~5% end-to-end.
+
+**Conclusion:** At current scale, SM-partitioned async probably won't show meaningful concurrency benefit. But persistent/fusion benefit (zero launch overhead) might still help. The experiment must separate these two hypotheses.
+
+### Design: isolated training-step microbenchmark
+
+**Not a full LM training run.** The question is systems throughput, not model quality. Measure the block subsystem only — synthetic fixed input/target tensors on GPU, forward + backward + optimizer step.
+
+**Shape sweep (6 points):**
+
+| d_model | batch_size | blocks | FFN hidden |
+|---------|-----------|--------|-----------|
+| 128 | 64 | 4 | 512 |
+| 256 | 64 | 4 | 1024 |
+| 512 | 64 | 4 | 2048 |
+| 128 | 256 | 4 | 512 |
+| 256 | 256 | 4 | 1024 |
+| 512 | 256 | 4 | 2048 |
+
+Start with just 3 points to find whether a crossover exists: `(64, 128)`, `(64, 512)`, `(256, 256)`.
+
+### Four baselines (critical)
+
+| Label | Description | What it isolates |
+|-------|-------------|-----------------|
+| **A. Eager sequential** | PyTorch sequential, stale-read buffers, no compilation | Reference floor |
+| **B. CUDA-graph sequential** | Same math, captured sequential, removes Python overhead | Best high-level sync |
+| **C. Persistent sequential** | Single persistent Triton kernel, blocks still serial inside | Fusion/launch benefit |
+| **D. Persistent partitioned async** | Single persistent kernel, SM-partitioned, stale global reads | Actual async concurrency |
+
+**The key comparison is D vs C.** If D only beats A but not C, the win is fusion, not async.
+
+### Success criteria
+
+**Numerical correctness (before timing):**
+- Forward outputs match reference within 1e-5 relative tolerance
+- Gradients match reference within 1e-4
+- Repeated steps remain stable
+
+**Performance (block subsystem):**
+
+| Outcome | D vs C delta | Interpretation |
+|---------|-------------|---------------|
+| **Strong positive** | D ≥ 25% faster | SM concurrency genuinely helps at this scale |
+| **Weak positive** | 10–25% | Real but modest — investigate whether it scales |
+| **Tie** | Within ±10% | Concurrency not useful here; fusion is the lever |
+| **Negative** | D > 10% slower | Partitioning overhead dominates |
+
+**End-to-end significance threshold:** ≥10% training-step speedup to be worth the complexity.
+
+### Expected failure modes
+
+1. **Too little work per block** — 20 SMs per block overprovisioned, most idle
+2. **Fusion dominates, not async** — C already captures most of the gain
+3. **Backward wipes out forward gains** — grad accumulation dominates
+4. **L2/bandwidth contention** — concurrent blocks thrash shared cache
+5. **No real SM affinity** — Triton can't guarantee partition on GA102
+6. **Static partition load imbalance** — fixed split leaves SMs idle
+7. **Shared-stream write races** — need per-block output buffers + combine step
+8. **CUDA Graphs (B) already solve most of it** — baseline B approaches D
+
+### Decision tree
+
+| If... | Then... |
+|-------|---------|
+| D > C at d_model=128 | Surprising and important. Implement full-model benchmark. |
+| D ≈ C at d_model=128, D > C at d_model=512 | Async is real but not at our current tiny scale. Decision: scale up architecture or accept current multi-rate approach. |
+| C > A but D ≈ C everywhere | Persistent fusion is useful, concurrency is not the lever. Use fused kernels, stop claiming async speedup. |
+| All variants within ±5% | At this workload, async is the wrong abstraction. Stay with multi-rate + skip-compute. |
+| D < C everywhere | SM partitioning is actively harmful. Stop this line. |
+
+### Non-goals of this experiment
+
+- Model quality (synthetic data, no real training)
+- Temporal attention (block subsystem only)
+- Multi-GPU
+- Inference speed (training is the bottleneck)
+
+---
+
 ## What this does NOT settle
 
 - Whether async is useful for multi-GPU or multi-device
