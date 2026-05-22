@@ -43,6 +43,34 @@ class RunConfig:
     checkpoint_timing_passes: int = 100
     final_timing_warmup_passes: int = 100
     final_timing_passes: int = 1_000
+    control_diagonal: bool = False
+    multi_diagonal: bool = False
+
+
+@dataclass(frozen=True)
+class BlockTrace:
+    block_index: int
+    rate: int
+    executed: bool
+    used_delta_rms: float
+    diagonal_input_rms: float
+    diagonal_applied: bool
+    diagonal_matches_previous_delta: bool
+
+
+@dataclass(frozen=True)
+class TimeStepTrace:
+    time_index: int
+    blocks: list[BlockTrace]
+
+
+@dataclass(frozen=True)
+class ForwardTrace:
+    step_traces: list[TimeStepTrace]
+
+
+def tensor_rms(tensor: Tensor) -> float:
+    return torch.sqrt(torch.mean(tensor.detach().float().square())).item()
 
 
 def parse_rate_tuple(value: str) -> tuple[int, ...]:
@@ -63,6 +91,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--final-timing-passes", type=int)
     parser.add_argument("--control-rates")
     parser.add_argument("--multi-rates", default="1,1,2,4")
+    parser.add_argument("--control-diagonal", action="store_true")
+    parser.add_argument("--multi-diagonal", action="store_true")
+    parser.add_argument("--smoke-check-only", action="store_true")
     parser.set_defaults(repo_root=repo_root)
     return parser.parse_args()
 
@@ -98,33 +129,73 @@ def write_json(path: Path, payload: object) -> None:
 
 
 class ScheduledResidualBlock(nn.Module):
-    def __init__(self, *, d_model: int, feedforward_dim: int, rate: int, mix_init: float) -> None:
+    def __init__(
+        self,
+        *,
+        d_model: int,
+        feedforward_dim: int,
+        rate: int,
+        mix_init: float,
+        diagonal_enabled: bool,
+    ) -> None:
         super().__init__()
         if rate <= 0:
             raise ValueError(f"Block rate must be positive, got {rate}.")
         self.rate = rate
+        self.diagonal_enabled = diagonal_enabled
         self.block = ResidualFeedForwardBlock(
             d_model=d_model,
             feedforward_dim=feedforward_dim,
         )
         self.mix = MixAdd(init=mix_init)
         self.register_buffer("cached_output", torch.zeros(0), persistent=False)
+        self.register_buffer("last_delta", torch.zeros(0), persistent=False)
 
     def reset_cache(self, *, device: torch.device, dtype: torch.dtype) -> None:
         self.cached_output = torch.zeros(0, device=device, dtype=dtype)
+        self.last_delta = torch.zeros(0, device=device, dtype=dtype)
 
-    def forward(self, stream: Tensor, *, time_index: int) -> Tensor:
+    def forward(
+        self,
+        stream: Tensor,
+        *,
+        time_index: int,
+        diagonal_input: Tensor | None = None,
+        capture_trace: bool = False,
+        block_index: int | None = None,
+    ) -> tuple[Tensor, BlockTrace | None]:
+        expected_diagonal = diagonal_input is not None and self.diagonal_enabled
+        if not expected_diagonal:
+            diagonal_term = torch.zeros_like(stream)
+        else:
+            diagonal_term = diagonal_input
         should_execute = (
             time_index % self.rate == 0
             or self.cached_output.numel() == 0
             or self.cached_output.shape != stream.shape
         )
         if should_execute:
-            block_output = self.block(stream)
+            block_input = stream + diagonal_term if expected_diagonal else stream
+            block_output = self.block(block_input)
             self.cached_output = block_output
+            self.last_delta = block_output
         else:
             block_output = self.cached_output
-        return self.mix(stream, block_output)
+        mixed_stream = self.mix(stream, block_output)
+        if not capture_trace:
+            return mixed_stream, None
+        if block_index is None:
+            raise ValueError("block_index is required when capture_trace=True.")
+        trace = BlockTrace(
+            block_index=block_index,
+            rate=self.rate,
+            executed=should_execute,
+            used_delta_rms=tensor_rms(block_output),
+            diagonal_input_rms=tensor_rms(diagonal_term),
+            diagonal_applied=expected_diagonal and should_execute,
+            diagonal_matches_previous_delta=True,
+        )
+        return mixed_stream, trace
 
     def mix_coefficient(self) -> float:
         return self.mix.coefficient_value()
@@ -141,6 +212,7 @@ class FixedMultiRateCharModel(nn.Module):
         temporal_window: int,
         num_heads: int,
         rates: tuple[int, ...],
+        diagonal_enabled: bool,
     ) -> None:
         super().__init__()
         self.context_size = context_size
@@ -150,6 +222,7 @@ class FixedMultiRateCharModel(nn.Module):
         self.position_embedding = nn.Embedding(context_size, d_model)
         self.mix_token = MixAdd(init=0.5)
         self.mix_time = MixAdd(init=0.9)
+        self.diagonal_enabled = diagonal_enabled
         self.temporal_attention = TemporalWindowAttention(
             d_model=d_model,
             num_heads=num_heads,
@@ -161,6 +234,7 @@ class FixedMultiRateCharModel(nn.Module):
                     feedforward_dim=feedforward_dim,
                     rate=rate,
                     mix_init=0.9,
+                    diagonal_enabled=diagonal_enabled,
                 )
                 for rate in rates
             ]
@@ -183,14 +257,17 @@ class FixedMultiRateCharModel(nn.Module):
             "token": self.mix_token.coefficient_value(),
             "time": self.mix_time.coefficient_value(),
             "blocks": [block.mix_coefficient() for block in self.blocks],
+            "diagonal_enabled": self.diagonal_enabled,
         }
 
-    def forward(self, tokens: Tensor) -> Tensor:
+    def _forward_impl(self, tokens: Tensor, *, capture_trace: bool) -> tuple[Tensor, ForwardTrace | None]:
         embeddings = self.embedded_tokens(tokens)
         batch_size = tokens.shape[0]
         stream = torch.zeros(batch_size, self.d_model, device=tokens.device, dtype=embeddings.dtype)
         history: list[Tensor] = []
+        step_traces: list[TimeStepTrace] = []
         self._reset_caches(device=tokens.device, dtype=embeddings.dtype)
+        previous_timestep_deltas = [torch.zeros_like(stream) for _ in self.blocks]
 
         for time_index in range(self.context_size):
             stream = self.mix_token(stream, embeddings[:, time_index, :])
@@ -206,15 +283,68 @@ class FixedMultiRateCharModel(nn.Module):
                     dtype=embeddings.dtype,
                 )
             temporal_context, _ = self.temporal_attention(stream, stacked_past, capture_weights=False)
-            for block in self.blocks:
-                stream = block(stream, time_index=time_index)
+            block_traces: list[BlockTrace] = []
+            for block_index, block in enumerate(self.blocks):
+                diagonal_input = None
+                if block_index > 0:
+                    diagonal_input = previous_timestep_deltas[block_index - 1]
+                stream, block_trace = block(
+                    stream,
+                    time_index=time_index,
+                    diagonal_input=diagonal_input,
+                    capture_trace=capture_trace,
+                    block_index=block_index,
+                )
+                if capture_trace:
+                    if block_trace is None:
+                        raise RuntimeError("Missing block trace.")
+                    diagonal_matches_previous = True
+                    if diagonal_input is not None:
+                        diagonal_matches_previous = torch.allclose(
+                            diagonal_input,
+                            previous_timestep_deltas[block_index - 1],
+                        )
+                    block_traces.append(
+                        BlockTrace(
+                            block_index=block_trace.block_index,
+                            rate=block_trace.rate,
+                            executed=block_trace.executed,
+                            used_delta_rms=block_trace.used_delta_rms,
+                            diagonal_input_rms=block_trace.diagonal_input_rms,
+                            diagonal_applied=block_trace.diagonal_applied,
+                            diagonal_matches_previous_delta=diagonal_matches_previous,
+                        )
+                    )
+            previous_timestep_deltas = [block.last_delta.clone() for block in self.blocks]
             stream = self.mix_time(stream, temporal_context)
             history.append(stream)
+            if capture_trace:
+                step_traces.append(TimeStepTrace(time_index=time_index, blocks=block_traces))
 
-        return self.output(stream)
+        logits = self.output(stream)
+        if not capture_trace:
+            return logits, None
+        return logits, ForwardTrace(step_traces=step_traces)
+
+    def forward(self, tokens: Tensor) -> Tensor:
+        logits, _ = self._forward_impl(tokens, capture_trace=False)
+        return logits
+
+    def forward_with_trace(self, tokens: Tensor) -> tuple[Tensor, ForwardTrace]:
+        logits, trace = self._forward_impl(tokens, capture_trace=True)
+        if trace is None:
+            raise RuntimeError("Trace missing.")
+        return logits, trace
 
 
-def build_model(*, vocab_size: int, config: RunConfig, rates: tuple[int, ...], device: torch.device) -> FixedMultiRateCharModel:
+def build_model(
+    *,
+    vocab_size: int,
+    config: RunConfig,
+    rates: tuple[int, ...],
+    device: torch.device,
+    diagonal_enabled: bool,
+) -> FixedMultiRateCharModel:
     return FixedMultiRateCharModel(
         vocab_size=vocab_size,
         context_size=config.context_size,
@@ -223,6 +353,7 @@ def build_model(*, vocab_size: int, config: RunConfig, rates: tuple[int, ...], d
         temporal_window=config.temporal_window,
         num_heads=config.num_heads,
         rates=rates,
+        diagonal_enabled=diagonal_enabled,
     ).to(device)
 
 
@@ -285,6 +416,67 @@ def fixed_step_indices(size: int, *, steps: int, batch_size: int, seed: int, dev
         torch.randint(0, size, (batch_size,), generator=generator).to(device)
         for _ in range(steps)
     ]
+
+
+def run_diagonal_smoke_check(model: FixedMultiRateCharModel, inputs: Tensor) -> dict[str, object]:
+    sample_inputs = inputs[:2]
+    logits, trace = model.forward_with_trace(sample_inputs)
+    diagonal_block_traces = [
+        block_trace
+        for step_trace in trace.step_traces
+        for block_trace in step_trace.blocks
+        if block_trace.block_index > 0
+    ]
+    if len(diagonal_block_traces) == 0:
+        raise ValueError("Smoke check requires at least two blocks.")
+    return {
+        "diagonal_enabled": model.diagonal_enabled,
+        "batch_shape": list(sample_inputs.shape),
+        "logits_shape": list(logits.shape),
+        "steps": [
+            {
+                "time_index": step_trace.time_index,
+                "blocks": [asdict(block_trace) for block_trace in step_trace.blocks],
+            }
+            for step_trace in trace.step_traces
+        ],
+        "checks": {
+            "time0_second_block_diagonal_zero": abs(trace.step_traces[0].blocks[1].diagonal_input_rms) < 1e-8,
+            "later_second_block_has_nonzero_diagonal": any(
+                block_trace.diagonal_input_rms > 1e-8 for block_trace in diagonal_block_traces[1:]
+            ),
+            "all_diagonal_reads_match_previous_delta": all(
+                block_trace.diagonal_matches_previous_delta for block_trace in diagonal_block_traces
+            ),
+            "all_diagonal_reads_only_apply_on_execute": all(
+                (not block_trace.diagonal_applied) or block_trace.executed for block_trace in diagonal_block_traces
+            ),
+        },
+    }
+
+
+def compare_diagonal_paths(model: FixedMultiRateCharModel, inputs: Tensor) -> dict[str, object]:
+    if not model.diagonal_enabled:
+        raise ValueError("Diagonal path comparison requires diagonal_enabled=True.")
+    sample_inputs = inputs[:2]
+    diagonal_logits = model(sample_inputs)
+    no_diagonal_model = FixedMultiRateCharModel(
+        vocab_size=model.output.out_features,
+        context_size=model.context_size,
+        d_model=model.d_model,
+        feedforward_dim=model.blocks[0].block.proj_in.out_features,
+        temporal_window=model.temporal_window,
+        num_heads=model.temporal_attention.num_heads,
+        rates=tuple(block.rate for block in model.blocks),
+        diagonal_enabled=False,
+    ).to(sample_inputs.device)
+    no_diagonal_model.load_state_dict(model.state_dict(), strict=False)
+    without_diagonal_logits = no_diagonal_model(sample_inputs)
+    max_logit_diff = (diagonal_logits - without_diagonal_logits).abs().max().item()
+    return {
+        "max_logit_abs_diff": max_logit_diff,
+        "diagonal_changes_output": max_logit_diff > 1e-8,
+    }
 
 
 def overfit_one_batch(
@@ -376,13 +568,13 @@ def evaluate_pair(
     speedup_pct = ((control_ms - multi_ms) / control_ms) * 100.0
     return {
         "step": step,
-        "all_rate_1": {
+        "control": {
             "val_loss": round(control_metrics["loss"], 6),
             "val_accuracy": round(control_metrics["accuracy"], 6),
             "forward_ms_per_batch": round(control_ms, 6),
             "timing_passes": config.checkpoint_timing_passes,
         },
-        "multi_rate": {
+        "experiment": {
             "val_loss": round(multi_metrics["loss"], 6),
             "val_accuracy": round(multi_metrics["accuracy"], 6),
             "forward_ms_per_batch": round(multi_ms, 6),
@@ -462,19 +654,19 @@ def train_comparison(
 
 def summarize_history(history: list[dict[str, object]]) -> dict[str, object]:
     final_record = history[-1]
-    best_control = min(history, key=lambda record: record["all_rate_1"]["val_loss"])
-    best_multi = min(history, key=lambda record: record["multi_rate"]["val_loss"])
+    best_control = min(history, key=lambda record: record["control"]["val_loss"])
+    best_multi = min(history, key=lambda record: record["experiment"]["val_loss"])
     return {
         "final": final_record,
-        "best_all_rate_1": {
+        "best_control": {
             "step": best_control["step"],
-            "val_loss": best_control["all_rate_1"]["val_loss"],
-            "val_accuracy": best_control["all_rate_1"]["val_accuracy"],
+            "val_loss": best_control["control"]["val_loss"],
+            "val_accuracy": best_control["control"]["val_accuracy"],
         },
-        "best_multi_rate": {
+        "best_experiment": {
             "step": best_multi["step"],
-            "val_loss": best_multi["multi_rate"]["val_loss"],
-            "val_accuracy": best_multi["multi_rate"]["val_accuracy"],
+            "val_loss": best_multi["experiment"]["val_loss"],
+            "val_accuracy": best_multi["experiment"]["val_accuracy"],
         },
     }
 
@@ -499,11 +691,11 @@ def final_timing_summary(
         timed_passes=config.final_timing_passes,
     )
     return {
-        "all_rate_1": {
+        "control": {
             "forward_ms_per_batch": round(control_ms, 6),
             "timing_passes": config.final_timing_passes,
         },
-        "multi_rate": {
+        "experiment": {
             "forward_ms_per_batch": round(multi_ms, 6),
             "timing_passes": config.final_timing_passes,
         },
@@ -534,6 +726,8 @@ def main() -> None:
                 "num_blocks": len(multi_rates),
                 "control_rates": control_rates,
                 "multi_rates": multi_rates,
+                "control_diagonal": args.control_diagonal,
+                "multi_diagonal": args.multi_diagonal,
             }.items()
             if value is not None
         },
@@ -558,7 +752,21 @@ def main() -> None:
         config=config,
         rates=config.multi_rates,
         device=device,
+        diagonal_enabled=config.multi_diagonal,
     )
+    smoke_check = run_diagonal_smoke_check(overfit_model, train_inputs)
+    diagonal_effect = compare_diagonal_paths(overfit_model, train_inputs) if config.multi_diagonal else None
+    if args.smoke_check_only:
+        smoke_report = {
+            "config": asdict(config),
+            "smoke_check": smoke_check,
+            "diagonal_effect": diagonal_effect,
+        }
+        write_json(output_dir / "smoke_check.json", smoke_report)
+        print("PASS fixed_multi_rate smoke_check")
+        print(f"Wrote {output_dir / 'smoke_check.json'}")
+        print(json.dumps(smoke_report, indent=2))
+        return
     overfit_inputs = train_inputs[: config.batch_size]
     overfit_targets = train_targets[: config.batch_size]
     overfit_result = overfit_one_batch(
@@ -575,12 +783,14 @@ def main() -> None:
         config=config,
         rates=config.control_rates,
         device=device,
+        diagonal_enabled=config.control_diagonal,
     )
     multi_model = build_model(
         vocab_size=vocab_size,
         config=config,
         rates=config.multi_rates,
         device=device,
+        diagonal_enabled=config.multi_diagonal,
     )
     multi_model.load_state_dict(control_model.state_dict())
     history = train_comparison(
@@ -614,12 +824,20 @@ def main() -> None:
         "model": {
             "parameter_count": count_parameters(control_model),
             "num_blocks": config.num_blocks,
-            "control_rates": list(config.control_rates),
-            "multi_rates": list(config.multi_rates),
-            "all_rate_1_mix_coefficients": control_model.mix_coefficients(),
-            "multi_rate_mix_coefficients": multi_model.mix_coefficients(),
+            "control": {
+                "rates": list(config.control_rates),
+                "diagonal_enabled": config.control_diagonal,
+                "mix_coefficients": control_model.mix_coefficients(),
+            },
+            "experiment": {
+                "rates": list(config.multi_rates),
+                "diagonal_enabled": config.multi_diagonal,
+                "mix_coefficients": multi_model.mix_coefficients(),
+            },
         },
         "overfit": overfit_result,
+        "smoke_check": smoke_check,
+        "diagonal_effect": diagonal_effect,
         "comparison_history": history,
         "summary": summarize_history(history),
         "final_timing": final_timing,

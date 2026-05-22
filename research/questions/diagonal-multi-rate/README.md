@@ -43,7 +43,32 @@ This is a small architectural change: each block stores its last delta, and the 
 
 ## Status
 
-_Pending — waiting for aggressive multi-rate [1,2,4,8] results first._
+Single-seed [1,2,4,8] comparison completed: multi-rate **with** diagonal vs the same multi-rate schedule **without** diagonal.
+
+Artifact: `experiments/fixed_multi_rate/artifacts/diagonal_1248_vs_baseline/report.json`
+
+### 2000-step run
+
+| Step | Multi-rate no diagonal | Multi-rate + diagonal | Delta |
+|------|-----------------------:|----------------------:|------:|
+| 500  | 2.192 | 2.169 | **-0.022** |
+| 1000 | 2.066 | 2.064 | **-0.002** |
+| 1500 | 1.983 | 1.992 | **+0.009** |
+| 2000 | 1.988 | 1.935 | **-0.052** |
+
+This is **suggestive but not settled**. The final checkpoint is the strongest diagonal result seen so far (`-0.052` nats), and it came from a divergence in late training: the no-diagonal control worsened slightly from step 1500 to 2000 (`1.983 -> 1.988`) while the diagonal model continued improving (`1.992 -> 1.935`). That is consistent with the diagonal acting as a useful regularizer or stabilizer.
+
+But the trajectory is non-monotonic: diagonal was slightly better at 500 and 1000 steps, worse at 1500, then much better at 2000. With one seed and one short run, that means we should treat the result as a promising lead rather than a confirmed effect.
+
+### Speed
+
+The final 500-pass timing showed an 8.7% diagonal "speedup" (69.8ms -> 63.7ms), but both models use the same execution schedule `[1,2,4,8]`. The diagonal path only adds a cached tensor input on execute steps, so a real speedup of that size is unlikely. Most likely this timing gap is measurement noise or run-state noise, not a meaningful throughput gain.
+
+### Current read
+
+- **Quality:** potentially positive, but currently only single-seed evidence
+- **Speed:** effectively neutral; the measured gap should not be trusted as a real diagonal benefit
+- **Next:** longer run and/or multi-seed repeat on the same `[1,2,4,8]` comparison
 
 ## What this doesn't settle
 
