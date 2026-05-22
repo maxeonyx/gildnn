@@ -143,6 +143,8 @@ When handing over:
 3. Commit everything
 4. **Include a time-check reminder** in any handoff note — tell the incoming agent to check whether a report is due
 
+A handoff note must include: current question being investigated, last concrete change made, exact next step, and any active run/log/PID paths. When a `PLAN.md` item is completed or invalidated, rewrite it immediately — do not leave completed items lingering across sessions.
+
 See `PROCESS.md` for loop behavior, experiment workflow, and reporting standards.
 
 ## Report quality

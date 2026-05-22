@@ -160,6 +160,7 @@ If a simplified architecture or framing was introduced by a prior agent rather t
 - Record git SHA, hyperparameters, and seed for meaningful runs.
 - Save enough config that a result can be recreated without guesswork.
 - Match the level of rigor to the claim. Tiny exploratory probes can be light; comparison claims need stronger control.
+- **Do not call a stochastic result decisive from a single seed.** Single-seed runs are exploratory only; any comparison or conclusion claim requires multiple seeds (default: 3) or must be explicitly labelled provisional.
 
 ### Checkpointing and artifacts
 
@@ -272,6 +273,12 @@ The orchestrator is responsible for deciding when to check back — not the suba
 **If you (the orchestrator) delegate an experiment without splitting it this way, you have failed the process.** There is always other useful work to do while the GPU runs — theory, reports, doc updates, small non-GPU experiments. Name that work before checking on the run.
 
 Use `runs/active.lock` to record the active large run (PID, log path, start time, expected duration). Remove it when the run ends or fails. Small runs (<5 min) do not need lock files.
+
+**Windows launch reliability:**
+
+- Use a single documented `Start-Process` pattern. Do not improvise argument passing — use comma-separated array for simple args, or a wrapper script for complex commands.
+- **Before launching a GPU run, preflight GPU availability** — confirm `nvidia-smi` shows the GPU idle and CUDA will initialize. On this desktop, gaming can hold the GPU exclusively; CUDA init will block indefinitely if the GPU is busy.
+- If launch infrastructure is flaky, fix and document the launch mechanism before spending more time on experiments.
 
 ---
 

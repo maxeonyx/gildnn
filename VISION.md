@@ -12,8 +12,8 @@ A secondary advantage: modules running at different rates. Some iterate rapidly,
 
 **Current experimental status:** Fixed multi-rate experiments show consistent wall-clock speedup with better quality:
 - Rates [1, 1, 2, 4] (4 blocks): 14.8% speedup
-- Rates [1, 2, 4, 8] (4 blocks): **20.7% speedup** — clears the 20% target
-- Rates [1, 2, 4, 8, 16] (5 blocks): testing in progress (22.2% at step 0)
+- Rates [1, 2, 4, 8] (4 blocks): **20.7% speedup** — clears the 20% target, quality BETTER
+- Rates [1, 2, 4, 8, 16] (5 blocks): ~22% speedup but +0.016 quality cost. Rate-16 is where quality degrades. Sweet spot is [1,2,4,8].
 
 The rate constraint acts as a useful regularizer — multi-rate consistently achieves better validation loss, not just equal. Scaling to more aggressive rates is the immediate direction.
 
