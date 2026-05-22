@@ -2,7 +2,7 @@
 
 **Question:** What does "residual stream across time" mean as an operational architecture — and what is the smallest faithful experiment that would test it?
 
-**Status:** Theory-first analysis. No experiment has been run yet that faithfully instantiates this concept. This report exists to make the concept precise enough to build it correctly.
+**Status:** Comprehensively characterized. Architecture viable but dominated by transformers on text and images. Key finding: multi-rate execution on this architecture gives 20% wall-clock speedup with quality improvement — see [`fixed-multi-rate`](../fixed-multi-rate/README.md).
 
 **Grounded in:** [dictations/2026-05-20-15.md](../../../dictations/2026-05-20-15.md), [dictations/2026-05-20-16.md](../../../dictations/2026-05-20-16.md), [dictations/2026-05-20-10.md](../../../dictations/2026-05-20-10.md)
 
