@@ -4,6 +4,8 @@ import math
 from dataclasses import dataclass
 
 import torch
+from einops import rearrange, repeat
+from jaxtyping import Float, Int
 from torch import Tensor, nn
 
 
@@ -87,7 +89,11 @@ class MixAdd(nn.Module):
     def coefficient_value(self) -> float:
         return self.coefficient().item()
 
-    def forward(self, stream: Tensor, delta: Tensor) -> Tensor:
+    def forward(
+        self,
+        stream: Float[Tensor, "batch d_model"],
+        delta: Float[Tensor, "batch d_model"],
+    ) -> Float[Tensor, "batch d_model"]:
         mix = self.coefficient().to(device=stream.device, dtype=stream.dtype)
         return (mix * stream) + ((1.0 - mix) * delta)
 
@@ -106,23 +112,44 @@ class TemporalWindowAttention(nn.Module):
 
     def forward(
         self,
-        query_source: Tensor,
-        past_states: Tensor,
+        query_source: Float[Tensor, "batch d_model"],
+        past_states: Float[Tensor, "batch window d_model"],
         *,
         capture_weights: bool = False,
-    ) -> tuple[Tensor, Tensor | None]:
+    ) -> tuple[
+        Float[Tensor, "batch d_model"],
+        Float[Tensor, "batch num_heads window"] | None,
+    ]:
         if past_states.shape[1] == 0:
             return torch.zeros_like(query_source), None
 
         batch_size, _, d_model = past_states.shape
-        query = self.query(query_source).reshape(batch_size, self.num_heads, self.head_dim)
-        keys = self.key(past_states).reshape(batch_size, past_states.shape[1], self.num_heads, self.head_dim)
-        values = self.value(past_states).reshape(batch_size, past_states.shape[1], self.num_heads, self.head_dim)
-        keys = keys.permute(0, 2, 1, 3)
-        values = values.permute(0, 2, 1, 3)
+        query = rearrange(
+            self.query(query_source),
+            "batch (num_heads head_dim) -> batch num_heads head_dim",
+            num_heads=self.num_heads,
+            head_dim=self.head_dim,
+        )
+        keys = rearrange(
+            self.key(past_states),
+            "batch window (num_heads head_dim) -> batch num_heads window head_dim",
+            num_heads=self.num_heads,
+            head_dim=self.head_dim,
+        )
+        values = rearrange(
+            self.value(past_states),
+            "batch window (num_heads head_dim) -> batch num_heads window head_dim",
+            num_heads=self.num_heads,
+            head_dim=self.head_dim,
+        )
         logits = torch.einsum("bhd,bhwd->bhw", query, keys) * (self.head_dim ** -0.5)
         weights = torch.softmax(logits, dim=-1)
-        attended = torch.einsum("bhw,bhwd->bhd", weights, values).reshape(batch_size, d_model)
+        attended = rearrange(
+            torch.einsum("bhw,bhwd->bhd", weights, values),
+            "batch num_heads head_dim -> batch (num_heads head_dim)",
+            num_heads=self.num_heads,
+            head_dim=self.head_dim,
+        )
         context = self.output(attended)
         if not capture_weights:
             return context, None
@@ -136,7 +163,10 @@ class ResidualFeedForwardBlock(nn.Module):
         self.activation = nn.GELU()
         self.proj_out = nn.Linear(feedforward_dim, d_model)
 
-    def forward(self, stream: Tensor) -> Tensor:
+    def forward(
+        self,
+        stream: Float[Tensor, "batch d_model"],
+    ) -> Float[Tensor, "batch d_model"]:
         return self.proj_out(self.activation(self.proj_in(stream)))
 
 
@@ -164,12 +194,16 @@ class ResidualStreamTimeMixAddCharModel(nn.Module):
         )
         self.output = nn.Linear(config.d_model, vocab_size)
 
-    def embedded_tokens(self, tokens: Tensor) -> Tensor:
+    def embedded_tokens(self, tokens: Int[Tensor, "batch context"]) -> Float[Tensor, "batch context d_model"]:
         sequence_length = tokens.shape[1]
         if sequence_length != self.context_size:
             raise ValueError(f"Expected context length {self.context_size}, got {sequence_length}.")
         positions = torch.arange(sequence_length, device=tokens.device)
-        return self.token_embedding(tokens) + self.position_embedding(positions).unsqueeze(0)
+        return self.token_embedding(tokens) + repeat(
+            self.position_embedding(positions),
+            "context d_model -> batch context d_model",
+            batch=tokens.shape[0],
+        )
 
     @torch.no_grad()
     def mix_coefficients(self) -> dict[str, float]:
@@ -237,12 +271,15 @@ class ResidualStreamTimeMixAddCharModel(nn.Module):
             mix_coefficients=self.mix_coefficients(),
         )
 
-    def forward(self, tokens: Tensor) -> Tensor:
+    def forward(self, tokens: Int[Tensor, "batch context"]) -> Float[Tensor, "batch vocab"]:
         logits, _ = self._run(tokens, capture_trace=False)
         return logits
 
     @torch.no_grad()
-    def forward_with_trace(self, tokens: Tensor) -> tuple[Tensor, ResidualRunTrace]:
+    def forward_with_trace(
+        self,
+        tokens: Int[Tensor, "batch context"],
+    ) -> tuple[Float[Tensor, "batch vocab"], ResidualRunTrace]:
         logits, trace = self._run(tokens, capture_trace=True)
         if trace is None:
             raise RuntimeError("Trace missing.")
@@ -297,12 +334,16 @@ class MultiRateResidualModel(nn.Module):
         self.block_mixes = nn.ModuleList([MixAdd(init=block_mix_init) for _ in self.rates])
         self.output = nn.Linear(d_model, vocab_size)
 
-    def embedded_tokens(self, tokens: Tensor) -> Tensor:
+    def embedded_tokens(self, tokens: Int[Tensor, "batch context"]) -> Float[Tensor, "batch context d_model"]:
         sequence_length = tokens.shape[1]
         if sequence_length != self.context_size:
             raise ValueError(f"Expected context length {self.context_size}, got {sequence_length}.")
         positions = torch.arange(sequence_length, device=tokens.device)
-        return self.token_embedding(tokens) + self.position_embedding(positions).unsqueeze(0)
+        return self.token_embedding(tokens) + repeat(
+            self.position_embedding(positions),
+            "context d_model -> batch context d_model",
+            batch=tokens.shape[0],
+        )
 
     @torch.no_grad()
     def mix_coefficients(self) -> dict[str, object]:
@@ -379,12 +420,15 @@ class MultiRateResidualModel(nn.Module):
             return logits, None
         return logits, MultiRateForwardTrace(step_traces=step_traces)
 
-    def forward(self, tokens: Tensor) -> Tensor:
+    def forward(self, tokens: Int[Tensor, "batch context"]) -> Float[Tensor, "batch vocab"]:
         logits, _ = self._run(tokens, capture_trace=False)
         return logits
 
     @torch.no_grad()
-    def forward_with_trace(self, tokens: Tensor) -> tuple[Tensor, MultiRateForwardTrace]:
+    def forward_with_trace(
+        self,
+        tokens: Int[Tensor, "batch context"],
+    ) -> tuple[Float[Tensor, "batch vocab"], MultiRateForwardTrace]:
         logits, trace = self._run(tokens, capture_trace=True)
         if trace is None:
             raise RuntimeError("Trace missing.")
