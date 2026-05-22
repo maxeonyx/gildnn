@@ -34,7 +34,8 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Queue (lower priority)
 
-- Async wall-clock proof — prove that running blocks concurrently (persistent kernel async) gives wall-clock speedup over sequential. Per [dictation 2026-05-22-3](dictations/2026-05-22-3.md). Blocked on persistent kernel implementation.
+- Async wall-clock proof — ~~prove that running blocks concurrently gives wall-clock speedup~~ **DONE** (28% at our scale via CUDA Graphs, but irrelevant now since whole-step graph gives 10.86x). Architecturally independent blocks cost +0.036 quality.
+- Re-run matched-FLOP at 20K steps — With 10x speed, cheap to check if quality gap closes at longer training
 - Muon optimizer — ~~swap in Muon and rerun window size ablation (k=4,8,16).~~ **DONE.** Muon fixes instability (k=8, k=16 train stably) but quality worse than AdamW at k=4. Param-matched Muon+k=8 beats AdamW+k=4 though. See `research/questions/muon-optimizer/README.md`.
 - Named/typed tensor dimensions — continue converting codebase to einops + jaxtyping style. Per [dictation 2026-05-22-14](dictations/2026-05-22-14.md). (Started: core/model.py done.)
 - Loop management tooling — script to show recent agent messages, manage the autonomous loop. Per [dictation 2026-05-20-14](dictations/2026-05-20-14.md).
