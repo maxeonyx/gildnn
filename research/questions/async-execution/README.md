@@ -196,9 +196,10 @@ Artifact: [`experiments/cuda_graph_async/artifacts/concurrency_results.txt`](../
 **The core question is ANSWERED: yes, async execution gives wall-clock speedup on a single GPU.** The mechanism is CUDA Graphs with multi-stream capture. The benefit is ~28% for our current workload scale (2048 tokens, d=128, 4 blocks).
 
 **Next steps:**
-1. Integrate CUDA Graph parallel execution into the actual training loop — measure end-to-end training step speedup (not just block subsystem)
-2. Combine with multi-rate: blocks at rate>1 don't execute every step, so the per-step block count is lower → each block is "smaller" → more concurrency benefit
+1. ~~Integrate CUDA Graph parallel execution into the actual training loop~~ **Blocked:** parallel blocks cost +0.036 nats quality (too much). See Experiment 3 below.
+2. **Whole-step CUDA Graph capture** of the current sequential model — reduces Python/launch overhead without architecture changes. The Thinker analysis confirms the model's execution pattern is static (fixed rates + context → deterministic graph). This is the safe path.
 3. Test at inference scale (batch=1, single token) where individual blocks are even smaller
+4. Explore partial parallelism: group-of-2 blocks reading same state (compromise between full sequential and full parallel)
 
 ---
 
@@ -349,6 +350,39 @@ Start with just 3 points to find whether a crossover exists: `(64, 128)`, `(64, 
 - Temporal attention (block subsystem only)
 - Multi-GPU
 - Inference speed (training is the bottleneck)
+
+---
+
+## Experiment 3: Parallel vs sequential blocks (quality impact)
+
+### Hypothesis
+
+If blocks are architecturally independent (all read same state, produce independent deltas summed into stream), quality is preserved — enabling the 28% CUDA Graph concurrency benefit.
+
+### Result: NEGATIVE — parallel costs +0.036 nats
+
+| Step | Sequential | Parallel | Delta |
+|------|-----------|----------|-------|
+| 500 | 2.484 | 2.558 | +0.074 |
+| 1000 | 2.307 | 2.343 | +0.036 |
+| 1500 | 2.193 | 2.247 | +0.055 |
+| 2000 | **2.138** | **2.173** | **+0.036** |
+
+Same parameters (612K), same rates [1,2,4,8], same everything except block execution order. Single seed (42).
+
+Artifact: [`experiments/parallel_blocks/results.json`](../../../experiments/parallel_blocks/results.json)
+
+### Interpretation
+
+Sequential block execution provides meaningful within-timestep information flow: block i+1 benefits from seeing block i's contribution to the stream. Removing this costs 0.036 nats — almost double the matched-FLOP penalty (+0.018). The sequential dependency is not architectural overhead; it's carrying useful information.
+
+**Implication for concurrency:** The 28% CUDA Graph speedup from Experiment 2 applies only to architecturally independent blocks. The current model's blocks are sequential, and making them parallel costs too much quality. The concurrency benefit is real hardware capability but **not directly applicable to the current architecture without quality sacrifice**.
+
+**Remaining paths to async speedup on the current model:**
+1. Whole-step CUDA Graph capture (launch overhead reduction, no architecture change)
+2. `torch.compile(mode="reduce-overhead")` (PyTorch's built-in graph caching)
+3. Partial parallelism (pairs of blocks, less quality cost than full parallel)
+4. Accept the quality tradeoff at larger scale where 0.036 nats is proportionally smaller
 
 ---
 
