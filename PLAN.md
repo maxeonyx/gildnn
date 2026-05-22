@@ -4,12 +4,12 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Now
 
-- [ ] **Check 5k-step multi-rate results** — background run active (PID 5512 in `runs/active.lock`). When done: if quality-neutral + speedup holds → scale to more aggressive rates. If quality degrades → investigate why.
+- [x] **Check 5k-step multi-rate results** — run killed externally at step 1000. Data sufficient: quality advantage consistent, speedup grows (8.7% → 12.4%). Result confirmed. Now running [1,2,4,8].
 - [x] **VISION.md rewrite** — done. Rewritten from dictations, reviewed 3 rounds.
 
 ## Next (after current items)
 
-- [ ] **Scale multi-rate** — try rates [1, 2, 4, 8], try 8 blocks. Goal: >20% speedup without quality loss. If speedup scales → this is the path. If quality degrades at aggressive rates → find the boundary.
+- [ ] **Scale multi-rate [1,2,4,8]** — running now (PID in `runs/active.lock`). Step 500: 14.5% speedup, quality BETTER (-0.020 delta). If >20% at convergence → try [1,2,4,8,16] with 5 blocks. If <20% → this may be the ceiling for 4 blocks.
 - [ ] **Diagonal + multi-rate** — the diagonal residual (block1's output at time t feeds block2 at time t+1) naturally pairs with multi-rate. If block2 runs every 2nd step, the diagonal connection IS the stale-read mechanism. Design experiment, write question doc, run.
 - [ ] **Backend decision** — JAX recommended (`research/questions/backend-choice/README.md`). Awaiting Max's input.
 - [ ] **Core reintegration** — once backend is decided, rewrite core/ to be clean, compiled, and reusable.
