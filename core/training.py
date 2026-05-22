@@ -6,7 +6,10 @@ across 15+ experiment scripts before extraction.
 
 from __future__ import annotations
 
+import json
+import subprocess
 from collections.abc import Iterator
+from pathlib import Path
 
 import torch
 from torch import Tensor, nn
@@ -73,3 +76,30 @@ def fixed_step_indices(
         torch.randint(0, dataset_size, (batch_size,), generator=generator).to(device)
         for _ in range(steps)
     ]
+
+
+def current_git_sha() -> str:
+    """Return the current HEAD commit SHA."""
+    result = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
+def current_git_status_short() -> list[str]:
+    """Return `git status --short` output as a list of non-empty lines."""
+    result = subprocess.run(
+        ["git", "status", "--short"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return [line.rstrip() for line in result.stdout.splitlines() if line.strip()]
+
+
+def write_json(path: Path, payload: object) -> None:
+    """Write a JSON file with 2-space indent and trailing newline."""
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")

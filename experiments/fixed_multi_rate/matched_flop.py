@@ -12,15 +12,18 @@ from torch.nn import functional as F
 
 from core.fixed_window_char import load_dataset, resolve_device, set_seed
 from core.model import count_parameters
-from core.training import evaluate_model, fixed_step_indices
+from core.training import (
+    current_git_sha,
+    current_git_status_short,
+    evaluate_model,
+    fixed_step_indices,
+    write_json,
+)
 
 from .run import (
     RunConfig,
     build_model,
-    current_git_sha,
-    current_git_status_short,
     replace_config,
-    write_json,
 )
 
 

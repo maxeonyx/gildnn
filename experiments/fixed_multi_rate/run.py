@@ -4,7 +4,6 @@ import argparse
 from dataclasses import asdict, dataclass
 import json
 from pathlib import Path
-import subprocess
 import sys
 import time
 
@@ -17,7 +16,14 @@ from core.model import (
     MultiRateResidualModel,
     count_parameters,
 )
-from core.training import batched_pairs, evaluate_model, fixed_step_indices
+from core.training import (
+    batched_pairs,
+    current_git_sha,
+    current_git_status_short,
+    evaluate_model,
+    fixed_step_indices,
+    write_json,
+)
 
 
 @dataclass(frozen=True)
@@ -75,30 +81,6 @@ def replace_config(config: RunConfig, **changes: object) -> RunConfig:
     payload = asdict(config)
     payload.update(changes)
     return RunConfig(**payload)
-
-
-def current_git_sha() -> str:
-    result = subprocess.run(
-        ["git", "rev-parse", "HEAD"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return result.stdout.strip()
-
-
-def current_git_status_short() -> list[str]:
-    result = subprocess.run(
-        ["git", "status", "--short"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return [line.rstrip() for line in result.stdout.splitlines() if line.strip()]
-
-
-def write_json(path: Path, payload: object) -> None:
-    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
 def build_model(
