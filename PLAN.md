@@ -4,8 +4,9 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Now
 
-- [ ] **Integrate whole-step CUDA Graph into real training** — The 14.4x speedup (181ms→12.6ms/step) is the biggest optimization available. Python dispatch overhead is 93% of training time. Integration needs: static input/target buffers, copy_() new batches before each replay, read loss from captured tensor for logging. The parallel-blocks architecture change is NOT needed — just graph the existing sequential model.
-- [ ] **Validate graph-trained model quality** — Run a full 2000-step training with CUDA Graph replay (copying real batches each step) and compare val_loss to eager training. Must confirm no quality difference.
+- [x] **Whole-step CUDA Graph: CONFIRMED** — 10.86x real-world speedup (373s→34s for 2000 steps), quality identical (±0.004 noise). Python dispatch overhead was 90%+ of training time.
+- [ ] **Integrate into core/** — Make CUDA Graph training the default path. Needs: a `GraphTrainer` wrapper that handles static buffers, warmup, capture, and per-step batch copy. This is pure integration work — the mechanism is proven.
+- [ ] **Re-run matched-FLOP at higher step count** — With 10x training speed, we can afford 20K steps instead of 2K. The 0.018 quality gap might close with longer training (multi-rate is a speed-for-quality tradeoff that may net positive at longer horizons).
 
 ### Matched-FLOP decision tree
 
