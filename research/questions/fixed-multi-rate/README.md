@@ -236,6 +236,8 @@ Calibration selected d_model=112 as the compute-matched control (training step: 
 
 Per decision tree: **TIE** (within ±0.01). Multi-rate uses the same compute budget as the wider control and achieves slightly (not significantly) better quality.
 
+![Matched-FLOP training curves for seeds 42 and 43](matched_flop_curves.png)
+
 Key observation: multi-rate has 30% more parameters (349K vs 270K) but the same wall-clock cost — because blocks at rates 2, 4, 8 execute less often. The unused parameter capacity doesn't help the control model; it's "free" architectural richness in the multi-rate model.
 
 Training curves at intermediate checkpoints:
