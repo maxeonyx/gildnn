@@ -77,6 +77,11 @@ class MultiRateForwardTrace:
     step_traces: list[MultiRateTimeStepTrace]
 
 
+@dataclass(frozen=True)
+class ParallelDiagonalForwardState:
+    block_outputs: list[Float[Tensor, "batch context d_model"]]
+
+
 class MixAdd(nn.Module):
     def __init__(self, *, init: float) -> None:
         super().__init__()
@@ -558,13 +563,19 @@ class ParallelDiagonalModel(nn.Module):
         )
         return (stacked_states * rearrange(readout_weights, "blocks -> 1 blocks 1")).sum(dim=1)
 
-    def forward(self, tokens: Int[Tensor, "batch context"]) -> Float[Tensor, "batch vocab"]:
+    def _forward_impl(
+        self,
+        tokens: Int[Tensor, "batch context"],
+        *,
+        return_state: bool,
+    ) -> tuple[Float[Tensor, "batch vocab"], ParallelDiagonalForwardState | None]:
         embeddings = self.embedded_tokens(tokens)
         batch_size = tokens.shape[0]
         previous_states = [
             torch.zeros(batch_size, self.d_model, device=tokens.device, dtype=embeddings.dtype)
             for _ in range(self.num_blocks)
         ]
+        block_output_history = [[] for _ in range(self.num_blocks)] if return_state else None
 
         for time_index in range(self.context_size):
             token_state = embeddings[:, time_index, :]
@@ -593,5 +604,26 @@ class ParallelDiagonalModel(nn.Module):
                     next_states[block_index] = block_mix(block_input, block_delta)
                 current_states = next_states
             previous_states = current_states
+            if block_output_history is not None:
+                for block_index, state in enumerate(previous_states):
+                    block_output_history[block_index].append(state)
 
-        return self.output(self._readout_state(previous_states))
+        logits = self.output(self._readout_state(previous_states))
+        if block_output_history is None:
+            return logits, None
+        return logits, ParallelDiagonalForwardState(
+            block_outputs=[torch.stack(history, dim=1) for history in block_output_history]
+        )
+
+    def forward(self, tokens: Int[Tensor, "batch context"]) -> Float[Tensor, "batch vocab"]:
+        logits, _ = self._forward_impl(tokens, return_state=False)
+        return logits
+
+    def forward_with_state(
+        self,
+        tokens: Int[Tensor, "batch context"],
+    ) -> tuple[Float[Tensor, "batch vocab"], ParallelDiagonalForwardState]:
+        logits, state = self._forward_impl(tokens, return_state=True)
+        if state is None:
+            raise RuntimeError("State missing.")
+        return logits, state
