@@ -1,0 +1,140 @@
+{"stage": "run_started", "seeds": [42, 43, 44], "training_steps": 20000, "eval_interval": 1000, "batch_size": 64, "eval_batch_size": 512, "learning_rate": 0.0003, "trainer": "GraphTrainer", "matched_flop_design": {"control_average_block_evals_per_token": 4.0, "parallel_average_block_evals_per_token": 1.875, "control_per_token_block_flops": 262144, "parallel_actual_per_token_block_flops": 262080}}
+{"stage": "seed_started", "seed": 42}
+{"stage": "variant_started", "seed": 42, "variant": "control", "label": "multi_rate_4x128_ff256_1248_control", "parameter_count": 351052, "initial_checkpoint": {"step": 0, "val_loss": 4.243625, "val_accuracy": 0.005809}}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 1000, "val_loss": 2.366746, "val_accuracy": 0.335587}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 2000, "val_loss": 2.183452, "val_accuracy": 0.383914}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 3000, "val_loss": 2.089751, "val_accuracy": 0.402494}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 4000, "val_loss": 2.034359, "val_accuracy": 0.41867}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 5000, "val_loss": 1.995329, "val_accuracy": 0.43099}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 6000, "val_loss": 1.964337, "val_accuracy": 0.43149}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 7000, "val_loss": 1.952216, "val_accuracy": 0.446565}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 8000, "val_loss": 1.923676, "val_accuracy": 0.44987}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 9000, "val_loss": 1.896732, "val_accuracy": 0.453626}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 10000, "val_loss": 1.892967, "val_accuracy": 0.452023}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 11000, "val_loss": 1.87538, "val_accuracy": 0.460687}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 12000, "val_loss": 1.850063, "val_accuracy": 0.465445}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 13000, "val_loss": 1.840598, "val_accuracy": 0.471104}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 14000, "val_loss": 1.82786, "val_accuracy": 0.469201}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 15000, "val_loss": 1.822843, "val_accuracy": 0.47521}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 16000, "val_loss": 1.812761, "val_accuracy": 0.4685}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 17000, "val_loss": 1.805072, "val_accuracy": 0.473858}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 18000, "val_loss": 1.801343, "val_accuracy": 0.485026}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 19000, "val_loss": 1.792037, "val_accuracy": 0.483223}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 20000, "val_loss": 1.783787, "val_accuracy": 0.480519}
+{"stage": "variant_finished", "seed": 42, "variant": "control", "final_checkpoint": {"step": 20000, "val_loss": 1.783787, "val_accuracy": 0.480519}, "wall_seconds": 290.901373}
+{"stage": "variant_started", "seed": 42, "variant": "parallel_diagonal_matched_flop", "label": "parallel_diagonal_4x128_ff546_all_rate1248", "parameter_count": 583127, "initial_checkpoint": {"step": 0, "val_loss": 4.252479, "val_accuracy": 0.011619}}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 1000, "val_loss": 2.586257, "val_accuracy": 0.278796}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 2000, "val_loss": 2.333551, "val_accuracy": 0.338041}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 3000, "val_loss": 2.213523, "val_accuracy": 0.359726}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 4000, "val_loss": 2.140531, "val_accuracy": 0.376603}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 5000, "val_loss": 2.085777, "val_accuracy": 0.401092}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 6000, "val_loss": 2.032721, "val_accuracy": 0.405399}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 7000, "val_loss": 1.999397, "val_accuracy": 0.422827}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 8000, "val_loss": 1.961342, "val_accuracy": 0.428235}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 9000, "val_loss": 1.919992, "val_accuracy": 0.441657}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 10000, "val_loss": 1.912928, "val_accuracy": 0.445913}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 11000, "val_loss": 1.887697, "val_accuracy": 0.447015}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 12000, "val_loss": 1.860034, "val_accuracy": 0.457582}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 13000, "val_loss": 1.825857, "val_accuracy": 0.469601}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 14000, "val_loss": 1.807713, "val_accuracy": 0.473458}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 15000, "val_loss": 1.798297, "val_accuracy": 0.481871}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 16000, "val_loss": 1.798822, "val_accuracy": 0.475611}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 17000, "val_loss": 1.780831, "val_accuracy": 0.480619}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 18000, "val_loss": 1.767122, "val_accuracy": 0.483073}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 19000, "val_loss": 1.758246, "val_accuracy": 0.482873}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_matched_flop", "step": 20000, "val_loss": 1.752549, "val_accuracy": 0.485527}
+{"stage": "variant_finished", "seed": 42, "variant": "parallel_diagonal_matched_flop", "final_checkpoint": {"step": 20000, "val_loss": 1.752549, "val_accuracy": 0.485527}, "wall_seconds": 175.222199}
+{"stage": "seed_finished", "seed": 42, "delta_control_minus_parallel_diagonal_matched_flop": {"final_val_loss": 0.031238, "final_val_accuracy": -0.005008, "best_val_loss": 0.031238, "parameter_count": -232075}}
+{"stage": "seed_started", "seed": 43}
+{"stage": "variant_started", "seed": 43, "variant": "control", "label": "multi_rate_4x128_ff256_1248_control", "parameter_count": 351052, "initial_checkpoint": {"step": 0, "val_loss": 4.214383, "val_accuracy": 0.024038}}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 1000, "val_loss": 2.333093, "val_accuracy": 0.338391}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 2000, "val_loss": 2.179929, "val_accuracy": 0.378155}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 3000, "val_loss": 2.114281, "val_accuracy": 0.396534}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 4000, "val_loss": 2.042499, "val_accuracy": 0.415815}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 5000, "val_loss": 2.009145, "val_accuracy": 0.415114}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 6000, "val_loss": 1.967929, "val_accuracy": 0.429137}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 7000, "val_loss": 1.951172, "val_accuracy": 0.432091}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 8000, "val_loss": 1.92823, "val_accuracy": 0.443309}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 9000, "val_loss": 1.894274, "val_accuracy": 0.449519}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 10000, "val_loss": 1.891911, "val_accuracy": 0.449269}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 11000, "val_loss": 1.876204, "val_accuracy": 0.453275}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 12000, "val_loss": 1.859823, "val_accuracy": 0.458934}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 13000, "val_loss": 1.854881, "val_accuracy": 0.463892}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 14000, "val_loss": 1.84261, "val_accuracy": 0.461188}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 15000, "val_loss": 1.836299, "val_accuracy": 0.474559}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 16000, "val_loss": 1.827451, "val_accuracy": 0.472857}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 17000, "val_loss": 1.820411, "val_accuracy": 0.471054}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 18000, "val_loss": 1.794749, "val_accuracy": 0.476512}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 19000, "val_loss": 1.802841, "val_accuracy": 0.479868}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 20000, "val_loss": 1.788983, "val_accuracy": 0.479117}
+{"stage": "variant_finished", "seed": 43, "variant": "control", "final_checkpoint": {"step": 20000, "val_loss": 1.788983, "val_accuracy": 0.479117}, "wall_seconds": 291.296855}
+{"stage": "variant_started", "seed": 43, "variant": "parallel_diagonal_matched_flop", "label": "parallel_diagonal_4x128_ff546_all_rate1248", "parameter_count": 583127, "initial_checkpoint": {"step": 0, "val_loss": 4.242352, "val_accuracy": 0.017127}}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 1000, "val_loss": 2.553102, "val_accuracy": 0.276292}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 2000, "val_loss": 2.334476, "val_accuracy": 0.332782}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 3000, "val_loss": 2.22411, "val_accuracy": 0.358774}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 4000, "val_loss": 2.133067, "val_accuracy": 0.388772}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 5000, "val_loss": 2.093432, "val_accuracy": 0.392228}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 6000, "val_loss": 2.031719, "val_accuracy": 0.403546}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 7000, "val_loss": 1.996892, "val_accuracy": 0.418019}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 8000, "val_loss": 1.951168, "val_accuracy": 0.428285}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 9000, "val_loss": 1.912605, "val_accuracy": 0.442408}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 10000, "val_loss": 1.890692, "val_accuracy": 0.445663}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 11000, "val_loss": 1.882869, "val_accuracy": 0.453375}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 12000, "val_loss": 1.847536, "val_accuracy": 0.459435}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 13000, "val_loss": 1.827201, "val_accuracy": 0.467999}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 14000, "val_loss": 1.829069, "val_accuracy": 0.463191}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 15000, "val_loss": 1.823726, "val_accuracy": 0.471304}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 16000, "val_loss": 1.791987, "val_accuracy": 0.470703}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 17000, "val_loss": 1.780149, "val_accuracy": 0.474359}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 18000, "val_loss": 1.760999, "val_accuracy": 0.481771}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 19000, "val_loss": 1.77125, "val_accuracy": 0.483574}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_matched_flop", "step": 20000, "val_loss": 1.768419, "val_accuracy": 0.484125}
+{"stage": "variant_finished", "seed": 43, "variant": "parallel_diagonal_matched_flop", "final_checkpoint": {"step": 20000, "val_loss": 1.768419, "val_accuracy": 0.484125}, "wall_seconds": 175.82699}
+{"stage": "seed_finished", "seed": 43, "delta_control_minus_parallel_diagonal_matched_flop": {"final_val_loss": 0.020564, "final_val_accuracy": -0.005008, "best_val_loss": 0.027984, "parameter_count": -232075}}
+{"stage": "seed_started", "seed": 44}
+{"stage": "variant_started", "seed": 44, "variant": "control", "label": "multi_rate_4x128_ff256_1248_control", "parameter_count": 351052, "initial_checkpoint": {"step": 0, "val_loss": 4.268749, "val_accuracy": 0.007262}}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 1000, "val_loss": 2.33009, "val_accuracy": 0.348057}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 2000, "val_loss": 2.172044, "val_accuracy": 0.38777}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 3000, "val_loss": 2.09621, "val_accuracy": 0.405749}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 4000, "val_loss": 2.045823, "val_accuracy": 0.413061}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 5000, "val_loss": 2.023743, "val_accuracy": 0.416316}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 6000, "val_loss": 1.979242, "val_accuracy": 0.423628}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 7000, "val_loss": 1.946158, "val_accuracy": 0.440655}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 8000, "val_loss": 1.918857, "val_accuracy": 0.441657}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 9000, "val_loss": 1.939005, "val_accuracy": 0.445262}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 10000, "val_loss": 1.89686, "val_accuracy": 0.448768}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 11000, "val_loss": 1.881861, "val_accuracy": 0.456981}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 12000, "val_loss": 1.859538, "val_accuracy": 0.460387}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 13000, "val_loss": 1.855001, "val_accuracy": 0.459435}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 14000, "val_loss": 1.846852, "val_accuracy": 0.464393}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 15000, "val_loss": 1.833685, "val_accuracy": 0.470302}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 16000, "val_loss": 1.815904, "val_accuracy": 0.470353}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 17000, "val_loss": 1.819816, "val_accuracy": 0.477163}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 18000, "val_loss": 1.808859, "val_accuracy": 0.479968}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 19000, "val_loss": 1.813294, "val_accuracy": 0.476212}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 20000, "val_loss": 1.813197, "val_accuracy": 0.474159}
+{"stage": "variant_finished", "seed": 44, "variant": "control", "final_checkpoint": {"step": 20000, "val_loss": 1.813197, "val_accuracy": 0.474159}, "wall_seconds": 290.753773}
+{"stage": "variant_started", "seed": 44, "variant": "parallel_diagonal_matched_flop", "label": "parallel_diagonal_4x128_ff546_all_rate1248", "parameter_count": 583127, "initial_checkpoint": {"step": 0, "val_loss": 4.152833, "val_accuracy": 0.057542}}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 1000, "val_loss": 2.551802, "val_accuracy": 0.288512}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 2000, "val_loss": 2.32511, "val_accuracy": 0.344802}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 3000, "val_loss": 2.206335, "val_accuracy": 0.369942}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 4000, "val_loss": 2.139009, "val_accuracy": 0.38767}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 5000, "val_loss": 2.100409, "val_accuracy": 0.397236}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 6000, "val_loss": 2.022634, "val_accuracy": 0.414463}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 7000, "val_loss": 1.979401, "val_accuracy": 0.428736}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 8000, "val_loss": 1.96071, "val_accuracy": 0.426833}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 9000, "val_loss": 1.930947, "val_accuracy": 0.433894}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 10000, "val_loss": 1.901746, "val_accuracy": 0.444712}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 11000, "val_loss": 1.865466, "val_accuracy": 0.455128}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 12000, "val_loss": 1.862037, "val_accuracy": 0.453476}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 13000, "val_loss": 1.826416, "val_accuracy": 0.461038}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 14000, "val_loss": 1.83867, "val_accuracy": 0.455479}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 15000, "val_loss": 1.803667, "val_accuracy": 0.469351}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 16000, "val_loss": 1.779671, "val_accuracy": 0.477815}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 17000, "val_loss": 1.793958, "val_accuracy": 0.479517}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 18000, "val_loss": 1.773487, "val_accuracy": 0.479317}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 19000, "val_loss": 1.761743, "val_accuracy": 0.484275}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_matched_flop", "step": 20000, "val_loss": 1.756805, "val_accuracy": 0.483123}
+{"stage": "variant_finished", "seed": 44, "variant": "parallel_diagonal_matched_flop", "final_checkpoint": {"step": 20000, "val_loss": 1.756805, "val_accuracy": 0.483123}, "wall_seconds": 176.647733}
+{"stage": "seed_finished", "seed": 44, "delta_control_minus_parallel_diagonal_matched_flop": {"final_val_loss": 0.056392, "final_val_accuracy": -0.008964, "best_val_loss": 0.052054, "parameter_count": -232075}}
+{"stage": "done", "report_path": "C:\\Users\\maxeo\\gildnn\\experiments\\fixed_multi_rate\\artifacts\\parallel_diagonal_matched_flop_3seed\\report.json", "average_delta_control_minus_parallel_diagonal_matched_flop": {"final_val_loss": 0.036065, "final_val_accuracy": -0.006327, "best_val_loss": 0.037092, "parameter_count": -232075.0}}
