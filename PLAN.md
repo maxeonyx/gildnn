@@ -4,8 +4,8 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Now
 
-- [ ] **Integrate CUDA Graph parallel into training loop** — The concurrency benchmark proves 28% block-subsystem speedup. Next: wire it into the actual multi-rate training step and measure end-to-end wall-clock improvement. This combines two proven gains: multi-rate (20% from skip-compute) + graph-parallel (28% from concurrency on remaining blocks).
-- [ ] **Update matched-FLOP framing** — The LOSS result (+0.018) is the cost of multi-rate staleness. But if graph-parallel concurrency ALSO applies, the total speedup is larger than 20%, potentially making the quality tradeoff net-positive.
+- [ ] **Integrate whole-step CUDA Graph into real training** — The 14.4x speedup (181ms→12.6ms/step) is the biggest optimization available. Python dispatch overhead is 93% of training time. Integration needs: static input/target buffers, copy_() new batches before each replay, read loss from captured tensor for logging. The parallel-blocks architecture change is NOT needed — just graph the existing sequential model.
+- [ ] **Validate graph-trained model quality** — Run a full 2000-step training with CUDA Graph replay (copying real batches each step) and compare val_loss to eager training. Must confirm no quality difference.
 
 ### Matched-FLOP decision tree
 
