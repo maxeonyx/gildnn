@@ -4,16 +4,15 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Now
 
-- [x] **Check 5k-step multi-rate results** — run killed externally at step 1000. Data sufficient: quality advantage consistent, speedup grows (8.7% → 12.4%). Result confirmed. Now running [1,2,4,8].
-- [x] **VISION.md rewrite** — done. Rewritten from dictations, reviewed 3 rounds.
+- [ ] **Matched-FLOP comparison** — does multi-rate [1,2,4,8] beat a same-compute all-rate-1 model? Experiment code written (`experiments/fixed_multi_rate/matched_flop.py`), launch failed due to Start-Process issue. Needs retry when GPU is free (after midnight tonight).
+- [ ] **Literature backing** — find published work supporting: multi-rate execution as inductive bias, persistent CUDA kernels for pipeline parallelism, MixAdd-style residual combination. Per [dictation 2026-05-22-13](dictations/2026-05-22-13.md).
 
-## Next (after current items)
+## Recently completed
 
-- [x] **Scale multi-rate [1,2,4,8]** — DONE. 20.7% speedup (500-pass final timing), quality BETTER (-0.006 nats). Target cleared.
-- [x] **Push rates further [1,2,4,8,16]** — DONE. ~22% speedup (checkpoints) but +0.016 quality cost. Rate-16 is where quality starts degrading. Sweet spot is [1,2,4,8] at 20.7% with quality BETTER.
-- [x] **Diagonal + multi-rate** — NEGATIVE (as currently implemented). Multi-seed confirmation: seed 42 gave -0.052, seed 43 gave 0.000, seed 44 DIVERGED (val_loss 18.4). The effect is seed-specific and the mechanism is unstable. Stabilized variant (gated/scaled diagonal) is an open question. See `research/questions/diagonal-multi-rate/README.md`.
 - [x] **Backend decision** — DECIDED: PyTorch deliberately. `torch.compile` for stable core/ paths, custom CUDA/Triton for async research. See `research/questions/backend-choice/README.md`.
-- [ ] **Core reintegration** — rewrite core/ to be clean, compiled (`torch.compile`-aware), and reusable. Multi-rate model is the main thing to integrate.
+- [x] **Core reintegration** — DONE. `core/model.py` has MixAdd, ResidualFeedForwardBlock, TemporalWindowAttention, MultiRateResidualModel. torch.compile-compatible forward paths. Old models moved to `legacy_models/`.
+- [x] **Diagonal + multi-rate** — NEGATIVE (as currently implemented). Multi-seed confirmation: seed 42 gave -0.052, seed 43 gave 0.000, seed 44 DIVERGED (val_loss 18.4). Stabilized variant (gated/scaled) is open. See `research/questions/diagonal-multi-rate/README.md`.
+- [x] **Async hardware investigation** — DONE. README corrected: PyTorch streams failed but hardware supports concurrent execution via persistent kernels, fused dispatch, or CUDA Graphs. See `research/questions/async-execution/README.md`.
 
 ## Queue (lower priority)
 
