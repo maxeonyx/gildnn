@@ -4,12 +4,20 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Now
 
-**Parallel diagonal architecture FULLY VALIDATED.** Multi-rate [1,2,4,8] with all-block readout: +0.020 for 53% fewer block evals. This is Max's complete vision from dictation 2026-05-22-17.
+**PARALLEL DIAGONAL MULTI-RATE BEATS SEQUENTIAL CONTROL.** At matched FLOPs: -0.036 nats avg (3-seed confirmed). Bigger blocks firing less often > smaller blocks every step.
+
+Architecture validated:
+- All blocks parallel ✓
+- Multi-rate [1,2,4,8] ✓  
+- Lateral propagation (neighbor states) ✓
+- All-block readout ✓
+- Compute-efficient: uses 53% fewer block evals, reinvests into block capacity ✓
+- **Quality: BETTER than sequential** ✓
 
 Next steps:
-- [ ] **Multi-seed confirmation** — Run 3 seeds on multi-rate parallel diagonal to confirm +0.020 is noise (not systematic). Quick, high-value.
-- [ ] **Scale up** — 8 blocks, larger d_model. Does the architecture's advantage grow at scale?
-- [ ] **Matched-FLOP comparison** — Use the saved compute from multi-rate to make blocks bigger. Does parallel multi-rate BEAT the control at equal FLOPs?
+- [ ] **Scale up** — 8 blocks, larger d_model, longer training. Does the advantage grow?
+- [ ] **Integrate into core/** — This is the architecture. Clean implementation in `core/model.py`, make it the default.
+- [ ] **Self-prediction revisit** — Now that the base architecture works, can auxiliary losses (each block predicts its own next input) improve further?
 
 ## Recently completed
 
@@ -20,6 +28,8 @@ Next steps:
 - [x] **Core reintegration** — `core/model.py` + `core/training.py`
 - [x] **Diagonal + multi-rate** — NEGATIVE. Raw: +0.063 at 20K. Scaled (ReZero): +0.007. Alphas grow but don't help. Signal helps early, hurts late. See `experiments/fixed_multi_rate/artifacts/diagonal_20k/` and `diagonal_scaled_20k/`.
 - [x] **TRUE parallel diagonal (Max's architecture)** — WORKS. All-block readout: +0.010 (noise). Last-block-only: +0.093. Problem was readout bottleneck, not propagation. See `experiments/fixed_multi_rate/artifacts/parallel_diagonal_variants_20k/`.
+- [x] **Multi-rate parallel diagonal** — +0.017 avg (3-seed, consistent). 53% fewer block evals. See `experiments/fixed_multi_rate/artifacts/parallel_diagonal_multirate_3seed/`.
+- [x] **Matched-FLOP parallel multi-rate** — **WINS by 0.036 avg** (3-seed). Bigger blocks firing less often beats smaller blocks every step. See `experiments/fixed_multi_rate/artifacts/parallel_diagonal_matched_flop_3seed/`.
 - [x] **Async hardware** — CLOSED. 28% block concurrency, but irrelevant vs 10.86× whole-step graph.
 
 ## Queue (lower priority)
