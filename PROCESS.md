@@ -252,7 +252,23 @@ Rules:
 - Do not wait idly for any run to complete.
 - Check progress from logs without tight polling.
 
-**Subagent instruction requirement:** When delegating experiment work that may run >5 minutes, explicitly tell the subagent: "Start the experiment in the background and immediately stop. Return the PID and log path. Do NOT block waiting for it to finish." The subagent must reply with: "I have started the experiment and I'm stopping here as requested. Resume me when you're ready to check on the experiment."
+**Subagent instruction requirement — this is mandatory, not optional:**
+
+When delegating experiment work that may involve a GPU training run longer than ~5 minutes, the delegation MUST be split into two separate phases:
+
+**Phase 1 — Launch only.** Delegate to a subagent with instructions that include words to this effect:
+
+> "Your job in this session is only to set up and start the experiment. Write the script, start the background process, and return to me with the PID and log path. Do NOT wait for the run to finish. Do NOT poll. Do NOT check results. Stop as soon as the process is running."
+
+The subagent must reply with the PID and log path and stop. If it does anything else after starting the run, it has failed this instruction.
+
+**Phase 2 — Check and analyse.** Only after doing other useful work (docs, theory, next experiment design), the orchestrator resumes the same subagent (or delegates a fresh one) with:
+
+> "The run has been going for a while. Check the log at [path] and report what you see."
+
+The orchestrator is responsible for deciding when to check back — not the subagent. The subagent must never poll or self-resume.
+
+**If you (the orchestrator) delegate an experiment without splitting it this way, you have failed the process.** There is always other useful work to do while the GPU runs — theory, reports, doc updates, small non-GPU experiments. Name that work before checking on the run.
 
 Use `runs/active.lock` to record the active large run (PID, log path, start time, expected duration). Remove it when the run ends or fails. Small runs (<5 min) do not need lock files.
 
