@@ -1,0 +1,197 @@
+{
+  "config": {
+    "training_steps": 20000,
+    "eval_interval": 2000,
+    "batch_size": 64,
+    "eval_batch_size": 512,
+    "learning_rate": 0.0003,
+    "seed": 44,
+    "warmup_steps": 3,
+    "context_size": 32,
+    "dataset_vocab_size": 61,
+    "model_vocab_size": 67,
+    "schedule_seed": 44
+  },
+  "environment": {
+    "git_sha": "9bd4438093875b81aadd0a015749d0b167f8822a",
+    "git_working_tree_clean": true,
+    "git_status_short": [],
+    "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+    "torch_version": "2.11.0+cu128",
+    "device": "cuda",
+    "cuda_device_name": "NVIDIA GeForce RTX 3090"
+  },
+  "timing": {
+    "overall_wall_seconds": 617.728442
+  },
+  "models": {
+    "model_a": {
+      "label": "multi_rate_4x128_1248",
+      "d_model": 128,
+      "feedforward_dim": 256,
+      "rates": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "diagonal_enabled": false,
+      "parameter_count": 351049,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.268749,
+          "val_accuracy": 0.007262
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.172044,
+          "val_accuracy": 0.38777
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.045823,
+          "val_accuracy": 0.413061
+        },
+        {
+          "step": 6000,
+          "val_loss": 1.979242,
+          "val_accuracy": 0.423628
+        },
+        {
+          "step": 8000,
+          "val_loss": 1.918857,
+          "val_accuracy": 0.441657
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.89686,
+          "val_accuracy": 0.448768
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.859538,
+          "val_accuracy": 0.460387
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.846852,
+          "val_accuracy": 0.464393
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.815904,
+          "val_accuracy": 0.470353
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.808859,
+          "val_accuracy": 0.479968
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.813197,
+          "val_accuracy": 0.474159
+        }
+      ],
+      "best_checkpoint": {
+        "step": 18000,
+        "val_loss": 1.808859,
+        "val_accuracy": 0.479968
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.813197,
+        "val_accuracy": 0.474159
+      },
+      "final_training_loss": 1.39416
+    },
+    "model_b": {
+      "label": "matched_all_rate_1_4x112",
+      "d_model": 112,
+      "feedforward_dim": 224,
+      "rates": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "diagonal_enabled": false,
+      "parameter_count": 271337,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.231589,
+          "val_accuracy": 0.022686
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.22545,
+          "val_accuracy": 0.364083
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.083669,
+          "val_accuracy": 0.398938
+        },
+        {
+          "step": 6000,
+          "val_loss": 1.990951,
+          "val_accuracy": 0.417819
+        },
+        {
+          "step": 8000,
+          "val_loss": 1.935977,
+          "val_accuracy": 0.440655
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.913459,
+          "val_accuracy": 0.447366
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.874338,
+          "val_accuracy": 0.454728
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.858139,
+          "val_accuracy": 0.459585
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.820543,
+          "val_accuracy": 0.475361
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.879201,
+          "val_accuracy": 0.467548
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.799314,
+          "val_accuracy": 0.476512
+        }
+      ],
+      "best_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.799314,
+        "val_accuracy": 0.476512
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.799314,
+        "val_accuracy": 0.476512
+      },
+      "final_training_loss": 1.483679
+    }
+  },
+  "delta_model_a_minus_model_b": {
+    "final_val_loss": 0.013883,
+    "final_val_accuracy": -0.002353,
+    "best_val_loss": 0.009545,
+    "parameter_count": 79712
+  }
+}
