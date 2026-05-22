@@ -10,7 +10,7 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 ## Next (after current items)
 
 - [x] **Scale multi-rate [1,2,4,8]** — DONE. 20.7% speedup (500-pass final timing), quality BETTER (-0.006 nats). Target cleared.
-- [ ] **Push rates further** — try [1,2,4,8,16] with 5 blocks or [2,4,8,16] with no rate-1 block. If still quality-neutral → this path has significant headroom. If quality degrades → we found the boundary.
+- [x] **Push rates further [1,2,4,8,16]** — DONE. ~22% speedup (checkpoints) but +0.016 quality cost. Rate-16 is where quality starts degrading. Sweet spot is [1,2,4,8] at 20.7% with quality BETTER.
 - [ ] **Diagonal + multi-rate** — the diagonal residual (block1's output at time t feeds block2 at time t+1) naturally pairs with multi-rate. Question doc at `research/questions/diagonal-multi-rate/README.md`. Run after pushing rates.
 - [ ] **Backend decision** — JAX recommended (`research/questions/backend-choice/README.md`). Awaiting Max's input.
 - [ ] **Core reintegration** — once backend is decided, rewrite core/ to be clean, compiled, and reusable.
