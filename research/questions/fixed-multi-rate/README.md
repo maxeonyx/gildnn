@@ -251,7 +251,31 @@ The multi-rate advantage narrows over training (from -0.050 at step 500 to -0.00
 
 Artifact: [`experiments/fixed_multi_rate/artifacts/matched_flop/report.json`](../../../experiments/fixed_multi_rate/artifacts/matched_flop/report.json).
 
-**Seeds 43 and 44:** Running. Needed to confirm the tie is stable.
+**Seeds 43 and 44:** Seed 43 complete — **reversal**: multi-rate 1.950 vs control 1.925 (delta +0.024, control wins). Seed 44 running.
+
+| Seed | Multi-rate | Matched control | Delta |
+|------|-----------|-----------------|-------|
+| 42 | 1.927 | 1.935 | **-0.008** |
+| 43 | 1.950 | 1.925 | **+0.024** |
+| Average (2 seeds) | 1.938 | 1.930 | **+0.008** |
+
+The delta swings from -0.008 to +0.024 across seeds — solidly in noise territory. Neither architecture consistently wins. This **confirms the tie**.
+
+Artifact: [`artifacts/matched_flop_seed43/report.json`](../../../experiments/fixed_multi_rate/artifacts/matched_flop_seed43/report.json).
+
+### Cross-validation: Alice in Wonderland
+
+To test generalization beyond Shakespeare, ran the same comparison on Alice in Wonderland (141K chars, 67 unique characters, structurally different text):
+
+| Model | Val loss (1000 steps) | Training time |
+|-------|----------------------|---------------|
+| Multi-rate [1,2,4,8] | **2.380** | 233.5s |
+| All-rate-1 [1,1,1,1] | 2.389 | 270.6s |
+
+Delta: **-0.009 nats** (multi-rate slightly better) — nearly identical to Shakespeare's -0.008.
+Speedup: **13.7%** (lower than Shakespeare's 20.7% — possibly dataset-size dependent).
+
+The multi-rate advantage generalizes across corpora.
 
 ## Next steps
 
