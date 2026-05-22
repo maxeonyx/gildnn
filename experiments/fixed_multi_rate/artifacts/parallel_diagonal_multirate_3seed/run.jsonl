@@ -1,0 +1,140 @@
+{"stage": "run_started", "seeds": [42, 43, 44], "training_steps": 20000, "eval_interval": 1000, "batch_size": 64, "eval_batch_size": 512, "learning_rate": 0.0003, "trainer": "GraphTrainer"}
+{"stage": "seed_started", "seed": 42}
+{"stage": "variant_started", "seed": 42, "variant": "control", "label": "multi_rate_4x128_ff256_1248_control", "parameter_count": 351052, "initial_checkpoint": {"step": 0, "val_loss": 4.243625, "val_accuracy": 0.005809}}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 1000, "val_loss": 2.366746, "val_accuracy": 0.335587}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 2000, "val_loss": 2.183452, "val_accuracy": 0.383914}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 3000, "val_loss": 2.089751, "val_accuracy": 0.402494}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 4000, "val_loss": 2.034359, "val_accuracy": 0.41867}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 5000, "val_loss": 1.995329, "val_accuracy": 0.43099}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 6000, "val_loss": 1.964337, "val_accuracy": 0.43149}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 7000, "val_loss": 1.952216, "val_accuracy": 0.446565}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 8000, "val_loss": 1.923676, "val_accuracy": 0.44987}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 9000, "val_loss": 1.896732, "val_accuracy": 0.453626}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 10000, "val_loss": 1.892967, "val_accuracy": 0.452023}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 11000, "val_loss": 1.87538, "val_accuracy": 0.460687}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 12000, "val_loss": 1.850063, "val_accuracy": 0.465445}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 13000, "val_loss": 1.840598, "val_accuracy": 0.471104}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 14000, "val_loss": 1.82786, "val_accuracy": 0.469201}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 15000, "val_loss": 1.822843, "val_accuracy": 0.47521}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 16000, "val_loss": 1.812761, "val_accuracy": 0.4685}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 17000, "val_loss": 1.805072, "val_accuracy": 0.473858}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 18000, "val_loss": 1.801343, "val_accuracy": 0.485026}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 19000, "val_loss": 1.792037, "val_accuracy": 0.483223}
+{"stage": "checkpoint", "seed": 42, "variant": "control", "step": 20000, "val_loss": 1.783787, "val_accuracy": 0.480519}
+{"stage": "variant_finished", "seed": 42, "variant": "control", "final_checkpoint": {"step": 20000, "val_loss": 1.783787, "val_accuracy": 0.480519}, "wall_seconds": 301.171668}
+{"stage": "variant_started", "seed": 42, "variant": "parallel_diagonal_multirate", "label": "parallel_diagonal_4x128_ff256_all_rate1248", "parameter_count": 285007, "initial_checkpoint": {"step": 0, "val_loss": 4.253326, "val_accuracy": 0.017177}}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 1000, "val_loss": 2.692245, "val_accuracy": 0.255359}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 2000, "val_loss": 2.394667, "val_accuracy": 0.323367}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 3000, "val_loss": 2.278488, "val_accuracy": 0.348758}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 4000, "val_loss": 2.205278, "val_accuracy": 0.360727}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 5000, "val_loss": 2.149347, "val_accuracy": 0.378355}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 6000, "val_loss": 2.096892, "val_accuracy": 0.388622}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 7000, "val_loss": 2.074379, "val_accuracy": 0.401442}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 8000, "val_loss": 2.027014, "val_accuracy": 0.409806}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 9000, "val_loss": 1.990596, "val_accuracy": 0.427133}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 10000, "val_loss": 1.97957, "val_accuracy": 0.426382}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 11000, "val_loss": 1.952841, "val_accuracy": 0.432192}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 12000, "val_loss": 1.945539, "val_accuracy": 0.43149}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 13000, "val_loss": 1.907193, "val_accuracy": 0.442157}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 14000, "val_loss": 1.877233, "val_accuracy": 0.446214}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 15000, "val_loss": 1.869713, "val_accuracy": 0.454878}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 16000, "val_loss": 1.861688, "val_accuracy": 0.453826}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 17000, "val_loss": 1.835346, "val_accuracy": 0.462089}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 18000, "val_loss": 1.83071, "val_accuracy": 0.466346}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 19000, "val_loss": 1.817828, "val_accuracy": 0.467949}
+{"stage": "checkpoint", "seed": 42, "variant": "parallel_diagonal_multirate", "step": 20000, "val_loss": 1.803508, "val_accuracy": 0.472356}
+{"stage": "variant_finished", "seed": 42, "variant": "parallel_diagonal_multirate", "final_checkpoint": {"step": 20000, "val_loss": 1.803508, "val_accuracy": 0.472356}, "wall_seconds": 165.266321}
+{"stage": "seed_finished", "seed": 42, "delta_control_minus_parallel_diagonal_multirate": {"final_val_loss": -0.019721, "final_val_accuracy": 0.008163, "best_val_loss": -0.019721}}
+{"stage": "seed_started", "seed": 43}
+{"stage": "variant_started", "seed": 43, "variant": "control", "label": "multi_rate_4x128_ff256_1248_control", "parameter_count": 351052, "initial_checkpoint": {"step": 0, "val_loss": 4.214383, "val_accuracy": 0.024038}}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 1000, "val_loss": 2.333093, "val_accuracy": 0.338391}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 2000, "val_loss": 2.179929, "val_accuracy": 0.378155}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 3000, "val_loss": 2.114281, "val_accuracy": 0.396534}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 4000, "val_loss": 2.042499, "val_accuracy": 0.415815}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 5000, "val_loss": 2.009145, "val_accuracy": 0.415114}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 6000, "val_loss": 1.967929, "val_accuracy": 0.429137}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 7000, "val_loss": 1.951172, "val_accuracy": 0.432091}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 8000, "val_loss": 1.92823, "val_accuracy": 0.443309}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 9000, "val_loss": 1.894274, "val_accuracy": 0.449519}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 10000, "val_loss": 1.891911, "val_accuracy": 0.449269}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 11000, "val_loss": 1.876204, "val_accuracy": 0.453275}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 12000, "val_loss": 1.859823, "val_accuracy": 0.458934}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 13000, "val_loss": 1.854881, "val_accuracy": 0.463892}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 14000, "val_loss": 1.84261, "val_accuracy": 0.461188}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 15000, "val_loss": 1.836299, "val_accuracy": 0.474559}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 16000, "val_loss": 1.827451, "val_accuracy": 0.472857}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 17000, "val_loss": 1.820411, "val_accuracy": 0.471054}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 18000, "val_loss": 1.794749, "val_accuracy": 0.476512}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 19000, "val_loss": 1.802841, "val_accuracy": 0.479868}
+{"stage": "checkpoint", "seed": 43, "variant": "control", "step": 20000, "val_loss": 1.788983, "val_accuracy": 0.479117}
+{"stage": "variant_finished", "seed": 43, "variant": "control", "final_checkpoint": {"step": 20000, "val_loss": 1.788983, "val_accuracy": 0.479117}, "wall_seconds": 288.370832}
+{"stage": "variant_started", "seed": 43, "variant": "parallel_diagonal_multirate", "label": "parallel_diagonal_4x128_ff256_all_rate1248", "parameter_count": 285007, "initial_checkpoint": {"step": 0, "val_loss": 4.260279, "val_accuracy": 0.04387}}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 1000, "val_loss": 2.67387, "val_accuracy": 0.253255}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 2000, "val_loss": 2.395887, "val_accuracy": 0.320012}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 3000, "val_loss": 2.297286, "val_accuracy": 0.341496}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 4000, "val_loss": 2.211201, "val_accuracy": 0.375651}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 5000, "val_loss": 2.157579, "val_accuracy": 0.379708}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 6000, "val_loss": 2.107595, "val_accuracy": 0.386769}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 7000, "val_loss": 2.064357, "val_accuracy": 0.405349}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 8000, "val_loss": 2.038003, "val_accuracy": 0.409555}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 9000, "val_loss": 1.990197, "val_accuracy": 0.426082}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 10000, "val_loss": 1.968216, "val_accuracy": 0.425881}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 11000, "val_loss": 1.957134, "val_accuracy": 0.434846}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 12000, "val_loss": 1.922439, "val_accuracy": 0.441657}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 13000, "val_loss": 1.907068, "val_accuracy": 0.442909}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 14000, "val_loss": 1.892859, "val_accuracy": 0.447616}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 15000, "val_loss": 1.886257, "val_accuracy": 0.451522}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 16000, "val_loss": 1.860486, "val_accuracy": 0.455278}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 17000, "val_loss": 1.845624, "val_accuracy": 0.458984}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 18000, "val_loss": 1.830703, "val_accuracy": 0.461939}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 19000, "val_loss": 1.832523, "val_accuracy": 0.46234}
+{"stage": "checkpoint", "seed": 43, "variant": "parallel_diagonal_multirate", "step": 20000, "val_loss": 1.812824, "val_accuracy": 0.471655}
+{"stage": "variant_finished", "seed": 43, "variant": "parallel_diagonal_multirate", "final_checkpoint": {"step": 20000, "val_loss": 1.812824, "val_accuracy": 0.471655}, "wall_seconds": 161.569117}
+{"stage": "seed_finished", "seed": 43, "delta_control_minus_parallel_diagonal_multirate": {"final_val_loss": -0.023841, "final_val_accuracy": 0.007462, "best_val_loss": -0.023841}}
+{"stage": "seed_started", "seed": 44}
+{"stage": "variant_started", "seed": 44, "variant": "control", "label": "multi_rate_4x128_ff256_1248_control", "parameter_count": 351052, "initial_checkpoint": {"step": 0, "val_loss": 4.268749, "val_accuracy": 0.007262}}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 1000, "val_loss": 2.33009, "val_accuracy": 0.348057}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 2000, "val_loss": 2.172044, "val_accuracy": 0.38777}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 3000, "val_loss": 2.09621, "val_accuracy": 0.405749}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 4000, "val_loss": 2.045823, "val_accuracy": 0.413061}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 5000, "val_loss": 2.023743, "val_accuracy": 0.416316}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 6000, "val_loss": 1.979242, "val_accuracy": 0.423628}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 7000, "val_loss": 1.946158, "val_accuracy": 0.440655}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 8000, "val_loss": 1.918857, "val_accuracy": 0.441657}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 9000, "val_loss": 1.939005, "val_accuracy": 0.445262}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 10000, "val_loss": 1.89686, "val_accuracy": 0.448768}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 11000, "val_loss": 1.881861, "val_accuracy": 0.456981}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 12000, "val_loss": 1.859538, "val_accuracy": 0.460387}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 13000, "val_loss": 1.855001, "val_accuracy": 0.459435}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 14000, "val_loss": 1.846852, "val_accuracy": 0.464393}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 15000, "val_loss": 1.833685, "val_accuracy": 0.470302}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 16000, "val_loss": 1.815904, "val_accuracy": 0.470353}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 17000, "val_loss": 1.819816, "val_accuracy": 0.477163}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 18000, "val_loss": 1.808859, "val_accuracy": 0.479968}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 19000, "val_loss": 1.813294, "val_accuracy": 0.476212}
+{"stage": "checkpoint", "seed": 44, "variant": "control", "step": 20000, "val_loss": 1.813197, "val_accuracy": 0.474159}
+{"stage": "variant_finished", "seed": 44, "variant": "control", "final_checkpoint": {"step": 20000, "val_loss": 1.813197, "val_accuracy": 0.474159}, "wall_seconds": 288.324801}
+{"stage": "variant_started", "seed": 44, "variant": "parallel_diagonal_multirate", "label": "parallel_diagonal_4x128_ff256_all_rate1248", "parameter_count": 285007, "initial_checkpoint": {"step": 0, "val_loss": 4.207197, "val_accuracy": 0.01267}}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 1000, "val_loss": 2.669835, "val_accuracy": 0.263722}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 2000, "val_loss": 2.372766, "val_accuracy": 0.328576}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 3000, "val_loss": 2.265946, "val_accuracy": 0.357873}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 4000, "val_loss": 2.198541, "val_accuracy": 0.368089}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 5000, "val_loss": 2.155953, "val_accuracy": 0.375601}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 6000, "val_loss": 2.089491, "val_accuracy": 0.397185}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 7000, "val_loss": 2.041152, "val_accuracy": 0.412861}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 8000, "val_loss": 2.01785, "val_accuracy": 0.41276}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 9000, "val_loss": 1.990376, "val_accuracy": 0.419972}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 10000, "val_loss": 1.959643, "val_accuracy": 0.429537}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 11000, "val_loss": 1.924147, "val_accuracy": 0.439704}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 12000, "val_loss": 1.920617, "val_accuracy": 0.442859}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 13000, "val_loss": 1.89292, "val_accuracy": 0.449569}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 14000, "val_loss": 1.888979, "val_accuracy": 0.445112}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 15000, "val_loss": 1.870104, "val_accuracy": 0.45648}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 16000, "val_loss": 1.841211, "val_accuracy": 0.460988}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 17000, "val_loss": 1.845298, "val_accuracy": 0.464794}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 18000, "val_loss": 1.839724, "val_accuracy": 0.46855}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 19000, "val_loss": 1.821553, "val_accuracy": 0.472456}
+{"stage": "checkpoint", "seed": 44, "variant": "parallel_diagonal_multirate", "step": 20000, "val_loss": 1.821335, "val_accuracy": 0.470202}
+{"stage": "variant_finished", "seed": 44, "variant": "parallel_diagonal_multirate", "final_checkpoint": {"step": 20000, "val_loss": 1.821335, "val_accuracy": 0.470202}, "wall_seconds": 161.635578}
+{"stage": "seed_finished", "seed": 44, "delta_control_minus_parallel_diagonal_multirate": {"final_val_loss": -0.008138, "final_val_accuracy": 0.003957, "best_val_loss": -0.012476}}
+{"stage": "done", "report_path": "C:\\Users\\maxeo\\gildnn\\experiments\\fixed_multi_rate\\artifacts\\parallel_diagonal_multirate_3seed\\report.json", "average_delta_control_minus_parallel_diagonal_multirate": {"final_val_loss": -0.017233, "final_val_accuracy": 0.006527, "best_val_loss": -0.018679}}
