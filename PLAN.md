@@ -17,6 +17,7 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Queue (lower priority)
 
+- **Async hardware investigation** — [dictation 2026-05-22-11](dictations/2026-05-22-11.md) says the async-execution conclusion is WRONG. Only tested PyTorch's high-level stream API. Max wants: RTX 3090 architecture deep-dive (SM count, memory hierarchy, cache sizes, concurrent kernel capacity), persistent CUDA kernels, external references proving what the hardware can/can't do. The current README needs correction — it overstates the conclusion.
 - Arbitrary-order sampling — deprioritized per [dictation 2026-05-22-6](dictations/2026-05-22-6.md). Prototype works (MSE 0.0195).
 - Self-prediction — NEGATIVE (+0.011-0.018 nats)
 - Dynamic token count — not yet explored
