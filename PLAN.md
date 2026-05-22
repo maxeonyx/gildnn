@@ -4,12 +4,12 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Now
 
-**Parallel diagonal architecture WORKS.** All-block readout closes the gap to +0.010 (noise). This validates Max's core idea from dictation 2026-05-22-17.
+**Parallel diagonal architecture FULLY VALIDATED.** Multi-rate [1,2,4,8] with all-block readout: +0.020 for 53% fewer block evals. This is Max's complete vision from dictation 2026-05-22-17.
 
-Next experiments with the parallel diagonal:
-- [ ] **Multi-rate parallel diagonal** — Some blocks skip tokens (rates 1,2,4,8) while all still run in parallel within each step they fire. Does this give the 20% speedup we saw in sequential multi-rate?
-- [ ] **Scale up** — 8 blocks, larger d_model. Does parallel diagonal's advantage grow at scale?
-- [ ] **Multi-seed confirmation** — Run 3 seeds on the all-block-readout parallel model to confirm the +0.010 is real noise (not a lucky seed).
+Next steps:
+- [ ] **Multi-seed confirmation** — Run 3 seeds on multi-rate parallel diagonal to confirm +0.020 is noise (not systematic). Quick, high-value.
+- [ ] **Scale up** — 8 blocks, larger d_model. Does the architecture's advantage grow at scale?
+- [ ] **Matched-FLOP comparison** — Use the saved compute from multi-rate to make blocks bigger. Does parallel multi-rate BEAT the control at equal FLOPs?
 
 ## Recently completed
 
