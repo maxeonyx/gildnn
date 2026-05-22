@@ -112,6 +112,7 @@ function Run-Loop {
         $crashCount = 0
         $iteration = 0
         $lastLaunch = Get-Date
+        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
         while ($true) {
             $iteration++
