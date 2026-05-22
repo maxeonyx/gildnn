@@ -5,7 +5,7 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 ## Now
 
 - [ ] **Check 5k-step multi-rate results** — background run active (PID 5512 in `runs/active.lock`). When done: if quality-neutral + speedup holds → scale to more aggressive rates. If quality degrades → investigate why.
-- [ ] **VISION.md rewrite** — one-time task. Rewrite from the full dictations, keeping Max's language, rearranging for flow. Multiple review rounds asking: "does this capture the spirit of my vision?" Then tick off.
+- [x] **VISION.md rewrite** — done. Rewritten from dictations, reviewed 3 rounds.
 
 ## Next (after current items)
 
