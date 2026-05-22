@@ -7,11 +7,12 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 All immediate items complete. Major findings this session:
 - **CUDA Graph training: 10.86×** — integrated into `core/training.py` as `GraphTrainer`
 - **20K matched-FLOP: TIE** (3-seed avg delta -0.001) — multi-rate is compute-equivalent with structural benefits at longer training horizons
+- **Diagonal connections: NEGATIVE** — raw add +0.063, ReZero-scaled +0.007. Alphas grow (~0.2) but don't improve quality. Diagonal signal helps early, hurts late. Not worth pursuing in current form.
 
 Next directions (choose one):
 - [ ] **Scale up** — With 10.86× training speed, run much larger experiments. 8 blocks, larger d_model, more data, longer training. Does multi-rate's advantage grow or stay flat at scale?
-- [ ] **Diagonal connections (revisit)** — The original test was unstable (1 seed diverged, 1 neutral, 1 strong positive). With GraphTrainer + 20K steps, rerun with proper stabilization (gating, scaled init). Per VISION, diagonal connections are "the main structural idea to explore."
-- [ ] **Self-prediction auxiliary loss** — Per VISION: "each block's job: predict its own next incoming residual stream." Previous test was NEGATIVE (+0.011-0.018 nats) but at only 2K steps. Worth revisiting at 20K.
+- [ ] **Self-prediction auxiliary loss (revisit)** — Per VISION: "each block's job: predict its own next incoming residual stream." Previous test was NEGATIVE (+0.011-0.018 nats) but at only 2K steps. Worth revisiting at 20K.
+- [ ] **Dynamic depth at scale** — Previous result: 43% compute savings for 1% quality loss. With GraphTrainer, can run much longer and at larger scale. Does the quality cost shrink?
 
 ## Recently completed
 
@@ -20,7 +21,7 @@ Next directions (choose one):
 - [x] **Literature backing** — 30+ papers. See `research/questions/literature-backing/README.md`.
 - [x] **Backend decision** — PyTorch + torch.compile + manual CUDA Graphs.
 - [x] **Core reintegration** — `core/model.py` + `core/training.py`
-- [x] **Diagonal + multi-rate** — NEGATIVE (unstable). Needs revisit with stabilization.
+- [x] **Diagonal + multi-rate** — NEGATIVE. Raw: +0.063 at 20K. Scaled (ReZero): +0.007. Alphas grow but don't help. Signal helps early, hurts late. See `experiments/fixed_multi_rate/artifacts/diagonal_20k/` and `diagonal_scaled_20k/`.
 - [x] **Async hardware** — CLOSED. 28% block concurrency, but irrelevant vs 10.86× whole-step graph.
 
 ## Queue (lower priority)
