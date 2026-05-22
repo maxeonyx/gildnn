@@ -1,0 +1,5008 @@
+{
+  "comparison": "multi_rate_1248_no_diagonal_vs_diagonal",
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "config": {
+    "context_size": 32,
+    "d_model": 128,
+    "feedforward_dim": 256,
+    "temporal_window": 4,
+    "num_heads": 4,
+    "batch_size": 64,
+    "eval_batch_size": 512,
+    "learning_rate": 0.003,
+    "training_steps": 2000,
+    "eval_interval": 500,
+    "seed": 42,
+    "num_blocks": 4,
+    "control_rates": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "multi_rates": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "overfit_steps": 2000,
+    "overfit_loss_threshold": 0.001,
+    "checkpoint_timing_warmup_passes": 20,
+    "checkpoint_timing_passes": 100,
+    "final_timing_warmup_passes": 100,
+    "final_timing_passes": 500,
+    "control_diagonal": false,
+    "multi_diagonal": true
+  },
+  "environment": {
+    "git_sha": "80a0fc4367fc231abd9864aaca763bdc629f6682",
+    "git_working_tree_clean": true,
+    "git_status_short": [],
+    "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+    "torch_version": "2.11.0+cu128",
+    "device": "cuda",
+    "cuda_device_name": "NVIDIA GeForce RTX 3090"
+  },
+  "seed_runs": [
+    {
+      "seed": 42,
+      "config": {
+        "context_size": 32,
+        "d_model": 128,
+        "feedforward_dim": 256,
+        "temporal_window": 4,
+        "num_heads": 4,
+        "batch_size": 64,
+        "eval_batch_size": 512,
+        "learning_rate": 0.003,
+        "training_steps": 2000,
+        "eval_interval": 500,
+        "seed": 42,
+        "num_blocks": 4,
+        "control_rates": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "multi_rates": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "overfit_steps": 2000,
+        "overfit_loss_threshold": 0.001,
+        "checkpoint_timing_warmup_passes": 20,
+        "checkpoint_timing_passes": 100,
+        "final_timing_warmup_passes": 100,
+        "final_timing_passes": 500,
+        "control_diagonal": false,
+        "multi_diagonal": true
+      },
+      "model": {
+        "control": {
+          "rates": [
+            1,
+            2,
+            4,
+            8
+          ],
+          "diagonal_enabled": false,
+          "mix_coefficients": {
+            "token": 0.543067991733551,
+            "time": 0.9706180095672607,
+            "blocks": [
+              0.8923810720443726,
+              0.9324601292610168,
+              0.956376850605011,
+              0.9548121094703674
+            ],
+            "diagonal_enabled": false
+          }
+        },
+        "experiment": {
+          "rates": [
+            1,
+            2,
+            4,
+            8
+          ],
+          "diagonal_enabled": true,
+          "mix_coefficients": {
+            "token": 0.4992472529411316,
+            "time": 0.9600417613983154,
+            "blocks": [
+              0.879137396812439,
+              0.9185882210731506,
+              0.9523281455039978,
+              0.9485440850257874
+            ],
+            "diagonal_enabled": true
+          }
+        }
+      },
+      "overfit": {
+        "trace": [
+          {
+            "step": 0,
+            "loss": 4.157341,
+            "accuracy": 0.0
+          },
+          {
+            "step": 25,
+            "loss": 0.085219,
+            "accuracy": 0.984375
+          },
+          {
+            "step": 50,
+            "loss": 0.000955,
+            "accuracy": 1.0
+          }
+        ],
+        "final_loss": 0.000955,
+        "final_accuracy": 1.0,
+        "memorized": true,
+        "hit_step": 50,
+        "steps_run": 50
+      },
+      "smoke_check": {
+        "diagonal_enabled": true,
+        "batch_shape": [
+          2,
+          32
+        ],
+        "logits_shape": [
+          2,
+          61
+        ],
+        "steps": [
+          {
+            "time_index": 0,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1429317742586136,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.14510789513587952,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.10280737280845642,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": true,
+                "used_delta_rms": 0.11848077923059464,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 1,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.13590946793556213,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.14510789513587952,
+                "diagonal_input_rms": 0.1429317742586136,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.10280737280845642,
+                "diagonal_input_rms": 0.14510789513587952,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11848077923059464,
+                "diagonal_input_rms": 0.10280737280845642,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 2,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.15445435047149658,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.12005910277366638,
+                "diagonal_input_rms": 0.13590946793556213,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.10280737280845642,
+                "diagonal_input_rms": 0.14510789513587952,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11848077923059464,
+                "diagonal_input_rms": 0.10280737280845642,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 3,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1486094444990158,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.12005910277366638,
+                "diagonal_input_rms": 0.15445435047149658,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.10280737280845642,
+                "diagonal_input_rms": 0.12005910277366638,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11848077923059464,
+                "diagonal_input_rms": 0.10280737280845642,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 4,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14265628159046173,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.1364666372537613,
+                "diagonal_input_rms": 0.1486094444990158,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.12136291712522507,
+                "diagonal_input_rms": 0.12005910277366638,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11848077923059464,
+                "diagonal_input_rms": 0.10280737280845642,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 5,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.17646145820617676,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.1364666372537613,
+                "diagonal_input_rms": 0.14265628159046173,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.12136291712522507,
+                "diagonal_input_rms": 0.1364666372537613,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11848077923059464,
+                "diagonal_input_rms": 0.12136291712522507,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 6,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1429293155670166,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.14354634284973145,
+                "diagonal_input_rms": 0.17646145820617676,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.12136291712522507,
+                "diagonal_input_rms": 0.1364666372537613,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11848077923059464,
+                "diagonal_input_rms": 0.12136291712522507,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 7,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.16368785500526428,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.14354634284973145,
+                "diagonal_input_rms": 0.1429293155670166,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.12136291712522507,
+                "diagonal_input_rms": 0.14354634284973145,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11848077923059464,
+                "diagonal_input_rms": 0.12136291712522507,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 8,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.16328531503677368,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.13285014033317566,
+                "diagonal_input_rms": 0.16368785500526428,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.13468211889266968,
+                "diagonal_input_rms": 0.14354634284973145,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": true,
+                "used_delta_rms": 0.1161607876420021,
+                "diagonal_input_rms": 0.12136291712522507,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 9,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14757992327213287,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.13285014033317566,
+                "diagonal_input_rms": 0.16328531503677368,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.13468211889266968,
+                "diagonal_input_rms": 0.13285014033317566,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.1161607876420021,
+                "diagonal_input_rms": 0.13468211889266968,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 10,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.15903736650943756,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.14638057351112366,
+                "diagonal_input_rms": 0.14757992327213287,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.13468211889266968,
+                "diagonal_input_rms": 0.13285014033317566,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.1161607876420021,
+                "diagonal_input_rms": 0.13468211889266968,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 11,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.13322558999061584,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.14638057351112366,
+                "diagonal_input_rms": 0.15903736650943756,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.13468211889266968,
+                "diagonal_input_rms": 0.14638057351112366,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.1161607876420021,
+                "diagonal_input_rms": 0.13468211889266968,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 12,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.13299377262592316,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.12353765964508057,
+                "diagonal_input_rms": 0.13322558999061584,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.11244118213653564,
+                "diagonal_input_rms": 0.14638057351112366,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.1161607876420021,
+                "diagonal_input_rms": 0.13468211889266968,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 13,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.17295481264591217,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.12353765964508057,
+                "diagonal_input_rms": 0.13299377262592316,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11244118213653564,
+                "diagonal_input_rms": 0.12353765964508057,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.1161607876420021,
+                "diagonal_input_rms": 0.11244118213653564,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 14,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.13081754744052887,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.11945312470197678,
+                "diagonal_input_rms": 0.17295481264591217,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11244118213653564,
+                "diagonal_input_rms": 0.12353765964508057,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.1161607876420021,
+                "diagonal_input_rms": 0.11244118213653564,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 15,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.15520669519901276,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.11945312470197678,
+                "diagonal_input_rms": 0.13081754744052887,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11244118213653564,
+                "diagonal_input_rms": 0.11945312470197678,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.1161607876420021,
+                "diagonal_input_rms": 0.11244118213653564,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 16,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1747020035982132,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.1527090072631836,
+                "diagonal_input_rms": 0.15520669519901276,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.15182480216026306,
+                "diagonal_input_rms": 0.11945312470197678,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": true,
+                "used_delta_rms": 0.12913759052753448,
+                "diagonal_input_rms": 0.11244118213653564,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 17,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.13378311693668365,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.1527090072631836,
+                "diagonal_input_rms": 0.1747020035982132,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.15182480216026306,
+                "diagonal_input_rms": 0.1527090072631836,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.12913759052753448,
+                "diagonal_input_rms": 0.15182480216026306,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 18,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14878517389297485,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.1512531340122223,
+                "diagonal_input_rms": 0.13378311693668365,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.15182480216026306,
+                "diagonal_input_rms": 0.1527090072631836,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.12913759052753448,
+                "diagonal_input_rms": 0.15182480216026306,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 19,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14990116655826569,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.1512531340122223,
+                "diagonal_input_rms": 0.14878517389297485,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.15182480216026306,
+                "diagonal_input_rms": 0.1512531340122223,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.12913759052753448,
+                "diagonal_input_rms": 0.15182480216026306,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 20,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.16207754611968994,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.12990659475326538,
+                "diagonal_input_rms": 0.14990116655826569,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.1175006777048111,
+                "diagonal_input_rms": 0.1512531340122223,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.12913759052753448,
+                "diagonal_input_rms": 0.15182480216026306,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 21,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.13828745484352112,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.12990659475326538,
+                "diagonal_input_rms": 0.16207754611968994,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.1175006777048111,
+                "diagonal_input_rms": 0.12990659475326538,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.12913759052753448,
+                "diagonal_input_rms": 0.1175006777048111,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 22,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1614363044500351,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.13746538758277893,
+                "diagonal_input_rms": 0.13828745484352112,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.1175006777048111,
+                "diagonal_input_rms": 0.12990659475326538,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.12913759052753448,
+                "diagonal_input_rms": 0.1175006777048111,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 23,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.15795524418354034,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.13746538758277893,
+                "diagonal_input_rms": 0.1614363044500351,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.1175006777048111,
+                "diagonal_input_rms": 0.13746538758277893,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.12913759052753448,
+                "diagonal_input_rms": 0.1175006777048111,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 24,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14633595943450928,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.12282635271549225,
+                "diagonal_input_rms": 0.15795524418354034,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.1327396035194397,
+                "diagonal_input_rms": 0.13746538758277893,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": true,
+                "used_delta_rms": 0.10480576008558273,
+                "diagonal_input_rms": 0.1175006777048111,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 25,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14821384847164154,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.12282635271549225,
+                "diagonal_input_rms": 0.14633595943450928,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.1327396035194397,
+                "diagonal_input_rms": 0.12282635271549225,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10480576008558273,
+                "diagonal_input_rms": 0.1327396035194397,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 26,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1559547781944275,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.15035684406757355,
+                "diagonal_input_rms": 0.14821384847164154,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.1327396035194397,
+                "diagonal_input_rms": 0.12282635271549225,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10480576008558273,
+                "diagonal_input_rms": 0.1327396035194397,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 27,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14111216366291046,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.15035684406757355,
+                "diagonal_input_rms": 0.1559547781944275,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.1327396035194397,
+                "diagonal_input_rms": 0.15035684406757355,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10480576008558273,
+                "diagonal_input_rms": 0.1327396035194397,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 28,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.13857577741146088,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.12977658212184906,
+                "diagonal_input_rms": 0.14111216366291046,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.11236851662397385,
+                "diagonal_input_rms": 0.15035684406757355,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10480576008558273,
+                "diagonal_input_rms": 0.1327396035194397,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 29,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.17355510592460632,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.12977658212184906,
+                "diagonal_input_rms": 0.13857577741146088,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11236851662397385,
+                "diagonal_input_rms": 0.12977658212184906,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10480576008558273,
+                "diagonal_input_rms": 0.11236851662397385,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 30,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.15992753207683563,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.1464705914258957,
+                "diagonal_input_rms": 0.17355510592460632,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11236851662397385,
+                "diagonal_input_rms": 0.12977658212184906,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10480576008558273,
+                "diagonal_input_rms": 0.11236851662397385,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 31,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1344074308872223,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.1464705914258957,
+                "diagonal_input_rms": 0.15992753207683563,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11236851662397385,
+                "diagonal_input_rms": 0.1464705914258957,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10480576008558273,
+                "diagonal_input_rms": 0.11236851662397385,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          }
+        ],
+        "checks": {
+          "time0_second_block_diagonal_zero": true,
+          "later_second_block_has_nonzero_diagonal": true,
+          "all_diagonal_reads_match_previous_delta": true,
+          "all_diagonal_reads_only_apply_on_execute": true
+        }
+      },
+      "diagonal_effect": {
+        "max_logit_abs_diff": 0.00850193202495575,
+        "diagonal_changes_output": true
+      },
+      "comparison_history": [
+        {
+          "step": 0,
+          "control": {
+            "val_loss": 4.145477,
+            "val_accuracy": 0.009916,
+            "forward_ms_per_batch": 98.93731,
+            "timing_passes": 100
+          },
+          "experiment": {
+            "val_loss": 4.145979,
+            "val_accuracy": 0.009866,
+            "forward_ms_per_batch": 87.856497,
+            "timing_passes": 100
+          },
+          "comparison": {
+            "val_loss_delta": 0.000502,
+            "forward_ms_delta": -11.080813,
+            "speedup_percent": 11.199832
+          }
+        },
+        {
+          "step": 500,
+          "control": {
+            "val_loss": 2.191542,
+            "val_accuracy": 0.371995,
+            "forward_ms_per_batch": 78.435525,
+            "timing_passes": 100
+          },
+          "experiment": {
+            "val_loss": 2.169228,
+            "val_accuracy": 0.378556,
+            "forward_ms_per_batch": 77.995958,
+            "timing_passes": 100
+          },
+          "comparison": {
+            "val_loss_delta": -0.022315,
+            "forward_ms_delta": -0.439567,
+            "speedup_percent": 0.560418
+          }
+        },
+        {
+          "step": 1000,
+          "control": {
+            "val_loss": 2.066175,
+            "val_accuracy": 0.40019,
+            "forward_ms_per_batch": 69.427949,
+            "timing_passes": 100
+          },
+          "experiment": {
+            "val_loss": 2.064319,
+            "val_accuracy": 0.406701,
+            "forward_ms_per_batch": 67.898209,
+            "timing_passes": 100
+          },
+          "comparison": {
+            "val_loss_delta": -0.001856,
+            "forward_ms_delta": -1.52974,
+            "speedup_percent": 2.203349
+          }
+        },
+        {
+          "step": 1500,
+          "control": {
+            "val_loss": 1.98279,
+            "val_accuracy": 0.424529,
+            "forward_ms_per_batch": 67.890958,
+            "timing_passes": 100
+          },
+          "experiment": {
+            "val_loss": 1.991883,
+            "val_accuracy": 0.42513,
+            "forward_ms_per_batch": 65.04257,
+            "timing_passes": 100
+          },
+          "comparison": {
+            "val_loss_delta": 0.009093,
+            "forward_ms_delta": -2.848388,
+            "speedup_percent": 4.195534
+          }
+        },
+        {
+          "step": 2000,
+          "control": {
+            "val_loss": 1.987642,
+            "val_accuracy": 0.441907,
+            "forward_ms_per_batch": 66.234343,
+            "timing_passes": 100
+          },
+          "experiment": {
+            "val_loss": 1.935158,
+            "val_accuracy": 0.436448,
+            "forward_ms_per_batch": 58.947257,
+            "timing_passes": 100
+          },
+          "comparison": {
+            "val_loss_delta": -0.052484,
+            "forward_ms_delta": -7.287086,
+            "speedup_percent": 11.001975
+          }
+        }
+      ],
+      "summary": {
+        "final": {
+          "step": 2000,
+          "control": {
+            "val_loss": 1.987642,
+            "val_accuracy": 0.441907,
+            "forward_ms_per_batch": 66.234343,
+            "timing_passes": 100
+          },
+          "experiment": {
+            "val_loss": 1.935158,
+            "val_accuracy": 0.436448,
+            "forward_ms_per_batch": 58.947257,
+            "timing_passes": 100
+          },
+          "comparison": {
+            "val_loss_delta": -0.052484,
+            "forward_ms_delta": -7.287086,
+            "speedup_percent": 11.001975
+          }
+        },
+        "best_control": {
+          "step": 1500,
+          "val_loss": 1.98279,
+          "val_accuracy": 0.424529
+        },
+        "best_experiment": {
+          "step": 2000,
+          "val_loss": 1.935158,
+          "val_accuracy": 0.436448
+        }
+      },
+      "final_timing": {
+        "control": {
+          "forward_ms_per_batch": 64.961906,
+          "timing_passes": 500
+        },
+        "experiment": {
+          "forward_ms_per_batch": 63.419488,
+          "timing_passes": 500
+        },
+        "comparison": {
+          "forward_ms_delta": -1.542418,
+          "speedup_percent": 2.374342
+        }
+      }
+    },
+    {
+      "seed": 43,
+      "config": {
+        "context_size": 32,
+        "d_model": 128,
+        "feedforward_dim": 256,
+        "temporal_window": 4,
+        "num_heads": 4,
+        "batch_size": 64,
+        "eval_batch_size": 512,
+        "learning_rate": 0.003,
+        "training_steps": 2000,
+        "eval_interval": 500,
+        "seed": 43,
+        "num_blocks": 4,
+        "control_rates": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "multi_rates": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "overfit_steps": 2000,
+        "overfit_loss_threshold": 0.001,
+        "checkpoint_timing_warmup_passes": 20,
+        "checkpoint_timing_passes": 100,
+        "final_timing_warmup_passes": 100,
+        "final_timing_passes": 500,
+        "control_diagonal": false,
+        "multi_diagonal": true
+      },
+      "model": {
+        "control": {
+          "rates": [
+            1,
+            2,
+            4,
+            8
+          ],
+          "diagonal_enabled": false,
+          "mix_coefficients": {
+            "token": 0.5305013656616211,
+            "time": 0.964259684085846,
+            "blocks": [
+              0.8985878825187683,
+              0.9295027256011963,
+              0.9535707831382751,
+              0.9542062282562256
+            ],
+            "diagonal_enabled": false
+          }
+        },
+        "experiment": {
+          "rates": [
+            1,
+            2,
+            4,
+            8
+          ],
+          "diagonal_enabled": true,
+          "mix_coefficients": {
+            "token": 0.49345868825912476,
+            "time": 0.9602369666099548,
+            "blocks": [
+              0.8735631108283997,
+              0.9213117361068726,
+              0.9513851404190063,
+              0.9515269994735718
+            ],
+            "diagonal_enabled": true
+          }
+        }
+      },
+      "overfit": {
+        "trace": [
+          {
+            "step": 0,
+            "loss": 4.224223,
+            "accuracy": 0.0
+          },
+          {
+            "step": 25,
+            "loss": 0.294752,
+            "accuracy": 0.96875
+          },
+          {
+            "step": 50,
+            "loss": 0.001254,
+            "accuracy": 1.0
+          }
+        ],
+        "final_loss": 0.000942,
+        "final_accuracy": 1.0,
+        "memorized": true,
+        "hit_step": 52,
+        "steps_run": 52
+      },
+      "smoke_check": {
+        "diagonal_enabled": true,
+        "batch_shape": [
+          2,
+          32
+        ],
+        "logits_shape": [
+          2,
+          61
+        ],
+        "steps": [
+          {
+            "time_index": 0,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.15357179939746857,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.12427597492933273,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.12572631239891052,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": true,
+                "used_delta_rms": 0.11346760392189026,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 1,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1559685617685318,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.12427597492933273,
+                "diagonal_input_rms": 0.15357179939746857,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.12572631239891052,
+                "diagonal_input_rms": 0.12427597492933273,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11346760392189026,
+                "diagonal_input_rms": 0.12572631239891052,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 2,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1390872597694397,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.14403344690799713,
+                "diagonal_input_rms": 0.1559685617685318,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.12572631239891052,
+                "diagonal_input_rms": 0.12427597492933273,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11346760392189026,
+                "diagonal_input_rms": 0.12572631239891052,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 3,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14087483286857605,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.14403344690799713,
+                "diagonal_input_rms": 0.1390872597694397,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.12572631239891052,
+                "diagonal_input_rms": 0.14403344690799713,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11346760392189026,
+                "diagonal_input_rms": 0.12572631239891052,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 4,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1403045803308487,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.15502114593982697,
+                "diagonal_input_rms": 0.14087483286857605,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.10614563524723053,
+                "diagonal_input_rms": 0.14403344690799713,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11346760392189026,
+                "diagonal_input_rms": 0.12572631239891052,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 5,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.13634508848190308,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.15502114593982697,
+                "diagonal_input_rms": 0.1403045803308487,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.10614563524723053,
+                "diagonal_input_rms": 0.15502114593982697,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11346760392189026,
+                "diagonal_input_rms": 0.10614563524723053,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 6,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1670333743095398,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.1574869155883789,
+                "diagonal_input_rms": 0.13634508848190308,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.10614563524723053,
+                "diagonal_input_rms": 0.15502114593982697,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11346760392189026,
+                "diagonal_input_rms": 0.10614563524723053,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 7,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1483411341905594,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.1574869155883789,
+                "diagonal_input_rms": 0.1670333743095398,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.10614563524723053,
+                "diagonal_input_rms": 0.1574869155883789,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11346760392189026,
+                "diagonal_input_rms": 0.10614563524723053,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 8,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.17055653035640717,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.1416802555322647,
+                "diagonal_input_rms": 0.1483411341905594,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.11143957078456879,
+                "diagonal_input_rms": 0.1574869155883789,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": true,
+                "used_delta_rms": 0.11482476443052292,
+                "diagonal_input_rms": 0.10614563524723053,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 9,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1521277278661728,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.1416802555322647,
+                "diagonal_input_rms": 0.17055653035640717,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11143957078456879,
+                "diagonal_input_rms": 0.1416802555322647,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11482476443052292,
+                "diagonal_input_rms": 0.11143957078456879,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 10,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.15147879719734192,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.1400126963853836,
+                "diagonal_input_rms": 0.1521277278661728,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11143957078456879,
+                "diagonal_input_rms": 0.1416802555322647,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11482476443052292,
+                "diagonal_input_rms": 0.11143957078456879,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 11,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14987151324748993,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.1400126963853836,
+                "diagonal_input_rms": 0.15147879719734192,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11143957078456879,
+                "diagonal_input_rms": 0.1400126963853836,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11482476443052292,
+                "diagonal_input_rms": 0.11143957078456879,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 12,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.132637619972229,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.1530190110206604,
+                "diagonal_input_rms": 0.14987151324748993,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.11139785498380661,
+                "diagonal_input_rms": 0.1400126963853836,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11482476443052292,
+                "diagonal_input_rms": 0.11143957078456879,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 13,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.12255934625864029,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.1530190110206604,
+                "diagonal_input_rms": 0.132637619972229,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11139785498380661,
+                "diagonal_input_rms": 0.1530190110206604,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11482476443052292,
+                "diagonal_input_rms": 0.11139785498380661,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 14,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14776423573493958,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.12249086052179337,
+                "diagonal_input_rms": 0.12255934625864029,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11139785498380661,
+                "diagonal_input_rms": 0.1530190110206604,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11482476443052292,
+                "diagonal_input_rms": 0.11139785498380661,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 15,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1601012647151947,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.12249086052179337,
+                "diagonal_input_rms": 0.14776423573493958,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11139785498380661,
+                "diagonal_input_rms": 0.12249086052179337,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11482476443052292,
+                "diagonal_input_rms": 0.11139785498380661,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 16,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14371834695339203,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.1304786056280136,
+                "diagonal_input_rms": 0.1601012647151947,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.11608298122882843,
+                "diagonal_input_rms": 0.12249086052179337,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": true,
+                "used_delta_rms": 0.11517022550106049,
+                "diagonal_input_rms": 0.11139785498380661,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 17,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.15577863156795502,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.1304786056280136,
+                "diagonal_input_rms": 0.14371834695339203,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11608298122882843,
+                "diagonal_input_rms": 0.1304786056280136,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11517022550106049,
+                "diagonal_input_rms": 0.11608298122882843,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 18,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1595417857170105,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.12962031364440918,
+                "diagonal_input_rms": 0.15577863156795502,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11608298122882843,
+                "diagonal_input_rms": 0.1304786056280136,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11517022550106049,
+                "diagonal_input_rms": 0.11608298122882843,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 19,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.15039460361003876,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.12962031364440918,
+                "diagonal_input_rms": 0.1595417857170105,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11608298122882843,
+                "diagonal_input_rms": 0.12962031364440918,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11517022550106049,
+                "diagonal_input_rms": 0.11608298122882843,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 20,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14966797828674316,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.15487121045589447,
+                "diagonal_input_rms": 0.15039460361003876,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.1315200924873352,
+                "diagonal_input_rms": 0.12962031364440918,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11517022550106049,
+                "diagonal_input_rms": 0.11608298122882843,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 21,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.15592850744724274,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.15487121045589447,
+                "diagonal_input_rms": 0.14966797828674316,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.1315200924873352,
+                "diagonal_input_rms": 0.15487121045589447,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11517022550106049,
+                "diagonal_input_rms": 0.1315200924873352,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 22,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1526523381471634,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.1641787439584732,
+                "diagonal_input_rms": 0.15592850744724274,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.1315200924873352,
+                "diagonal_input_rms": 0.15487121045589447,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11517022550106049,
+                "diagonal_input_rms": 0.1315200924873352,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 23,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.15056964755058289,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.1641787439584732,
+                "diagonal_input_rms": 0.1526523381471634,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.1315200924873352,
+                "diagonal_input_rms": 0.1641787439584732,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.11517022550106049,
+                "diagonal_input_rms": 0.1315200924873352,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 24,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14424017071723938,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.1266481578350067,
+                "diagonal_input_rms": 0.15056964755058289,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.12160547822713852,
+                "diagonal_input_rms": 0.1641787439584732,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": true,
+                "used_delta_rms": 0.10441941767930984,
+                "diagonal_input_rms": 0.1315200924873352,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 25,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.15329644083976746,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.1266481578350067,
+                "diagonal_input_rms": 0.14424017071723938,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.12160547822713852,
+                "diagonal_input_rms": 0.1266481578350067,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10441941767930984,
+                "diagonal_input_rms": 0.12160547822713852,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 26,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14884617924690247,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.12983080744743347,
+                "diagonal_input_rms": 0.15329644083976746,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.12160547822713852,
+                "diagonal_input_rms": 0.1266481578350067,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10441941767930984,
+                "diagonal_input_rms": 0.12160547822713852,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 27,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.13794797658920288,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.12983080744743347,
+                "diagonal_input_rms": 0.14884617924690247,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.12160547822713852,
+                "diagonal_input_rms": 0.12983080744743347,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10441941767930984,
+                "diagonal_input_rms": 0.12160547822713852,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 28,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14495448768138885,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.12695300579071045,
+                "diagonal_input_rms": 0.13794797658920288,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.10564476251602173,
+                "diagonal_input_rms": 0.12983080744743347,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10441941767930984,
+                "diagonal_input_rms": 0.12160547822713852,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 29,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.18635143339633942,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.12695300579071045,
+                "diagonal_input_rms": 0.14495448768138885,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.10564476251602173,
+                "diagonal_input_rms": 0.12695300579071045,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10441941767930984,
+                "diagonal_input_rms": 0.10564476251602173,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 30,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.17867876589298248,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.16199684143066406,
+                "diagonal_input_rms": 0.18635143339633942,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.10564476251602173,
+                "diagonal_input_rms": 0.12695300579071045,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10441941767930984,
+                "diagonal_input_rms": 0.10564476251602173,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 31,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.17947536706924438,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.16199684143066406,
+                "diagonal_input_rms": 0.17867876589298248,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.10564476251602173,
+                "diagonal_input_rms": 0.16199684143066406,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10441941767930984,
+                "diagonal_input_rms": 0.10564476251602173,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          }
+        ],
+        "checks": {
+          "time0_second_block_diagonal_zero": true,
+          "later_second_block_has_nonzero_diagonal": true,
+          "all_diagonal_reads_match_previous_delta": true,
+          "all_diagonal_reads_only_apply_on_execute": true
+        }
+      },
+      "diagonal_effect": {
+        "max_logit_abs_diff": 0.00829288363456726,
+        "diagonal_changes_output": true
+      },
+      "comparison_history": [
+        {
+          "step": 0,
+          "control": {
+            "val_loss": 4.093738,
+            "val_accuracy": 0.057041,
+            "forward_ms_per_batch": 64.440175,
+            "timing_passes": 100
+          },
+          "experiment": {
+            "val_loss": 4.093934,
+            "val_accuracy": 0.057592,
+            "forward_ms_per_batch": 64.200144,
+            "timing_passes": 100
+          },
+          "comparison": {
+            "val_loss_delta": 0.000196,
+            "forward_ms_delta": -0.240031,
+            "speedup_percent": 0.372487
+          }
+        },
+        {
+          "step": 500,
+          "control": {
+            "val_loss": 2.163145,
+            "val_accuracy": 0.388522,
+            "forward_ms_per_batch": 65.504411,
+            "timing_passes": 100
+          },
+          "experiment": {
+            "val_loss": 2.169241,
+            "val_accuracy": 0.3752,
+            "forward_ms_per_batch": 62.672496,
+            "timing_passes": 100
+          },
+          "comparison": {
+            "val_loss_delta": 0.006095,
+            "forward_ms_delta": -2.831915,
+            "speedup_percent": 4.323243
+          }
+        },
+        {
+          "step": 1000,
+          "control": {
+            "val_loss": 2.063745,
+            "val_accuracy": 0.395833,
+            "forward_ms_per_batch": 71.338195,
+            "timing_passes": 100
+          },
+          "experiment": {
+            "val_loss": 2.06656,
+            "val_accuracy": 0.397987,
+            "forward_ms_per_batch": 69.091363,
+            "timing_passes": 100
+          },
+          "comparison": {
+            "val_loss_delta": 0.002815,
+            "forward_ms_delta": -2.246832,
+            "speedup_percent": 3.14955
+          }
+        },
+        {
+          "step": 1500,
+          "control": {
+            "val_loss": 1.973264,
+            "val_accuracy": 0.415665,
+            "forward_ms_per_batch": 69.645652,
+            "timing_passes": 100
+          },
+          "experiment": {
+            "val_loss": 2.004037,
+            "val_accuracy": 0.413962,
+            "forward_ms_per_batch": 65.877925,
+            "timing_passes": 100
+          },
+          "comparison": {
+            "val_loss_delta": 0.030773,
+            "forward_ms_delta": -3.767727,
+            "speedup_percent": 5.409852
+          }
+        },
+        {
+          "step": 2000,
+          "control": {
+            "val_loss": 1.933978,
+            "val_accuracy": 0.438201,
+            "forward_ms_per_batch": 58.884567,
+            "timing_passes": 100
+          },
+          "experiment": {
+            "val_loss": 1.934088,
+            "val_accuracy": 0.436899,
+            "forward_ms_per_batch": 60.46376,
+            "timing_passes": 100
+          },
+          "comparison": {
+            "val_loss_delta": 0.00011,
+            "forward_ms_delta": 1.579193,
+            "speedup_percent": -2.681845
+          }
+        }
+      ],
+      "summary": {
+        "final": {
+          "step": 2000,
+          "control": {
+            "val_loss": 1.933978,
+            "val_accuracy": 0.438201,
+            "forward_ms_per_batch": 58.884567,
+            "timing_passes": 100
+          },
+          "experiment": {
+            "val_loss": 1.934088,
+            "val_accuracy": 0.436899,
+            "forward_ms_per_batch": 60.46376,
+            "timing_passes": 100
+          },
+          "comparison": {
+            "val_loss_delta": 0.00011,
+            "forward_ms_delta": 1.579193,
+            "speedup_percent": -2.681845
+          }
+        },
+        "best_control": {
+          "step": 2000,
+          "val_loss": 1.933978,
+          "val_accuracy": 0.438201
+        },
+        "best_experiment": {
+          "step": 2000,
+          "val_loss": 1.934088,
+          "val_accuracy": 0.436899
+        }
+      },
+      "final_timing": {
+        "control": {
+          "forward_ms_per_batch": 66.752417,
+          "timing_passes": 500
+        },
+        "experiment": {
+          "forward_ms_per_batch": 57.972642,
+          "timing_passes": 500
+        },
+        "comparison": {
+          "forward_ms_delta": -8.779775,
+          "speedup_percent": 13.152745
+        }
+      }
+    },
+    {
+      "seed": 44,
+      "config": {
+        "context_size": 32,
+        "d_model": 128,
+        "feedforward_dim": 256,
+        "temporal_window": 4,
+        "num_heads": 4,
+        "batch_size": 64,
+        "eval_batch_size": 512,
+        "learning_rate": 0.003,
+        "training_steps": 2000,
+        "eval_interval": 500,
+        "seed": 44,
+        "num_blocks": 4,
+        "control_rates": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "multi_rates": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "overfit_steps": 2000,
+        "overfit_loss_threshold": 0.001,
+        "checkpoint_timing_warmup_passes": 20,
+        "checkpoint_timing_passes": 100,
+        "final_timing_warmup_passes": 100,
+        "final_timing_passes": 500,
+        "control_diagonal": false,
+        "multi_diagonal": true
+      },
+      "model": {
+        "control": {
+          "rates": [
+            1,
+            2,
+            4,
+            8
+          ],
+          "diagonal_enabled": false,
+          "mix_coefficients": {
+            "token": 0.5396527051925659,
+            "time": 0.9667297601699829,
+            "blocks": [
+              0.8995553255081177,
+              0.9299250841140747,
+              0.95027095079422,
+              0.9506571292877197
+            ],
+            "diagonal_enabled": false
+          }
+        },
+        "experiment": {
+          "rates": [
+            1,
+            2,
+            4,
+            8
+          ],
+          "diagonal_enabled": true,
+          "mix_coefficients": {
+            "token": 0.34030285477638245,
+            "time": 0.9708337187767029,
+            "blocks": [
+              0.9185272455215454,
+              0.9291079044342041,
+              0.9563425183296204,
+              0.9615150094032288
+            ],
+            "diagonal_enabled": true
+          }
+        }
+      },
+      "overfit": {
+        "trace": [
+          {
+            "step": 0,
+            "loss": 4.181239,
+            "accuracy": 0.0
+          },
+          {
+            "step": 25,
+            "loss": 0.177401,
+            "accuracy": 1.0
+          }
+        ],
+        "final_loss": 0.000918,
+        "final_accuracy": 1.0,
+        "memorized": true,
+        "hit_step": 43,
+        "steps_run": 43
+      },
+      "smoke_check": {
+        "diagonal_enabled": true,
+        "batch_shape": [
+          2,
+          32
+        ],
+        "logits_shape": [
+          2,
+          61
+        ],
+        "steps": [
+          {
+            "time_index": 0,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.13918033242225647,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.13850140571594238,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.10453253984451294,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": true,
+                "used_delta_rms": 0.09551988542079926,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 1,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.12485887110233307,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.13850140571594238,
+                "diagonal_input_rms": 0.13918033242225647,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.10453253984451294,
+                "diagonal_input_rms": 0.13850140571594238,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.09551988542079926,
+                "diagonal_input_rms": 0.10453253984451294,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 2,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.16013465821743011,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.11538500338792801,
+                "diagonal_input_rms": 0.12485887110233307,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.10453253984451294,
+                "diagonal_input_rms": 0.13850140571594238,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.09551988542079926,
+                "diagonal_input_rms": 0.10453253984451294,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 3,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1549851894378662,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.11538500338792801,
+                "diagonal_input_rms": 0.16013465821743011,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.10453253984451294,
+                "diagonal_input_rms": 0.11538500338792801,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.09551988542079926,
+                "diagonal_input_rms": 0.10453253984451294,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 4,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1321227103471756,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.128225639462471,
+                "diagonal_input_rms": 0.1549851894378662,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.11401566863059998,
+                "diagonal_input_rms": 0.11538500338792801,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.09551988542079926,
+                "diagonal_input_rms": 0.10453253984451294,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 5,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.13358034193515778,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.128225639462471,
+                "diagonal_input_rms": 0.1321227103471756,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11401566863059998,
+                "diagonal_input_rms": 0.128225639462471,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.09551988542079926,
+                "diagonal_input_rms": 0.11401566863059998,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 6,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.13301296532154083,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.12674133479595184,
+                "diagonal_input_rms": 0.13358034193515778,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11401566863059998,
+                "diagonal_input_rms": 0.128225639462471,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.09551988542079926,
+                "diagonal_input_rms": 0.11401566863059998,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 7,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.12385805696249008,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.12674133479595184,
+                "diagonal_input_rms": 0.13301296532154083,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11401566863059998,
+                "diagonal_input_rms": 0.12674133479595184,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.09551988542079926,
+                "diagonal_input_rms": 0.11401566863059998,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 8,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.12768279016017914,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.1282930076122284,
+                "diagonal_input_rms": 0.12385805696249008,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.14538165926933289,
+                "diagonal_input_rms": 0.12674133479595184,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": true,
+                "used_delta_rms": 0.10723715275526047,
+                "diagonal_input_rms": 0.11401566863059998,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 9,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1479937881231308,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.1282930076122284,
+                "diagonal_input_rms": 0.12768279016017914,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.14538165926933289,
+                "diagonal_input_rms": 0.1282930076122284,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10723715275526047,
+                "diagonal_input_rms": 0.14538165926933289,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 10,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.15735575556755066,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.1445017158985138,
+                "diagonal_input_rms": 0.1479937881231308,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.14538165926933289,
+                "diagonal_input_rms": 0.1282930076122284,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10723715275526047,
+                "diagonal_input_rms": 0.14538165926933289,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 11,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.16116657853126526,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.1445017158985138,
+                "diagonal_input_rms": 0.15735575556755066,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.14538165926933289,
+                "diagonal_input_rms": 0.1445017158985138,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10723715275526047,
+                "diagonal_input_rms": 0.14538165926933289,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 12,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14973148703575134,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.15313036739826202,
+                "diagonal_input_rms": 0.16116657853126526,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.13294081389904022,
+                "diagonal_input_rms": 0.1445017158985138,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10723715275526047,
+                "diagonal_input_rms": 0.14538165926933289,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 13,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14983531832695007,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.15313036739826202,
+                "diagonal_input_rms": 0.14973148703575134,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.13294081389904022,
+                "diagonal_input_rms": 0.15313036739826202,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10723715275526047,
+                "diagonal_input_rms": 0.13294081389904022,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 14,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14410170912742615,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.14374825358390808,
+                "diagonal_input_rms": 0.14983531832695007,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.13294081389904022,
+                "diagonal_input_rms": 0.15313036739826202,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10723715275526047,
+                "diagonal_input_rms": 0.13294081389904022,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 15,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.13909442722797394,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.14374825358390808,
+                "diagonal_input_rms": 0.14410170912742615,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.13294081389904022,
+                "diagonal_input_rms": 0.14374825358390808,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10723715275526047,
+                "diagonal_input_rms": 0.13294081389904022,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 16,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14399006962776184,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.14706465601921082,
+                "diagonal_input_rms": 0.13909442722797394,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.13036060333251953,
+                "diagonal_input_rms": 0.14374825358390808,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": true,
+                "used_delta_rms": 0.10548925399780273,
+                "diagonal_input_rms": 0.13294081389904022,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 17,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.15830373764038086,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.14706465601921082,
+                "diagonal_input_rms": 0.14399006962776184,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.13036060333251953,
+                "diagonal_input_rms": 0.14706465601921082,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10548925399780273,
+                "diagonal_input_rms": 0.13036060333251953,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 18,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.15847763419151306,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.1351863145828247,
+                "diagonal_input_rms": 0.15830373764038086,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.13036060333251953,
+                "diagonal_input_rms": 0.14706465601921082,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10548925399780273,
+                "diagonal_input_rms": 0.13036060333251953,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 19,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14165711402893066,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.1351863145828247,
+                "diagonal_input_rms": 0.15847763419151306,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.13036060333251953,
+                "diagonal_input_rms": 0.1351863145828247,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10548925399780273,
+                "diagonal_input_rms": 0.13036060333251953,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 20,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.13710640370845795,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.1248321533203125,
+                "diagonal_input_rms": 0.14165711402893066,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.11277169734239578,
+                "diagonal_input_rms": 0.1351863145828247,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10548925399780273,
+                "diagonal_input_rms": 0.13036060333251953,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 21,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.12058509886264801,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.1248321533203125,
+                "diagonal_input_rms": 0.13710640370845795,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11277169734239578,
+                "diagonal_input_rms": 0.1248321533203125,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10548925399780273,
+                "diagonal_input_rms": 0.11277169734239578,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 22,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.13591928780078888,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.13620594143867493,
+                "diagonal_input_rms": 0.12058509886264801,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11277169734239578,
+                "diagonal_input_rms": 0.1248321533203125,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10548925399780273,
+                "diagonal_input_rms": 0.11277169734239578,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 23,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1468280702829361,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.13620594143867493,
+                "diagonal_input_rms": 0.13591928780078888,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.11277169734239578,
+                "diagonal_input_rms": 0.13620594143867493,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.10548925399780273,
+                "diagonal_input_rms": 0.11277169734239578,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 24,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.15319731831550598,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.15140116214752197,
+                "diagonal_input_rms": 0.1468280702829361,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.13574060797691345,
+                "diagonal_input_rms": 0.13620594143867493,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": true,
+                "used_delta_rms": 0.12254978716373444,
+                "diagonal_input_rms": 0.11277169734239578,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 25,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.15527039766311646,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.15140116214752197,
+                "diagonal_input_rms": 0.15319731831550598,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.13574060797691345,
+                "diagonal_input_rms": 0.15140116214752197,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.12254978716373444,
+                "diagonal_input_rms": 0.13574060797691345,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 26,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.13649578392505646,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.12094659358263016,
+                "diagonal_input_rms": 0.15527039766311646,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.13574060797691345,
+                "diagonal_input_rms": 0.15140116214752197,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.12254978716373444,
+                "diagonal_input_rms": 0.13574060797691345,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 27,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.14503639936447144,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.12094659358263016,
+                "diagonal_input_rms": 0.13649578392505646,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.13574060797691345,
+                "diagonal_input_rms": 0.12094659358263016,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.12254978716373444,
+                "diagonal_input_rms": 0.13574060797691345,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 28,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.13701795041561127,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.13453927636146545,
+                "diagonal_input_rms": 0.14503639936447144,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": true,
+                "used_delta_rms": 0.09672335535287857,
+                "diagonal_input_rms": 0.12094659358263016,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.12254978716373444,
+                "diagonal_input_rms": 0.13574060797691345,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 29,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.1523548811674118,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.13453927636146545,
+                "diagonal_input_rms": 0.13701795041561127,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.09672335535287857,
+                "diagonal_input_rms": 0.13453927636146545,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.12254978716373444,
+                "diagonal_input_rms": 0.09672335535287857,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 30,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.15091001987457275,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": true,
+                "used_delta_rms": 0.13459546864032745,
+                "diagonal_input_rms": 0.1523548811674118,
+                "diagonal_applied": true,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.09672335535287857,
+                "diagonal_input_rms": 0.13453927636146545,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.12254978716373444,
+                "diagonal_input_rms": 0.09672335535287857,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          },
+          {
+            "time_index": 31,
+            "blocks": [
+              {
+                "block_index": 0,
+                "rate": 1,
+                "executed": true,
+                "used_delta_rms": 0.13373300433158875,
+                "diagonal_input_rms": 0.0,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 1,
+                "rate": 2,
+                "executed": false,
+                "used_delta_rms": 0.13459546864032745,
+                "diagonal_input_rms": 0.15091001987457275,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 2,
+                "rate": 4,
+                "executed": false,
+                "used_delta_rms": 0.09672335535287857,
+                "diagonal_input_rms": 0.13459546864032745,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              },
+              {
+                "block_index": 3,
+                "rate": 8,
+                "executed": false,
+                "used_delta_rms": 0.12254978716373444,
+                "diagonal_input_rms": 0.09672335535287857,
+                "diagonal_applied": false,
+                "diagonal_matches_previous_delta": true
+              }
+            ]
+          }
+        ],
+        "checks": {
+          "time0_second_block_diagonal_zero": true,
+          "later_second_block_has_nonzero_diagonal": true,
+          "all_diagonal_reads_match_previous_delta": true,
+          "all_diagonal_reads_only_apply_on_execute": true
+        }
+      },
+      "diagonal_effect": {
+        "max_logit_abs_diff": 0.0055808573961257935,
+        "diagonal_changes_output": true
+      },
+      "comparison_history": [
+        {
+          "step": 0,
+          "control": {
+            "val_loss": 4.212788,
+            "val_accuracy": 0.008614,
+            "forward_ms_per_batch": 63.071451,
+            "timing_passes": 100
+          },
+          "experiment": {
+            "val_loss": 4.212877,
+            "val_accuracy": 0.008764,
+            "forward_ms_per_batch": 56.778184,
+            "timing_passes": 100
+          },
+          "comparison": {
+            "val_loss_delta": 8.9e-05,
+            "forward_ms_delta": -6.293267,
+            "speedup_percent": 9.977996
+          }
+        },
+        {
+          "step": 500,
+          "control": {
+            "val_loss": 2.169028,
+            "val_accuracy": 0.376703,
+            "forward_ms_per_batch": 61.300231,
+            "timing_passes": 100
+          },
+          "experiment": {
+            "val_loss": 2.165465,
+            "val_accuracy": 0.380108,
+            "forward_ms_per_batch": 63.238437,
+            "timing_passes": 100
+          },
+          "comparison": {
+            "val_loss_delta": -0.003562,
+            "forward_ms_delta": 1.938206,
+            "speedup_percent": -3.161825
+          }
+        },
+        {
+          "step": 1000,
+          "control": {
+            "val_loss": 2.034808,
+            "val_accuracy": 0.410507,
+            "forward_ms_per_batch": 64.056834,
+            "timing_passes": 100
+          },
+          "experiment": {
+            "val_loss": 2.045033,
+            "val_accuracy": 0.410857,
+            "forward_ms_per_batch": 62.980777,
+            "timing_passes": 100
+          },
+          "comparison": {
+            "val_loss_delta": 0.010225,
+            "forward_ms_delta": -1.076057,
+            "speedup_percent": 1.679847
+          }
+        },
+        {
+          "step": 1500,
+          "control": {
+            "val_loss": 1.984462,
+            "val_accuracy": 0.414663,
+            "forward_ms_per_batch": 70.219501,
+            "timing_passes": 100
+          },
+          "experiment": {
+            "val_loss": 2.043639,
+            "val_accuracy": 0.41276,
+            "forward_ms_per_batch": 71.686885,
+            "timing_passes": 100
+          },
+          "comparison": {
+            "val_loss_delta": 0.059177,
+            "forward_ms_delta": 1.467384,
+            "speedup_percent": -2.08971
+          }
+        },
+        {
+          "step": 2000,
+          "control": {
+            "val_loss": 1.959089,
+            "val_accuracy": 0.439854,
+            "forward_ms_per_batch": 70.449009,
+            "timing_passes": 100
+          },
+          "experiment": {
+            "val_loss": 18.386296,
+            "val_accuracy": 0.098908,
+            "forward_ms_per_batch": 67.88142,
+            "timing_passes": 100
+          },
+          "comparison": {
+            "val_loss_delta": 16.427206,
+            "forward_ms_delta": -2.567589,
+            "speedup_percent": 3.644606
+          }
+        }
+      ],
+      "summary": {
+        "final": {
+          "step": 2000,
+          "control": {
+            "val_loss": 1.959089,
+            "val_accuracy": 0.439854,
+            "forward_ms_per_batch": 70.449009,
+            "timing_passes": 100
+          },
+          "experiment": {
+            "val_loss": 18.386296,
+            "val_accuracy": 0.098908,
+            "forward_ms_per_batch": 67.88142,
+            "timing_passes": 100
+          },
+          "comparison": {
+            "val_loss_delta": 16.427206,
+            "forward_ms_delta": -2.567589,
+            "speedup_percent": 3.644606
+          }
+        },
+        "best_control": {
+          "step": 2000,
+          "val_loss": 1.959089,
+          "val_accuracy": 0.439854
+        },
+        "best_experiment": {
+          "step": 1500,
+          "val_loss": 2.043639,
+          "val_accuracy": 0.41276
+        }
+      },
+      "final_timing": {
+        "control": {
+          "forward_ms_per_batch": 66.943973,
+          "timing_passes": 500
+        },
+        "experiment": {
+          "forward_ms_per_batch": 62.287305,
+          "timing_passes": 500
+        },
+        "comparison": {
+          "forward_ms_delta": -4.656668,
+          "speedup_percent": 6.956067
+        }
+      }
+    }
+  ],
+  "aggregate": {
+    "seed_count": 3,
+    "final": {
+      "comparison": {
+        "val_loss_delta": {
+          "mean": 5.458277,
+          "std": 9.499407,
+          "min": -0.052484,
+          "max": 16.427206
+        },
+        "speedup_percent": {
+          "mean": 3.988245,
+          "std": 6.848379,
+          "min": -2.681845,
+          "max": 11.001975
+        }
+      },
+      "control": {
+        "val_loss": {
+          "mean": 1.960236,
+          "std": 0.02685,
+          "min": 1.933978,
+          "max": 1.987642
+        }
+      },
+      "experiment": {
+        "val_loss": {
+          "mean": 7.418514,
+          "std": 9.498378,
+          "min": 1.934088,
+          "max": 18.386296
+        }
+      }
+    },
+    "checkpoints": [
+      {
+        "step": 0,
+        "comparison": {
+          "val_loss_delta": {
+            "mean": 0.000262,
+            "std": 0.000214,
+            "min": 8.9e-05,
+            "max": 0.000502
+          },
+          "speedup_percent": {
+            "mean": 7.183438,
+            "std": 5.93001,
+            "min": 0.372487,
+            "max": 11.199832
+          }
+        },
+        "control": {
+          "val_loss": {
+            "mean": 4.150668,
+            "std": 0.059694,
+            "min": 4.093738,
+            "max": 4.212788
+          }
+        },
+        "experiment": {
+          "val_loss": {
+            "mean": 4.15093,
+            "std": 0.059626,
+            "min": 4.093934,
+            "max": 4.212877
+          }
+        }
+      },
+      {
+        "step": 500,
+        "comparison": {
+          "val_loss_delta": {
+            "mean": -0.006594,
+            "std": 0.014446,
+            "min": -0.022315,
+            "max": 0.006095
+          },
+          "speedup_percent": {
+            "mean": 0.573945,
+            "std": 3.742552,
+            "min": -3.161825,
+            "max": 4.323243
+          }
+        },
+        "control": {
+          "val_loss": {
+            "mean": 2.174572,
+            "std": 0.014988,
+            "min": 2.163145,
+            "max": 2.191542
+          }
+        },
+        "experiment": {
+          "val_loss": {
+            "mean": 2.167978,
+            "std": 0.002176,
+            "min": 2.165465,
+            "max": 2.169241
+          }
+        }
+      },
+      {
+        "step": 1000,
+        "comparison": {
+          "val_loss_delta": {
+            "mean": 0.003728,
+            "std": 0.006092,
+            "min": -0.001856,
+            "max": 0.010225
+          },
+          "speedup_percent": {
+            "mean": 2.344249,
+            "std": 0.744914,
+            "min": 1.679847,
+            "max": 3.14955
+          }
+        },
+        "control": {
+          "val_loss": {
+            "mean": 2.054909,
+            "std": 0.017451,
+            "min": 2.034808,
+            "max": 2.066175
+          }
+        },
+        "experiment": {
+          "val_loss": {
+            "mean": 2.058637,
+            "std": 0.011835,
+            "min": 2.045033,
+            "max": 2.06656
+          }
+        }
+      },
+      {
+        "step": 1500,
+        "comparison": {
+          "val_loss_delta": {
+            "mean": 0.033014,
+            "std": 0.025117,
+            "min": 0.009093,
+            "max": 0.059177
+          },
+          "speedup_percent": {
+            "mean": 2.505225,
+            "std": 4.025384,
+            "min": -2.08971,
+            "max": 5.409852
+          }
+        },
+        "control": {
+          "val_loss": {
+            "mean": 1.980172,
+            "std": 0.006041,
+            "min": 1.973264,
+            "max": 1.984462
+          }
+        },
+        "experiment": {
+          "val_loss": {
+            "mean": 2.013186,
+            "std": 0.027064,
+            "min": 1.991883,
+            "max": 2.043639
+          }
+        }
+      },
+      {
+        "step": 2000,
+        "comparison": {
+          "val_loss_delta": {
+            "mean": 5.458277,
+            "std": 9.499407,
+            "min": -0.052484,
+            "max": 16.427206
+          },
+          "speedup_percent": {
+            "mean": 3.988245,
+            "std": 6.848379,
+            "min": -2.681845,
+            "max": 11.001975
+          }
+        },
+        "control": {
+          "val_loss": {
+            "mean": 1.960236,
+            "std": 0.02685,
+            "min": 1.933978,
+            "max": 1.987642
+          }
+        },
+        "experiment": {
+          "val_loss": {
+            "mean": 7.418514,
+            "std": 9.498378,
+            "min": 1.934088,
+            "max": 18.386296
+          }
+        }
+      }
+    ]
+  }
+}

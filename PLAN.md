@@ -11,7 +11,7 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 - [x] **Scale multi-rate [1,2,4,8]** — DONE. 20.7% speedup (500-pass final timing), quality BETTER (-0.006 nats). Target cleared.
 - [x] **Push rates further [1,2,4,8,16]** — DONE. ~22% speedup (checkpoints) but +0.016 quality cost. Rate-16 is where quality starts degrading. Sweet spot is [1,2,4,8] at 20.7% with quality BETTER.
-- [ ] **Diagonal + multi-rate** — first probe shows -0.052 at step 2000 (suggestive, non-monotonic). Needs multi-seed or longer run to confirm. Question doc: `research/questions/diagonal-multi-rate/README.md`.
+- [x] **Diagonal + multi-rate** — NEGATIVE (as currently implemented). Multi-seed confirmation: seed 42 gave -0.052, seed 43 gave 0.000, seed 44 DIVERGED (val_loss 18.4). The effect is seed-specific and the mechanism is unstable. Stabilized variant (gated/scaled diagonal) is an open question. See `research/questions/diagonal-multi-rate/README.md`.
 - [ ] **Backend decision** — JAX recommended (`research/questions/backend-choice/README.md`). Awaiting Max's input.
 - [ ] **Core reintegration** — once backend is decided, rewrite core/ to be clean, compiled, and reusable.
 
