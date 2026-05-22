@@ -4,46 +4,33 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Now
 
-- [x] **Whole-step CUDA Graph: CONFIRMED** — 10.86x real-world speedup (373s→34s for 2000 steps), quality identical (±0.004 noise). Python dispatch overhead was 90%+ of training time.
-- [x] **GraphTrainer integrated into core/** — `core/training.py` now has `GraphTrainer` class + `capturable_adamw()` helper.
-- [x] **20K matched-FLOP: TIE (3-seed confirmed)** — Avg delta -0.001 (seeds: -0.004, -0.014, +0.014). The +0.018 gap from 2K steps completely vanishes at longer training. Multi-rate is compute-equivalent with structural benefits.
-- [ ] **Multi-seed 20K confirmation** — ~~Run seeds 43, 44 to confirm the TIE result holds.~~ **DONE** — confirmed. See above.
+All immediate items complete. Major findings this session:
+- **CUDA Graph training: 10.86×** — integrated into `core/training.py` as `GraphTrainer`
+- **20K matched-FLOP: TIE** (3-seed avg delta -0.001) — multi-rate is compute-equivalent with structural benefits at longer training horizons
 
-### Matched-FLOP decision tree
-
-**What it tests:** Multi-rate [1,2,4,8] (d_model=128, 4 blocks) vs all-rate-1 model sized to match training-step wall-clock time (3 or 4 blocks with larger d_model). Same compute budget → which has better val_loss at 2000 steps?
-
-**Success criteria (3-seed average, per process rule):**
-
-| Outcome | Definition | Next action |
-|---------|-----------|-------------|
-| **Win** | Multi-rate val_loss ≤ control - 0.01 | Larger-scale confirmation: 8 blocks, longer training (5000+ steps). Multi-rate is genuinely better USE of compute. |
-| **Tie** | Delta within ±0.01 | Multi-rate [1,2,4,8] is still preferable — same quality in same time but with architectural headroom for async. Write up as "multi-rate is compute-equivalent with structural benefits." Proceed to persistent-kernel async prototype. |
-| **Loss** | Multi-rate val_loss > control + 0.01 | Reframe current results: multi-rate gives speedup by doing less work (not by doing BETTER work). The 4-block all-rate-1 model is quality-superior when given equal compute. Investigate why — is it the stale reads degrading optimization, or insufficient model capacity at rate-8? |
-
-**Single-seed first:** Run one seed to get the ballpark. If clearly win or clearly loss (>0.03 delta), that's informative but NOT decisive. Run 2 more seeds to confirm.
-
-**Artifacts needed:** `experiments/fixed_multi_rate/artifacts/matched_flop/report.json` with calibration results (which d_model was selected), training curves, and final metrics.
+Next directions (choose one):
+- [ ] **Scale up** — With 10.86× training speed, run much larger experiments. 8 blocks, larger d_model, more data, longer training. Does multi-rate's advantage grow or stay flat at scale?
+- [ ] **Diagonal connections (revisit)** — The original test was unstable (1 seed diverged, 1 neutral, 1 strong positive). With GraphTrainer + 20K steps, rerun with proper stabilization (gating, scaled init). Per VISION, diagonal connections are "the main structural idea to explore."
+- [ ] **Self-prediction auxiliary loss** — Per VISION: "each block's job: predict its own next incoming residual stream." Previous test was NEGATIVE (+0.011-0.018 nats) but at only 2K steps. Worth revisiting at 20K.
 
 ## Recently completed
 
-- [x] **Literature backing** — DONE. 30+ papers supporting multi-rate, persistent kernels, and MixAdd. See `research/questions/literature-backing/README.md`.
-- [x] **Backend decision** — DECIDED: PyTorch deliberately. `torch.compile` for stable core/ paths, custom CUDA/Triton for async research. See `research/questions/backend-choice/README.md`.
-- [x] **Core reintegration** — DONE. `core/model.py` has MixAdd, ResidualFeedForwardBlock, TemporalWindowAttention, MultiRateResidualModel. `core/training.py` has evaluate_model, fixed_step_indices, write_json, git utilities. torch.compile-compatible (verified with eager backend).
-- [x] **Diagonal + multi-rate** — NEGATIVE (as currently implemented). Multi-seed confirmation: seed 42 gave -0.052, seed 43 gave 0.000, seed 44 DIVERGED (val_loss 18.4). Stabilized variant (gated/scaled) is open. See `research/questions/diagonal-multi-rate/README.md`.
-- [x] **Async hardware investigation** — CLOSED. CUDA Graph parallel gives 28% speedup at our workload scale (2048 tokens, d=128). Triton/persistent kernels are Linux-only. See `research/questions/async-execution/README.md`.
+- [x] **CUDA Graph training** — 10.86× confirmed, GraphTrainer in core/
+- [x] **20K matched-FLOP** — 3-seed TIE (avg -0.001). Multi-rate is compute-equivalent.
+- [x] **Literature backing** — 30+ papers. See `research/questions/literature-backing/README.md`.
+- [x] **Backend decision** — PyTorch + torch.compile + manual CUDA Graphs.
+- [x] **Core reintegration** — `core/model.py` + `core/training.py`
+- [x] **Diagonal + multi-rate** — NEGATIVE (unstable). Needs revisit with stabilization.
+- [x] **Async hardware** — CLOSED. 28% block concurrency, but irrelevant vs 10.86× whole-step graph.
 
 ## Queue (lower priority)
 
-- Multi-seed 20K — seeds 43, 44 to confirm TIE. Quick (~10 min each with GraphTrainer).
-- Async wall-clock proof — ~~prove that running blocks concurrently gives wall-clock speedup~~ **DONE** (28% at our scale via CUDA Graphs, but irrelevant now since whole-step graph gives 10.86x). Architecturally independent blocks cost +0.036 quality.
-- Re-run matched-FLOP at 20K steps — ~~With 10x speed, cheap to check if quality gap closes at longer training~~ **DONE** — it closes. See report_20k.json.
-- Muon optimizer — ~~swap in Muon and rerun window size ablation (k=4,8,16).~~ **DONE.** Muon fixes instability (k=8, k=16 train stably) but quality worse than AdamW at k=4. Param-matched Muon+k=8 beats AdamW+k=4 though. See `research/questions/muon-optimizer/README.md`.
 - Named/typed tensor dimensions — continue converting codebase to einops + jaxtyping style. Per [dictation 2026-05-22-14](dictations/2026-05-22-14.md). (Started: core/model.py done.)
 - Loop management tooling — script to show recent agent messages, manage the autonomous loop. Per [dictation 2026-05-20-14](dictations/2026-05-20-14.md).
 - Immediate dictation notification — OpenCode plugin/hook for real-time detection. Per [dictation 2026-05-22-14](dictations/2026-05-22-14.md), [dictation 2026-05-22-15](dictations/2026-05-22-15.md). (Partial: polling via `core.check_dictations` exists.)
+- Muon optimizer — ~~swap in Muon and rerun window size ablation.~~ **DONE.** See `research/questions/muon-optimizer/README.md`.
 - Arbitrary-order sampling — deprioritized per [dictation 2026-05-22-6](dictations/2026-05-22-6.md). Prototype works (MSE 0.0195).
-- Self-prediction — NEGATIVE (+0.011-0.018 nats)
+- Self-prediction — NEGATIVE at 2K steps (+0.011-0.018 nats). Worth revisiting at 20K.
 - Dynamic token count — not yet explored
 - Complex-valued / orthogonal parameterization — exp-map was quality-negative
 - Volume-preserving nonlinearities — highly speculative
@@ -54,6 +41,8 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 - VISION.md rewrite from all dictations — per [dictation 2026-05-22-8](dictations/2026-05-22-8.md). Completed.
 - Fixed multi-rate [1,1,2,4]: **POSITIVE** — 14.8% speedup, quality better. See `research/questions/fixed-multi-rate/README.md`.
 - Fixed multi-rate [1,2,4,8]: **POSITIVE** — 20.7% speedup, quality better. Same README.
+- Matched-FLOP 2K steps (3-seed): +0.018 LOSS. Superseded by 20K-step result (TIE).
+- Matched-FLOP 20K steps (3-seed): **TIE** (-0.001 avg). Multi-rate is compute-equivalent.
 - Arbitrary-order MNIST: **WORKING** — per-pixel MSE 0.0195. See `research/questions/arbitrary-order-sampling/README.md`.
 - Dynamic depth: **POSITIVE** — 43% compute savings for 1% quality loss. See `research/questions/dynamic-depth/README.md`.
 - Backend research: **DONE** — See `research/questions/backend-choice/README.md`.
