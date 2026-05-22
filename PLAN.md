@@ -15,8 +15,9 @@ Architecture:
 - **Quality at equal FLOPs: BETTER (+0.019 avg, 2/3 seeds clearly better, 1 tied)** ✓
 
 Next steps:
-- [ ] **Understand the scale gap** — Why does parallel win at 4 blocks but tie/lose at 8? Hypothesis: sequential depth gives compositional power that width can't replace. Could test: 8-block parallel with more internal_steps (simulate depth within each block).
-- [ ] **Self-prediction revisit** — Auxiliary losses on top of validated architecture.
+- [ ] **Check internal_steps=2 result** (PID 15680 running). If positive: within-block depth helps parallel at 8 blocks.
+- [ ] **Compute frontier** — Run parallel multi-rate and sequential all-rate-1 across multiple depths (2,4,6,8 blocks) at NATURAL compute (no FLOP matching). Plot quality vs actual FLOPs/token. The real question is: what's the cheapest async-capable model that reaches a target quality?
+- [ ] **Self-prediction revisit** — Not the old logits-KL, but predict future lateral messages or neighbor states. Match the architecture's actual information bottleneck.
 
 ## Recently completed
 
