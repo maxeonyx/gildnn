@@ -318,6 +318,52 @@ Question-folder notes can be rougher. Daily and weekly narratives should be poli
 
 ---
 
+## Delegating experiment work to subagents
+
+This section is for the orchestrating agent. It codifies the pattern that prevents wasted context and ensures visibility.
+
+### Durable question docs come first
+
+Before delegating an experiment, write `research/questions/<question>/README.md` with the context, question, hypotheses, and planned approach. This doc persists across sessions. If the subagent dies or hands over, a new agent can read the same doc without re-prompting.
+
+Prompt content is ephemeral. Durable docs are infrastructure.
+
+### What goes in the prompt vs. what's already in docs
+
+| Belongs in prompt | Belongs in AGENTS.md / conventions | Belongs in question doc |
+|---|---|---|
+| Which rung of the ladder we're on | File naming, directory structure | Architecture, context, prior results |
+| Process instructions (report back, don't poll) | How to run experiments, environment | Hypotheses, planned evidence |
+| What the goal is (1 sentence) | Hyperparameter defaults | Implementation details worth preserving |
+
+Don't repeat what's already documented. Reference it: "Read `research/questions/fixed-multi-rate/README.md` for the question, hypotheses, and architecture."
+
+### The report-back cycle
+
+Each experiment delegation follows an up-down-up-down pattern:
+
+1. **Setup prompt** — subagent reads the question doc, implements the experiment, reports back what it built and what it's about to run. It does NOT run yet.
+2. **Launch prompt** — orchestrator reviews the plan, says go. Subagent launches in background, returns PID and log path, stops immediately.
+3. **Check prompt** — orchestrator does other work, then checks back. Subagent reads log, reports results or failure.
+
+Each "report back" is a checkpoint where the orchestrator can course-correct, do other work, or maintain visibility. Without this: 30 minutes of idle context, no visibility, no ability to redirect.
+
+The exact number of prompts varies. Fast experiments might skip the background phase. Complex ones might need debugging rounds. The non-negotiable parts:
+
+- Subagent does not autonomously run long experiments without reporting what it's about to do
+- Setup is separate from execution
+- Long runs (>5 min) go to background; orchestrator does other work
+
+### What NOT to put in prompts
+
+- Environment details already in AGENTS.md (runtime, GPU, how to invoke scripts)
+- Full architecture explanations (put those in the question doc)
+- Exact file names (let the subagent decide based on conventions and existing patterns)
+- Step-by-step implementation instructions (that's the subagent's job)
+- All hyperparameter defaults (only mention what's specific to THIS experiment)
+
+---
+
 ## Information architecture
 
 Files should have clear jobs. Rewrite them when reality changes; do not append stale process sediment forever.

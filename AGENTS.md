@@ -84,9 +84,9 @@ Evidence in question READMEs must be **embedded inline** in the markdown (tables
 
 | File/Dir | Purpose | Read when |
 |---|---|---|
-| `VISION.md` | Motivating ideas, open questions, research threads | Starting fresh, orienting on goals |
+| `VISION.md` | Overall research architecture — what pieces, what experiments, what order | Starting fresh, orienting on goals |
 | `PROCESS.md` | How work is done — experiment discipline, loop, reporting | Deciding how to proceed |
-| `PLAN.md` | Prioritized next work — rewritten not appended | Picking up after a handover |
+| `PLAN.md` | Immediate checklist — what's next, what to do based on each outcome | Picking up after a handover |
 | `loop.ps1` | Outer restart loop — uses Task Scheduler (NOT terminal child). Do not revert to terminal-based loop. | Understanding how the loop works |
 | `research/daily/` | Daily output narratives for Max | Reviewing recent progress |
 | `research/weekly/` | Weekly synthesis narratives for Max | Weekly review |
@@ -131,10 +131,10 @@ Evidence in question READMEs must be **embedded inline** in the markdown (tables
 ## Handover protocol
 
 When picking up after a handover:
-1. Read `PLAN.md` — current task and next steps
-2. Check for `TASK-*.ignore.md` in root — read any that exist
-3. Check `runs/active.lock` — if a background run is active, do other work (don't start a second long run)
-4. Read `VISION.md` briefly if the direction is unclear
+1. Read `VISION.md` — understand where the current work sits in the bigger picture
+2. Read `PLAN.md` — immediate checklist and next steps
+3. Check for `TASK-*.ignore.md` in root — read any that exist
+4. Check `runs/active.lock` — if a background run is active, do other work (don't start a second long run)
 5. **Check the time** — if after 4pm, write the daily report at the next natural stopping point; if Thursday, weekly too
 
 When handing over:
