@@ -43,6 +43,10 @@ function Get-LoopProcess {
 }
 
 function Ensure-LoopTask {
+    # Skip re-registration if the task already exists (avoids needing elevation)
+    $existing = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+    if ($null -ne $existing) { return }
+
     $pwsh = (Get-Command pwsh).Source
     $arguments = @(
         '-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden',
