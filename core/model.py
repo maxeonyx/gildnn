@@ -465,6 +465,7 @@ class ParallelDiagonalModel(nn.Module):
         d_model: int,
         feedforward_dim: int,
         num_blocks: int,
+        rates: tuple[int, ...] | list[int] | None = None,
         internal_steps: int = 1,
         readout_mode: str = "last",
         token_mix_init: float = 0.5,
@@ -477,6 +478,13 @@ class ParallelDiagonalModel(nn.Module):
             raise ValueError(
                 f"ParallelDiagonalModel requires at least one internal step, got {internal_steps}."
             )
+        resolved_rates = tuple(rates) if rates is not None else tuple(1 for _ in range(num_blocks))
+        if len(resolved_rates) != num_blocks:
+            raise ValueError(
+                f"ParallelDiagonalModel rates must have length {num_blocks}, got {resolved_rates}."
+            )
+        if any(rate <= 0 for rate in resolved_rates):
+            raise ValueError(f"ParallelDiagonalModel rates must be positive, got {resolved_rates}.")
         valid_readout_modes = {"last", "all"}
         if readout_mode not in valid_readout_modes:
             raise ValueError(
@@ -487,6 +495,7 @@ class ParallelDiagonalModel(nn.Module):
         self.d_model = d_model
         self.feedforward_dim = feedforward_dim
         self.num_blocks = num_blocks
+        self.rates = resolved_rates
         self.internal_steps = internal_steps
         self.readout_mode = readout_mode
         self.token_embedding = nn.Embedding(vocab_size, d_model)
@@ -528,6 +537,7 @@ class ParallelDiagonalModel(nn.Module):
         return {
             "token": [mix.coefficient_value() for mix in self.token_mixes],
             "blocks": [mix.coefficient_value() for mix in self.block_mixes],
+            "rates": list(self.rates),
             "internal_steps": self.internal_steps,
             "readout_mode": self.readout_mode,
             "readout_weights": readout_weights,
@@ -562,12 +572,14 @@ class ParallelDiagonalModel(nn.Module):
                 token_mix(previous_state, token_state)
                 for token_mix, previous_state in zip(self.token_mixes, previous_states, strict=True)
             ]
-            current_states = previous_states
+            current_states = list(previous_states)
             for internal_step in range(self.internal_steps):
-                next_states: list[Tensor] = []
-                for block_index, (block, block_mix) in enumerate(
-                    zip(self.blocks, self.block_mixes, strict=True)
+                next_states = list(current_states)
+                for block_index, (block, block_mix, rate) in enumerate(
+                    zip(self.blocks, self.block_mixes, self.rates, strict=True)
                 ):
+                    if time_index % rate != 0:
+                        continue
                     state_input = seeded_states[block_index] if internal_step == 0 else current_states[block_index]
                     if block_index == 0:
                         block_input = state_input
@@ -578,7 +590,7 @@ class ParallelDiagonalModel(nn.Module):
                             neighbor_state = current_states[block_index - 1]
                         block_input = 0.5 * (state_input + neighbor_state)
                     block_delta = block(block_input)
-                    next_states.append(block_mix(block_input, block_delta))
+                    next_states[block_index] = block_mix(block_input, block_delta)
                 current_states = next_states
             previous_states = current_states
 
