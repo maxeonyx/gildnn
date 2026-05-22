@@ -465,16 +465,22 @@ class ParallelDiagonalModel(nn.Module):
         d_model: int,
         feedforward_dim: int,
         num_blocks: int,
+        internal_steps: int = 1,
         token_mix_init: float = 0.5,
         block_mix_init: float = 0.9,
     ) -> None:
         super().__init__()
         if num_blocks <= 0:
             raise ValueError(f"ParallelDiagonalModel requires at least one block, got {num_blocks}.")
+        if internal_steps <= 0:
+            raise ValueError(
+                f"ParallelDiagonalModel requires at least one internal step, got {internal_steps}."
+            )
         self.context_size = context_size
         self.d_model = d_model
         self.feedforward_dim = feedforward_dim
         self.num_blocks = num_blocks
+        self.internal_steps = internal_steps
         self.token_embedding = nn.Embedding(vocab_size, d_model)
         self.position_embedding = nn.Embedding(context_size, d_model)
         self.token_mixes = nn.ModuleList([MixAdd(init=token_mix_init) for _ in range(num_blocks)])
@@ -506,6 +512,7 @@ class ParallelDiagonalModel(nn.Module):
         return {
             "token": [mix.coefficient_value() for mix in self.token_mixes],
             "blocks": [mix.coefficient_value() for mix in self.block_mixes],
+            "internal_steps": self.internal_steps,
         }
 
     def forward(self, tokens: Int[Tensor, "batch context"]) -> Float[Tensor, "batch vocab"]:
@@ -518,19 +525,28 @@ class ParallelDiagonalModel(nn.Module):
 
         for time_index in range(self.context_size):
             token_state = embeddings[:, time_index, :]
-            current_states: list[Tensor] = []
-            for block_index, (token_mix, block, block_mix) in enumerate(
-                zip(self.token_mixes, self.blocks, self.block_mixes, strict=True)
-            ):
-                previous_state = previous_states[block_index]
-                token_and_state = token_mix(previous_state, token_state)
-                if block_index == 0:
-                    block_input = token_and_state
-                else:
-                    neighbor_state = previous_states[block_index - 1]
-                    block_input = 0.5 * (token_and_state + neighbor_state)
-                block_delta = block(block_input)
-                current_states.append(block_mix(block_input, block_delta))
+            seeded_states = [
+                token_mix(previous_state, token_state)
+                for token_mix, previous_state in zip(self.token_mixes, previous_states, strict=True)
+            ]
+            current_states = previous_states
+            for internal_step in range(self.internal_steps):
+                next_states: list[Tensor] = []
+                for block_index, (block, block_mix) in enumerate(
+                    zip(self.blocks, self.block_mixes, strict=True)
+                ):
+                    state_input = seeded_states[block_index] if internal_step == 0 else current_states[block_index]
+                    if block_index == 0:
+                        block_input = state_input
+                    else:
+                        if internal_step == 0:
+                            neighbor_state = previous_states[block_index - 1]
+                        else:
+                            neighbor_state = current_states[block_index - 1]
+                        block_input = 0.5 * (state_input + neighbor_state)
+                    block_delta = block(block_input)
+                    next_states.append(block_mix(block_input, block_delta))
+                current_states = next_states
             previous_states = current_states
 
         return self.output(previous_states[-1])

@@ -1,0 +1,495 @@
+{
+  "config": {
+    "training_steps": 20000,
+    "eval_interval": 1000,
+    "batch_size": 64,
+    "eval_batch_size": 512,
+    "learning_rate": 0.0003,
+    "seed": 42,
+    "warmup_steps": 3,
+    "context_size": 32,
+    "dataset_vocab_size": 61,
+    "model_vocab_size": 67,
+    "schedule_seed": 42
+  },
+  "environment": {
+    "git_sha": "51cccee1e9c62b9d17c2de6d7d7a75cd9f81c431",
+    "git_working_tree_clean": false,
+    "git_status_short": [
+      " M core/model.py",
+      " M runs/dictations_seen.json",
+      "?? dictations/2026-05-22-17.md",
+      "?? experiments/fixed_multi_rate/artifacts/parallel_diagonal_multistep_20k/",
+      "?? runs/parallel_diagonal_multistep_20k.py"
+    ],
+    "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+    "torch_version": "2.11.0+cu128",
+    "device": "cuda",
+    "cuda_device_name": "NVIDIA GeForce RTX 3090"
+  },
+  "timing": {
+    "overall_wall_seconds": 1136.933554
+  },
+  "flop_matching": {
+    "method": "approximate dominant FFN block FLOPs per token",
+    "note": "This ignores control temporal-attention FLOPs, so the 2-step match is approximate rather than exact.",
+    "control_avg_active_blocks_per_token": 1.875,
+    "control_block_flop_units_per_token": 61440.0,
+    "parallel_single_step_block_flop_units_per_token": 131072,
+    "parallel_multi_step_block_flop_units_per_token": 65536
+  },
+  "variants": {
+    "control": {
+      "key": "control",
+      "label": "multi_rate_4x128_1248_control",
+      "class_name": "MultiRateResidualModel",
+      "d_model": 128,
+      "feedforward_dim": 256,
+      "internal_steps": null,
+      "num_blocks": 4,
+      "rates": [
+        1,
+        2,
+        4,
+        8
+      ]
+    },
+    "parallel_diagonal_1step": {
+      "key": "parallel_diagonal_1step",
+      "label": "parallel_diagonal_4x128_ff256_step1",
+      "class_name": "ParallelDiagonalModel",
+      "d_model": 128,
+      "feedforward_dim": 256,
+      "internal_steps": 1,
+      "num_blocks": 4,
+      "rates": null
+    },
+    "parallel_diagonal_2step": {
+      "key": "parallel_diagonal_2step",
+      "label": "parallel_diagonal_4x128_ff64_step2",
+      "class_name": "ParallelDiagonalModel",
+      "d_model": 128,
+      "feedforward_dim": 64,
+      "internal_steps": 2,
+      "num_blocks": 4,
+      "rates": null
+    }
+  },
+  "models": {
+    "control": {
+      "label": "multi_rate_4x128_1248_control",
+      "class_name": "MultiRateResidualModel",
+      "d_model": 128,
+      "feedforward_dim": 256,
+      "num_blocks": 4,
+      "parameter_count": 351052,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.243625,
+          "val_accuracy": 0.005809
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.366746,
+          "val_accuracy": 0.335587
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.183452,
+          "val_accuracy": 0.383914
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.089751,
+          "val_accuracy": 0.402494
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.034359,
+          "val_accuracy": 0.41867
+        },
+        {
+          "step": 5000,
+          "val_loss": 1.995329,
+          "val_accuracy": 0.43099
+        },
+        {
+          "step": 6000,
+          "val_loss": 1.964337,
+          "val_accuracy": 0.43149
+        },
+        {
+          "step": 7000,
+          "val_loss": 1.952216,
+          "val_accuracy": 0.446565
+        },
+        {
+          "step": 8000,
+          "val_loss": 1.923676,
+          "val_accuracy": 0.44987
+        },
+        {
+          "step": 9000,
+          "val_loss": 1.896732,
+          "val_accuracy": 0.453626
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.892967,
+          "val_accuracy": 0.452023
+        },
+        {
+          "step": 11000,
+          "val_loss": 1.87538,
+          "val_accuracy": 0.460687
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.850063,
+          "val_accuracy": 0.465445
+        },
+        {
+          "step": 13000,
+          "val_loss": 1.840598,
+          "val_accuracy": 0.471104
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.82786,
+          "val_accuracy": 0.469201
+        },
+        {
+          "step": 15000,
+          "val_loss": 1.822843,
+          "val_accuracy": 0.47521
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.812761,
+          "val_accuracy": 0.4685
+        },
+        {
+          "step": 17000,
+          "val_loss": 1.805072,
+          "val_accuracy": 0.473858
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.801343,
+          "val_accuracy": 0.485026
+        },
+        {
+          "step": 19000,
+          "val_loss": 1.792037,
+          "val_accuracy": 0.483223
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.783787,
+          "val_accuracy": 0.480519
+        }
+      ],
+      "best_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.783787,
+        "val_accuracy": 0.480519
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.783787,
+        "val_accuracy": 0.480519
+      },
+      "final_training_loss": 1.692929,
+      "approx_block_flop_units_per_token": 61440.0,
+      "approx_block_flop_ratio_vs_control": 1.0,
+      "rates": [
+        1,
+        2,
+        4,
+        8
+      ]
+    },
+    "parallel_diagonal_1step": {
+      "label": "parallel_diagonal_4x128_ff256_step1",
+      "class_name": "ParallelDiagonalModel",
+      "d_model": 128,
+      "feedforward_dim": 256,
+      "num_blocks": 4,
+      "parameter_count": 285003,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.31676,
+          "val_accuracy": 0.010717
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.570389,
+          "val_accuracy": 0.286508
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.363028,
+          "val_accuracy": 0.330278
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.249631,
+          "val_accuracy": 0.360927
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.174547,
+          "val_accuracy": 0.373698
+        },
+        {
+          "step": 5000,
+          "val_loss": 2.11615,
+          "val_accuracy": 0.388972
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.074839,
+          "val_accuracy": 0.402995
+        },
+        {
+          "step": 7000,
+          "val_loss": 2.058997,
+          "val_accuracy": 0.414213
+        },
+        {
+          "step": 8000,
+          "val_loss": 2.033785,
+          "val_accuracy": 0.41897
+        },
+        {
+          "step": 9000,
+          "val_loss": 1.98593,
+          "val_accuracy": 0.427634
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.980757,
+          "val_accuracy": 0.434996
+        },
+        {
+          "step": 11000,
+          "val_loss": 1.955031,
+          "val_accuracy": 0.438802
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.930388,
+          "val_accuracy": 0.447616
+        },
+        {
+          "step": 13000,
+          "val_loss": 1.90745,
+          "val_accuracy": 0.452574
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.896542,
+          "val_accuracy": 0.457382
+        },
+        {
+          "step": 15000,
+          "val_loss": 1.918622,
+          "val_accuracy": 0.464844
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.868199,
+          "val_accuracy": 0.46264
+        },
+        {
+          "step": 17000,
+          "val_loss": 1.862237,
+          "val_accuracy": 0.471655
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.853866,
+          "val_accuracy": 0.472907
+        },
+        {
+          "step": 19000,
+          "val_loss": 1.863073,
+          "val_accuracy": 0.479667
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.876703,
+          "val_accuracy": 0.477915
+        }
+      ],
+      "best_checkpoint": {
+        "step": 18000,
+        "val_loss": 1.853866,
+        "val_accuracy": 0.472907
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.876703,
+        "val_accuracy": 0.477915
+      },
+      "final_training_loss": 1.742643,
+      "approx_block_flop_units_per_token": 131072,
+      "approx_block_flop_ratio_vs_control": 2.133333,
+      "internal_steps": 1,
+      "neighbor_direction": "previous_block_only",
+      "state_update": "seed each block once from token+same-block state, then repeat parallel neighbor propagation",
+      "readout": "last_block_state"
+    },
+    "parallel_diagonal_2step": {
+      "label": "parallel_diagonal_4x128_ff64_step2",
+      "class_name": "ParallelDiagonalModel",
+      "d_model": 128,
+      "feedforward_dim": 64,
+      "num_blocks": 4,
+      "parameter_count": 87627,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.210959,
+          "val_accuracy": 0.011418
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.641684,
+          "val_accuracy": 0.263421
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.387893,
+          "val_accuracy": 0.325771
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.285426,
+          "val_accuracy": 0.348658
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.224468,
+          "val_accuracy": 0.35612
+        },
+        {
+          "step": 5000,
+          "val_loss": 2.174963,
+          "val_accuracy": 0.37475
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.143227,
+          "val_accuracy": 0.381711
+        },
+        {
+          "step": 7000,
+          "val_loss": 2.12372,
+          "val_accuracy": 0.388071
+        },
+        {
+          "step": 8000,
+          "val_loss": 2.086452,
+          "val_accuracy": 0.394982
+        },
+        {
+          "step": 9000,
+          "val_loss": 2.056645,
+          "val_accuracy": 0.409054
+        },
+        {
+          "step": 10000,
+          "val_loss": 2.046038,
+          "val_accuracy": 0.416617
+        },
+        {
+          "step": 11000,
+          "val_loss": 2.014002,
+          "val_accuracy": 0.417067
+        },
+        {
+          "step": 12000,
+          "val_loss": 2.019883,
+          "val_accuracy": 0.423227
+        },
+        {
+          "step": 13000,
+          "val_loss": 2.001691,
+          "val_accuracy": 0.432792
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.983068,
+          "val_accuracy": 0.426983
+        },
+        {
+          "step": 15000,
+          "val_loss": 1.98587,
+          "val_accuracy": 0.436248
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.95928,
+          "val_accuracy": 0.436699
+        },
+        {
+          "step": 17000,
+          "val_loss": 1.950339,
+          "val_accuracy": 0.440605
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.973577,
+          "val_accuracy": 0.449269
+        },
+        {
+          "step": 19000,
+          "val_loss": 1.934472,
+          "val_accuracy": 0.447366
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.937715,
+          "val_accuracy": 0.453976
+        }
+      ],
+      "best_checkpoint": {
+        "step": 19000,
+        "val_loss": 1.934472,
+        "val_accuracy": 0.447366
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.937715,
+        "val_accuracy": 0.453976
+      },
+      "final_training_loss": 1.943477,
+      "approx_block_flop_units_per_token": 65536,
+      "approx_block_flop_ratio_vs_control": 1.066667,
+      "internal_steps": 2,
+      "neighbor_direction": "previous_block_only",
+      "state_update": "seed each block once from token+same-block state, then repeat parallel neighbor propagation",
+      "readout": "last_block_state"
+    }
+  },
+  "comparison": {
+    "winner_by_final_val_loss": "control",
+    "winner_final_val_loss": 1.783787,
+    "margin_vs_runner_up": 0.092916,
+    "delta_control_minus_parallel_diagonal_1step": {
+      "final_val_loss": -0.092916,
+      "final_val_accuracy": 0.002604
+    },
+    "delta_control_minus_parallel_diagonal_2step": {
+      "final_val_loss": -0.153928,
+      "final_val_accuracy": 0.026543
+    },
+    "delta_parallel_diagonal_2step_minus_parallel_diagonal_1step": {
+      "final_val_loss": 0.061012,
+      "final_val_accuracy": -0.023939
+    }
+  }
+}
