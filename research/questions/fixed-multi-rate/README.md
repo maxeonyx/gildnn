@@ -222,7 +222,36 @@ See PLAN.md for the decision tree. Summary: win if multi-rate val_loss ≤ contr
 
 ### Results
 
-*(Awaiting GPU availability — launches after midnight May 22.)*
+**Seed 42 (complete):**
+
+Calibration selected d_model=112 as the compute-matched control (training step: 252ms vs multi-rate's 257ms — within 2%).
+
+| Model | Params | Step ms | Val loss (2000) | Val acc |
+|-------|--------|---------|-----------------|---------|
+| Multi-rate 4×128 [1,2,4,8] | 349K | 257 | **1.927** | 0.450 |
+| Matched all-rate-1 4×112 | 270K | 252 | 1.935 | 0.440 |
+| Shallow all-rate-1 3×128 | 284K | — | 1.946 | 0.432 |
+
+**Delta (multi-rate vs matched control): -0.008 nats**
+
+Per decision tree: **TIE** (within ±0.01). Multi-rate uses the same compute budget as the wider control and achieves slightly (not significantly) better quality.
+
+Key observation: multi-rate has 30% more parameters (349K vs 270K) but the same wall-clock cost — because blocks at rates 2, 4, 8 execute less often. The unused parameter capacity doesn't help the control model; it's "free" architectural richness in the multi-rate model.
+
+Training curves at intermediate checkpoints:
+
+| Step | Multi-rate | Matched | Shallow | Multi vs Matched |
+|------|-----------|---------|---------|-----------------|
+| 500 | 2.172 | 2.221 | 2.189 | -0.050 |
+| 1000 | 2.065 | 2.099 | 2.077 | -0.034 |
+| 1500 | 1.998 | 1.999 | 1.990 | -0.002 |
+| 2000 | 1.927 | 1.935 | 1.946 | -0.008 |
+
+The multi-rate advantage narrows over training (from -0.050 at step 500 to -0.008 at 2000). This could mean the control is slowly catching up, or it could be normal variance.
+
+Artifact: [`experiments/fixed_multi_rate/artifacts/matched_flop/report.json`](../../../experiments/fixed_multi_rate/artifacts/matched_flop/report.json).
+
+**Seeds 43 and 44:** Running. Needed to confirm the tie is stable.
 
 ## Next steps
 

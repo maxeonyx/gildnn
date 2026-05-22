@@ -1,0 +1,315 @@
+{
+  "config": {
+    "training_steps": 2000,
+    "eval_interval": 500,
+    "batch_size": 64,
+    "eval_batch_size": 512,
+    "learning_rate": 0.003,
+    "context_size": 32,
+    "temporal_window": 4,
+    "num_heads": 4,
+    "seed": 42
+  },
+  "environment": {
+    "git_sha": "7078ea35d71b87a247cff5ac05288acc64a57e7c",
+    "git_working_tree_clean": false,
+    "git_status_short": [
+      " M loop-prompt.md",
+      "?? dictations/2026-05-22-14.md",
+      "?? dictations/2026-05-22-15.md",
+      "?? runs/run_matched_flop.ps1"
+    ],
+    "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+    "torch_version": "2.11.0+cu128",
+    "device": "cuda",
+    "cuda_device_name": "NVIDIA GeForce RTX 3090"
+  },
+  "calibration": {
+    "measurement": {
+      "warmup_steps": 50,
+      "timed_steps": 100,
+      "batch_size": 64
+    },
+    "results": [
+      {
+        "label": "multi_rate",
+        "num_blocks": 4,
+        "d_model": 128,
+        "rates": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "parameter_count": 349507,
+        "training_step_ms": 257.314862
+      },
+      {
+        "label": "all_rate_1_d108",
+        "num_blocks": 4,
+        "d_model": 108,
+        "rates": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "parameter_count": 251707,
+        "training_step_ms": 290.097745
+      },
+      {
+        "label": "all_rate_1_d112",
+        "num_blocks": 4,
+        "d_model": 112,
+        "rates": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "parameter_count": 269987,
+        "training_step_ms": 251.999132
+      },
+      {
+        "label": "all_rate_1_d116",
+        "num_blocks": 4,
+        "d_model": 116,
+        "rates": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "parameter_count": 288907,
+        "training_step_ms": 240.284068
+      },
+      {
+        "label": "all_rate_1_d120",
+        "num_blocks": 4,
+        "d_model": 120,
+        "rates": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "parameter_count": 308467,
+        "training_step_ms": 243.077015
+      }
+    ],
+    "selected_match": {
+      "label": "all_rate_1_d112",
+      "num_blocks": 4,
+      "d_model": 112,
+      "rates": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "parameter_count": 269987,
+      "training_step_ms": 251.999132,
+      "abs_training_step_ms_delta_vs_multi": 5.31573,
+      "signed_training_step_ms_delta_vs_multi": -5.31573
+    }
+  },
+  "selected_match": {
+    "label": "all_rate_1_d112",
+    "num_blocks": 4,
+    "d_model": 112,
+    "rates": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "parameter_count": 269987,
+    "training_step_ms": 251.999132,
+    "abs_training_step_ms_delta_vs_multi": 5.31573,
+    "signed_training_step_ms_delta_vs_multi": -5.31573
+  },
+  "parameter_counts": {
+    "multi_rate_4x128_1248": 349507,
+    "matched_all_rate_1_4x112": 269987,
+    "all_rate_1_3x128": 283586
+  },
+  "models": {
+    "multi_rate_4x128_1248": {
+      "label": "multi_rate_4x128_1248",
+      "num_blocks": 4,
+      "d_model": 128,
+      "feedforward_dim": 256,
+      "rates": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "parameter_count": 349507,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.165523,
+          "val_accuracy": 0.00646
+        },
+        {
+          "step": 500,
+          "val_loss": 2.171761,
+          "val_accuracy": 0.377855
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.065071,
+          "val_accuracy": 0.405098
+        },
+        {
+          "step": 1500,
+          "val_loss": 1.997602,
+          "val_accuracy": 0.413311
+        },
+        {
+          "step": 2000,
+          "val_loss": 1.927244,
+          "val_accuracy": 0.450321
+        }
+      ],
+      "best_checkpoint": {
+        "step": 2000,
+        "val_loss": 1.927244,
+        "val_accuracy": 0.450321
+      },
+      "final_checkpoint": {
+        "step": 2000,
+        "val_loss": 1.927244,
+        "val_accuracy": 0.450321
+      },
+      "final_timing": {
+        "training_steps": 2000,
+        "eval_interval": 500,
+        "average_update_ms_per_step": 205.98173,
+        "training_wall_ms": 421250.0461,
+        "training_wall_seconds": 421.250046
+      }
+    },
+    "matched_all_rate_1_4x112": {
+      "label": "matched_all_rate_1_4x112",
+      "num_blocks": 4,
+      "d_model": 112,
+      "feedforward_dim": 224,
+      "rates": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "parameter_count": 269987,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.103459,
+          "val_accuracy": 0.036058
+        },
+        {
+          "step": 500,
+          "val_loss": 2.22115,
+          "val_accuracy": 0.355469
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.099449,
+          "val_accuracy": 0.398087
+        },
+        {
+          "step": 1500,
+          "val_loss": 1.999409,
+          "val_accuracy": 0.419872
+        },
+        {
+          "step": 2000,
+          "val_loss": 1.934831,
+          "val_accuracy": 0.439603
+        }
+      ],
+      "best_checkpoint": {
+        "step": 2000,
+        "val_loss": 1.934831,
+        "val_accuracy": 0.439603
+      },
+      "final_checkpoint": {
+        "step": 2000,
+        "val_loss": 1.934831,
+        "val_accuracy": 0.439603
+      },
+      "final_timing": {
+        "training_steps": 2000,
+        "eval_interval": 500,
+        "average_update_ms_per_step": 232.005312,
+        "training_wall_ms": 474221.8821,
+        "training_wall_seconds": 474.221882
+      }
+    },
+    "all_rate_1_3x128": {
+      "label": "all_rate_1_3x128",
+      "num_blocks": 3,
+      "d_model": 128,
+      "feedforward_dim": 256,
+      "rates": [
+        1,
+        1,
+        1
+      ],
+      "parameter_count": 283586,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.17064,
+          "val_accuracy": 0.028596
+        },
+        {
+          "step": 500,
+          "val_loss": 2.188817,
+          "val_accuracy": 0.367788
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.077325,
+          "val_accuracy": 0.394131
+        },
+        {
+          "step": 1500,
+          "val_loss": 1.990454,
+          "val_accuracy": 0.416667
+        },
+        {
+          "step": 2000,
+          "val_loss": 1.945577,
+          "val_accuracy": 0.432392
+        }
+      ],
+      "best_checkpoint": {
+        "step": 2000,
+        "val_loss": 1.945577,
+        "val_accuracy": 0.432392
+      },
+      "final_checkpoint": {
+        "step": 2000,
+        "val_loss": 1.945577,
+        "val_accuracy": 0.432392
+      },
+      "final_timing": {
+        "training_steps": 2000,
+        "eval_interval": 500,
+        "average_update_ms_per_step": 201.92298,
+        "training_wall_ms": 412425.2627,
+        "training_wall_seconds": 412.425263
+      }
+    }
+  },
+  "delta_multi_vs_matched": {
+    "final_val_loss_delta": -0.007587,
+    "final_val_accuracy_delta": 0.010718,
+    "best_val_loss_delta": -0.007587,
+    "average_update_ms_per_step_delta": -26.023582,
+    "parameter_count_delta": 79520
+  }
+}
