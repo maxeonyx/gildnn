@@ -14,15 +14,25 @@ Prior experiments showed async execution CAN'T speed up via CUDA streams on sing
 
 ## Active work
 
-- **Background run:** arbitrary-order MNIST 50-epoch training (PID in `runs/active.lock`). Let it finish — data is useful even if not the current focus. Don't start a new long run until it completes.
+- **Background run:** fixed-multi-rate 5000-step comparison (PID 5512 in `runs/active.lock`). Expected ~15-30 min. Confirming that the 14.8% speedup result holds at convergence.
+
+## Recent results
+
+- **Fixed multi-rate: POSITIVE** — 14.8% wall-clock speedup, no quality loss. Blocks on schedule [1,1,2,4]; skipped blocks reuse cached output. First positive speed result. See `research/questions/fixed-multi-rate/README.md`.
+- **Arbitrary-order MNIST: WORKING** — per-pixel MSE 0.0195 after 50 epochs. Mechanism validated but deprioritized per Max's direction.
+- **Backend research: DONE** — JAX recommended for clean compiled code. Decision awaiting Max. See `research/questions/backend-choice/README.md`.
 
 ## Next steps (in priority order)
 
-1. **Backend research** — what are the 2026 options for compiled ML execution? JAX, torch.compile, Mojo, others? Quick research pass to inform the decision. This is a prerequisite for "clean core reintegration."
+1. **Check 5k-step multi-rate results** — confirm quality and speedup hold at convergence.
 
-2. **Revisit async diagonal residual design** — what exactly is Max describing? Review the existing `residual_stream_time_diagonal` experiment and dictations to understand the gap between what was tested and what Max wants. Key ideas: diagonal connections, different-rate modules, potential speedup mechanisms BEYOND CUDA streams.
+2. **Scale multi-rate** — more aggressive rates, more blocks, larger model. Can we get >20% speedup? Does quality hold?
 
-3. **Core reintegration** — once backend is decided, rewrite core/ to be clean, compiled, and reusable.
+3. **Diagonal + multi-rate combination** — the diagonal residual (block1's output at time t feeds block2 at time t+1) naturally pairs with multi-rate. If block2 runs every 2nd step, the diagonal connection IS the stale-read mechanism.
+
+4. **Core reintegration** — once backend is decided, rewrite core/ to be clean, compiled, and reusable.
+
+5. **Backend decision** — awaiting Max's input on JAX vs alternatives.
 
 ## Queued research directions (lower priority, from earlier dictations)
 
