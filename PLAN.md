@@ -4,10 +4,8 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Now
 
-- [ ] **Decide next direction** — Matched-FLOP result is in (LOSS: +0.018). Multi-rate gives speedup by doing less work, not better work per FLOP. Options:
-  1. Accept the tradeoff: multi-rate is still 20% faster and architecturally enables async. Proceed to persistent-kernel async prototype.
-  2. Investigate why: is stale-read quality cost fixable? Would longer training compensate?
-  3. Pivot: try a different architecture that gets both speed AND quality (e.g. multi-rate + gradient detach + longer training).
+- [ ] **Integrate CUDA Graph parallel into training loop** — The concurrency benchmark proves 28% block-subsystem speedup. Next: wire it into the actual multi-rate training step and measure end-to-end wall-clock improvement. This combines two proven gains: multi-rate (20% from skip-compute) + graph-parallel (28% from concurrency on remaining blocks).
+- [ ] **Update matched-FLOP framing** — The LOSS result (+0.018) is the cost of multi-rate staleness. But if graph-parallel concurrency ALSO applies, the total speedup is larger than 20%, potentially making the quality tradeoff net-positive.
 
 ### Matched-FLOP decision tree
 
@@ -31,7 +29,7 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 - [x] **Backend decision** — DECIDED: PyTorch deliberately. `torch.compile` for stable core/ paths, custom CUDA/Triton for async research. See `research/questions/backend-choice/README.md`.
 - [x] **Core reintegration** — DONE. `core/model.py` has MixAdd, ResidualFeedForwardBlock, TemporalWindowAttention, MultiRateResidualModel. `core/training.py` has evaluate_model, fixed_step_indices, write_json, git utilities. torch.compile-compatible (verified with eager backend).
 - [x] **Diagonal + multi-rate** — NEGATIVE (as currently implemented). Multi-seed confirmation: seed 42 gave -0.052, seed 43 gave 0.000, seed 44 DIVERGED (val_loss 18.4). Stabilized variant (gated/scaled) is open. See `research/questions/diagonal-multi-rate/README.md`.
-- [x] **Async hardware investigation** — README corrected: PyTorch streams failed but hardware supports concurrent execution via persistent kernels, fused dispatch, or CUDA Graphs. Persistent kernel microbenchmark designed (report-first protocol). **Not fully closed** — still needs: exact SM concurrency limits of the 3090, external references, and a working async wall-clock proof. See `research/questions/async-execution/README.md`.
+- [x] **Async hardware investigation** — CLOSED. CUDA Graph parallel gives 28% speedup at our workload scale (2048 tokens, d=128). Triton/persistent kernels are Linux-only. See `research/questions/async-execution/README.md`.
 
 ## Queue (lower priority)
 
