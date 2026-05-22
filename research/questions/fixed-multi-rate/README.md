@@ -152,9 +152,41 @@ Artifact: `experiments/fixed_multi_rate/artifacts/aggressive_1248/report.json`
 
 Compared to [1,1,2,4] (14.8% speedup): doubling the aggressiveness of rates yields roughly 40% more speedup (14.8% → 20.7%) with no quality cost.
 
+## Even more aggressive: [1,2,4,8,16] with 5 blocks
+
+| Step | All-rate-1 val loss | Multi-rate val loss | Delta | Speedup (100-pass) |
+|------|--------------------:|--------------------:|------:|--------:|
+| 0    | 4.110 | 4.110 | -0.000 | 22.2% |
+| 500  | 2.198 | 2.203 | +0.005 | 21.4% |
+| 1000 | 2.072 | 2.073 | +0.001 | 22.0% |
+| 1500 | 1.973 | 1.982 | +0.009 | 22.5% |
+| 2000 | 1.913 | 1.929 | **+0.016** | 22.9% |
+
+### Final timing: ANOMALOUS
+
+The 500-pass final timing measured both models at ~86.6ms (no speedup). This contradicts all 5 checkpoint measurements (21-23% speedup at 100 passes each). The same anomaly appeared in the [1,2,4,8] experiment at one checkpoint (step 1500: -0.6%). Likely cause: GPU thermal throttling or state contamination after prolonged training. The checkpoint measurements (replicated 5 times) are more reliable.
+
+Artifact: `experiments/fixed_multi_rate/artifacts/aggressive_12_4_8_16/report.json`
+
+### Interpretation
+
+**Rate-16 introduces a small quality cost**: +0.016 nats at step 2000, growing during training. This is the first rate where quality degrades rather than improves. The rate-16 block updates only 2 times in a 32-character context — too infrequent to track short-range patterns.
+
+**Speedup scales to ~22%** (checkpoint measurements) vs 20.7% for [1,2,4,8]. The marginal gain from rate-16 is modest (~2%) and comes with quality cost. The sweet spot appears to be around [1,2,4,8] (4 blocks): maximal rate where quality is BETTER, not just neutral.
+
+### Summary table
+
+| Schedule | Blocks | Speedup | Quality delta | Quality trend |
+|----------|--------|---------|---------------|---------------|
+| [1,1,2,4] | 4 | 14.8% | **-0.010** (better) | Consistently better |
+| [1,2,4,8] | 4 | **20.7%** | **-0.006** (better) | Consistently better |
+| [1,2,4,8,16] | 5 | ~22%* | +0.016 (worse) | Slowly degrading |
+
+*Checkpoint measurement; final timing anomalous.
+
 ## Next steps
 
-1. **Even more aggressive rates** — try [1, 2, 4, 8, 16] with 5 blocks, or [2, 4, 8, 16] (no rate-1 block). How far can it go?
+1. **Fix the timing measurement** — the anomaly at rate-16's final timing (and [1,2,4,8] step 1500) suggests the timing code is fragile. Consider: longer cooldown between training and timing, separate timing script, or run timing on a fresh model load.
 2. **Diagonal connections** — combine with time-offset residual connections. See `research/questions/diagonal-multi-rate/README.md`.
-3. **Matched-FLOP comparison** — is multi-rate better than a smaller all-rate-1 model with the same compute budget?
+3. **Matched-FLOP comparison** — is [1,2,4,8] better than a 3-block all-rate-1 model with similar compute?
 4. **Larger model** — does the result hold at 900K+ params?
