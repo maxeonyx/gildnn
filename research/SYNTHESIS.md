@@ -1,6 +1,8 @@
 # Project Synthesis
 
-A two-week exploration of recurrent-over-depth architectures for language modeling — specifically whether GRU blocks iterated across time with various enhancements (local learning, attention, async execution, dynamic gating) could match transformer baselines. The bottom line: the core recurrent-over-depth architecture underperforms transformers by +0.071 nats at matched parameters, none of the proposed enhancements close that gap, and the async execution strategy that motivated much of the design cannot produce wall-clock speedup on a single GPU. The project's value is in definitively resolving these questions with clean evidence rather than leaving them as open speculation.
+A two-week exploration of recurrent-over-depth architectures for language modeling — specifically whether GRU blocks iterated across time with various enhancements (local learning, attention, async execution, dynamic gating) could match transformer baselines. The core recurrent-over-depth architecture underperforms transformers by +0.071 nats at matched parameters, and CUDA-stream async execution cannot produce wall-clock speedup on single GPU.
+
+**However:** a subsequent experiment found that **fixed multi-rate execution** (blocks on predetermined schedules, skipping computation entirely on inactive steps) produces 12-15% wall-clock speedup with BETTER quality than all-blocks-every-step. This changes the picture — the speedup path is not parallelism but computation skipping.
 
 ## Decision Matrix
 
@@ -9,7 +11,8 @@ A two-week exploration of recurrent-over-depth architectures for language modeli
 | Local learning at block boundaries | NEGATIVE | High | val 2.081 vs 1.644 e2e — gradient isolation destroys quality catastrophically |
 | Attention-residual (depth-only) | MARGINAL | High | transient 0.013 nat edge regresses; 33% slower — not worth pursuing |
 | Causal triangle attention (depth+seq) | NEGATIVE | High | +0.028 nats, 1.8× slower — strictly dominated |
-| Selective/dynamic computation | NEGATIVE | High | 26-29% slower wall-clock despite fewer block executions — overhead exceeds savings |
+| Selective/dynamic computation | NEGATIVE | High | 26-29% slower wall-clock despite fewer block executions — learned gating overhead exceeds savings |
+| **Fixed multi-rate execution** | **POSITIVE** | **High** | **12-15% speedup, BETTER quality — fixed schedule eliminates gating overhead entirely** |
 | Async stale-read quality | POSITIVE | Medium | +0.005 nats, not significant across 5 seeds — stale reads don't hurt |
 | Async wall-clock (training) | NEGATIVE | High | always ≤1.00×, sequential fastest across all configs |
 | Async wall-clock (inference) | NEGATIVE | High | 0.50-0.86× (worse); stream overhead dominates |
@@ -41,43 +44,37 @@ A two-week exploration of recurrent-over-depth architectures for language modeli
 ## What Didn't Work and Why
 
 - **Attention mechanisms** add parameters and FLOPs but the recurrent state already carries sufficient inter-block information. The attention is solving a problem that doesn't exist at this scale.
-- **Dynamic/selective computation** fails because the savings from skipping a GRU block (~microseconds) are smaller than the cost of deciding whether to skip it.
+- **Dynamic/selective computation** fails because the savings from skipping a GRU block (~microseconds) are smaller than the cost of deciding whether to skip it. *(Note: fixed-schedule multi-rate avoids this by eliminating the decision entirely.)*
 - **Self-prediction** adds a training signal that competes with the language modeling objective rather than complementing it. The auxiliary loss pushes representations toward predictability rather than expressiveness.
 - **The overall architecture** pays a 0.071 nat tax for temporal recurrence. At 900k parameters this gap is structural — the recurrent path doesn't carry enough information to justify the sequential dependency it introduces.
 
-## The Async Question — Fully Resolved
+## The Async Question — Partially Resolved
 
-This was the motivating hypothesis: if blocks can read stale state, they can execute in parallel across timesteps, hiding latency.
+The CUDA-stream parallelism hypothesis is fully resolved (negative). But a different path to speedup — **fixed multi-rate execution** — is positive. See `research/questions/fixed-multi-rate/README.md`.
 
-**Quality:** Confirmed viable. +0.005 nats is noise. (5 seeds, `experiments/async_gru_corpus/artifacts/multiseed_corpus_report.json`)
+**CUDA-stream parallelism:** Confirmed impossible on single GPU. GRU kernels are memory-bandwidth-bound; streams share bandwidth.
 
-**Training wall-clock:** Negative across all configurations tested.
-- d_model=64, 4 blocks: sequential 24.78ms, parallel 30.35ms, async 36.11ms
-- d_model=512, 8 blocks: sequential 1453ms, parallel 1509ms, async 1505ms
-- 9/12 configurations tested showed ≤1.00× speedup. Sequential always fastest.
+**Fixed multi-rate (new):** Blocks on predetermined schedules (rate 1, 2, 4, 8) reuse cached output on inactive steps. No gating, no decisions at runtime. Results:
+- Rates [1,1,2,4]: 12-15% wall-clock speedup, quality BETTER (acts as regularizer)
+- Rates [1,2,4,8]: testing in progress (17.8% speedup at step 0, expected >20% once trained)
 
-**Inference wall-clock:** Worse still.
-- 8 blocks, d_model=128: sequential 341ms, parallel 508ms, async 1022ms (0.50×)
-- Stream overhead dominates when individual kernels are tiny (single-token, single-batch).
-
-**Why it can't work on single GPU:** GRU kernels are memory-bandwidth-bound. Parallel streams on one GPU share the same memory bus. You don't get parallelism — you get contention plus scheduling overhead. This is architectural, not implementational.
+**Why multi-rate works where selective execution failed:** Selective execution uses learned gating — the gating logic itself costs more than the block it skips. Multi-rate has ZERO decision overhead (the schedule is a compile-time constant). The full compute reduction translates directly to speed.
 
 ## What Remains Genuinely Open
 
-- **Multi-GPU async.** Physically separate memory systems would actually enable the parallel execution that single-GPU cannot. Untested — requires different hardware.
-- **Larger scale.** The 0.071 nat gap at 900k params might narrow or widen at 10M+. No evidence either way.
-- **Different tasks.** Temporal recurrence might matter more for tasks with longer-range dependencies than character-level LM on small data.
-- **Muon + longer windows at scale.** The 27% gap reduction from k=4→k=8 suggests further gains from k=16+, but only Muon could stabilize it. Untested beyond k=8.
-
-These aren't "promising leads." They're conditions under which the negative results *might* not generalize. The default expectation should be that they do.
+- **Multi-rate scaling.** Does speedup increase with more aggressive rates? How far can you push it before quality degrades? Active exploration.
+- **Diagonal + multi-rate.** Adding explicit time-offset connections between blocks may further improve quality. Question doc at `research/questions/diagonal-multi-rate/README.md`.
+- **Larger scale.** The 0.071 nat gap at 900k params might narrow or widen at 10M+. Multi-rate's regularization benefit might also scale differently.
+- **Different tasks.** Temporal recurrence might matter more for tasks with longer-range dependencies.
+- **Muon + longer windows at scale.** The 27% gap reduction from k=4→k=8 suggests further gains from k=16+.
+- **Backend/compilation.** JAX or torch.compile for long-lived reusable code.
 
 ## Recommendations
 
-The core ideas are tested. The architecture underperforms transformers, and the execution model that would justify the performance cost (async parallelism) doesn't work on available hardware.
+The CUDA-stream async path is dead. The multi-rate path is alive and promising.
 
 If continuing:
-1. **Multi-GPU experiment** — the one condition where async might actually pay off. Requires at least 2 GPUs with independent memory. This is the only experiment that could change the fundamental picture.
-2. **Scale the GRU speed advantage differently** — GRUs are 2-3× faster per block. Instead of recurrence-across-time, use them as cheap replaceable layers in a standard architecture. Less interesting theoretically, but the speed result is real.
-3. **Drop everything else.** Local learning, attention augmentation, dynamic gating, self-prediction, broadcast — all definitively negative. No amount of tuning changes the mechanistic reasons they fail.
-
-The honest answer: the project produced clear findings. The ideas were tested fairly and most didn't work. That's a complete result, not an incomplete one.
+1. **Scale multi-rate aggressively** — push rates, add blocks, find the quality/speed frontier. This is the active direction.
+2. **Combine diagonal connections with multi-rate** — test whether explicit time-offset signals between blocks improve quality.
+3. **Backend migration** — move to JAX or compiled torch for clean, fast, reusable code.
+4. **Drop:** local learning, attention augmentation, dynamic gating, self-prediction, broadcast — all definitively negative.
