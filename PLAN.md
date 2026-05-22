@@ -9,8 +9,9 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Next (after current items)
 
-- [ ] **Scale multi-rate [1,2,4,8]** — running now (PID in `runs/active.lock`). Step 500: 14.5% speedup, quality BETTER (-0.020 delta). If >20% at convergence → try [1,2,4,8,16] with 5 blocks. If <20% → this may be the ceiling for 4 blocks.
-- [ ] **Diagonal + multi-rate** — the diagonal residual (block1's output at time t feeds block2 at time t+1) naturally pairs with multi-rate. If block2 runs every 2nd step, the diagonal connection IS the stale-read mechanism. Design experiment, write question doc, run.
+- [x] **Scale multi-rate [1,2,4,8]** — DONE. 20.7% speedup (500-pass final timing), quality BETTER (-0.006 nats). Target cleared.
+- [ ] **Push rates further** — try [1,2,4,8,16] with 5 blocks or [2,4,8,16] with no rate-1 block. If still quality-neutral → this path has significant headroom. If quality degrades → we found the boundary.
+- [ ] **Diagonal + multi-rate** — the diagonal residual (block1's output at time t feeds block2 at time t+1) naturally pairs with multi-rate. Question doc at `research/questions/diagonal-multi-rate/README.md`. Run after pushing rates.
 - [ ] **Backend decision** — JAX recommended (`research/questions/backend-choice/README.md`). Awaiting Max's input.
 - [ ] **Core reintegration** — once backend is decided, rewrite core/ to be clean, compiled, and reusable.
 
@@ -25,7 +26,8 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Done
 
-- Fixed multi-rate: **POSITIVE** — 14.8% speedup, no quality loss. See `research/questions/fixed-multi-rate/README.md`.
+- Fixed multi-rate [1,1,2,4]: **POSITIVE** — 14.8% speedup, quality better. See `research/questions/fixed-multi-rate/README.md`.
+- Fixed multi-rate [1,2,4,8]: **POSITIVE** — 20.7% speedup, quality better. Same README.
 - Arbitrary-order MNIST: **WORKING** — per-pixel MSE 0.0195. See `research/questions/arbitrary-order-sampling/README.md`.
 - Dynamic depth: **POSITIVE** — 43% compute savings for 1% quality loss. See `research/questions/dynamic-depth/README.md`.
 - Backend research: **DONE** — See `research/questions/backend-choice/README.md`.
