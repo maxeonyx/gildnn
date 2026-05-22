@@ -26,9 +26,9 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 - [x] **Literature backing** — DONE. 30+ papers supporting multi-rate, persistent kernels, and MixAdd. See `research/questions/literature-backing/README.md`.
 - [x] **Backend decision** — DECIDED: PyTorch deliberately. `torch.compile` for stable core/ paths, custom CUDA/Triton for async research. See `research/questions/backend-choice/README.md`.
-- [x] **Core reintegration** — DONE. `core/model.py` has MixAdd, ResidualFeedForwardBlock, TemporalWindowAttention, MultiRateResidualModel. torch.compile-compatible forward paths. Old models moved to `legacy_models/`.
+- [x] **Core reintegration** — DONE. `core/model.py` has MixAdd, ResidualFeedForwardBlock, TemporalWindowAttention, MultiRateResidualModel. `core/training.py` has evaluate_model, fixed_step_indices, write_json, git utilities. torch.compile-compatible (verified with eager backend).
 - [x] **Diagonal + multi-rate** — NEGATIVE (as currently implemented). Multi-seed confirmation: seed 42 gave -0.052, seed 43 gave 0.000, seed 44 DIVERGED (val_loss 18.4). Stabilized variant (gated/scaled) is open. See `research/questions/diagonal-multi-rate/README.md`.
-- [x] **Async hardware investigation** — DONE. README corrected: PyTorch streams failed but hardware supports concurrent execution via persistent kernels, fused dispatch, or CUDA Graphs. See `research/questions/async-execution/README.md`.
+- [x] **Async hardware investigation** — DONE. README corrected: PyTorch streams failed but hardware supports concurrent execution via persistent kernels, fused dispatch, or CUDA Graphs. Persistent kernel microbenchmark designed (report-first protocol). See `research/questions/async-execution/README.md`.
 
 ## Queue (lower priority)
 
