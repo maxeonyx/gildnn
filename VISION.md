@@ -10,7 +10,7 @@ This is the thing that might actually give wall-clock speedup. If it doesn't giv
 
 A secondary advantage: modules running at different rates. Some iterate rapidly, some update infrequently, some handle different timescales. Not by hard-coded schedules but by the stale-reads mechanism — pack more into one area of the GPU for a rapidly-iterating module, swap between five in another area, swap between a hundred in a third. Multi-rate execution means a certain part of the network is implicitly attempting to predict further into the future.
 
-**Current experimental status:** A fixed multi-rate experiment (blocks at rates 1, 1, 2, 4) showed *better* validation loss than all-rate-1, suggesting a useful inductive bias — constraining how often something updates forces it to learn more slowly-varying, generalizable representations. Wall-clock speedup has not yet been demonstrated. That's the next thing to prove.
+**Current experimental status:** A fixed multi-rate experiment (blocks at rates [1, 1, 2, 4]) showed 14.8% wall-clock speedup AND slightly *better* validation loss than all-rate-1, suggesting a useful inductive bias — constraining how often something updates forces it to learn more slowly-varying, generalizable representations. This is the first positive speed result. Scaling to more aggressive rates is the immediate next step.
 
 ## The architecture: diagonal residual connections across time and depth
 
