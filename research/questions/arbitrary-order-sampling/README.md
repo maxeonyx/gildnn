@@ -65,15 +65,45 @@ Start with the simplest version:
 - Tiny model first: 2-4 encoder layers, 1-2 decoder layers, d_model=64-128
 
 Training:
-- Each sample: randomly choose how many patches to observe (uniform 0 to N-1)
+- Each sample: randomly choose how many patches to observe (uniform 1 to N-1)
 - Randomly select which patches are observed
 - Predict all unobserved patches simultaneously
-- Loss: cross-entropy on quantized pixel values
+- Loss: MSE on continuous pixel values (0-1 range)
 
 ## Results
 
-_Pending._
+**The mechanism works.** Encoder-decoder transformer successfully learns to predict arbitrary MNIST patches from arbitrary subsets.
 
-## Next steps
+### Training (50 epochs, full MNIST, random subset selection)
 
-_Pending._
+| Epoch | Train MSE (per-pixel) | Val MSE (per-pixel) |
+|-------|-----:|-----:|
+| 1 | 0.0574 | 0.0515 |
+| 10 | 0.0253 | 0.0248 |
+| 25 | 0.0208 | 0.0207 |
+| 50 | 0.0196 | 0.0195 |
+
+Final per-pixel MSE: **0.0195** (RMSE ≈ 0.14 per pixel on 0-1 scale). This is well below the trivial baseline (~0.05) — the model genuinely predicts missing patches using observed context.
+
+### Architecture
+
+- d_model=128, 4 encoder layers, 2 decoder layers, 4 heads
+- Total training time: ~68 minutes on RTX 3090 (50 epochs × ~80s/epoch)
+- Cosine LR schedule with 2-epoch warmup
+
+### Interpretation
+
+The architecture is viable. Given any subset of observed MNIST patches, the model predicts unobserved patches with meaningful accuracy. The conditional-independence assumption (all targets predicted simultaneously) appears not to be a major limitation on this task.
+
+Note: metric was initially misreported as per-patch (16× too high). Corrected by dividing by PATCH_DIM in the normalization.
+
+## Status
+
+**Deprioritized** per [dictation 2026-05-22-6](../../../dictations/2026-05-22-6.md): Max explicitly says this is not the current focus. "I don't want to be doing the arbitrary order sampling work now." Reference material for later: `maxeonyx/msc` and `maxeonyx/thesis` on GitHub.
+
+## Next steps (deferred)
+
+- Conditional marginal visualization (observe 1 patch, show predictions for all others)
+- Comparison: random-order training vs fixed-order training
+- Autoregressive sampling (predict one, add to observed, repeat)
+- Compose with the residual-stream-across-time architecture (Max's open question)
