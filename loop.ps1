@@ -87,7 +87,15 @@ function Stop-Loop {
     Stop-Process -Id $proc.Id -Force
     Remove-Item -LiteralPath $pidFile -ErrorAction SilentlyContinue
     try { Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue } catch {}
-    Write-Output "Stopped (PID $($proc.Id))."
+    Write-Output "Stopped loop wrapper (PID $($proc.Id))."
+
+    # Kill any orphaned opencode process running with this loop's session ID
+    $orphans = Get-CimInstance Win32_Process -Filter "Name='opencode.exe'" |
+        Where-Object { $_.CommandLine -match [regex]::Escape($sessionId) }
+    foreach ($o in $orphans) {
+        Stop-Process -Id $o.ProcessId -Force -ErrorAction SilentlyContinue
+        Write-Output "Stopped orphaned opencode (PID $($o.ProcessId))."
+    }
 }
 
 function Follow-Logs {
