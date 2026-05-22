@@ -297,7 +297,8 @@ class MultiRateResidualModel(nn.Module):
         temporal_window: int,
         num_heads: int,
         rates: tuple[int, ...],
-        diagonal_enabled: bool,
+        diagonal_mode: str = "off",
+        diagonal_enabled: bool | None = None,
         token_mix_init: float = 0.5,
         block_mix_init: float = 0.9,
         time_mix_init: float = 0.9,
@@ -307,13 +308,22 @@ class MultiRateResidualModel(nn.Module):
             raise ValueError("MultiRateResidualModel requires at least one block rate.")
         if any(rate <= 0 for rate in rates):
             raise ValueError(f"Block rates must be positive, got {rates}.")
+        if diagonal_enabled is not None:
+            diagonal_mode = "raw" if diagonal_enabled else "off"
+        valid_diagonal_modes = {"off", "raw", "scaled"}
+        if diagonal_mode not in valid_diagonal_modes:
+            raise ValueError(
+                "MultiRateResidualModel diagonal_mode must be one of "
+                f"{sorted(valid_diagonal_modes)}, got {diagonal_mode!r}."
+            )
         self.context_size = context_size
         self.d_model = d_model
         self.feedforward_dim = feedforward_dim
         self.temporal_window = temporal_window
         self.num_heads = num_heads
         self.rates = tuple(rates)
-        self.diagonal_enabled = diagonal_enabled
+        self.diagonal_mode = diagonal_mode
+        self.diagonal_enabled = diagonal_mode != "off"
         self.token_embedding = nn.Embedding(vocab_size, d_model)
         self.position_embedding = nn.Embedding(context_size, d_model)
         self.mix_token = MixAdd(init=token_mix_init)
@@ -332,6 +342,9 @@ class MultiRateResidualModel(nn.Module):
             ]
         )
         self.block_mixes = nn.ModuleList([MixAdd(init=block_mix_init) for _ in self.rates])
+        self.diagonal_scales = nn.ParameterList(
+            [nn.Parameter(torch.zeros(1, dtype=torch.float32)) for _ in range(len(self.rates) - 1)]
+        )
         self.output = nn.Linear(d_model, vocab_size)
 
     def embedded_tokens(self, tokens: Int[Tensor, "batch context"]) -> Float[Tensor, "batch context d_model"]:
@@ -351,6 +364,7 @@ class MultiRateResidualModel(nn.Module):
             "token": self.mix_token.coefficient_value(),
             "time": self.mix_time.coefficient_value(),
             "blocks": [block_mix.coefficient_value() for block_mix in self.block_mixes],
+            "diagonal_mode": self.diagonal_mode,
             "diagonal_enabled": self.diagonal_enabled,
         }
 
@@ -383,10 +397,17 @@ class MultiRateResidualModel(nn.Module):
             for block_index, (block, block_mix, rate) in enumerate(
                 zip(self.blocks, self.block_mixes, self.rates, strict=True)
             ):
-                has_diagonal_input = self.diagonal_enabled and block_index > 0
+                has_diagonal_input = self.diagonal_mode != "off" and block_index > 0
                 if has_diagonal_input:
                     diagonal_input = previous_timestep_deltas[block_index - 1]
-                    block_input = stream + diagonal_input
+                    if self.diagonal_mode == "scaled":
+                        alpha = self.diagonal_scales[block_index - 1].to(
+                            device=stream.device,
+                            dtype=stream.dtype,
+                        )
+                        block_input = stream + (alpha * diagonal_input)
+                    else:
+                        block_input = stream + diagonal_input
                 else:
                     diagonal_input = torch.zeros_like(stream)
                     block_input = stream
