@@ -184,9 +184,48 @@ Artifact: `experiments/fixed_multi_rate/artifacts/aggressive_12_4_8_16/report.js
 
 *Checkpoint measurement; final timing anomalous.
 
+## Matched-FLOP comparison (in progress)
+
+### Question
+
+The results above show multi-rate [1,2,4,8] is 20.7% faster *and* quality-better than matched-parameter all-rate-1. But that comparison is confounded: multi-rate DOES LESS WORK per step (some blocks skip). A fair comparison asks: **given the same compute budget, does multi-rate produce better quality?**
+
+Concretely: if you take the wall-clock savings from multi-rate and give them back to an all-rate-1 model (by making it wider), which learns better?
+
+### Hypothesis
+
+Multi-rate [1,2,4,8] at d_model=128 achieves equal or better val_loss than a wider all-rate-1 model calibrated to match its training-step wall-clock time. The regularization from rate constraints (forcing longer-timescale representations) compensates for the reduced total compute.
+
+### Design
+
+- **Multi-rate model:** 4 blocks, d_model=128, rates [1,2,4,8] — the proven configuration.
+- **Matched control:** 4 blocks, all rate=1, with d_model calibrated so that a training step takes the same wall-clock time as the multi-rate model. (Estimated ~142-150 d_model based on FLOP scaling.)
+- **Calibration phase:** time both models at candidate d_model values, pick the one closest to multi-rate's step time.
+- **Training:** 2000 steps, same data, same seed, same optimizer config.
+
+### Planned evidence
+
+- Calibration report: which d_model was selected, timing measurements at each candidate
+- Training curves: val_loss at each eval checkpoint for both models
+- Final metrics: val_loss delta, parameter counts, exact wall-clock per step
+- 3-seed confirmation (seeds 42, 43, 44) if first seed is ambiguous
+
+### What this does NOT settle
+
+- Whether multi-rate is better at larger scale (this is still d_model=128, 4 blocks, tiny dataset)
+- Whether the rate schedule [1,2,4,8] is optimal vs other schedules
+- Anything about async execution — this is purely about quality-per-FLOP
+
+### Success criteria
+
+See PLAN.md for the decision tree. Summary: win if multi-rate val_loss ≤ control - 0.01; tie if within ±0.01; loss if multi-rate > control + 0.01.
+
+### Results
+
+*(Awaiting GPU availability — launches after midnight May 22.)*
+
 ## Next steps
 
-1. **Fix the timing measurement** — the anomaly at rate-16's final timing (and [1,2,4,8] step 1500) suggests the timing code is fragile. Consider: longer cooldown between training and timing, separate timing script, or run timing on a fresh model load.
-2. **Diagonal connections** — combine with time-offset residual connections. See `research/questions/diagonal-multi-rate/README.md`.
-3. **Matched-FLOP comparison** — is [1,2,4,8] better than a 3-block all-rate-1 model with similar compute?
-4. **Larger model** — does the result hold at 900K+ params?
+1. **Matched-FLOP comparison** — see section above. First priority.
+2. **Diagonal connections (gated variant)** — multi-seed showed naive diagonal is unstable. A stabilized version (learnable mixing initialized near zero) might recover the suggestive single-seed signal. See `research/questions/diagonal-multi-rate/README.md`.
+3. **Larger model** — does the multi-rate result hold at 8 blocks, d_model=256+?
