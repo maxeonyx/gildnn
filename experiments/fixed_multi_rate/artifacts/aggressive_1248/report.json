@@ -1,0 +1,261 @@
+{
+  "config": {
+    "context_size": 32,
+    "d_model": 128,
+    "feedforward_dim": 256,
+    "temporal_window": 4,
+    "num_heads": 4,
+    "batch_size": 64,
+    "eval_batch_size": 512,
+    "learning_rate": 0.003,
+    "training_steps": 2000,
+    "eval_interval": 500,
+    "seed": 42,
+    "num_blocks": 4,
+    "control_rates": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "multi_rates": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "overfit_steps": 2000,
+    "overfit_loss_threshold": 0.001,
+    "checkpoint_timing_warmup_passes": 20,
+    "checkpoint_timing_passes": 100,
+    "final_timing_warmup_passes": 100,
+    "final_timing_passes": 500
+  },
+  "environment": {
+    "git_sha": "35df65c6f32cb4712f41bc4644caa6ffa810f9f4",
+    "git_working_tree_clean": true,
+    "git_status_short": [],
+    "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+    "torch_version": "2.11.0+cu128",
+    "device": "cuda",
+    "cuda_device_name": "NVIDIA GeForce RTX 3090"
+  },
+  "model": {
+    "parameter_count": 349507,
+    "num_blocks": 4,
+    "control_rates": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "multi_rates": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "all_rate_1_mix_coefficients": {
+      "token": 0.5373404622077942,
+      "time": 0.9620433449745178,
+      "blocks": [
+        0.9211223721504211,
+        0.9273960590362549,
+        0.9342740178108215,
+        0.9379867911338806
+      ]
+    },
+    "multi_rate_mix_coefficients": {
+      "token": 0.5366594195365906,
+      "time": 0.9671288728713989,
+      "blocks": [
+        0.8974706530570984,
+        0.9356926083564758,
+        0.9529204368591309,
+        0.9571673274040222
+      ]
+    }
+  },
+  "overfit": {
+    "trace": [
+      {
+        "step": 0,
+        "loss": 4.157719,
+        "accuracy": 0.0
+      },
+      {
+        "step": 25,
+        "loss": 0.286985,
+        "accuracy": 0.9375
+      },
+      {
+        "step": 50,
+        "loss": 0.013827,
+        "accuracy": 1.0
+      },
+      {
+        "step": 75,
+        "loss": 0.002142,
+        "accuracy": 1.0
+      },
+      {
+        "step": 100,
+        "loss": 0.001092,
+        "accuracy": 1.0
+      }
+    ],
+    "final_loss": 0.000996,
+    "final_accuracy": 1.0,
+    "memorized": true,
+    "hit_step": 105,
+    "steps_run": 105
+  },
+  "comparison_history": [
+    {
+      "step": 0,
+      "all_rate_1": {
+        "val_loss": 4.135908,
+        "val_accuracy": 0.011468,
+        "forward_ms_per_batch": 78.482207,
+        "timing_passes": 100
+      },
+      "multi_rate": {
+        "val_loss": 4.136213,
+        "val_accuracy": 0.009115,
+        "forward_ms_per_batch": 64.525651,
+        "timing_passes": 100
+      },
+      "comparison": {
+        "val_loss_delta": 0.000304,
+        "forward_ms_delta": -13.956556,
+        "speedup_percent": 17.783083
+      }
+    },
+    {
+      "step": 500,
+      "all_rate_1": {
+        "val_loss": 2.188195,
+        "val_accuracy": 0.361829,
+        "forward_ms_per_batch": 69.886775,
+        "timing_passes": 100
+      },
+      "multi_rate": {
+        "val_loss": 2.167848,
+        "val_accuracy": 0.371745,
+        "forward_ms_per_batch": 59.77719,
+        "timing_passes": 100
+      },
+      "comparison": {
+        "val_loss_delta": -0.020347,
+        "forward_ms_delta": -10.109585,
+        "speedup_percent": 14.465662
+      }
+    },
+    {
+      "step": 1000,
+      "all_rate_1": {
+        "val_loss": 2.061641,
+        "val_accuracy": 0.395383,
+        "forward_ms_per_batch": 85.003829,
+        "timing_passes": 100
+      },
+      "multi_rate": {
+        "val_loss": 2.051209,
+        "val_accuracy": 0.405148,
+        "forward_ms_per_batch": 69.365042,
+        "timing_passes": 100
+      },
+      "comparison": {
+        "val_loss_delta": -0.010432,
+        "forward_ms_delta": -15.638787,
+        "speedup_percent": 18.397744
+      }
+    },
+    {
+      "step": 1500,
+      "all_rate_1": {
+        "val_loss": 1.994201,
+        "val_accuracy": 0.416567,
+        "forward_ms_per_batch": 82.983322,
+        "timing_passes": 100
+      },
+      "multi_rate": {
+        "val_loss": 1.975095,
+        "val_accuracy": 0.429537,
+        "forward_ms_per_batch": 83.454001,
+        "timing_passes": 100
+      },
+      "comparison": {
+        "val_loss_delta": -0.019106,
+        "forward_ms_delta": 0.470679,
+        "speedup_percent": -0.567197
+      }
+    },
+    {
+      "step": 2000,
+      "all_rate_1": {
+        "val_loss": 1.946388,
+        "val_accuracy": 0.442157,
+        "forward_ms_per_batch": 75.038099,
+        "timing_passes": 100
+      },
+      "multi_rate": {
+        "val_loss": 1.940518,
+        "val_accuracy": 0.440505,
+        "forward_ms_per_batch": 56.281258,
+        "timing_passes": 100
+      },
+      "comparison": {
+        "val_loss_delta": -0.00587,
+        "forward_ms_delta": -18.756841,
+        "speedup_percent": 24.996423
+      }
+    }
+  ],
+  "summary": {
+    "final": {
+      "step": 2000,
+      "all_rate_1": {
+        "val_loss": 1.946388,
+        "val_accuracy": 0.442157,
+        "forward_ms_per_batch": 75.038099,
+        "timing_passes": 100
+      },
+      "multi_rate": {
+        "val_loss": 1.940518,
+        "val_accuracy": 0.440505,
+        "forward_ms_per_batch": 56.281258,
+        "timing_passes": 100
+      },
+      "comparison": {
+        "val_loss_delta": -0.00587,
+        "forward_ms_delta": -18.756841,
+        "speedup_percent": 24.996423
+      }
+    },
+    "best_all_rate_1": {
+      "step": 2000,
+      "val_loss": 1.946388,
+      "val_accuracy": 0.442157
+    },
+    "best_multi_rate": {
+      "step": 2000,
+      "val_loss": 1.940518,
+      "val_accuracy": 0.440505
+    }
+  },
+  "final_timing": {
+    "all_rate_1": {
+      "forward_ms_per_batch": 73.893971,
+      "timing_passes": 500
+    },
+    "multi_rate": {
+      "forward_ms_per_batch": 58.594935,
+      "timing_passes": 500
+    },
+    "comparison": {
+      "forward_ms_delta": -15.299035,
+      "speedup_percent": 20.704037
+    }
+  }
+}

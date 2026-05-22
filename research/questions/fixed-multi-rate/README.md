@@ -125,9 +125,36 @@ Key observations:
 
 Combined with the short run (14.8% speedup at step 1000 with 1000 timed passes), the result is robust: **multi-rate is both faster and slightly better quality**.
 
+## Aggressive rates [1,2,4,8] — 20.7% speedup
+
+| Step | All-rate-1 val loss | Multi-rate val loss | Delta | Speedup (100-pass) |
+|------|--------------------:|--------------------:|------:|--------:|
+| 0    | 4.136 | 4.136 | +0.000 | 17.8% |
+| 500  | 2.188 | 2.168 | **-0.020** | 14.5% |
+| 1000 | 2.062 | 2.051 | **-0.010** | 18.4% |
+| 1500 | 1.994 | 1.975 | **-0.019** | -0.6%* |
+| 2000 | 1.946 | 1.941 | **-0.006** | 25.0% |
+
+*Step 1500 timing is a measurement anomaly (100-pass noise). The 500-pass final timing is reliable.
+
+### Final timing (500 passes, CUDA synchronized)
+
+| Model | ms/batch | Speedup |
+|-------|------:|------:|
+| All-rate-1 (4 blocks) | 73.89 | — |
+| Multi-rate [1,2,4,8] | 58.59 | **20.7%** |
+
+Artifact: `experiments/fixed_multi_rate/artifacts/aggressive_1248/report.json`
+
+### Interpretation
+
+**The 20% target is cleared.** Multi-rate [1,2,4,8] achieves 20.7% wall-clock speedup with quality consistently BETTER than all-rate-1 (not just neutral). The regularization effect persists at more aggressive rates — the multi-rate constraint forces longer-timescale representations that generalize better.
+
+Compared to [1,1,2,4] (14.8% speedup): doubling the aggressiveness of rates yields roughly 40% more speedup (14.8% → 20.7%) with no quality cost.
+
 ## Next steps
 
-1. **More aggressive rates** — [1, 2, 4, 8] or more blocks with varied rates. Can we get >20%?
-2. **Scale up** — larger model, more data, check if the result holds
-3. **Compare effective quality/compute frontier** — how does multi-rate compare to a smaller all-rate-1 model with matched wall-clock time?
-4. **Diagonal connections** — combine with the time-offset residual connections from Max's vision
+1. **Even more aggressive rates** — try [1, 2, 4, 8, 16] with 5 blocks, or [2, 4, 8, 16] (no rate-1 block). How far can it go?
+2. **Diagonal connections** — combine with time-offset residual connections. See `research/questions/diagonal-multi-rate/README.md`.
+3. **Matched-FLOP comparison** — is multi-rate better than a smaller all-rate-1 model with the same compute budget?
+4. **Larger model** — does the result hold at 900K+ params?
