@@ -94,7 +94,7 @@ function Follow-Logs {
     if (-not (Test-Path -LiteralPath $stdoutLog)) {
         New-Item -ItemType File -Path $stdoutLog -Force | Out-Null
     }
-    Get-Content -LiteralPath $stdoutLog -Tail 80 -Wait
+    Get-Content -LiteralPath $stdoutLog -Tail 80 -Wait -Encoding utf8
 }
 
 # --- The forever-loop (invoked by the scheduled task, not by the user) ---
