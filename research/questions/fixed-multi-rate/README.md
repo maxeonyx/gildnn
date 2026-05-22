@@ -259,11 +259,23 @@ Artifact: [`experiments/fixed_multi_rate/artifacts/matched_flop/report.json`](..
 |------|-----------|-----------------|-------|
 | 42 | 1.927 | 1.935 | **-0.008** |
 | 43 | 1.950 | 1.925 | **+0.024** |
-| Average (2 seeds) | 1.938 | 1.930 | **+0.008** |
+| 44 | 1.966 | 1.928 | **+0.038** |
+| **Average** | **1.948** | **1.929** | **+0.018** |
 
-The delta swings from -0.008 to +0.024 across seeds — solidly in noise territory. Neither architecture consistently wins. This **confirms the tie**.
+**3-seed verdict: LOSS** (average delta +0.018 > +0.01 threshold). The compute-matched all-rate-1 model consistently outperforms multi-rate when given equal wall-clock budget. Seed 42's -0.008 was atypical.
 
-Artifact: [`artifacts/matched_flop_seed43/report.json`](../../../experiments/fixed_multi_rate/artifacts/matched_flop_seed43/report.json).
+Artifacts: [`artifacts/matched_flop/`](../../../experiments/fixed_multi_rate/artifacts/matched_flop/), [`artifacts/matched_flop_seed43/`](../../../experiments/fixed_multi_rate/artifacts/matched_flop_seed43/), [`artifacts/matched_flop_seed44/`](../../../experiments/fixed_multi_rate/artifacts/matched_flop_seed44/).
+
+### Interpretation
+
+Multi-rate [1,2,4,8] gives a real speedup (20.7%) by doing less computation. But that speedup comes at a quality cost: given the same compute budget, a wider all-rate-1 model learns ~0.018 nats better. The rate constraint causes some of that compute to be "stale" (cached outputs used across timesteps), which apparently degrades optimization relative to fresh computation at every step.
+
+**Reframing:** Multi-rate's value proposition is time-for-quality tradeoff, not free quality. At identical wall-clock time, multi-rate gets a 20% headstart on training steps but each step is slightly less effective. Whether this nets out positive depends on the training budget — at short budgets (like our 2000-step tests), multi-rate is slightly worse. At longer budgets, the extra steps might compensate.
+
+**What this does NOT invalidate:**
+- Multi-rate still gives 20% speedup (real, confirmed across seeds and corpora)
+- Multi-rate still has architectural headroom for async execution
+- The "regularization" interpretation from [dictation 2026-05-22-10](../../../dictations/2026-05-22-10.md) needs qualification — the rate constraint pressures longer-timescale representations, but this doesn't overcome the quality cost of stale reads when compute is matched
 
 ### Cross-validation: Alice in Wonderland
 

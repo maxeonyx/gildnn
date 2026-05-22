@@ -4,7 +4,10 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Now
 
-- [ ] **Matched-FLOP comparison** — does multi-rate [1,2,4,8] beat a same-compute all-rate-1 model? Experiment code written (`experiments/fixed_multi_rate/matched_flop.py`), verified on CPU. Launch after midnight when GPU is free.
+- [ ] **Decide next direction** — Matched-FLOP result is in (LOSS: +0.018). Multi-rate gives speedup by doing less work, not better work per FLOP. Options:
+  1. Accept the tradeoff: multi-rate is still 20% faster and architecturally enables async. Proceed to persistent-kernel async prototype.
+  2. Investigate why: is stale-read quality cost fixable? Would longer training compensate?
+  3. Pivot: try a different architecture that gets both speed AND quality (e.g. multi-rate + gradient detach + longer training).
 
 ### Matched-FLOP decision tree
 
