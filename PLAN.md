@@ -15,7 +15,7 @@ Architecture:
 - **Quality at equal FLOPs: BETTER (+0.019 avg, 2/3 seeds clearly better, 1 tied)** ✓
 
 Next steps:
-- [ ] **Scale up** — 8 blocks, rates [1,1,2,2,4,4,8,8], matched FLOPs vs 8-block all-rate-1. Does the advantage grow?
+- [ ] **Understand the scale gap** — Why does parallel win at 4 blocks but tie/lose at 8? Hypothesis: sequential depth gives compositional power that width can't replace. Could test: 8-block parallel with more internal_steps (simulate depth within each block).
 - [ ] **Self-prediction revisit** — Auxiliary losses on top of validated architecture.
 
 ## Recently completed
@@ -30,6 +30,7 @@ Next steps:
 - [x] **Multi-rate parallel diagonal** — +0.017 avg (3-seed, consistent). 53% fewer block evals. See `experiments/fixed_multi_rate/artifacts/parallel_diagonal_multirate_3seed/`.
 - [x] ~~**Matched-FLOP parallel multi-rate** — **WINS by 0.036 avg**~~ BUG: control was also multi-rate, so parallel had 2.13× more FLOPs. Fixed: all-rate-1 control.
 - [x] **Corrected matched-FLOP** — Parallel multi-rate WINS by 0.019 avg vs all-rate-1 sequential at equal per-token FLOPs (262K each). 2/3 seeds clearly better, 1 tied. See `experiments/fixed_multi_rate/artifacts/parallel_diagonal_matched_flop_fixed_3seed/`.
+- [x] **8-block scale-up** — TIE (-0.007 avg). Advantage does NOT grow with depth. See `experiments/fixed_multi_rate/artifacts/parallel_diagonal_8block_matched_flop_3seed/`.
 - [x] **Async hardware** — CLOSED. 28% block concurrency, but irrelevant vs 10.86× whole-step graph.
 
 ## Queue (lower priority)
