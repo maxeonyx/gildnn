@@ -4,15 +4,12 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Now
 
-All immediate items complete. Major findings this session:
-- **CUDA Graph training: 10.86×** — integrated into `core/training.py` as `GraphTrainer`
-- **20K matched-FLOP: TIE** (3-seed avg delta -0.001) — multi-rate is compute-equivalent with structural benefits at longer training horizons
-- **Diagonal connections: NEGATIVE** — raw add +0.063, ReZero-scaled +0.007. Alphas grow (~0.2) but don't improve quality. Diagonal signal helps early, hurts late. Not worth pursuing in current form.
+**Parallel diagonal architecture WORKS.** All-block readout closes the gap to +0.010 (noise). This validates Max's core idea from dictation 2026-05-22-17.
 
-Next directions (choose one):
-- [ ] **Scale up** — With 10.86× training speed, run much larger experiments. 8 blocks, larger d_model, more data, longer training. Does multi-rate's advantage grow or stay flat at scale?
-- [ ] **Self-prediction auxiliary loss (revisit)** — Per VISION: "each block's job: predict its own next incoming residual stream." Previous test was NEGATIVE (+0.011-0.018 nats) but at only 2K steps. Worth revisiting at 20K.
-- [ ] **Dynamic depth at scale** — Previous result: 43% compute savings for 1% quality loss. With GraphTrainer, can run much longer and at larger scale. Does the quality cost shrink?
+Next experiments with the parallel diagonal:
+- [ ] **Multi-rate parallel diagonal** — Some blocks skip tokens (rates 1,2,4,8) while all still run in parallel within each step they fire. Does this give the 20% speedup we saw in sequential multi-rate?
+- [ ] **Scale up** — 8 blocks, larger d_model. Does parallel diagonal's advantage grow at scale?
+- [ ] **Multi-seed confirmation** — Run 3 seeds on the all-block-readout parallel model to confirm the +0.010 is real noise (not a lucky seed).
 
 ## Recently completed
 
@@ -22,6 +19,7 @@ Next directions (choose one):
 - [x] **Backend decision** — PyTorch + torch.compile + manual CUDA Graphs.
 - [x] **Core reintegration** — `core/model.py` + `core/training.py`
 - [x] **Diagonal + multi-rate** — NEGATIVE. Raw: +0.063 at 20K. Scaled (ReZero): +0.007. Alphas grow but don't help. Signal helps early, hurts late. See `experiments/fixed_multi_rate/artifacts/diagonal_20k/` and `diagonal_scaled_20k/`.
+- [x] **TRUE parallel diagonal (Max's architecture)** — WORKS. All-block readout: +0.010 (noise). Last-block-only: +0.093. Problem was readout bottleneck, not propagation. See `experiments/fixed_multi_rate/artifacts/parallel_diagonal_variants_20k/`.
 - [x] **Async hardware** — CLOSED. 28% block concurrency, but irrelevant vs 10.86× whole-step graph.
 
 ## Queue (lower priority)
