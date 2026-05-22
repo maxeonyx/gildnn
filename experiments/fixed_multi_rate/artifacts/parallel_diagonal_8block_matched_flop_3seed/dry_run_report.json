@@ -1,0 +1,318 @@
+{
+  "config": {
+    "training_steps": 4,
+    "eval_interval": 4,
+    "batch_size": 64,
+    "eval_batch_size": 512,
+    "learning_rate": 0.0003,
+    "seeds": [
+      42
+    ],
+    "warmup_steps": 3,
+    "context_size": 32,
+    "dataset_vocab_size": 61,
+    "model_vocab_size": 67,
+    "trainer": "GraphTrainer"
+  },
+  "environment": {
+    "git_sha": "d0709d8ea98a92416399b94bf8e2bbfcce739029",
+    "git_working_tree_clean": false,
+    "git_status_short": [
+      " M runs/dictations_seen.json",
+      "?? dictations/2026-05-22-17.md",
+      "?? experiments/fixed_multi_rate/artifacts/parallel_diagonal_8block_matched_flop_3seed/",
+      "?? runs/parallel_diagonal_8block_matched_flop_3seed.py",
+      "?? runs/test_json.tmp",
+      "?? runs/test_write.tmp"
+    ],
+    "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+    "torch_version": "2.11.0+cu128",
+    "device": "cuda",
+    "cuda_device_name": "NVIDIA GeForce RTX 3090"
+  },
+  "timing": {
+    "overall_wall_seconds": 16.454212
+  },
+  "matched_flop_design": {
+    "control_rates": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "parallel_rates": [
+      1,
+      1,
+      2,
+      2,
+      4,
+      4,
+      8,
+      8
+    ],
+    "control_average_block_evals_per_token": 8.0,
+    "parallel_average_block_evals_per_token": 3.75,
+    "control_per_token_block_flops": 524288,
+    "parallel_per_token_block_flops": 524160,
+    "parallel_block_flop_delta_vs_control": -128
+  },
+  "variants": {
+    "control": {
+      "key": "control",
+      "label": "multi_rate_8x128_ff256_11111111_control_fixed",
+      "class_name": "MultiRateResidualModel",
+      "d_model": 128,
+      "feedforward_dim": 256,
+      "num_blocks": 8,
+      "rates": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "readout_mode": "last"
+    },
+    "parallel_diagonal_8block_matched_flop": {
+      "key": "parallel_diagonal_8block_matched_flop",
+      "label": "parallel_diagonal_8x128_ff546_all_rate11224488_matched_flop",
+      "class_name": "ParallelDiagonalModel",
+      "d_model": 128,
+      "feedforward_dim": 546,
+      "num_blocks": 8,
+      "rates": [
+        1,
+        1,
+        2,
+        2,
+        4,
+        4,
+        8,
+        8
+      ],
+      "readout_mode": "all"
+    }
+  },
+  "seed_results": [
+    {
+      "seed": 42,
+      "control": {
+        "label": "multi_rate_8x128_ff256_11111111_control_fixed",
+        "class_name": "MultiRateResidualModel",
+        "d_model": 128,
+        "feedforward_dim": 256,
+        "num_blocks": 8,
+        "rates": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "readout_mode": "last",
+        "parameter_count": 614740,
+        "checkpoints": [
+          {
+            "step": 0,
+            "val_loss": 4.192563,
+            "val_accuracy": 0.015325
+          },
+          {
+            "step": 4,
+            "val_loss": 4.14269,
+            "val_accuracy": 0.027294
+          }
+        ],
+        "best_checkpoint": {
+          "step": 4,
+          "val_loss": 4.14269,
+          "val_accuracy": 0.027294
+        },
+        "final_checkpoint": {
+          "step": 4,
+          "val_loss": 4.14269,
+          "val_accuracy": 0.027294
+        },
+        "final_training_loss": 4.158242,
+        "wall_seconds": 5.097232,
+        "block_eval_stats": {
+          "rates": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "evals_per_block": [
+            32,
+            32,
+            32,
+            32,
+            32,
+            32,
+            32,
+            32
+          ],
+          "total_block_evals_per_forward": 256,
+          "average_block_evals_per_token": 8.0,
+          "savings_vs_all_rate_1": 0.0
+        },
+        "per_token_block_flops": 524288
+      },
+      "parallel_diagonal_8block_matched_flop": {
+        "label": "parallel_diagonal_8x128_ff546_all_rate11224488_matched_flop",
+        "class_name": "ParallelDiagonalModel",
+        "d_model": 128,
+        "feedforward_dim": 546,
+        "num_blocks": 8,
+        "rates": [
+          1,
+          1,
+          2,
+          2,
+          4,
+          4,
+          8,
+          8
+        ],
+        "readout_mode": "all",
+        "parameter_count": 1144939,
+        "checkpoints": [
+          {
+            "step": 0,
+            "val_loss": 4.31368,
+            "val_accuracy": 0.002204
+          },
+          {
+            "step": 4,
+            "val_loss": 4.259226,
+            "val_accuracy": 0.004257
+          }
+        ],
+        "best_checkpoint": {
+          "step": 4,
+          "val_loss": 4.259226,
+          "val_accuracy": 0.004257
+        },
+        "final_checkpoint": {
+          "step": 4,
+          "val_loss": 4.259226,
+          "val_accuracy": 0.004257
+        },
+        "final_training_loss": 4.22676,
+        "wall_seconds": 3.264867,
+        "block_eval_stats": {
+          "rates": [
+            1,
+            1,
+            2,
+            2,
+            4,
+            4,
+            8,
+            8
+          ],
+          "evals_per_block": [
+            32,
+            32,
+            16,
+            16,
+            8,
+            8,
+            4,
+            4
+          ],
+          "total_block_evals_per_forward": 120,
+          "average_block_evals_per_token": 3.75,
+          "savings_vs_all_rate_1": 0.53125
+        },
+        "per_token_block_flops": 524160,
+        "mix_coefficients": {
+          "token": [
+            0.5002404451370239,
+            0.500271737575531,
+            0.5002847909927368,
+            0.5001990795135498,
+            0.5002668499946594,
+            0.5002826452255249,
+            0.5002661943435669,
+            0.5002906918525696
+          ],
+          "blocks": [
+            0.8998911380767822,
+            0.8998905420303345,
+            0.8998912572860718,
+            0.8998943567276001,
+            0.8998943567276001,
+            0.8998912572860718,
+            0.8998925089836121,
+            0.8998962640762329
+          ],
+          "rates": [
+            1,
+            1,
+            2,
+            2,
+            4,
+            4,
+            8,
+            8
+          ],
+          "internal_steps": 1,
+          "readout_mode": "all",
+          "readout_weights": [
+            0.12488457560539246,
+            0.12485963851213455,
+            0.12488070130348206,
+            0.1251317858695984,
+            0.12512536346912384,
+            0.1250203251838684,
+            0.12503613531589508,
+            0.12506146728992462
+          ]
+        }
+      },
+      "delta_control_minus_parallel_diagonal_8block_matched_flop": {
+        "final_val_loss": -0.116536,
+        "final_val_accuracy": 0.023037,
+        "best_val_loss": -0.116536,
+        "parameter_count": -530199
+      }
+    }
+  ],
+  "averages": {
+    "control": {
+      "final_val_loss": 4.14269,
+      "final_val_accuracy": 0.027294,
+      "best_val_loss": 4.14269,
+      "final_training_loss": 4.158242,
+      "wall_seconds": 5.097232
+    },
+    "parallel_diagonal_8block_matched_flop": {
+      "final_val_loss": 4.259226,
+      "final_val_accuracy": 0.004257,
+      "best_val_loss": 4.259226,
+      "final_training_loss": 4.22676,
+      "wall_seconds": 3.264867
+    },
+    "delta_control_minus_parallel_diagonal_8block_matched_flop": {
+      "final_val_loss": -0.116536,
+      "final_val_accuracy": 0.023037,
+      "best_val_loss": -0.116536,
+      "parameter_count": -530199.0
+    }
+  }
+}
