@@ -251,7 +251,7 @@ Rules:
 - One small/fast experiment can run alongside a large run.
 - While any run is active, do other useful work: theory, integration, reporting, small experiments.
 - Do not wait idly for any run to complete.
-- Check progress from logs without tight polling.
+- The orchestrator checks progress when it decides to — subagents do not poll.
 
 **Subagent instruction requirement — this is mandatory, not optional:**
 
