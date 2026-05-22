@@ -4,7 +4,11 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Now
 
-**Parallel diagonal multi-rate architecture validated.** At equal per-token FLOPs: +0.019 nats better than sequential all-rate-1 (3-seed avg). At equal model size: +0.017 cost for 53% fewer block evals. Architecture works.
+**Parallel diagonal multi-rate: validated with clear regime boundaries.** Compute frontier shows:
+- At LOW compute: parallel 4-block multi-rate is the best architecture (1.804 @ 123K FLOPs).
+- At HIGH compute: sequential all-rate-1 dominates (1.741 @ 393K FLOPs).
+- Parallel doesn't scale past 4 blocks at this width.
+- The architecture's value: **same quality at ~half the per-token FLOPs** for moderate depths.
 
 Architecture:
 - All blocks parallel ✓
@@ -15,9 +19,9 @@ Architecture:
 - **Quality at equal FLOPs: BETTER (+0.019 avg, 2/3 seeds clearly better, 1 tied)** ✓
 
 Next steps:
-- [ ] **Check internal_steps=2 result** (PID 15680 running). If positive: within-block depth helps parallel at 8 blocks.
-- [ ] **Compute frontier** — Run parallel multi-rate and sequential all-rate-1 across multiple depths (2,4,6,8 blocks) at NATURAL compute (no FLOP matching). Plot quality vs actual FLOPs/token. The real question is: what's the cheapest async-capable model that reaches a target quality?
-- [ ] **Self-prediction revisit** — Not the old logits-KL, but predict future lateral messages or neighbor states. Match the architecture's actual information bottleneck.
+- [ ] **Compute frontier: why parallel plateaus** — Parallel 4→6→8 blocks barely improves (1.804→1.838→1.821). Why? Two hypotheses: (a) multi-rate rates [1,1,2,2,4,8] for 6 blocks is a bad schedule, (b) parallel blocks at this width (ff=256) can't compose complex features across blocks. Could test: parallel 4-block with bigger width (d=256, ff=512) to see if it scales via width instead of depth.
+- [ ] **Self-prediction on 4-block parallel** — The 4-block parallel is the sweet spot. Can auxiliary losses help it close the remaining gap to sequential 6-block?
+- [ ] **Longer training** — All results at 20K steps. Does parallel catch up or fall further behind at 50K/100K?
 
 ## Recently completed
 
@@ -31,7 +35,8 @@ Next steps:
 - [x] **Multi-rate parallel diagonal** — +0.017 avg (3-seed, consistent). 53% fewer block evals. See `experiments/fixed_multi_rate/artifacts/parallel_diagonal_multirate_3seed/`.
 - [x] ~~**Matched-FLOP parallel multi-rate** — **WINS by 0.036 avg**~~ BUG: control was also multi-rate, so parallel had 2.13× more FLOPs. Fixed: all-rate-1 control.
 - [x] **Corrected matched-FLOP** — Parallel multi-rate WINS by 0.019 avg vs all-rate-1 sequential at equal per-token FLOPs (262K each). 2/3 seeds clearly better, 1 tied. See `experiments/fixed_multi_rate/artifacts/parallel_diagonal_matched_flop_fixed_3seed/`.
-- [x] **8-block scale-up** — TIE (-0.007 avg). Advantage does NOT grow with depth. See `experiments/fixed_multi_rate/artifacts/parallel_diagonal_8block_matched_flop_3seed/`.
+- [x] **8-block internal_steps=2** — NEGATIVE (-0.051 avg). Recurrence within blocks doesn't compensate for halved width.
+- [x] **Compute frontier sweep** — Parallel wins at low compute (4-block @ 123K FLOPs beats seq-2-block @ 131K). Sequential dominates at high compute. Parallel plateaus past 4 blocks. See `experiments/fixed_multi_rate/artifacts/compute_frontier_sweep/`.
 - [x] **Async hardware** — CLOSED. 28% block concurrency, but irrelevant vs 10.86× whole-step graph.
 
 ## Queue (lower priority)
