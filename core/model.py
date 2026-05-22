@@ -466,6 +466,7 @@ class ParallelDiagonalModel(nn.Module):
         feedforward_dim: int,
         num_blocks: int,
         internal_steps: int = 1,
+        readout_mode: str = "last",
         token_mix_init: float = 0.5,
         block_mix_init: float = 0.9,
     ) -> None:
@@ -476,11 +477,18 @@ class ParallelDiagonalModel(nn.Module):
             raise ValueError(
                 f"ParallelDiagonalModel requires at least one internal step, got {internal_steps}."
             )
+        valid_readout_modes = {"last", "all"}
+        if readout_mode not in valid_readout_modes:
+            raise ValueError(
+                "ParallelDiagonalModel readout_mode must be one of "
+                f"{sorted(valid_readout_modes)}, got {readout_mode!r}."
+            )
         self.context_size = context_size
         self.d_model = d_model
         self.feedforward_dim = feedforward_dim
         self.num_blocks = num_blocks
         self.internal_steps = internal_steps
+        self.readout_mode = readout_mode
         self.token_embedding = nn.Embedding(vocab_size, d_model)
         self.position_embedding = nn.Embedding(context_size, d_model)
         self.token_mixes = nn.ModuleList([MixAdd(init=token_mix_init) for _ in range(num_blocks)])
@@ -494,6 +502,11 @@ class ParallelDiagonalModel(nn.Module):
             ]
         )
         self.block_mixes = nn.ModuleList([MixAdd(init=block_mix_init) for _ in range(num_blocks)])
+        self.readout_logits = (
+            nn.Parameter(torch.zeros(num_blocks, dtype=torch.float32))
+            if readout_mode == "all"
+            else None
+        )
         self.output = nn.Linear(d_model, vocab_size)
 
     def embedded_tokens(self, tokens: Int[Tensor, "batch context"]) -> Float[Tensor, "batch context d_model"]:
@@ -509,11 +522,31 @@ class ParallelDiagonalModel(nn.Module):
 
     @torch.no_grad()
     def mix_coefficients(self) -> dict[str, object]:
+        readout_weights = None
+        if self.readout_logits is not None:
+            readout_weights = torch.softmax(self.readout_logits, dim=0).detach().cpu().tolist()
         return {
             "token": [mix.coefficient_value() for mix in self.token_mixes],
             "blocks": [mix.coefficient_value() for mix in self.block_mixes],
             "internal_steps": self.internal_steps,
+            "readout_mode": self.readout_mode,
+            "readout_weights": readout_weights,
         }
+
+    def _readout_state(
+        self,
+        states: list[Float[Tensor, "batch d_model"]],
+    ) -> Float[Tensor, "batch d_model"]:
+        if self.readout_mode == "last":
+            return states[-1]
+        if self.readout_logits is None:
+            raise RuntimeError("readout_logits missing for readout_mode='all'.")
+        stacked_states = torch.stack(states, dim=1)
+        readout_weights = torch.softmax(
+            self.readout_logits.to(device=stacked_states.device, dtype=stacked_states.dtype),
+            dim=0,
+        )
+        return (stacked_states * rearrange(readout_weights, "blocks -> 1 blocks 1")).sum(dim=1)
 
     def forward(self, tokens: Int[Tensor, "batch context"]) -> Float[Tensor, "batch vocab"]:
         embeddings = self.embedded_tokens(tokens)
@@ -549,4 +582,4 @@ class ParallelDiagonalModel(nn.Module):
                 current_states = next_states
             previous_states = current_states
 
-        return self.output(previous_states[-1])
+        return self.output(self._readout_state(previous_states))
