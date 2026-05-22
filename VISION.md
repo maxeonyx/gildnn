@@ -10,12 +10,12 @@ This is the thing that might actually give wall-clock speedup. If it doesn't giv
 
 A secondary advantage: modules running at different rates. Some iterate rapidly, some update infrequently, some handle different timescales. Not by hard-coded schedules but by the stale-reads mechanism — pack more into one area of the GPU for a rapidly-iterating module, swap between five in another area, swap between a hundred in a third. Multi-rate execution means a certain part of the network is implicitly attempting to predict further into the future.
 
-**Current experimental status:** Fixed multi-rate experiments show consistent wall-clock speedup with better quality:
+**Current experimental status:** Fixed multi-rate gives consistent wall-clock speedup:
 - Rates [1, 1, 2, 4] (4 blocks): 14.8% speedup
-- Rates [1, 2, 4, 8] (4 blocks): **20.7% speedup** — clears the 20% target, quality BETTER
-- Rates [1, 2, 4, 8, 16] (5 blocks): ~22% speedup but +0.016 quality cost. Rate-16 is where quality degrades. Sweet spot is [1,2,4,8].
+- Rates [1, 2, 4, 8] (4 blocks): **20.7% speedup** — clears the 20% target
+- Rates [1, 2, 4, 8, 16] (5 blocks): ~22% speedup but +0.016 quality cost. Sweet spot is [1,2,4,8].
 
-The rate constraint acts as a useful regularizer — multi-rate consistently achieves better validation loss, not just equal. Scaling to more aggressive rates is the immediate direction.
+**Quality nuance (3-seed matched-FLOP result):** Multi-rate beats a same-architecture all-rate-1 baseline per step, but given equal wall-clock compute (wider all-rate-1 model), the wider model is slightly better (+0.018 nats, 3-seed average). Multi-rate's value is the speedup itself — it does less work per step, freeing time. Whether that time advantage nets out positive depends on training budget and whether async execution can further multiply the throughput gain.
 
 ## The architecture: diagonal residual connections across time and depth
 
