@@ -126,15 +126,16 @@ Evidence in question READMEs must be **embedded inline** in the markdown (tables
 
 **Experiment visibility.** Before running any experiment expected to take more than ~30 seconds, subagents must stop and report back with what they're about to run, how long it's expected to take, and what it will produce. This applies to every long run, including retries after obvious fixes. The orchestrator logs a fresh visibility note with the current time before resuming each run. See `PROCESS.md` for details. This keeps the loop output informative for Max.
 
-**Background execution.** Experiments expected to take more than ~5 minutes must be started in the background (not blocking the agent). The subagent starts the process, returns the PID and log path, and stops. The orchestrator continues with other work and checks back later. See `PROCESS.md` for the full rule.
+**Background execution.** Experiments expected to take more than ~5 minutes must use a **two-phase delegation**: Phase 1 (launch only) — subagent starts the process, returns PID and log path, and stops. It does NOT wait, poll, or check results. Phase 2 (check) — orchestrator decides when to check back and resumes the subagent to analyse results. Failing to split this way is a process failure. See `PROCESS.md` for the full rule.
 
 ## Handover protocol
 
 When picking up after a handover:
 1. Read `PLAN.md` — current task and next steps
 2. Check for `TASK-*.ignore.md` in root — read any that exist
-3. Read `VISION.md` briefly if the direction is unclear
-4. **Check the time** — if after 4pm, write the daily report at the next natural stopping point; if Thursday, weekly too
+3. Check `runs/active.lock` — if a background run is active, do other work (don't start a second long run)
+4. Read `VISION.md` briefly if the direction is unclear
+5. **Check the time** — if after 4pm, write the daily report at the next natural stopping point; if Thursday, weekly too
 
 When handing over:
 1. Update `PLAN.md` with current state and clear next step

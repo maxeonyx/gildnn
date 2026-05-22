@@ -8,7 +8,9 @@ This is personal hobbyist ML research. The goal is discovery: try ideas, run exp
 
 ## The autonomous loop
 
-`loop.ps1` relaunches OpenCode if it exits. This file is what autonomous agents follow when running in that loop.
+`loop.ps1` relaunches OpenCode if it exits. **The loop uses Windows Task Scheduler** — it is a child of the task scheduler, not a child of the terminal. Do not revert this to a terminal-based loop; closing the terminal must not kill the loop.
+
+This file is what autonomous agents follow when running in that loop.
 
 The process here is not optional ceremony. It exists because an autonomous agent will otherwise drift, overclaim, skip grounding, or leave unreadable outputs. Following it is the job. Skipping it is failure — even if the immediate output looks productive. The goal is research; the process is the only reliable mechanism for getting there.
 
@@ -67,21 +69,20 @@ Theory-first is not optional process overhead. It is the primary output for many
 
 ### Incorporating new dictations
 
-When a new dictation appears in `dictations/`, it triggers a full process review:
+Dictations contain two kinds of content that require different responses:
 
-1. Read the new dictation carefully.
-2. Check whether it changes or corrects anything in PROCESS.md, AGENTS.md (root and per-directory), PLAN.md, or VISION.md.
-3. Update all affected files. New dictations often correct architectural direction, process, or both.
-4. Only then proceed with the corrected direction.
+1. **Process corrections** — act immediately. Update PROCESS.md, AGENTS.md, PLAN.md, VISION.md as needed. These take effect now.
+2. **New work directions** — add to the queue in PLAN.md. Do NOT start them immediately or abandon current work. The latest dictation is NOT automatically the highest-priority work.
+
+When a new dictation appears:
+
+1. Read it carefully.
+2. Identify which parts are process corrections and which are new directions.
+3. Apply process corrections to all affected files immediately.
+4. Add new directions to PLAN.md as queued future work.
+5. Continue with the current task unless the dictation explicitly says to stop.
 
 This is not a one-time task. Every new dictation is a potential course correction. Treat it as authoritative over all derived files.
-
-**Important:** dictations update docs synchronously but do NOT trigger immediate experiment changes. When a new dictation arrives:
-- **Do immediately:** update PLAN.md, PROCESS.md, and AGENTS.md to reflect it.
-- **Do NOT immediately:** start new experiments implied by it, or abandon current work because of it.
-- New experiments go into the plan as future work — they **add to the queue**, not bump the stack.
-- The latest dictation is NOT automatically the highest-priority work. It joins the queue alongside existing planned work.
-- Do not abandon the current experiment unless the dictation explicitly says to.
 
 ### The ladder
 
