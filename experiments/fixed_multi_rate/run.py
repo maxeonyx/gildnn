@@ -45,6 +45,10 @@ class RunConfig:
     final_timing_passes: int = 1_000
 
 
+def parse_rate_tuple(value: str) -> tuple[int, ...]:
+    return tuple(int(part.strip()) for part in value.split(","))
+
+
 def parse_args() -> argparse.Namespace:
     repo_root = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser()
@@ -57,6 +61,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--checkpoint-timing-passes", type=int)
     parser.add_argument("--final-timing-warmup-passes", type=int)
     parser.add_argument("--final-timing-passes", type=int)
+    parser.add_argument("--control-rates")
+    parser.add_argument("--multi-rates", default="1,1,2,4")
     parser.set_defaults(repo_root=repo_root)
     return parser.parse_args()
 
@@ -510,6 +516,9 @@ def final_timing_summary(
 
 def main() -> None:
     args = parse_args()
+    multi_rates = parse_rate_tuple(args.multi_rates)
+    control_rates = parse_rate_tuple(args.control_rates) if args.control_rates is not None else (1,) * len(multi_rates)
+    assert len(control_rates) == len(multi_rates)
     config = replace_config(
         RunConfig(),
         **{
@@ -522,6 +531,9 @@ def main() -> None:
                 "checkpoint_timing_passes": args.checkpoint_timing_passes,
                 "final_timing_warmup_passes": args.final_timing_warmup_passes,
                 "final_timing_passes": args.final_timing_passes,
+                "num_blocks": len(multi_rates),
+                "control_rates": control_rates,
+                "multi_rates": multi_rates,
             }.items()
             if value is not None
         },
