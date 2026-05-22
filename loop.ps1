@@ -94,6 +94,7 @@ function Follow-Logs {
     if (-not (Test-Path -LiteralPath $stdoutLog)) {
         New-Item -ItemType File -Path $stdoutLog -Force | Out-Null
     }
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
     Get-Content -LiteralPath $stdoutLog -Tail 80 -Wait -Encoding utf8
 }
 
