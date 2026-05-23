@@ -19,9 +19,9 @@ Architecture:
 - **Quality at equal FLOPs: BETTER (+0.019 avg, 2/3 seeds clearly better, 1 tied)** ✓
 
 Next steps:
-- [ ] **Self-prediction sweep RUNNING** (PID 10136, ~3.75h total, started ~9am Sat May 23). Lambda sweep [0, 1e-4, 3e-4, 1e-3, 3e-3, 1e-2] on 4-block [1,2,4,8]. Log: `experiments/fixed_multi_rate/artifacts/self_prediction_sweep/run.jsonl`. Design: cosine alignment in projected latent space (d_aux=32), adjacent pairs fast→slow with detached teacher, linear warmup 1000 steps.
-- [ ] **Longer training** — All results at 20K steps. Does parallel catch up or fall further behind at 50K/100K?
+- [ ] **Longer training** — All results at 20K steps. Does parallel catch up or fall further behind at 50K/100K? Self-prediction might become relevant at longer horizons.
 - [ ] **Width scaling** — Try parallel 4-block with bigger width (d=256, ff=512) to see if parallel scales via width instead of depth.
+- [ ] **Rethink self-prediction** — Current formulation (cosine alignment fast→slow) has zero task effect. Max's intuition was "bring network toward higher-level representations" but the blocks already specialize naturally. Maybe the loss should be PREDICTIVE (predict what the slow block WILL output next) rather than MATCHING (look like the slow block now).
 
 ## Recently completed
 
@@ -38,6 +38,7 @@ Next steps:
 - [x] **8-block internal_steps=2** — NEGATIVE (-0.051 avg). Recurrence within blocks doesn't compensate for halved width.
 - [x] **Compute frontier sweep** — Parallel wins at low compute (4-block @ 123K FLOPs beats seq-2-block @ 131K). Sequential dominates at high compute. Parallel plateaus past 4 blocks. See `experiments/fixed_multi_rate/artifacts/compute_frontier_sweep/`.
 - [x] **Rate dilation sweep** — [1,2,4,16] ≈ [1,2,4,8], [1,2,4,32] slightly worse. Aggressive dilation is a wash at ctx=32 (rate=32 fires once at t=0, just a static prior). See `experiments/fixed_multi_rate/artifacts/rate_dilation_sweep/`.
+- [x] **Self-prediction sweep** — NEUTRAL. Cosine alignment (adjacent fast→slow, d_aux=32) reduces aux loss 3× but has ZERO task effect across all lambdas [0, 1e-4, 3e-4, 1e-3, 3e-3, 1e-2]. Blocks specialize naturally; alignment doesn't help. See `experiments/fixed_multi_rate/artifacts/self_prediction_sweep/`.
 - [x] **Async hardware** — CLOSED. 28% block concurrency, but irrelevant vs 10.86× whole-step graph.
 
 ## Queue (lower priority)
