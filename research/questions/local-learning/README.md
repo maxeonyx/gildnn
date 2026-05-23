@@ -136,6 +136,46 @@ This question does NOT address:
 
 ## Next steps
 
-1. **Re-run on corrected architecture** (`token_injection="block0"`). In this architecture, detaching lateral gradients removes the ONLY information pathway to higher blocks. H1 likely fails — but how badly?
-2. **Test whether all-block readout provides sufficient local signal.** Even without lateral gradients, each block gets a direct task gradient from its readout contribution. This may partially compensate.
-3. **If H3 holds:** Explore predictive coding / target propagation style local objectives for interior blocks. Max mentions "something where the local objective is grounded in real prediction error, not just social selection." The attention-based "usefulness" signal is disfavored.
+1. **Sanity check: does corrected architecture train?** RUNNING (PID 14456). Tests `token_injection="block0"` vs `"all"` vs single-block at 4-block all-rate-1. Expected ~25 min.
+2. **Re-run local learning test on corrected architecture** with better diagnostics: full vs detached lateral, measuring not just val loss but per-block readout weights and per-block ablation (zero each block's contribution, measure loss increase). Shallow collapse (upper blocks unused) is the expected failure mode — val loss alone can hide this.
+3. **If detached fails (expected):** implement predictive coding on inter-block interfaces. Each block predicts the future state at its input boundary, with prediction horizon matched to its rate. This trains the *communication protocol*, not just "use what you get."
+
+## Theoretical analysis (corrected architecture)
+
+With `token_injection="block0"`, the local learning question changes fundamentally:
+
+### Why detached lateral likely fails differently than expected
+
+With detached lateral gradients in the corrected architecture:
+- Block 0 still gets full task gradient (sees tokens + contributes to output)
+- Block 1+ get task gradient from their readout contribution (dL/dh_i = dL/dS)
+- Block 1+ CAN learn a function of their lateral input (like a frozen-encoder + trainable-decoder)
+- Block 0 CANNOT learn to emit features useful for block 1 (no gradient signal from block 1's needs)
+
+The all-block readout creates an **escape hatch**: the network doesn't NEED to make interior blocks useful. It can let block 0 dominate and downweight upper blocks. This produces "shallow collapse" — the system trains but upper blocks become vestigial.
+
+### Predicted outcome spectrum
+
+| Condition | Expected result |
+|---|---|
+| Full backprop, corrected | Works (slower blocks learn from delayed info) |
+| Detached lateral, corrected | Trains, but upper blocks get near-zero readout weight |
+| Single-block baseline | Similar to detached (if collapse is complete) |
+
+The decisive signal is NOT val loss — it's **per-block ablation magnitude** and **readout weight distribution**.
+
+### Candidate local signals (ranked)
+
+Per [dictation 2026-05-23-7](../../../dictations/2026-05-23-7.md): "More promising directions are closer to predictive coding or target propagation — something where the local objective is grounded in real prediction error."
+
+1. **Predictive coding on inter-block interfaces** — Each block predicts the future incoming signal at its input boundary. Trains the communication protocol, not just decoding. Horizon matched to rate (fast blocks predict 1 step, slow blocks predict their update interval).
+   - Concrete: `L_local_i = ||stopgrad(target_from_below_{t+Δ_i}) - pred_i(h_i_t)||²`
+   - Trains both "send useful things" (via main loss on block 0) AND "expect useful things" (via local prediction)
+   
+2. **Per-block LM heads** (auxiliary) — Each block has its own next-token prediction head. Grounds learning in real prediction error. BUT only trains "use what you get", not "form good protocol." Useful as diagnostic and weak anchor, not as the main signal.
+
+3. **1-hop truncated backprop** — Allow gradient to flow from block i to block i-1 but no further. Gives immediate neighbors gradient signal about what's useful. Allows O(2) parallelism instead of O(N). Practical hybrid baseline.
+
+4. **Target propagation** — Compute per-block targets from above. More complex machinery (learned inverses), historically brittle with recurrence/stale dynamics. Lower priority.
+
+The attention-based "usefulness" signal is explicitly **disfavored** by Max (salience learning, grounding decay with depth, chicken-and-egg problems).
