@@ -1,0 +1,71 @@
+{"stage": "start", "training_steps": 20000, "eval_interval": 1000, "batch_size": 64, "eval_batch_size": 512, "learning_rate": 0.0003, "seed": 42, "variant_count": 3}
+{"stage": "variant_start", "variant": "parallel_4block_rate1248_d128_ff256", "family": "parallel_multi_rate", "num_blocks": 4, "rates": [1, 2, 4, 8], "readout_mode": "all", "d_model": 128, "feedforward_dim": 256, "avg_evals_per_token": 1.875, "flops_proxy": 122880.0}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 0, "val_loss": 4.253326, "val_accuracy": 0.017177, "wall_seconds_at_eval": 1.573599}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 1000, "val_loss": 2.692245, "val_accuracy": 0.255359, "wall_seconds_at_eval": 10.349155}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 2000, "val_loss": 2.394667, "val_accuracy": 0.323367, "wall_seconds_at_eval": 18.456023}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 3000, "val_loss": 2.278488, "val_accuracy": 0.348758, "wall_seconds_at_eval": 26.573383}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 4000, "val_loss": 2.205278, "val_accuracy": 0.360727, "wall_seconds_at_eval": 34.690563}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 5000, "val_loss": 2.149347, "val_accuracy": 0.378355, "wall_seconds_at_eval": 42.82618}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 6000, "val_loss": 2.096892, "val_accuracy": 0.388622, "wall_seconds_at_eval": 50.878125}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 7000, "val_loss": 2.074379, "val_accuracy": 0.401442, "wall_seconds_at_eval": 58.944279}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 8000, "val_loss": 2.027014, "val_accuracy": 0.409806, "wall_seconds_at_eval": 67.01475}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 9000, "val_loss": 1.990596, "val_accuracy": 0.427133, "wall_seconds_at_eval": 75.066222}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 10000, "val_loss": 1.97957, "val_accuracy": 0.426382, "wall_seconds_at_eval": 83.135797}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 11000, "val_loss": 1.952841, "val_accuracy": 0.432192, "wall_seconds_at_eval": 91.200644}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 12000, "val_loss": 1.945539, "val_accuracy": 0.43149, "wall_seconds_at_eval": 99.292431}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 13000, "val_loss": 1.907193, "val_accuracy": 0.442157, "wall_seconds_at_eval": 107.346689}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 14000, "val_loss": 1.877233, "val_accuracy": 0.446214, "wall_seconds_at_eval": 115.391154}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 15000, "val_loss": 1.869713, "val_accuracy": 0.454878, "wall_seconds_at_eval": 123.464268}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 16000, "val_loss": 1.861688, "val_accuracy": 0.453826, "wall_seconds_at_eval": 131.593958}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 17000, "val_loss": 1.835346, "val_accuracy": 0.462089, "wall_seconds_at_eval": 139.703222}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 18000, "val_loss": 1.83071, "val_accuracy": 0.466346, "wall_seconds_at_eval": 147.848005}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 19000, "val_loss": 1.817828, "val_accuracy": 0.467949, "wall_seconds_at_eval": 155.914054}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d128_ff256", "step": 20000, "val_loss": 1.803508, "val_accuracy": 0.472356, "wall_seconds_at_eval": 163.985817}
+{"stage": "variant_done", "variant": "parallel_4block_rate1248_d128_ff256", "final_checkpoint": {"step": 20000, "val_loss": 1.803508, "val_accuracy": 0.472356, "wall_seconds_at_eval": 163.985817}, "wall_seconds": 163.986862}
+{"stage": "variant_start", "variant": "parallel_4block_rate1248_d256_ff512", "family": "parallel_multi_rate", "num_blocks": 4, "rates": [1, 2, 4, 8], "readout_mode": "all", "d_model": 256, "feedforward_dim": 512, "avg_evals_per_token": 1.875, "flops_proxy": 491520.0}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 0, "val_loss": 4.239241, "val_accuracy": 0.000801, "wall_seconds_at_eval": 1.276581}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 1000, "val_loss": 2.410134, "val_accuracy": 0.324069, "wall_seconds_at_eval": 11.580114}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 2000, "val_loss": 2.208539, "val_accuracy": 0.367738, "wall_seconds_at_eval": 21.303779}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 3000, "val_loss": 2.105643, "val_accuracy": 0.38141, "wall_seconds_at_eval": 31.107472}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 4000, "val_loss": 2.02569, "val_accuracy": 0.404848, "wall_seconds_at_eval": 40.905865}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 5000, "val_loss": 1.980461, "val_accuracy": 0.420122, "wall_seconds_at_eval": 50.712215}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 6000, "val_loss": 1.932094, "val_accuracy": 0.435747, "wall_seconds_at_eval": 60.717019}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 7000, "val_loss": 1.898987, "val_accuracy": 0.451172, "wall_seconds_at_eval": 70.502968}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 8000, "val_loss": 1.854006, "val_accuracy": 0.455278, "wall_seconds_at_eval": 80.266675}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 9000, "val_loss": 1.824394, "val_accuracy": 0.468099, "wall_seconds_at_eval": 90.040306}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 10000, "val_loss": 1.815765, "val_accuracy": 0.466747, "wall_seconds_at_eval": 99.855857}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 11000, "val_loss": 1.80132, "val_accuracy": 0.473107, "wall_seconds_at_eval": 109.648184}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 12000, "val_loss": 1.791022, "val_accuracy": 0.471004, "wall_seconds_at_eval": 119.411877}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 13000, "val_loss": 1.753842, "val_accuracy": 0.489483, "wall_seconds_at_eval": 129.222954}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 14000, "val_loss": 1.750326, "val_accuracy": 0.485126, "wall_seconds_at_eval": 139.002876}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 15000, "val_loss": 1.755422, "val_accuracy": 0.491386, "wall_seconds_at_eval": 148.798332}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 16000, "val_loss": 1.749669, "val_accuracy": 0.489633, "wall_seconds_at_eval": 158.929945}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 17000, "val_loss": 1.727215, "val_accuracy": 0.493139, "wall_seconds_at_eval": 168.757043}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 18000, "val_loss": 1.730162, "val_accuracy": 0.496394, "wall_seconds_at_eval": 178.551583}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 19000, "val_loss": 1.719702, "val_accuracy": 0.497145, "wall_seconds_at_eval": 188.34032}
+{"stage": "checkpoint", "variant": "parallel_4block_rate1248_d256_ff512", "step": 20000, "val_loss": 1.718381, "val_accuracy": 0.492388, "wall_seconds_at_eval": 198.153006}
+{"stage": "variant_done", "variant": "parallel_4block_rate1248_d256_ff512", "final_checkpoint": {"step": 20000, "val_loss": 1.718381, "val_accuracy": 0.492388, "wall_seconds_at_eval": 198.153006}, "wall_seconds": 198.154062}
+{"stage": "variant_start", "variant": "sequential_6block_rate1_d128_ff256", "family": "sequential_all_rate_1", "num_blocks": 6, "rates": [1, 1, 1, 1, 1, 1], "readout_mode": "last", "d_model": 128, "feedforward_dim": 256, "avg_evals_per_token": 6.0, "flops_proxy": 393216.0}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 0, "val_loss": 4.197291, "val_accuracy": 0.029948, "wall_seconds_at_eval": 3.18398}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 1000, "val_loss": 2.349307, "val_accuracy": 0.330829, "wall_seconds_at_eval": 28.273958}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 2000, "val_loss": 2.164177, "val_accuracy": 0.373698, "wall_seconds_at_eval": 52.602015}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 3000, "val_loss": 2.094563, "val_accuracy": 0.401342, "wall_seconds_at_eval": 76.605269}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 4000, "val_loss": 2.043142, "val_accuracy": 0.411158, "wall_seconds_at_eval": 102.60655}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 5000, "val_loss": 2.004052, "val_accuracy": 0.426482, "wall_seconds_at_eval": 128.531525}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 6000, "val_loss": 1.958525, "val_accuracy": 0.430339, "wall_seconds_at_eval": 153.205188}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 7000, "val_loss": 1.93236, "val_accuracy": 0.450972, "wall_seconds_at_eval": 176.931131}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 8000, "val_loss": 1.904449, "val_accuracy": 0.442959, "wall_seconds_at_eval": 202.705345}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 9000, "val_loss": 1.909095, "val_accuracy": 0.451673, "wall_seconds_at_eval": 226.315482}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 10000, "val_loss": 1.882349, "val_accuracy": 0.444111, "wall_seconds_at_eval": 249.859887}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 11000, "val_loss": 1.875305, "val_accuracy": 0.453325, "wall_seconds_at_eval": 273.419132}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 12000, "val_loss": 1.84701, "val_accuracy": 0.464042, "wall_seconds_at_eval": 297.029335}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 13000, "val_loss": 1.835457, "val_accuracy": 0.471154, "wall_seconds_at_eval": 322.022276}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 14000, "val_loss": 1.818641, "val_accuracy": 0.469601, "wall_seconds_at_eval": 345.762576}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 15000, "val_loss": 1.814109, "val_accuracy": 0.479267, "wall_seconds_at_eval": 369.806947}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 16000, "val_loss": 1.7965, "val_accuracy": 0.47526, "wall_seconds_at_eval": 394.981903}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 17000, "val_loss": 1.785697, "val_accuracy": 0.481571, "wall_seconds_at_eval": 418.708351}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 18000, "val_loss": 1.791175, "val_accuracy": 0.483123, "wall_seconds_at_eval": 442.462866}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 19000, "val_loss": 1.747126, "val_accuracy": 0.486779, "wall_seconds_at_eval": 467.242251}
+{"stage": "checkpoint", "variant": "sequential_6block_rate1_d128_ff256", "step": 20000, "val_loss": 1.741393, "val_accuracy": 0.487079, "wall_seconds_at_eval": 493.136164}
+{"stage": "variant_done", "variant": "sequential_6block_rate1_d128_ff256", "final_checkpoint": {"step": 20000, "val_loss": 1.741393, "val_accuracy": 0.487079, "wall_seconds_at_eval": 493.136164}, "wall_seconds": 493.137427}
+{"stage": "done", "report_path": "C:\\Users\\maxeo\\gildnn\\experiments\\fixed_multi_rate\\artifacts\\width_scaling\\report.json", "overall_wall_seconds": 857.103133}
