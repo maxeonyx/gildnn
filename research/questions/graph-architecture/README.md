@@ -4,7 +4,11 @@ Serves [dictation 2026-05-23-5](../../../dictations/2026-05-23-5.md): "Originall
 
 ## Status
 
-**Theory only.** No experiments run. Three concrete alternatives designed, ready to implement.
+**Theory only — deferred.** Three named alternatives designed but on critical review, they confound topology with module-count and rate-allocation. A cleaner minimal test (adjacency-only probe with same 4 modules) is identified but deprioritized until larger dataset/longer context makes topology effects more likely to be detectable.
+
+**Key second-pass insight:** At current scale (TinyShakespeare, ctx=32, 20K steps), many architectural knobs produce null results (rate dilation, self-prediction, cosine LR). Graph topology is likely underpowered here. Pursue after establishing a larger-data baseline.
+
+**If running anyway:** The cheapest honest test is NOT any of the three named alternatives below — it's an adjacency-only probe on the existing 4-module [1,2,4,8] model: chain vs lower-dense-skip (block 2 reads blocks 0,1; block 3 reads blocks 1,2). Same params, same rates, same module count. Only adjacency changes.
 
 ## The question
 
@@ -151,17 +155,50 @@ rate=8
 
 ## Discriminating experiment
 
-**Setup:** Any alternative vs 4-block chain baseline, matched total params (d scaled per module to hold param count constant), ctx=32, TinyShakespeare, 20K steps, 3 seeds.
+**Recommended minimal probe (NOT the three named alternatives):**
 
-**Recommended first comparison:** Overlapping-Rate Diamond (alt 2) vs current chain.
+Same 4 modules, same rates [1,2,4,8], same total params. Only change: adjacency.
+
+| Condition | Adjacency | What it tests |
+|---|---|---|
+| Chain (current) | 1←0, 2←1, 3←2 | Baseline |
+| Lower-dense skip | 1←0, 2←{0,1}, 3←{1,2} | Dense connectivity at fast level |
+| Full fan-in | 1←0, 2←{0,1}, 3←{0,1,2} | All-to-higher |
+
+Use **mean aggregation** (not sum) to prevent degree from changing activation scale.
+
+This is cheaper than any of the three named alternatives and more interpretable because it changes ONLY adjacency.
 
 **Decision rules:**
 
-- If diamond ≈ chain: topology doesn't matter at this scale. Graph complexity not worth pursuing until we're past TinyShakespeare.
-- If diamond > chain: overlapping rates help. Follow up with pyramid and hub to isolate whether it's the overlap or the density.
-- If diamond < chain: the chain's simplicity has value (fewer lateral reads = less noise?). Try the hub graph as an even simpler topology.
+- If adjacency-only probe is null: deprioritize graph until larger scale.
+- If positive: then the named alternatives are worth deeper work.
+- If skip-graph helps only with full backprop but not with `detach_lateral=True`: graph may re-open the local-learning problem (contradicts the chain result).
 
-**Implementation notes:** The main change is generalizing `diagonal_input = previous_timestep_deltas[block_index - 1]` to read from a configurable neighbor list. Each module's forward gets `[previous_timestep_deltas[j] for j in neighbors[i]]`, aggregated (sum or mean — test both).
+**Implementation:** Generalize `neighbor_state = previous_states[block_index - 1]` to `neighbor_states = [previous_states[j] for j in neighbors[block_index]]`, mean-aggregate. ~10 lines of code change.
+
+## Second-pass critique (from theory iteration)
+
+The three named alternatives above have fundamental confounds:
+
+1. They change **module count** (4 → 7-8), **rate multiset**, **per-module capacity**, and **connectivity** simultaneously. A win/loss would be uninterpretable.
+2. At current scale, many knobs produce null results. A ~0.02 nat effect is borderline detectable.
+3. "Overlapping rates" has at least three interpretations:
+   - (A) Same nominal rate, different neighborhoods (the first-pass reading)
+   - (B) Same nominal rate, **different phase offsets** (e.g. fire at t%4=0 vs t%4=2) — more literal temporal overlap
+   - (C) Fuzzy/probabilistic rates — stochastic firing rather than crisp powers-of-two
+
+   Interpretation B may be closest to Max's words and is unexplored.
+
+4. The local learning result (lateral gradients negligible) was proven for a **4-module chain**. A denser graph has more lateral paths — individual paths may be small, but the SUM could grow. Mean aggregation bounds this; sum aggregation doesn't.
+
+## When to pursue this
+
+Pursue graph architecture once at least one of:
+- Larger dataset where 20K-step TinyShakespeare ceiling stops dominating
+- Longer context (ctx≥128) where slow modules fire multiple times
+- 6-8 block parallel controls exist at d=256 (baseline for "more modules")
+- The minimal adjacency probe shows a real signal
 
 ## Non-goals
 
