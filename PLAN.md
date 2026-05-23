@@ -2,58 +2,60 @@
 
 Immediate checklist. What's next, what I'll do based on each outcome. For the bigger picture, read VISION.md.
 
-## Active — closed-loop prediction v3 (additive gain=0) RUNNING
+## Active — strict-local test (Phase 2) NEXT
 
-**PID 20572**, log: `experiments/wikitext_103/artifacts/closed_loop_prediction/run_v3.jsonl`
+The closed-loop v3 experiment is complete. Mechanism works. Next: test if it survives without CE flowing through the feedback path. See `research/questions/local-learning-variants/README.md` for the full analysis.
 
-### Seed 42 COMPLETE — provisional POSITIVE result
+**Implementation:** One extra `.detach()` on the feedback path — either detach `prior_t` before it enters block 0, or detach `pred_pair` before `.copy_()`. This cuts the CE→block1 gradient. Block 1 trains ONLY on pred_loss. Block 0 trains ONLY on CE. No gradient crosses the boundary.
 
-| Variant | val_loss | accuracy |
-|---------|----------|----------|
-| A_single | 1.669 | 0.523 |
-| B_spectator | 1.668 | 0.532 |
-| **C_closed_loop** | **1.660** | **0.529** |
+Same run script, same controls (A/B/C), same seeds, same 20K steps.
 
-C beats A by **0.009 nats**. First positive result on corrected architecture.
+### Decision rules (strict-local)
 
-Key C metrics at convergence:
-- `prior_gain`: -0.071 (negative = predictive coding: subtract prediction, process residual)
-- `pred_loss`: 0.294 (non-trivial — block 1 making real predictions, not collapsed)
-- `ablation gap`: +0.231 (removing predictions hurts significantly)
+- **Strict-local C < A:** LOCAL LEARNING WORKS. Block 1 finds task-relevant predictions without any task gradient. Training can genuinely parallelize.
+- **Strict-local C ≈ A but semi-local C < A:** CE shaping through the feedback path is load-bearing. Not fully local yet.
+- **Strict-local C > A:** Without CE guidance, predictor learns wrong things. Gate collapses to zero or predictions mislead.
 
-The gain went NEGATIVE, which means the model learned: "subtract the predicted state from my input → process only what differs from prediction." This is classic predictive coding — unexpected inputs get amplified, expected inputs get suppressed.
+## Closed-loop v3 DONE — mechanism works, net benefit tentative
 
-### Seed 43 IN PROGRESS
+### Final results (2 seeds averaged)
 
-Started A_single. ETA ~75 minutes for all 3 variants. Same decision rules apply.
+| Variant | Mean val_loss | C−A |
+|---------|--------------|-----|
+| A_single | 1.6703 | — |
+| B_spectator | 1.6766 | +0.006 |
+| **C_closed_loop** | **1.6647** | **-0.006** |
 
-### What happened in v1 and v2 (prior failures)
+Per-seed: Seed 42 C-A = -0.009, Seed 43 C-A = -0.003. Mean: **-0.0056** (barely past -0.005 threshold).
 
-- **V1:** Catastrophic collapse (val_loss stuck at 3.14). Root cause: pred_loss gradient into block 0.
-- **V2:** Collapse + NaN. Root cause: MixAdd `sqrt(0.1) = 0.316` prior coefficient (31.6% influence, not 10% as intended). Combined with final-only CE over 128 recurrent steps = stable collapsed fixed point.
-- **V3 fix:** Replace MixAdd with `x0 = seed0 + gain * LayerNorm(prior)`, gain=0 at init. Block 0 starts identical to A_single. Gain grows/shrinks only if CE benefits.
+### Honest assessment
 
-### Decision rules (after seed 43)
+- **Mechanism evidence: strong.** Both seeds show negative gain (-0.07, -0.06), huge ablation gap (+0.23, +0.22), non-trivial pred_loss (~0.29). Model uses predictions deeply.
+- **Performance evidence: tentative.** n=2, barely past threshold, ~30-40% chance a third seed would flip it back below threshold. Parameter confound: C has 14% more params than A.
+- **B confirms spectator problem:** B is WORSE than A (+0.006 averaged). Extra params alone don't help; the closed-loop mechanism specifically does.
 
-Average C-A across both seeds:
-- **Mean(C-A) < -0.005:** Positive result. Proceed to strict-local test (Phase 2).
-- **Mean(C-A) ∈ [-0.005, +0.005]:** Borderline null. Predictions used but marginal benefit. Consider larger scale or different prediction target.
-- **Mean(C-A) > +0.005:** Null/negative. Predictions don't help despite being used. Change prediction target.
+The key takeaway: v3 consistently learned and used the closed-loop prediction pathway, but its end-task gain over the 1-block baseline is tiny, barely over the preregistered threshold, and still plausibly explained by seed noise and unmatched capacity. What IS clear: the mechanism is active, stable, and deeply integrated. That's sufficient to proceed with the strict-local test — which is the actual question (can this work without global backprop?).
 
-## If positive → next experiments (see research/questions/local-learning-variants/README.md)
+### V3 architecture summary
 
-1. **Strict-local:** Also detach feedback path. Block 1 trained ONLY by pred_loss. Tests if pure local learning works.
-2. **Per-dimension gate:** Replace scalar gain with vector gate (Linear layer, zero init). More expressive.
-3. **Different prediction target:** Predict next TOKEN embedding instead of s0. Provides genuinely new information.
-4. **N=3 chain:** Three blocks, adjacent prediction, tests multi-hop grounding.
+- `x0 = seed0 + gain * LayerNorm(prior)`, gain=0 at init
+- Block 1 input: `x1 = 0.5 * (s1 + s0.detach())`
+- Gain goes NEGATIVE (-0.06 to -0.07) = predictive coding: subtract expected, process surprise
+- Ablation gap +0.22: predictions deeply embedded despite tiny net benefit
 
-## Critical findings this session
+### Prior failures and their fixes
+
+- **V1:** Catastrophic collapse (val_loss stuck at 3.14). pred_loss gradient into block 0.
+- **V2:** Collapse + NaN. MixAdd `sqrt(0.1)` = 31.6% prior coefficient (not 10%). Stable collapsed fixed point with final-only CE.
+- **V3 fix:** Additive zero-init gate. No contamination at init.
+
+## Critical findings (carry forward)
 
 1. **MixAdd sqrt formula at init=0.9 gives 31.6% coefficient, not 10%.** Root cause of v1/v2 collapse.
-2. **Final-only CE over 128 recurrent steps can't overcome strong prior contamination.** The MixAdd + recurrence created a stable collapsed fixed point.
-3. **Additive zero-init gate works.** No collapse. Model learns gain automatically. Negative gain = predictive coding.
-4. **Predictions provide early-learning acceleration** (C beats A by 0.03 at step 2K) that **narrows but persists at convergence** (C beats A by 0.009 at step 20K, seed 42).
-5. **Semi-local is NOT genuinely local.** CE flows through the feedback path. The current setup is global backprop through a narrow interface. Strict-local (detach feedback too) is the real test.
+2. **Additive zero-init gate works.** No collapse. Model learns gain automatically. Negative gain = predictive coding.
+3. **Semi-local is NOT genuinely local.** CE flows through feedback. Current v3 is global backprop through a narrow interface.
+4. **Predictions provide early-learning acceleration** (C beats A by 0.03 at step 2K) that narrows at convergence.
+5. **The spectator problem is real and persistent.** B hurts on average (+0.006). Extra blocks with shared objective don't help.
 
 ## Queue
 
@@ -66,7 +68,7 @@ Average C-A across both seeds:
 
 | Experiment | Result | Notes |
 |---|---|---|
-| **Closed-loop v3** | **C < A by 0.009** (1 seed) | First positive! Predictive coding mode, gain=-0.07 |
+| **Closed-loop v3** | **C < A by 0.006** (2 seeds) | Mechanism active, net benefit tentative. Predictive coding mode. |
 | **Closed-loop v1** | **COLLAPSE** (+1.47) | pred_loss trained block 0 to be constant |
 | **Closed-loop v2** | **COLLAPSE → NaN** | MixAdd 31.6% prior = stable collapsed fixed point |
 | ctx=128 corrected | **HURTS** (+0.014) | Spectator worse at longer context |
