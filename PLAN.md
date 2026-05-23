@@ -19,9 +19,9 @@ Architecture:
 - **Quality at equal FLOPs: BETTER (+0.019 avg, 2/3 seeds clearly better, 1 tied)** ✓
 
 Next steps:
-- [ ] **Width scaling frontier** — d=256 wins big. What about d=384, d=512? How far does it go before diminishing returns? Also: does the wider model benefit from a different rate schedule?
-- [ ] **LR schedule for longer training** — Both models overfit past ~35-40K steps. Add cosine decay to enable meaningful 100K+ comparisons. Width-scaled model might benefit even more from longer training.
-- [ ] **Context scaling** — ctx=32 limits rate dilation (rate=32 fires once). Longer context would make the multi-rate story richer and enable more aggressive temporal hierarchies.
+- [ ] **Cosine LR longer training RUNNING** (PID 6204, started ~4pm Sat May 23, ~5h total). 3 variants × 100K steps with warmup+cosine decay: parallel d=256, sequential d=128, sequential d=256. Log: `experiments/fixed_multi_rate/artifacts/cosine_lr_longer/run.jsonl`. Key question: does cosine decay prevent overfitting and let d=256 improve beyond 1.718?
+- [ ] **Context scaling** — ctx=32 limits rate dilation. Longer context would enable more temporal hierarchy and make rate=16/32 meaningful as slow feature extractors rather than static priors.
+- [ ] **d=384 dead spot investigation** — Why does d=384 fail while d=256 and d=512 (with lower LR) work? Could be initialization variance, could be width-to-block-count mismatch.
 
 ## Recently completed
 
