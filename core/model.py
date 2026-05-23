@@ -475,6 +475,7 @@ class ParallelDiagonalModel(nn.Module):
         readout_mode: str = "last",
         token_mix_init: float = 0.5,
         block_mix_init: float = 0.9,
+        detach_lateral: bool = False,
     ) -> None:
         super().__init__()
         if num_blocks <= 0:
@@ -503,6 +504,7 @@ class ParallelDiagonalModel(nn.Module):
         self.rates = resolved_rates
         self.internal_steps = internal_steps
         self.readout_mode = readout_mode
+        self.detach_lateral = detach_lateral
         self.token_embedding = nn.Embedding(vocab_size, d_model)
         self.position_embedding = nn.Embedding(context_size, d_model)
         self.token_mixes = nn.ModuleList([MixAdd(init=token_mix_init) for _ in range(num_blocks)])
@@ -599,6 +601,8 @@ class ParallelDiagonalModel(nn.Module):
                             neighbor_state = previous_states[block_index - 1]
                         else:
                             neighbor_state = current_states[block_index - 1]
+                        if self.detach_lateral:
+                            neighbor_state = neighbor_state.detach()
                         block_input = 0.5 * (state_input + neighbor_state)
                     block_delta = block(block_input)
                     next_states[block_index] = block_mix(block_input, block_delta)
