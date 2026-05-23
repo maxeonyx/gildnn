@@ -19,9 +19,15 @@ Architecture:
 - **Quality at equal FLOPs: BETTER (+0.019 avg, 2/3 seeds clearly better, 1 tied)** ✓
 
 Next steps:
-- [ ] **Cosine LR longer training RUNNING** (PID 6204, started ~4pm Sat May 23, ~5h total). 3 variants × 100K steps with warmup+cosine decay: parallel d=256, sequential d=128, sequential d=256. Log: `experiments/fixed_multi_rate/artifacts/cosine_lr_longer/run.jsonl`. Key question: does cosine decay prevent overfitting and let d=256 improve beyond 1.718?
-- [ ] **Context scaling (script ready: `runs/context_scaling.py`)** — ctx=128 with rates=[1,4,16,32] (all blocks ≥4 firings), plus [1,2,8,32] and [1,2,4,8] baselines. Key question: does wider rate spacing become meaningful at longer context? Launch after cosine LR finishes.
-- [x] **d=384 dead spot investigation** — RESOLVED: pure overfitting, not structural. d=384 peaks at 1.732 (step 14K) then overfits (train loss 1.26 → massive gap). µP predicts optimal LR ∝ 1/width (d=384 wants ~2e-4). Cosine LR should fix this.
+- [ ] **Context scaling with more compute** — ctx=128 with [1,4,16,32] is worse than ctx=32 (1.796 vs 1.718). Root cause: insufficient compute per token at wider rates. Sequential 6-block at ctx=128 reaches 1.716 — BETTER than ctx=32 best. So ctx=128 CAN work with enough compute. Try: parallel 6-block or 8-block at ctx=128, or parallel 4-block d=384/512 at ctx=128.
+- [ ] **Wider model at ctx=128 with µP LR** — d=384 with LR=2e-4 (µP-scaled), or d=512 with LR=1.5e-4. The overfitting we saw at ctx=32 may not happen at ctx=128 (more diverse training windows).
+- [ ] **Real dataset** — TinyShakespeare (~250K tokens) is a ceiling. Overfitting dominates many experiments. A larger corpus (OpenWebText subset, WikiText-103) would let us see true scaling behavior.
+
+Recent findings this session:
+- [x] **Cosine LR** — DOES NOT HELP. Same overfitting pattern as constant LR (model memorizes TinyShakespeare before LR decays meaningfully). Dataset is the bottleneck, not LR schedule.
+- [x] **Context scaling ctx=128** — Wide rate spacing [1,4,16,32] wins at ctx=128 (1.803 vs 1.812 for [1,2,4,8]). But ALL parallel configs worse than ctx=32 due to lower compute/token.
+- [x] **Temporal window scaling** — window=16 is practical sweet spot at ctx=128 (1.799 vs 1.841 for window=4). Full attention (window=128) gives 1.796 but 2× slower. Confirms the bottleneck is compute/capacity not context access.
+- [x] **d=384 dead spot** — RESOLVED: pure overfitting, not structural. µP predicts LR ∝ 1/width.
 
 ## Recently completed
 
