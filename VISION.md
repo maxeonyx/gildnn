@@ -10,12 +10,11 @@ This is the thing that might actually give wall-clock speedup. If it doesn't giv
 
 A secondary advantage: modules running at different rates. Some iterate rapidly, some update infrequently, some handle different timescales. Not by hard-coded schedules but by the stale-reads mechanism — pack more into one area of the GPU for a rapidly-iterating module, swap between five in another area, swap between a hundred in a third. Multi-rate execution means a certain part of the network is implicitly attempting to predict further into the future.
 
-**Current experimental status:** Fixed multi-rate gives consistent wall-clock speedup:
-- Rates [1, 1, 2, 4] (4 blocks): 14.8% speedup
-- Rates [1, 2, 4, 8] (4 blocks): **20.7% speedup** — clears the 20% target
-- Rates [1, 2, 4, 8, 16] (5 blocks): ~22% speedup but +0.016 quality cost. Sweet spot is [1,2,4,8].
+**Current experimental status (as of 2026-05-24):** TinyShakespeare (250K tokens, ctx=32) is saturated at d=256 — a single block achieves 1.712, and no architectural variant beats it. The earlier positive multi-rate results (+20.7% speedup) were real but on a dataset too small to differentiate architectures at this capacity.
 
-**Quality nuance (3-seed matched-FLOP result):** Multi-rate beats a same-architecture all-rate-1 baseline per step, but given equal wall-clock compute (wider all-rate-1 model), the wider model is slightly better (+0.018 nats, 3-seed average). Multi-rate's value is the speedup itself — it does less work per step, freeing time. Whether that time advantage nets out positive depends on training budget and whether async execution can further multiply the throughput gain.
+Architecture correction (block0-only token injection, per dictation 2026-05-23-7) revealed that upper blocks are spectators when every block sees tokens. The corrected architecture hurts at TinyShakespeare scale (+0.034 vs single block). Bidirectional top-down messaging also hurts.
+
+**Next discriminator: WikiText-103** (538M chars). Infrastructure is ready. This is the first dataset where single-block shouldn't saturate, making it possible to test whether multi-block actually adds value. If it does, local learning and predictive coding become the exciting next questions. If it doesn't, the architecture needs rethinking.
 
 ## The architecture: diagonal residual connections across time and depth
 
@@ -71,15 +70,15 @@ An interesting side direction (not the main focus): if weight matrices were para
 
 These are genuinely unresolved. Each needs experiments.
 
-- **Does async actually give wall-clock speedup?** The only point of async is speed. If we can't demonstrate it, we're not doing it right yet.
+- **Does async actually give wall-clock speedup?** The only point of async is speed. If we can't demonstrate it, we're not doing it right yet. (28% block concurrency measured on RTX 3090 at current scale — see `research/questions/async-hardware-measurement/`.)
 - **What exactly is the block boundary?** What information crosses unchanged, detached, mixed, or delayed?
 - **What triggers a block update?** Currently framed as surprisal or fixed rates. But surprise relative to what? Who measures it? Multi-rate by stale reads is one concrete operationalization that works.
-- **Do unhooked gradients produce useful specialization or protocol breakdown?** Unknown. Worth finding out.
+- **Do unhooked gradients produce useful specialization or protocol breakdown?** Unknown at correct architecture scale. Earlier test was INVALIDATED — tested on wrong architecture (all blocks seeing tokens). Must re-test on corrected architecture.
 - **What does the graph structure buy?** If a global channel does most of the work, graph locality may be cosmetic.
-- **Can local learning scale?** Does it work at all? Does it work badly? Does it work well but without performance benefits? The exact details of how local modules work probably matter a lot.
+- **Can local learning scale?** Does it work at all? Theoretical framework developed (per-block predict-lower-future-latent with multi-horizon matched to rate — see `research/questions/local-learning/README.md`). Untested experimentally — blocked on proving multi-block adds value first.
 - **What GPU programs fit best on the RTX 3090?** RNNs might get significantly more FLOPs out of a GPU than transformers — genuinely uncertain, needs measuring. What's the largest parameter shape that just sits in cache, repeatedly processing data?
 - **What role should time-unrolling play?** Since looped blocks across time resemble a transformer with reused blocks, when is that a useful simplification?
-- **Compilation backend:** decided PyTorch + `torch.compile` (Triton) for stable paths, custom CUDA/Triton for async research. JAX/IREE possible later but not needed — the hardest part (persistent kernels) goes below both frameworks. See `research/questions/backend-choice/README.md`.
+- ~~**Compilation backend:** decided PyTorch + `torch.compile` (Triton) for stable paths, custom CUDA/Triton for async research.~~ **Resolved.** See `research/questions/backend-choice/README.md`.
 
 ## Datasets
 

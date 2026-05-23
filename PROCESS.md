@@ -16,10 +16,11 @@ The process here is not optional ceremony. It exists because an autonomous agent
 
 On session start:
 
-1. Read `PLAN.md` and any `TASK-*.ignore.md` files in the repo root.
-2. Check the time and whether a daily or weekly report is due.
-3. Check whether a background run is active (`runs/active.lock`).
-4. Continue the current task if there is one. Otherwise pick the cheapest useful next step.
+1. If you lack project context, read `VISION.md` first to orient.
+2. Read `PLAN.md` and any `TASK-*.ignore.md` files in the repo root.
+3. Check the time and whether a daily or weekly report is due.
+4. Check whether a background run is active (`runs/active.lock`).
+5. Continue the current task if there is one. Otherwise pick the cheapest useful next step.
 
 Max may speak during a session, but do not assume that means he is back and available. Keep working unless he clearly takes over.
 
@@ -276,7 +277,7 @@ The orchestrator is responsible for deciding when to check back — not the suba
 
 **If you (the orchestrator) delegate an experiment without splitting it this way, you have failed the process.** There is always other useful work to do while the GPU runs — theory, reports, doc updates, small non-GPU experiments. Name that work before checking on the run.
 
-Use `runs/active.lock` to record the active large run (PID, log path, start time, expected duration). Remove it when the run ends or fails. Small runs (<5 min) do not need lock files.
+Use `runs/active.lock` to record the active large run. Format: one line with experiment name and PID, e.g. `bidirectional_sanity PID 20984`. Remove it when the run ends or fails. Small runs (<5 min) do not need lock files.
 
 **Windows launch reliability:**
 
