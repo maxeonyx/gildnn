@@ -1,0 +1,653 @@
+{
+  "config": {
+    "training_steps": 20000,
+    "eval_interval": 2000,
+    "batch_size": 32,
+    "eval_batch_size": 256,
+    "learning_rate": 0.0003,
+    "seed": 42,
+    "warmup_steps": 3,
+    "context_size": 128,
+    "dataset_vocab_size": 61,
+    "model_vocab_size": 67,
+    "schedule_seed": 42,
+    "trainer": "GraphTrainer",
+    "temporal_window": 4,
+    "num_heads": 4,
+    "flops_proxy_formula": "avg_evals_per_token * 2 * d_model * feedforward_dim"
+  },
+  "environment": {
+    "git_sha": "36834e9d7cc06e2bb15d99cc3c72c8cfd621c80d",
+    "git_working_tree_clean": false,
+    "git_status_short": [
+      " D runs/dictations_seen.json",
+      "?? dictations/2026-05-22-17.md",
+      "?? dictations/2026-05-23-1.md",
+      "?? dictations/2026-05-23-2.md",
+      "?? experiments/fixed_multi_rate/artifacts/context_scaling/",
+      "?? experiments/fixed_multi_rate/artifacts/cosine_lr_longer/",
+      "?? runs/test_json.tmp",
+      "?? runs/test_write.tmp"
+    ],
+    "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+    "torch_version": "2.11.0+cu128",
+    "device": "cuda",
+    "cuda_device_name": "NVIDIA GeForce RTX 3090"
+  },
+  "timing": {
+    "overall_wall_seconds": 4236.333813
+  },
+  "variants": [
+    {
+      "key": "parallel_4block_rate141632_d256_ff512_ctx128",
+      "family": "parallel_multi_rate",
+      "label": "parallel_4block_rate141632_all_d256_ff512_ctx128",
+      "class_name": "ParallelDiagonalModel",
+      "rates": [
+        1,
+        4,
+        16,
+        32
+      ],
+      "readout_mode": "all",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "context_size": 128,
+      "num_blocks": 4,
+      "avg_evals_per_token": 1.34375,
+      "flops_proxy": 352256.0
+    },
+    {
+      "key": "parallel_4block_rate12832_d256_ff512_ctx128",
+      "family": "parallel_multi_rate",
+      "label": "parallel_4block_rate12832_all_d256_ff512_ctx128",
+      "class_name": "ParallelDiagonalModel",
+      "rates": [
+        1,
+        2,
+        8,
+        32
+      ],
+      "readout_mode": "all",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "context_size": 128,
+      "num_blocks": 4,
+      "avg_evals_per_token": 1.65625,
+      "flops_proxy": 434176.0
+    },
+    {
+      "key": "parallel_4block_rate1248_d256_ff512_ctx128",
+      "family": "parallel_multi_rate_baseline",
+      "label": "parallel_4block_rate1248_all_d256_ff512_ctx128",
+      "class_name": "ParallelDiagonalModel",
+      "rates": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "readout_mode": "all",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "context_size": 128,
+      "num_blocks": 4,
+      "avg_evals_per_token": 1.875,
+      "flops_proxy": 491520.0
+    },
+    {
+      "key": "sequential_6block_rate1_d256_ff512_ctx128",
+      "family": "sequential_all_rate_1",
+      "label": "sequential_6block_rate111111_d256_ff512_ctx128",
+      "class_name": "MultiRateResidualModel",
+      "rates": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "readout_mode": "last",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "context_size": 128,
+      "num_blocks": 6,
+      "avg_evals_per_token": 6.0,
+      "flops_proxy": 1572864.0
+    }
+  ],
+  "results": [
+    {
+      "key": "parallel_4block_rate141632_d256_ff512_ctx128",
+      "family": "parallel_multi_rate",
+      "label": "parallel_4block_rate141632_all_d256_ff512_ctx128",
+      "class_name": "ParallelDiagonalModel",
+      "rates": [
+        1,
+        4,
+        16,
+        32
+      ],
+      "readout_mode": "all",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "context_size": 128,
+      "num_blocks": 4,
+      "parameter_count": 1118799,
+      "evals_per_block": [
+        128,
+        32,
+        8,
+        4
+      ],
+      "total_block_evals_per_forward": 172,
+      "avg_evals_per_token": 1.34375,
+      "flops_proxy": 352256.0,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.252848,
+          "val_accuracy": 0.045441,
+          "wall_seconds_at_eval": 9.72277
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.335248,
+          "val_accuracy": 0.33278,
+          "wall_seconds_at_eval": 69.141142
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.133453,
+          "val_accuracy": 0.383655,
+          "wall_seconds_at_eval": 127.801383
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.055725,
+          "val_accuracy": 0.408213,
+          "wall_seconds_at_eval": 185.891246
+        },
+        {
+          "step": 8000,
+          "val_loss": 1.984097,
+          "val_accuracy": 0.422252,
+          "wall_seconds_at_eval": 243.12057
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.916149,
+          "val_accuracy": 0.437198,
+          "wall_seconds_at_eval": 300.661481
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.85193,
+          "val_accuracy": 0.458132,
+          "wall_seconds_at_eval": 358.692267
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.835627,
+          "val_accuracy": 0.459038,
+          "wall_seconds_at_eval": 417.204226
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.803487,
+          "val_accuracy": 0.471266,
+          "wall_seconds_at_eval": 475.630985
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.79525,
+          "val_accuracy": 0.473883,
+          "wall_seconds_at_eval": 532.81594
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.802704,
+          "val_accuracy": 0.468398,
+          "wall_seconds_at_eval": 589.583116
+        }
+      ],
+      "best_checkpoint": {
+        "step": 18000,
+        "val_loss": 1.79525,
+        "val_accuracy": 0.473883,
+        "wall_seconds_at_eval": 532.81594
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.802704,
+        "val_accuracy": 0.468398,
+        "wall_seconds_at_eval": 589.583116
+      },
+      "final_training_loss": 1.715108,
+      "wall_seconds": 589.584408,
+      "mix_coefficients": {
+        "token": [
+          0.42533382773399353,
+          0.4052635133266449,
+          0.47377467155456543,
+          0.517262876033783
+        ],
+        "blocks": [
+          0.7556980848312378,
+          0.796919584274292,
+          0.8434967398643494,
+          0.8326085209846497
+        ],
+        "rates": [
+          1,
+          4,
+          16,
+          32
+        ],
+        "internal_steps": 1,
+        "readout_mode": "all",
+        "readout_weights": [
+          0.6036533117294312,
+          0.18648234009742737,
+          0.10358865559101105,
+          0.10627566277980804
+        ]
+      }
+    },
+    {
+      "key": "parallel_4block_rate12832_d256_ff512_ctx128",
+      "family": "parallel_multi_rate",
+      "label": "parallel_4block_rate12832_all_d256_ff512_ctx128",
+      "class_name": "ParallelDiagonalModel",
+      "rates": [
+        1,
+        2,
+        8,
+        32
+      ],
+      "readout_mode": "all",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "context_size": 128,
+      "num_blocks": 4,
+      "parameter_count": 1118799,
+      "evals_per_block": [
+        128,
+        64,
+        16,
+        4
+      ],
+      "total_block_evals_per_forward": 212,
+      "avg_evals_per_token": 1.65625,
+      "flops_proxy": 434176.0,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.25638,
+          "val_accuracy": 0.027073,
+          "wall_seconds_at_eval": 10.342725
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.323884,
+          "val_accuracy": 0.33746,
+          "wall_seconds_at_eval": 77.452929
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.128523,
+          "val_accuracy": 0.388386,
+          "wall_seconds_at_eval": 143.355811
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.039497,
+          "val_accuracy": 0.412893,
+          "wall_seconds_at_eval": 209.105179
+        },
+        {
+          "step": 8000,
+          "val_loss": 1.970582,
+          "val_accuracy": 0.426278,
+          "wall_seconds_at_eval": 275.172183
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.911427,
+          "val_accuracy": 0.435588,
+          "wall_seconds_at_eval": 370.320518
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.852987,
+          "val_accuracy": 0.455264,
+          "wall_seconds_at_eval": 438.668245
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.832457,
+          "val_accuracy": 0.456371,
+          "wall_seconds_at_eval": 508.033271
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.804605,
+          "val_accuracy": 0.468045,
+          "wall_seconds_at_eval": 573.676448
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.79672,
+          "val_accuracy": 0.473682,
+          "wall_seconds_at_eval": 639.762656
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.804303,
+          "val_accuracy": 0.470109,
+          "wall_seconds_at_eval": 706.588471
+        }
+      ],
+      "best_checkpoint": {
+        "step": 18000,
+        "val_loss": 1.79672,
+        "val_accuracy": 0.473682,
+        "wall_seconds_at_eval": 639.762656
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.804303,
+        "val_accuracy": 0.470109,
+        "wall_seconds_at_eval": 706.588471
+      },
+      "final_training_loss": 1.744309,
+      "wall_seconds": 706.590196,
+      "mix_coefficients": {
+        "token": [
+          0.40894705057144165,
+          0.350588321685791,
+          0.4842049181461334,
+          0.521058201789856
+        ],
+        "blocks": [
+          0.7949166893959045,
+          0.7596516013145447,
+          0.8372596502304077,
+          0.8402971029281616
+        ],
+        "rates": [
+          1,
+          2,
+          8,
+          32
+        ],
+        "internal_steps": 1,
+        "readout_mode": "all",
+        "readout_weights": [
+          0.5431211590766907,
+          0.2553209066390991,
+          0.1074589416384697,
+          0.0940990149974823
+        ]
+      }
+    },
+    {
+      "key": "parallel_4block_rate1248_d256_ff512_ctx128",
+      "family": "parallel_multi_rate_baseline",
+      "label": "parallel_4block_rate1248_all_d256_ff512_ctx128",
+      "class_name": "ParallelDiagonalModel",
+      "rates": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "readout_mode": "all",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "context_size": 128,
+      "num_blocks": 4,
+      "parameter_count": 1118799,
+      "evals_per_block": [
+        128,
+        64,
+        32,
+        16
+      ],
+      "total_block_evals_per_forward": 240,
+      "avg_evals_per_token": 1.875,
+      "flops_proxy": 491520.0,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.258381,
+          "val_accuracy": 0.018166,
+          "wall_seconds_at_eval": 10.630508
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.310975,
+          "val_accuracy": 0.339724,
+          "wall_seconds_at_eval": 87.659393
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.116947,
+          "val_accuracy": 0.390902,
+          "wall_seconds_at_eval": 162.32525
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.025594,
+          "val_accuracy": 0.417019,
+          "wall_seconds_at_eval": 236.835028
+        },
+        {
+          "step": 8000,
+          "val_loss": 1.955059,
+          "val_accuracy": 0.432216,
+          "wall_seconds_at_eval": 311.287799
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.896777,
+          "val_accuracy": 0.440872,
+          "wall_seconds_at_eval": 385.857159
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.84524,
+          "val_accuracy": 0.462661,
+          "wall_seconds_at_eval": 460.473491
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.842394,
+          "val_accuracy": 0.459541,
+          "wall_seconds_at_eval": 535.355276
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.817319,
+          "val_accuracy": 0.466033,
+          "wall_seconds_at_eval": 609.958025
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.817446,
+          "val_accuracy": 0.468599,
+          "wall_seconds_at_eval": 684.545898
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.812355,
+          "val_accuracy": 0.468297,
+          "wall_seconds_at_eval": 759.495629
+        }
+      ],
+      "best_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.812355,
+        "val_accuracy": 0.468297,
+        "wall_seconds_at_eval": 759.495629
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.812355,
+        "val_accuracy": 0.468297,
+        "wall_seconds_at_eval": 759.495629
+      },
+      "final_training_loss": 1.707054,
+      "wall_seconds": 759.496701,
+      "mix_coefficients": {
+        "token": [
+          0.40101391077041626,
+          0.349185973405838,
+          0.44267570972442627,
+          0.5064698457717896
+        ],
+        "blocks": [
+          0.8012714982032776,
+          0.7989153265953064,
+          0.8413294553756714,
+          0.8599416613578796
+        ],
+        "rates": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "internal_steps": 1,
+        "readout_mode": "all",
+        "readout_weights": [
+          0.5297621488571167,
+          0.2233201265335083,
+          0.13085085153579712,
+          0.11606689542531967
+        ]
+      }
+    },
+    {
+      "key": "sequential_6block_rate1_d256_ff512_ctx128",
+      "family": "sequential_all_rate_1",
+      "label": "sequential_6block_rate111111_d256_ff512_ctx128",
+      "class_name": "MultiRateResidualModel",
+      "rates": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "readout_mode": "last",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "context_size": 128,
+      "num_blocks": 6,
+      "parameter_count": 1907792,
+      "evals_per_block": [
+        128,
+        128,
+        128,
+        128,
+        128,
+        128
+      ],
+      "total_block_evals_per_forward": 768,
+      "avg_evals_per_token": 6.0,
+      "flops_proxy": 1572864.0,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 4.252849,
+          "val_accuracy": 0.013738,
+          "wall_seconds_at_eval": 28.609987
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.150771,
+          "val_accuracy": 0.3828,
+          "wall_seconds_at_eval": 254.356374
+        },
+        {
+          "step": 4000,
+          "val_loss": 1.992051,
+          "val_accuracy": 0.417522,
+          "wall_seconds_at_eval": 477.912319
+        },
+        {
+          "step": 6000,
+          "val_loss": 1.913967,
+          "val_accuracy": 0.435839,
+          "wall_seconds_at_eval": 696.296709
+        },
+        {
+          "step": 8000,
+          "val_loss": 1.878258,
+          "val_accuracy": 0.447313,
+          "wall_seconds_at_eval": 912.846532
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.830032,
+          "val_accuracy": 0.461504,
+          "wall_seconds_at_eval": 1123.804685
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.770043,
+          "val_accuracy": 0.478462,
+          "wall_seconds_at_eval": 1334.71985
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.795207,
+          "val_accuracy": 0.475694,
+          "wall_seconds_at_eval": 1544.771606
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.756405,
+          "val_accuracy": 0.483494,
+          "wall_seconds_at_eval": 1754.605959
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.715851,
+          "val_accuracy": 0.497333,
+          "wall_seconds_at_eval": 1966.130111
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.80956,
+          "val_accuracy": 0.489684,
+          "wall_seconds_at_eval": 2178.323613
+        }
+      ],
+      "best_checkpoint": {
+        "step": 18000,
+        "val_loss": 1.715851,
+        "val_accuracy": 0.497333,
+        "wall_seconds_at_eval": 1966.130111
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.80956,
+        "val_accuracy": 0.489684,
+        "wall_seconds_at_eval": 2178.323613
+      },
+      "final_training_loss": 1.74561,
+      "wall_seconds": 2178.342357
+    }
+  ],
+  "comparison": {
+    "question": "Does longer context favor wider rate spacing over the established 1248 baseline?",
+    "wide_spacing_key": "parallel_4block_rate141632_d256_ff512_ctx128",
+    "moderate_spacing_key": "parallel_4block_rate12832_d256_ff512_ctx128",
+    "baseline_parallel_key": "parallel_4block_rate1248_d256_ff512_ctx128",
+    "sequential_reference_key": "sequential_6block_rate1_d256_ff512_ctx128"
+  }
+}
