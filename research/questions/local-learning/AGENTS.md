@@ -1,9 +1,7 @@
 # research/questions/local-learning/
 
-This directory contains results from an **early local-learning experiment that used a now-superseded architecture interpretation**.
+This directory covers the theory and experimental plan for local learning on the current architecture: parallel multi-rate blocks on a shared residual stream.
 
-At the time of this experiment, "module" was interpreted as a small stack of recurrent layers (3 layers per module) with its own persistent hidden state. The [dictation from 2026-05-20-10](../../../dictations/2026-05-20-10.md) later clarified that modules should instead be **single residual blocks on a shared `d_model` residual stream** — not thick recurrent stacks with their own hidden dimension.
+The core question: how much quality does truncating gradient flow between blocks cost, and where on the full-backprop ↔ fully-local spectrum is the sweet spot?
 
-The results here are valid evidence about the **detached recurrent-stack architecture family**. They are historical record, not a model for the current design direction. Keep this context when reading README.md.
-
-Do not build new experiments in this directory on top of the old architecture. New local-learning experiments should be in a separate question folder under the clarified single-residual-block framing.
+Prior negative results from the old recurrent-stack framing are in `research/questions/local-learning-residual/`. Those used a fundamentally different architecture (detached 3-layer recurrent stacks) and are not directly comparable.
