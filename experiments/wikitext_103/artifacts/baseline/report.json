@@ -1,0 +1,2807 @@
+{
+  "config": {
+    "training_steps": 20000,
+    "eval_interval": 1000,
+    "batch_size": 64,
+    "eval_batch_size": 512,
+    "learning_rate": 0.0003,
+    "seeds": [
+      42,
+      43
+    ],
+    "warmup_steps": 3,
+    "context_size": 32,
+    "dataset_vocab_size": 4980,
+    "trainer": "GraphTrainer",
+    "dataset": "wikitext-103-raw",
+    "train_path": "C:\\Users\\maxeo\\gildnn\\data\\wikitext-103-raw\\wiki.train.raw",
+    "val_path": "C:\\Users\\maxeo\\gildnn\\data\\wikitext-103-raw\\wiki.valid.raw"
+  },
+  "environment": {
+    "git_sha": "04b23ededc79b34778a534429fa84ce4069b9fac",
+    "git_working_tree_clean": false,
+    "git_status_short": [
+      " M PLAN.md",
+      "?? experiments/wikitext_103/artifacts/baseline/run.jsonl",
+      "?? runs/bidir_stderr.tmp",
+      "?? runs/bidir_stdout.tmp",
+      "?? runs/wikitext_stderr.tmp",
+      "?? runs/wikitext_stdout.tmp"
+    ],
+    "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+    "torch_version": "2.11.0+cu128",
+    "device": "cuda",
+    "cuda_device_name": "NVIDIA GeForce RTX 3090"
+  },
+  "dataset": {
+    "train_examples": 538294301,
+    "val_examples": 4096,
+    "vocab_size": 4980
+  },
+  "timing": {
+    "overall_wall_seconds": 1785.905705
+  },
+  "variants": {
+    "A_single_block": {
+      "key": "A_single_block",
+      "label": "wikitext_baseline_A_single_block",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 1,
+      "rates": [
+        1
+      ],
+      "readout_mode": "last",
+      "token_injection": "block0",
+      "topology": "upward"
+    },
+    "B_4block_old": {
+      "key": "B_4block_old",
+      "label": "wikitext_baseline_B_4block_old",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 4,
+      "rates": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "readout_mode": "all",
+      "token_injection": "all",
+      "topology": "upward"
+    },
+    "C_4block_corrected": {
+      "key": "C_4block_corrected",
+      "label": "wikitext_baseline_C_4block_corrected",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 4,
+      "rates": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "readout_mode": "all",
+      "token_injection": "block0",
+      "topology": "upward"
+    },
+    "D_4block_multirate": {
+      "key": "D_4block_multirate",
+      "label": "wikitext_baseline_D_4block_multirate",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 4,
+      "rates": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "readout_mode": "all",
+      "token_injection": "block0",
+      "topology": "upward"
+    }
+  },
+  "per_seed_results": [
+    {
+      "seed": 42,
+      "variant": "A_single_block",
+      "label": "wikitext_baseline_A_single_block",
+      "class_name": "ParallelDiagonalModel",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 1,
+      "rates": [
+        1
+      ],
+      "readout_mode": "last",
+      "token_injection": "block0",
+      "topology": "upward",
+      "parameter_count": 2825846,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 8.633526,
+          "val_accuracy": 0.0
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.453665,
+          "val_accuracy": 0.321289
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.317151,
+          "val_accuracy": 0.347656
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.235255,
+          "val_accuracy": 0.365967
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.183173,
+          "val_accuracy": 0.386963
+        },
+        {
+          "step": 5000,
+          "val_loss": 2.141073,
+          "val_accuracy": 0.38501
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.100108,
+          "val_accuracy": 0.395996
+        },
+        {
+          "step": 7000,
+          "val_loss": 2.061198,
+          "val_accuracy": 0.407471
+        },
+        {
+          "step": 8000,
+          "val_loss": 2.048767,
+          "val_accuracy": 0.410156
+        },
+        {
+          "step": 9000,
+          "val_loss": 2.014461,
+          "val_accuracy": 0.415283
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.990003,
+          "val_accuracy": 0.427734
+        },
+        {
+          "step": 11000,
+          "val_loss": 1.982703,
+          "val_accuracy": 0.423096
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.956804,
+          "val_accuracy": 0.430176
+        },
+        {
+          "step": 13000,
+          "val_loss": 1.932501,
+          "val_accuracy": 0.439941
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.930386,
+          "val_accuracy": 0.442139
+        },
+        {
+          "step": 15000,
+          "val_loss": 1.913727,
+          "val_accuracy": 0.442871
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.889523,
+          "val_accuracy": 0.450195
+        },
+        {
+          "step": 17000,
+          "val_loss": 1.875691,
+          "val_accuracy": 0.45459
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.872379,
+          "val_accuracy": 0.461426
+        },
+        {
+          "step": 19000,
+          "val_loss": 1.845781,
+          "val_accuracy": 0.467041
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.848765,
+          "val_accuracy": 0.472168
+        }
+      ],
+      "best_checkpoint": {
+        "step": 19000,
+        "val_loss": 1.845781,
+        "val_accuracy": 0.467041
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.848765,
+        "val_accuracy": 0.472168
+      },
+      "final_training_loss": 1.671228,
+      "wall_seconds": 97.353897,
+      "mix_coefficients": {
+        "token": [
+          0.43175163865089417
+        ],
+        "blocks": [
+          0.7628190517425537
+        ],
+        "rates": [
+          1
+        ],
+        "internal_steps": 1,
+        "readout_mode": "last",
+        "token_injection": "block0",
+        "topology": "upward",
+        "readout_weights": null
+      }
+    },
+    {
+      "seed": 42,
+      "variant": "B_4block_old",
+      "label": "wikitext_baseline_B_4block_old",
+      "class_name": "ParallelDiagonalModel",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 4,
+      "rates": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "readout_mode": "all",
+      "token_injection": "all",
+      "topology": "upward",
+      "parameter_count": 3614592,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 8.636583,
+          "val_accuracy": 0.0
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.518593,
+          "val_accuracy": 0.309082
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.339753,
+          "val_accuracy": 0.347412
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.227209,
+          "val_accuracy": 0.364502
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.155965,
+          "val_accuracy": 0.395508
+        },
+        {
+          "step": 5000,
+          "val_loss": 2.10671,
+          "val_accuracy": 0.393799
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.055322,
+          "val_accuracy": 0.407471
+        },
+        {
+          "step": 7000,
+          "val_loss": 2.015835,
+          "val_accuracy": 0.419922
+        },
+        {
+          "step": 8000,
+          "val_loss": 1.992536,
+          "val_accuracy": 0.431641
+        },
+        {
+          "step": 9000,
+          "val_loss": 1.94956,
+          "val_accuracy": 0.438232
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.922183,
+          "val_accuracy": 0.448486
+        },
+        {
+          "step": 11000,
+          "val_loss": 1.909917,
+          "val_accuracy": 0.453125
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.88115,
+          "val_accuracy": 0.456543
+        },
+        {
+          "step": 13000,
+          "val_loss": 1.85832,
+          "val_accuracy": 0.468018
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.848748,
+          "val_accuracy": 0.474609
+        },
+        {
+          "step": 15000,
+          "val_loss": 1.833069,
+          "val_accuracy": 0.470947
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.806023,
+          "val_accuracy": 0.481445
+        },
+        {
+          "step": 17000,
+          "val_loss": 1.794036,
+          "val_accuracy": 0.484375
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.784464,
+          "val_accuracy": 0.484863
+        },
+        {
+          "step": 19000,
+          "val_loss": 1.76451,
+          "val_accuracy": 0.488525
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.745489,
+          "val_accuracy": 0.499512
+        }
+      ],
+      "best_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.745489,
+        "val_accuracy": 0.499512
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.745489,
+        "val_accuracy": 0.499512
+      },
+      "final_training_loss": 1.54872,
+      "wall_seconds": 343.015113,
+      "mix_coefficients": {
+        "token": [
+          0.35289472341537476,
+          0.2995845377445221,
+          0.33398428559303284,
+          0.3153998553752899
+        ],
+        "blocks": [
+          0.8205705285072327,
+          0.7503237724304199,
+          0.7534588575363159,
+          0.7684169411659241
+        ],
+        "rates": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "internal_steps": 1,
+        "readout_mode": "all",
+        "token_injection": "all",
+        "topology": "upward",
+        "readout_weights": [
+          0.349422425031662,
+          0.21484947204589844,
+          0.1819382756948471,
+          0.2537898123264313
+        ]
+      }
+    },
+    {
+      "seed": 42,
+      "variant": "C_4block_corrected",
+      "label": "wikitext_baseline_C_4block_corrected",
+      "class_name": "ParallelDiagonalModel",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 4,
+      "rates": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "readout_mode": "all",
+      "token_injection": "block0",
+      "topology": "upward",
+      "parameter_count": 3614592,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 8.568499,
+          "val_accuracy": 0.0
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.599169,
+          "val_accuracy": 0.299805
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.372964,
+          "val_accuracy": 0.337891
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.26513,
+          "val_accuracy": 0.355957
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.201373,
+          "val_accuracy": 0.381348
+        },
+        {
+          "step": 5000,
+          "val_loss": 2.151207,
+          "val_accuracy": 0.387939
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.106453,
+          "val_accuracy": 0.397461
+        },
+        {
+          "step": 7000,
+          "val_loss": 2.065424,
+          "val_accuracy": 0.408936
+        },
+        {
+          "step": 8000,
+          "val_loss": 2.04557,
+          "val_accuracy": 0.42041
+        },
+        {
+          "step": 9000,
+          "val_loss": 2.00328,
+          "val_accuracy": 0.422852
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.978752,
+          "val_accuracy": 0.428467
+        },
+        {
+          "step": 11000,
+          "val_loss": 1.969512,
+          "val_accuracy": 0.430908
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.942796,
+          "val_accuracy": 0.438721
+        },
+        {
+          "step": 13000,
+          "val_loss": 1.919243,
+          "val_accuracy": 0.448242
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.93343,
+          "val_accuracy": 0.447998
+        },
+        {
+          "step": 15000,
+          "val_loss": 1.908601,
+          "val_accuracy": 0.446777
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.886978,
+          "val_accuracy": 0.450195
+        },
+        {
+          "step": 17000,
+          "val_loss": 1.87817,
+          "val_accuracy": 0.452393
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.87602,
+          "val_accuracy": 0.450439
+        },
+        {
+          "step": 19000,
+          "val_loss": 1.863604,
+          "val_accuracy": 0.457764
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.86272,
+          "val_accuracy": 0.455322
+        }
+      ],
+      "best_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.86272,
+        "val_accuracy": 0.455322
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.86272,
+        "val_accuracy": 0.455322
+      },
+      "final_training_loss": 1.702127,
+      "wall_seconds": 292.148711,
+      "mix_coefficients": {
+        "token": [
+          0.39785391092300415,
+          0.5,
+          0.5,
+          0.5
+        ],
+        "blocks": [
+          0.7828604578971863,
+          0.8267732858657837,
+          0.867640495300293,
+          0.8769455552101135
+        ],
+        "rates": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "internal_steps": 1,
+        "readout_mode": "all",
+        "token_injection": "block0",
+        "topology": "upward",
+        "readout_weights": [
+          0.5771556496620178,
+          0.17850880324840546,
+          0.11826485395431519,
+          0.12607070803642273
+        ]
+      }
+    },
+    {
+      "seed": 42,
+      "variant": "D_4block_multirate",
+      "label": "wikitext_baseline_D_4block_multirate",
+      "class_name": "ParallelDiagonalModel",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 4,
+      "rates": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "readout_mode": "all",
+      "token_injection": "block0",
+      "topology": "upward",
+      "parameter_count": 3614592,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 8.545634,
+          "val_accuracy": 0.0
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.624281,
+          "val_accuracy": 0.295166
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.382881,
+          "val_accuracy": 0.333984
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.278535,
+          "val_accuracy": 0.349609
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.211733,
+          "val_accuracy": 0.36792
+        },
+        {
+          "step": 5000,
+          "val_loss": 2.155562,
+          "val_accuracy": 0.383789
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.108469,
+          "val_accuracy": 0.394043
+        },
+        {
+          "step": 7000,
+          "val_loss": 2.07263,
+          "val_accuracy": 0.403564
+        },
+        {
+          "step": 8000,
+          "val_loss": 2.059435,
+          "val_accuracy": 0.413086
+        },
+        {
+          "step": 9000,
+          "val_loss": 2.015553,
+          "val_accuracy": 0.424072
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.989758,
+          "val_accuracy": 0.428955
+        },
+        {
+          "step": 11000,
+          "val_loss": 1.980286,
+          "val_accuracy": 0.428711
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.951527,
+          "val_accuracy": 0.433594
+        },
+        {
+          "step": 13000,
+          "val_loss": 1.927773,
+          "val_accuracy": 0.442627
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.92461,
+          "val_accuracy": 0.450684
+        },
+        {
+          "step": 15000,
+          "val_loss": 1.905851,
+          "val_accuracy": 0.452393
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.878043,
+          "val_accuracy": 0.456055
+        },
+        {
+          "step": 17000,
+          "val_loss": 1.865674,
+          "val_accuracy": 0.45752
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.859648,
+          "val_accuracy": 0.459473
+        },
+        {
+          "step": 19000,
+          "val_loss": 1.839221,
+          "val_accuracy": 0.462158
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.840002,
+          "val_accuracy": 0.470459
+        }
+      ],
+      "best_checkpoint": {
+        "step": 19000,
+        "val_loss": 1.839221,
+        "val_accuracy": 0.462158
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.840002,
+        "val_accuracy": 0.470459
+      },
+      "final_training_loss": 1.687985,
+      "wall_seconds": 156.569082,
+      "mix_coefficients": {
+        "token": [
+          0.4260167181491852,
+          0.5,
+          0.5,
+          0.5
+        ],
+        "blocks": [
+          0.7587759494781494,
+          0.8218714594841003,
+          0.8653392195701599,
+          0.8777483105659485
+        ],
+        "rates": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "internal_steps": 1,
+        "readout_mode": "all",
+        "token_injection": "block0",
+        "topology": "upward",
+        "readout_weights": [
+          0.6531201601028442,
+          0.14089375734329224,
+          0.10993442684412003,
+          0.09605171531438828
+        ]
+      }
+    },
+    {
+      "seed": 43,
+      "variant": "A_single_block",
+      "label": "wikitext_baseline_A_single_block",
+      "class_name": "ParallelDiagonalModel",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 1,
+      "rates": [
+        1
+      ],
+      "readout_mode": "last",
+      "token_injection": "block0",
+      "topology": "upward",
+      "parameter_count": 2825846,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 8.636805,
+          "val_accuracy": 0.0
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.436586,
+          "val_accuracy": 0.31665
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.28093,
+          "val_accuracy": 0.35376
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.211329,
+          "val_accuracy": 0.367676
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.160591,
+          "val_accuracy": 0.373291
+        },
+        {
+          "step": 5000,
+          "val_loss": 2.106568,
+          "val_accuracy": 0.397217
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.08269,
+          "val_accuracy": 0.405518
+        },
+        {
+          "step": 7000,
+          "val_loss": 2.047572,
+          "val_accuracy": 0.413818
+        },
+        {
+          "step": 8000,
+          "val_loss": 2.031505,
+          "val_accuracy": 0.417725
+        },
+        {
+          "step": 9000,
+          "val_loss": 2.009651,
+          "val_accuracy": 0.423828
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.981248,
+          "val_accuracy": 0.423584
+        },
+        {
+          "step": 11000,
+          "val_loss": 1.982806,
+          "val_accuracy": 0.421143
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.951785,
+          "val_accuracy": 0.436279
+        },
+        {
+          "step": 13000,
+          "val_loss": 1.914866,
+          "val_accuracy": 0.445801
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.925336,
+          "val_accuracy": 0.443604
+        },
+        {
+          "step": 15000,
+          "val_loss": 1.900328,
+          "val_accuracy": 0.446777
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.90108,
+          "val_accuracy": 0.45166
+        },
+        {
+          "step": 17000,
+          "val_loss": 1.871456,
+          "val_accuracy": 0.460693
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.874197,
+          "val_accuracy": 0.456055
+        },
+        {
+          "step": 19000,
+          "val_loss": 1.863311,
+          "val_accuracy": 0.464111
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.832852,
+          "val_accuracy": 0.466553
+        }
+      ],
+      "best_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.832852,
+        "val_accuracy": 0.466553
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.832852,
+        "val_accuracy": 0.466553
+      },
+      "final_training_loss": 1.491683,
+      "wall_seconds": 98.665454,
+      "mix_coefficients": {
+        "token": [
+          0.4349296987056732
+        ],
+        "blocks": [
+          0.7584825754165649
+        ],
+        "rates": [
+          1
+        ],
+        "internal_steps": 1,
+        "readout_mode": "last",
+        "token_injection": "block0",
+        "topology": "upward",
+        "readout_weights": null
+      }
+    },
+    {
+      "seed": 43,
+      "variant": "B_4block_old",
+      "label": "wikitext_baseline_B_4block_old",
+      "class_name": "ParallelDiagonalModel",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 4,
+      "rates": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "readout_mode": "all",
+      "token_injection": "all",
+      "topology": "upward",
+      "parameter_count": 3614592,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 8.658183,
+          "val_accuracy": 0.0
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.513758,
+          "val_accuracy": 0.305908
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.30503,
+          "val_accuracy": 0.345459
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.209403,
+          "val_accuracy": 0.371826
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.145701,
+          "val_accuracy": 0.383301
+        },
+        {
+          "step": 5000,
+          "val_loss": 2.082962,
+          "val_accuracy": 0.399414
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.048151,
+          "val_accuracy": 0.414062
+        },
+        {
+          "step": 7000,
+          "val_loss": 2.005972,
+          "val_accuracy": 0.427246
+        },
+        {
+          "step": 8000,
+          "val_loss": 1.984269,
+          "val_accuracy": 0.430664
+        },
+        {
+          "step": 9000,
+          "val_loss": 1.951194,
+          "val_accuracy": 0.439941
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.924031,
+          "val_accuracy": 0.443604
+        },
+        {
+          "step": 11000,
+          "val_loss": 1.912018,
+          "val_accuracy": 0.443604
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.876003,
+          "val_accuracy": 0.454102
+        },
+        {
+          "step": 13000,
+          "val_loss": 1.83369,
+          "val_accuracy": 0.474854
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.833361,
+          "val_accuracy": 0.476562
+        },
+        {
+          "step": 15000,
+          "val_loss": 1.814825,
+          "val_accuracy": 0.47583
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.8062,
+          "val_accuracy": 0.47876
+        },
+        {
+          "step": 17000,
+          "val_loss": 1.787674,
+          "val_accuracy": 0.484863
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.778236,
+          "val_accuracy": 0.480957
+        },
+        {
+          "step": 19000,
+          "val_loss": 1.771132,
+          "val_accuracy": 0.489746
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.734692,
+          "val_accuracy": 0.501953
+        }
+      ],
+      "best_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.734692,
+        "val_accuracy": 0.501953
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.734692,
+        "val_accuracy": 0.501953
+      },
+      "final_training_loss": 1.446931,
+      "wall_seconds": 343.85279,
+      "mix_coefficients": {
+        "token": [
+          0.37381643056869507,
+          0.3178732395172119,
+          0.3113102614879608,
+          0.31920161843299866
+        ],
+        "blocks": [
+          0.8040080070495605,
+          0.7631608247756958,
+          0.7825338840484619,
+          0.7523589730262756
+        ],
+        "rates": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "internal_steps": 1,
+        "readout_mode": "all",
+        "token_injection": "all",
+        "topology": "upward",
+        "readout_weights": [
+          0.3759267032146454,
+          0.20417511463165283,
+          0.16045477986335754,
+          0.25944340229034424
+        ]
+      }
+    },
+    {
+      "seed": 43,
+      "variant": "C_4block_corrected",
+      "label": "wikitext_baseline_C_4block_corrected",
+      "class_name": "ParallelDiagonalModel",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 4,
+      "rates": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "readout_mode": "all",
+      "token_injection": "block0",
+      "topology": "upward",
+      "parameter_count": 3614592,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 8.558455,
+          "val_accuracy": 0.0
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.606382,
+          "val_accuracy": 0.297852
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.345919,
+          "val_accuracy": 0.336182
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.247711,
+          "val_accuracy": 0.357422
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.188668,
+          "val_accuracy": 0.369629
+        },
+        {
+          "step": 5000,
+          "val_loss": 2.128182,
+          "val_accuracy": 0.38916
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.097205,
+          "val_accuracy": 0.399414
+        },
+        {
+          "step": 7000,
+          "val_loss": 2.05312,
+          "val_accuracy": 0.408447
+        },
+        {
+          "step": 8000,
+          "val_loss": 2.033295,
+          "val_accuracy": 0.402588
+        },
+        {
+          "step": 9000,
+          "val_loss": 2.000744,
+          "val_accuracy": 0.420166
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.974276,
+          "val_accuracy": 0.428711
+        },
+        {
+          "step": 11000,
+          "val_loss": 1.984763,
+          "val_accuracy": 0.414062
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.943586,
+          "val_accuracy": 0.436523
+        },
+        {
+          "step": 13000,
+          "val_loss": 1.905636,
+          "val_accuracy": 0.44751
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.907194,
+          "val_accuracy": 0.447998
+        },
+        {
+          "step": 15000,
+          "val_loss": 1.893187,
+          "val_accuracy": 0.448486
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.886334,
+          "val_accuracy": 0.455566
+        },
+        {
+          "step": 17000,
+          "val_loss": 1.864466,
+          "val_accuracy": 0.462646
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.856557,
+          "val_accuracy": 0.4646
+        },
+        {
+          "step": 19000,
+          "val_loss": 1.848524,
+          "val_accuracy": 0.460449
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.824419,
+          "val_accuracy": 0.46875
+        }
+      ],
+      "best_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.824419,
+        "val_accuracy": 0.46875
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.824419,
+        "val_accuracy": 0.46875
+      },
+      "final_training_loss": 1.541653,
+      "wall_seconds": 291.726124,
+      "mix_coefficients": {
+        "token": [
+          0.4226352572441101,
+          0.5,
+          0.5,
+          0.5
+        ],
+        "blocks": [
+          0.7544598579406738,
+          0.8204781413078308,
+          0.8568193912506104,
+          0.8840758800506592
+        ],
+        "rates": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "internal_steps": 1,
+        "readout_mode": "all",
+        "token_injection": "block0",
+        "topology": "upward",
+        "readout_weights": [
+          0.5938067436218262,
+          0.16797764599323273,
+          0.11984645575284958,
+          0.11836912482976913
+        ]
+      }
+    },
+    {
+      "seed": 43,
+      "variant": "D_4block_multirate",
+      "label": "wikitext_baseline_D_4block_multirate",
+      "class_name": "ParallelDiagonalModel",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 4,
+      "rates": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "readout_mode": "all",
+      "token_injection": "block0",
+      "topology": "upward",
+      "parameter_count": 3614592,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 8.560883,
+          "val_accuracy": 0.0
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.612306,
+          "val_accuracy": 0.289062
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.360724,
+          "val_accuracy": 0.335205
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.259407,
+          "val_accuracy": 0.356689
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.194362,
+          "val_accuracy": 0.37085
+        },
+        {
+          "step": 5000,
+          "val_loss": 2.131945,
+          "val_accuracy": 0.384277
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.100363,
+          "val_accuracy": 0.397705
+        },
+        {
+          "step": 7000,
+          "val_loss": 2.055132,
+          "val_accuracy": 0.407471
+        },
+        {
+          "step": 8000,
+          "val_loss": 2.037993,
+          "val_accuracy": 0.405518
+        },
+        {
+          "step": 9000,
+          "val_loss": 2.007226,
+          "val_accuracy": 0.421143
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.978228,
+          "val_accuracy": 0.428223
+        },
+        {
+          "step": 11000,
+          "val_loss": 1.984914,
+          "val_accuracy": 0.41748
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.943801,
+          "val_accuracy": 0.432861
+        },
+        {
+          "step": 13000,
+          "val_loss": 1.907507,
+          "val_accuracy": 0.445312
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.903727,
+          "val_accuracy": 0.447021
+        },
+        {
+          "step": 15000,
+          "val_loss": 1.89026,
+          "val_accuracy": 0.447266
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.880849,
+          "val_accuracy": 0.448975
+        },
+        {
+          "step": 17000,
+          "val_loss": 1.858226,
+          "val_accuracy": 0.461914
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.851054,
+          "val_accuracy": 0.458984
+        },
+        {
+          "step": 19000,
+          "val_loss": 1.848814,
+          "val_accuracy": 0.458984
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.818331,
+          "val_accuracy": 0.467285
+        }
+      ],
+      "best_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.818331,
+        "val_accuracy": 0.467285
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.818331,
+        "val_accuracy": 0.467285
+      },
+      "final_training_loss": 1.50855,
+      "wall_seconds": 156.252587,
+      "mix_coefficients": {
+        "token": [
+          0.44452735781669617,
+          0.5,
+          0.5,
+          0.5
+        ],
+        "blocks": [
+          0.751133918762207,
+          0.8131201863288879,
+          0.8624314665794373,
+          0.8708410263061523
+        ],
+        "rates": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "internal_steps": 1,
+        "readout_mode": "all",
+        "token_injection": "block0",
+        "topology": "upward",
+        "readout_weights": [
+          0.6591044068336487,
+          0.13797134160995483,
+          0.1076512336730957,
+          0.09527303278446198
+        ]
+      }
+    }
+  ],
+  "summary_by_variant": {
+    "A_single_block": {
+      "label": "wikitext_baseline_A_single_block",
+      "readout_mode": "last",
+      "token_injection": "block0",
+      "topology": "upward",
+      "num_runs": 2,
+      "mean_final_val_loss": 1.840809,
+      "std_final_val_loss": 0.007957,
+      "mean_final_val_accuracy": 0.46936,
+      "std_final_val_accuracy": 0.002807,
+      "mean_best_val_loss": 1.839316,
+      "mean_best_val_accuracy": 0.466797,
+      "mean_wall_seconds": 98.009676,
+      "runs": [
+        {
+          "seed": 42,
+          "variant": "A_single_block",
+          "label": "wikitext_baseline_A_single_block",
+          "class_name": "ParallelDiagonalModel",
+          "d_model": 256,
+          "feedforward_dim": 512,
+          "num_blocks": 1,
+          "rates": [
+            1
+          ],
+          "readout_mode": "last",
+          "token_injection": "block0",
+          "topology": "upward",
+          "parameter_count": 2825846,
+          "checkpoints": [
+            {
+              "step": 0,
+              "val_loss": 8.633526,
+              "val_accuracy": 0.0
+            },
+            {
+              "step": 1000,
+              "val_loss": 2.453665,
+              "val_accuracy": 0.321289
+            },
+            {
+              "step": 2000,
+              "val_loss": 2.317151,
+              "val_accuracy": 0.347656
+            },
+            {
+              "step": 3000,
+              "val_loss": 2.235255,
+              "val_accuracy": 0.365967
+            },
+            {
+              "step": 4000,
+              "val_loss": 2.183173,
+              "val_accuracy": 0.386963
+            },
+            {
+              "step": 5000,
+              "val_loss": 2.141073,
+              "val_accuracy": 0.38501
+            },
+            {
+              "step": 6000,
+              "val_loss": 2.100108,
+              "val_accuracy": 0.395996
+            },
+            {
+              "step": 7000,
+              "val_loss": 2.061198,
+              "val_accuracy": 0.407471
+            },
+            {
+              "step": 8000,
+              "val_loss": 2.048767,
+              "val_accuracy": 0.410156
+            },
+            {
+              "step": 9000,
+              "val_loss": 2.014461,
+              "val_accuracy": 0.415283
+            },
+            {
+              "step": 10000,
+              "val_loss": 1.990003,
+              "val_accuracy": 0.427734
+            },
+            {
+              "step": 11000,
+              "val_loss": 1.982703,
+              "val_accuracy": 0.423096
+            },
+            {
+              "step": 12000,
+              "val_loss": 1.956804,
+              "val_accuracy": 0.430176
+            },
+            {
+              "step": 13000,
+              "val_loss": 1.932501,
+              "val_accuracy": 0.439941
+            },
+            {
+              "step": 14000,
+              "val_loss": 1.930386,
+              "val_accuracy": 0.442139
+            },
+            {
+              "step": 15000,
+              "val_loss": 1.913727,
+              "val_accuracy": 0.442871
+            },
+            {
+              "step": 16000,
+              "val_loss": 1.889523,
+              "val_accuracy": 0.450195
+            },
+            {
+              "step": 17000,
+              "val_loss": 1.875691,
+              "val_accuracy": 0.45459
+            },
+            {
+              "step": 18000,
+              "val_loss": 1.872379,
+              "val_accuracy": 0.461426
+            },
+            {
+              "step": 19000,
+              "val_loss": 1.845781,
+              "val_accuracy": 0.467041
+            },
+            {
+              "step": 20000,
+              "val_loss": 1.848765,
+              "val_accuracy": 0.472168
+            }
+          ],
+          "best_checkpoint": {
+            "step": 19000,
+            "val_loss": 1.845781,
+            "val_accuracy": 0.467041
+          },
+          "final_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.848765,
+            "val_accuracy": 0.472168
+          },
+          "final_training_loss": 1.671228,
+          "wall_seconds": 97.353897,
+          "mix_coefficients": {
+            "token": [
+              0.43175163865089417
+            ],
+            "blocks": [
+              0.7628190517425537
+            ],
+            "rates": [
+              1
+            ],
+            "internal_steps": 1,
+            "readout_mode": "last",
+            "token_injection": "block0",
+            "topology": "upward",
+            "readout_weights": null
+          }
+        },
+        {
+          "seed": 43,
+          "variant": "A_single_block",
+          "label": "wikitext_baseline_A_single_block",
+          "class_name": "ParallelDiagonalModel",
+          "d_model": 256,
+          "feedforward_dim": 512,
+          "num_blocks": 1,
+          "rates": [
+            1
+          ],
+          "readout_mode": "last",
+          "token_injection": "block0",
+          "topology": "upward",
+          "parameter_count": 2825846,
+          "checkpoints": [
+            {
+              "step": 0,
+              "val_loss": 8.636805,
+              "val_accuracy": 0.0
+            },
+            {
+              "step": 1000,
+              "val_loss": 2.436586,
+              "val_accuracy": 0.31665
+            },
+            {
+              "step": 2000,
+              "val_loss": 2.28093,
+              "val_accuracy": 0.35376
+            },
+            {
+              "step": 3000,
+              "val_loss": 2.211329,
+              "val_accuracy": 0.367676
+            },
+            {
+              "step": 4000,
+              "val_loss": 2.160591,
+              "val_accuracy": 0.373291
+            },
+            {
+              "step": 5000,
+              "val_loss": 2.106568,
+              "val_accuracy": 0.397217
+            },
+            {
+              "step": 6000,
+              "val_loss": 2.08269,
+              "val_accuracy": 0.405518
+            },
+            {
+              "step": 7000,
+              "val_loss": 2.047572,
+              "val_accuracy": 0.413818
+            },
+            {
+              "step": 8000,
+              "val_loss": 2.031505,
+              "val_accuracy": 0.417725
+            },
+            {
+              "step": 9000,
+              "val_loss": 2.009651,
+              "val_accuracy": 0.423828
+            },
+            {
+              "step": 10000,
+              "val_loss": 1.981248,
+              "val_accuracy": 0.423584
+            },
+            {
+              "step": 11000,
+              "val_loss": 1.982806,
+              "val_accuracy": 0.421143
+            },
+            {
+              "step": 12000,
+              "val_loss": 1.951785,
+              "val_accuracy": 0.436279
+            },
+            {
+              "step": 13000,
+              "val_loss": 1.914866,
+              "val_accuracy": 0.445801
+            },
+            {
+              "step": 14000,
+              "val_loss": 1.925336,
+              "val_accuracy": 0.443604
+            },
+            {
+              "step": 15000,
+              "val_loss": 1.900328,
+              "val_accuracy": 0.446777
+            },
+            {
+              "step": 16000,
+              "val_loss": 1.90108,
+              "val_accuracy": 0.45166
+            },
+            {
+              "step": 17000,
+              "val_loss": 1.871456,
+              "val_accuracy": 0.460693
+            },
+            {
+              "step": 18000,
+              "val_loss": 1.874197,
+              "val_accuracy": 0.456055
+            },
+            {
+              "step": 19000,
+              "val_loss": 1.863311,
+              "val_accuracy": 0.464111
+            },
+            {
+              "step": 20000,
+              "val_loss": 1.832852,
+              "val_accuracy": 0.466553
+            }
+          ],
+          "best_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.832852,
+            "val_accuracy": 0.466553
+          },
+          "final_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.832852,
+            "val_accuracy": 0.466553
+          },
+          "final_training_loss": 1.491683,
+          "wall_seconds": 98.665454,
+          "mix_coefficients": {
+            "token": [
+              0.4349296987056732
+            ],
+            "blocks": [
+              0.7584825754165649
+            ],
+            "rates": [
+              1
+            ],
+            "internal_steps": 1,
+            "readout_mode": "last",
+            "token_injection": "block0",
+            "topology": "upward",
+            "readout_weights": null
+          }
+        }
+      ]
+    },
+    "B_4block_old": {
+      "label": "wikitext_baseline_B_4block_old",
+      "readout_mode": "all",
+      "token_injection": "all",
+      "topology": "upward",
+      "num_runs": 2,
+      "mean_final_val_loss": 1.74009,
+      "std_final_val_loss": 0.005399,
+      "mean_final_val_accuracy": 0.500733,
+      "std_final_val_accuracy": 0.00122,
+      "mean_best_val_loss": 1.74009,
+      "mean_best_val_accuracy": 0.500733,
+      "mean_wall_seconds": 343.433952,
+      "runs": [
+        {
+          "seed": 42,
+          "variant": "B_4block_old",
+          "label": "wikitext_baseline_B_4block_old",
+          "class_name": "ParallelDiagonalModel",
+          "d_model": 256,
+          "feedforward_dim": 512,
+          "num_blocks": 4,
+          "rates": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "readout_mode": "all",
+          "token_injection": "all",
+          "topology": "upward",
+          "parameter_count": 3614592,
+          "checkpoints": [
+            {
+              "step": 0,
+              "val_loss": 8.636583,
+              "val_accuracy": 0.0
+            },
+            {
+              "step": 1000,
+              "val_loss": 2.518593,
+              "val_accuracy": 0.309082
+            },
+            {
+              "step": 2000,
+              "val_loss": 2.339753,
+              "val_accuracy": 0.347412
+            },
+            {
+              "step": 3000,
+              "val_loss": 2.227209,
+              "val_accuracy": 0.364502
+            },
+            {
+              "step": 4000,
+              "val_loss": 2.155965,
+              "val_accuracy": 0.395508
+            },
+            {
+              "step": 5000,
+              "val_loss": 2.10671,
+              "val_accuracy": 0.393799
+            },
+            {
+              "step": 6000,
+              "val_loss": 2.055322,
+              "val_accuracy": 0.407471
+            },
+            {
+              "step": 7000,
+              "val_loss": 2.015835,
+              "val_accuracy": 0.419922
+            },
+            {
+              "step": 8000,
+              "val_loss": 1.992536,
+              "val_accuracy": 0.431641
+            },
+            {
+              "step": 9000,
+              "val_loss": 1.94956,
+              "val_accuracy": 0.438232
+            },
+            {
+              "step": 10000,
+              "val_loss": 1.922183,
+              "val_accuracy": 0.448486
+            },
+            {
+              "step": 11000,
+              "val_loss": 1.909917,
+              "val_accuracy": 0.453125
+            },
+            {
+              "step": 12000,
+              "val_loss": 1.88115,
+              "val_accuracy": 0.456543
+            },
+            {
+              "step": 13000,
+              "val_loss": 1.85832,
+              "val_accuracy": 0.468018
+            },
+            {
+              "step": 14000,
+              "val_loss": 1.848748,
+              "val_accuracy": 0.474609
+            },
+            {
+              "step": 15000,
+              "val_loss": 1.833069,
+              "val_accuracy": 0.470947
+            },
+            {
+              "step": 16000,
+              "val_loss": 1.806023,
+              "val_accuracy": 0.481445
+            },
+            {
+              "step": 17000,
+              "val_loss": 1.794036,
+              "val_accuracy": 0.484375
+            },
+            {
+              "step": 18000,
+              "val_loss": 1.784464,
+              "val_accuracy": 0.484863
+            },
+            {
+              "step": 19000,
+              "val_loss": 1.76451,
+              "val_accuracy": 0.488525
+            },
+            {
+              "step": 20000,
+              "val_loss": 1.745489,
+              "val_accuracy": 0.499512
+            }
+          ],
+          "best_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.745489,
+            "val_accuracy": 0.499512
+          },
+          "final_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.745489,
+            "val_accuracy": 0.499512
+          },
+          "final_training_loss": 1.54872,
+          "wall_seconds": 343.015113,
+          "mix_coefficients": {
+            "token": [
+              0.35289472341537476,
+              0.2995845377445221,
+              0.33398428559303284,
+              0.3153998553752899
+            ],
+            "blocks": [
+              0.8205705285072327,
+              0.7503237724304199,
+              0.7534588575363159,
+              0.7684169411659241
+            ],
+            "rates": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "internal_steps": 1,
+            "readout_mode": "all",
+            "token_injection": "all",
+            "topology": "upward",
+            "readout_weights": [
+              0.349422425031662,
+              0.21484947204589844,
+              0.1819382756948471,
+              0.2537898123264313
+            ]
+          }
+        },
+        {
+          "seed": 43,
+          "variant": "B_4block_old",
+          "label": "wikitext_baseline_B_4block_old",
+          "class_name": "ParallelDiagonalModel",
+          "d_model": 256,
+          "feedforward_dim": 512,
+          "num_blocks": 4,
+          "rates": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "readout_mode": "all",
+          "token_injection": "all",
+          "topology": "upward",
+          "parameter_count": 3614592,
+          "checkpoints": [
+            {
+              "step": 0,
+              "val_loss": 8.658183,
+              "val_accuracy": 0.0
+            },
+            {
+              "step": 1000,
+              "val_loss": 2.513758,
+              "val_accuracy": 0.305908
+            },
+            {
+              "step": 2000,
+              "val_loss": 2.30503,
+              "val_accuracy": 0.345459
+            },
+            {
+              "step": 3000,
+              "val_loss": 2.209403,
+              "val_accuracy": 0.371826
+            },
+            {
+              "step": 4000,
+              "val_loss": 2.145701,
+              "val_accuracy": 0.383301
+            },
+            {
+              "step": 5000,
+              "val_loss": 2.082962,
+              "val_accuracy": 0.399414
+            },
+            {
+              "step": 6000,
+              "val_loss": 2.048151,
+              "val_accuracy": 0.414062
+            },
+            {
+              "step": 7000,
+              "val_loss": 2.005972,
+              "val_accuracy": 0.427246
+            },
+            {
+              "step": 8000,
+              "val_loss": 1.984269,
+              "val_accuracy": 0.430664
+            },
+            {
+              "step": 9000,
+              "val_loss": 1.951194,
+              "val_accuracy": 0.439941
+            },
+            {
+              "step": 10000,
+              "val_loss": 1.924031,
+              "val_accuracy": 0.443604
+            },
+            {
+              "step": 11000,
+              "val_loss": 1.912018,
+              "val_accuracy": 0.443604
+            },
+            {
+              "step": 12000,
+              "val_loss": 1.876003,
+              "val_accuracy": 0.454102
+            },
+            {
+              "step": 13000,
+              "val_loss": 1.83369,
+              "val_accuracy": 0.474854
+            },
+            {
+              "step": 14000,
+              "val_loss": 1.833361,
+              "val_accuracy": 0.476562
+            },
+            {
+              "step": 15000,
+              "val_loss": 1.814825,
+              "val_accuracy": 0.47583
+            },
+            {
+              "step": 16000,
+              "val_loss": 1.8062,
+              "val_accuracy": 0.47876
+            },
+            {
+              "step": 17000,
+              "val_loss": 1.787674,
+              "val_accuracy": 0.484863
+            },
+            {
+              "step": 18000,
+              "val_loss": 1.778236,
+              "val_accuracy": 0.480957
+            },
+            {
+              "step": 19000,
+              "val_loss": 1.771132,
+              "val_accuracy": 0.489746
+            },
+            {
+              "step": 20000,
+              "val_loss": 1.734692,
+              "val_accuracy": 0.501953
+            }
+          ],
+          "best_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.734692,
+            "val_accuracy": 0.501953
+          },
+          "final_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.734692,
+            "val_accuracy": 0.501953
+          },
+          "final_training_loss": 1.446931,
+          "wall_seconds": 343.85279,
+          "mix_coefficients": {
+            "token": [
+              0.37381643056869507,
+              0.3178732395172119,
+              0.3113102614879608,
+              0.31920161843299866
+            ],
+            "blocks": [
+              0.8040080070495605,
+              0.7631608247756958,
+              0.7825338840484619,
+              0.7523589730262756
+            ],
+            "rates": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "internal_steps": 1,
+            "readout_mode": "all",
+            "token_injection": "all",
+            "topology": "upward",
+            "readout_weights": [
+              0.3759267032146454,
+              0.20417511463165283,
+              0.16045477986335754,
+              0.25944340229034424
+            ]
+          }
+        }
+      ]
+    },
+    "C_4block_corrected": {
+      "label": "wikitext_baseline_C_4block_corrected",
+      "readout_mode": "all",
+      "token_injection": "block0",
+      "topology": "upward",
+      "num_runs": 2,
+      "mean_final_val_loss": 1.84357,
+      "std_final_val_loss": 0.01915,
+      "mean_final_val_accuracy": 0.462036,
+      "std_final_val_accuracy": 0.006714,
+      "mean_best_val_loss": 1.84357,
+      "mean_best_val_accuracy": 0.462036,
+      "mean_wall_seconds": 291.937418,
+      "runs": [
+        {
+          "seed": 42,
+          "variant": "C_4block_corrected",
+          "label": "wikitext_baseline_C_4block_corrected",
+          "class_name": "ParallelDiagonalModel",
+          "d_model": 256,
+          "feedforward_dim": 512,
+          "num_blocks": 4,
+          "rates": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "readout_mode": "all",
+          "token_injection": "block0",
+          "topology": "upward",
+          "parameter_count": 3614592,
+          "checkpoints": [
+            {
+              "step": 0,
+              "val_loss": 8.568499,
+              "val_accuracy": 0.0
+            },
+            {
+              "step": 1000,
+              "val_loss": 2.599169,
+              "val_accuracy": 0.299805
+            },
+            {
+              "step": 2000,
+              "val_loss": 2.372964,
+              "val_accuracy": 0.337891
+            },
+            {
+              "step": 3000,
+              "val_loss": 2.26513,
+              "val_accuracy": 0.355957
+            },
+            {
+              "step": 4000,
+              "val_loss": 2.201373,
+              "val_accuracy": 0.381348
+            },
+            {
+              "step": 5000,
+              "val_loss": 2.151207,
+              "val_accuracy": 0.387939
+            },
+            {
+              "step": 6000,
+              "val_loss": 2.106453,
+              "val_accuracy": 0.397461
+            },
+            {
+              "step": 7000,
+              "val_loss": 2.065424,
+              "val_accuracy": 0.408936
+            },
+            {
+              "step": 8000,
+              "val_loss": 2.04557,
+              "val_accuracy": 0.42041
+            },
+            {
+              "step": 9000,
+              "val_loss": 2.00328,
+              "val_accuracy": 0.422852
+            },
+            {
+              "step": 10000,
+              "val_loss": 1.978752,
+              "val_accuracy": 0.428467
+            },
+            {
+              "step": 11000,
+              "val_loss": 1.969512,
+              "val_accuracy": 0.430908
+            },
+            {
+              "step": 12000,
+              "val_loss": 1.942796,
+              "val_accuracy": 0.438721
+            },
+            {
+              "step": 13000,
+              "val_loss": 1.919243,
+              "val_accuracy": 0.448242
+            },
+            {
+              "step": 14000,
+              "val_loss": 1.93343,
+              "val_accuracy": 0.447998
+            },
+            {
+              "step": 15000,
+              "val_loss": 1.908601,
+              "val_accuracy": 0.446777
+            },
+            {
+              "step": 16000,
+              "val_loss": 1.886978,
+              "val_accuracy": 0.450195
+            },
+            {
+              "step": 17000,
+              "val_loss": 1.87817,
+              "val_accuracy": 0.452393
+            },
+            {
+              "step": 18000,
+              "val_loss": 1.87602,
+              "val_accuracy": 0.450439
+            },
+            {
+              "step": 19000,
+              "val_loss": 1.863604,
+              "val_accuracy": 0.457764
+            },
+            {
+              "step": 20000,
+              "val_loss": 1.86272,
+              "val_accuracy": 0.455322
+            }
+          ],
+          "best_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.86272,
+            "val_accuracy": 0.455322
+          },
+          "final_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.86272,
+            "val_accuracy": 0.455322
+          },
+          "final_training_loss": 1.702127,
+          "wall_seconds": 292.148711,
+          "mix_coefficients": {
+            "token": [
+              0.39785391092300415,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "blocks": [
+              0.7828604578971863,
+              0.8267732858657837,
+              0.867640495300293,
+              0.8769455552101135
+            ],
+            "rates": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "internal_steps": 1,
+            "readout_mode": "all",
+            "token_injection": "block0",
+            "topology": "upward",
+            "readout_weights": [
+              0.5771556496620178,
+              0.17850880324840546,
+              0.11826485395431519,
+              0.12607070803642273
+            ]
+          }
+        },
+        {
+          "seed": 43,
+          "variant": "C_4block_corrected",
+          "label": "wikitext_baseline_C_4block_corrected",
+          "class_name": "ParallelDiagonalModel",
+          "d_model": 256,
+          "feedforward_dim": 512,
+          "num_blocks": 4,
+          "rates": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "readout_mode": "all",
+          "token_injection": "block0",
+          "topology": "upward",
+          "parameter_count": 3614592,
+          "checkpoints": [
+            {
+              "step": 0,
+              "val_loss": 8.558455,
+              "val_accuracy": 0.0
+            },
+            {
+              "step": 1000,
+              "val_loss": 2.606382,
+              "val_accuracy": 0.297852
+            },
+            {
+              "step": 2000,
+              "val_loss": 2.345919,
+              "val_accuracy": 0.336182
+            },
+            {
+              "step": 3000,
+              "val_loss": 2.247711,
+              "val_accuracy": 0.357422
+            },
+            {
+              "step": 4000,
+              "val_loss": 2.188668,
+              "val_accuracy": 0.369629
+            },
+            {
+              "step": 5000,
+              "val_loss": 2.128182,
+              "val_accuracy": 0.38916
+            },
+            {
+              "step": 6000,
+              "val_loss": 2.097205,
+              "val_accuracy": 0.399414
+            },
+            {
+              "step": 7000,
+              "val_loss": 2.05312,
+              "val_accuracy": 0.408447
+            },
+            {
+              "step": 8000,
+              "val_loss": 2.033295,
+              "val_accuracy": 0.402588
+            },
+            {
+              "step": 9000,
+              "val_loss": 2.000744,
+              "val_accuracy": 0.420166
+            },
+            {
+              "step": 10000,
+              "val_loss": 1.974276,
+              "val_accuracy": 0.428711
+            },
+            {
+              "step": 11000,
+              "val_loss": 1.984763,
+              "val_accuracy": 0.414062
+            },
+            {
+              "step": 12000,
+              "val_loss": 1.943586,
+              "val_accuracy": 0.436523
+            },
+            {
+              "step": 13000,
+              "val_loss": 1.905636,
+              "val_accuracy": 0.44751
+            },
+            {
+              "step": 14000,
+              "val_loss": 1.907194,
+              "val_accuracy": 0.447998
+            },
+            {
+              "step": 15000,
+              "val_loss": 1.893187,
+              "val_accuracy": 0.448486
+            },
+            {
+              "step": 16000,
+              "val_loss": 1.886334,
+              "val_accuracy": 0.455566
+            },
+            {
+              "step": 17000,
+              "val_loss": 1.864466,
+              "val_accuracy": 0.462646
+            },
+            {
+              "step": 18000,
+              "val_loss": 1.856557,
+              "val_accuracy": 0.4646
+            },
+            {
+              "step": 19000,
+              "val_loss": 1.848524,
+              "val_accuracy": 0.460449
+            },
+            {
+              "step": 20000,
+              "val_loss": 1.824419,
+              "val_accuracy": 0.46875
+            }
+          ],
+          "best_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.824419,
+            "val_accuracy": 0.46875
+          },
+          "final_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.824419,
+            "val_accuracy": 0.46875
+          },
+          "final_training_loss": 1.541653,
+          "wall_seconds": 291.726124,
+          "mix_coefficients": {
+            "token": [
+              0.4226352572441101,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "blocks": [
+              0.7544598579406738,
+              0.8204781413078308,
+              0.8568193912506104,
+              0.8840758800506592
+            ],
+            "rates": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "internal_steps": 1,
+            "readout_mode": "all",
+            "token_injection": "block0",
+            "topology": "upward",
+            "readout_weights": [
+              0.5938067436218262,
+              0.16797764599323273,
+              0.11984645575284958,
+              0.11836912482976913
+            ]
+          }
+        }
+      ]
+    },
+    "D_4block_multirate": {
+      "label": "wikitext_baseline_D_4block_multirate",
+      "readout_mode": "all",
+      "token_injection": "block0",
+      "topology": "upward",
+      "num_runs": 2,
+      "mean_final_val_loss": 1.829166,
+      "std_final_val_loss": 0.010835,
+      "mean_final_val_accuracy": 0.468872,
+      "std_final_val_accuracy": 0.001587,
+      "mean_best_val_loss": 1.828776,
+      "mean_best_val_accuracy": 0.464722,
+      "mean_wall_seconds": 156.410835,
+      "runs": [
+        {
+          "seed": 42,
+          "variant": "D_4block_multirate",
+          "label": "wikitext_baseline_D_4block_multirate",
+          "class_name": "ParallelDiagonalModel",
+          "d_model": 256,
+          "feedforward_dim": 512,
+          "num_blocks": 4,
+          "rates": [
+            1,
+            2,
+            4,
+            8
+          ],
+          "readout_mode": "all",
+          "token_injection": "block0",
+          "topology": "upward",
+          "parameter_count": 3614592,
+          "checkpoints": [
+            {
+              "step": 0,
+              "val_loss": 8.545634,
+              "val_accuracy": 0.0
+            },
+            {
+              "step": 1000,
+              "val_loss": 2.624281,
+              "val_accuracy": 0.295166
+            },
+            {
+              "step": 2000,
+              "val_loss": 2.382881,
+              "val_accuracy": 0.333984
+            },
+            {
+              "step": 3000,
+              "val_loss": 2.278535,
+              "val_accuracy": 0.349609
+            },
+            {
+              "step": 4000,
+              "val_loss": 2.211733,
+              "val_accuracy": 0.36792
+            },
+            {
+              "step": 5000,
+              "val_loss": 2.155562,
+              "val_accuracy": 0.383789
+            },
+            {
+              "step": 6000,
+              "val_loss": 2.108469,
+              "val_accuracy": 0.394043
+            },
+            {
+              "step": 7000,
+              "val_loss": 2.07263,
+              "val_accuracy": 0.403564
+            },
+            {
+              "step": 8000,
+              "val_loss": 2.059435,
+              "val_accuracy": 0.413086
+            },
+            {
+              "step": 9000,
+              "val_loss": 2.015553,
+              "val_accuracy": 0.424072
+            },
+            {
+              "step": 10000,
+              "val_loss": 1.989758,
+              "val_accuracy": 0.428955
+            },
+            {
+              "step": 11000,
+              "val_loss": 1.980286,
+              "val_accuracy": 0.428711
+            },
+            {
+              "step": 12000,
+              "val_loss": 1.951527,
+              "val_accuracy": 0.433594
+            },
+            {
+              "step": 13000,
+              "val_loss": 1.927773,
+              "val_accuracy": 0.442627
+            },
+            {
+              "step": 14000,
+              "val_loss": 1.92461,
+              "val_accuracy": 0.450684
+            },
+            {
+              "step": 15000,
+              "val_loss": 1.905851,
+              "val_accuracy": 0.452393
+            },
+            {
+              "step": 16000,
+              "val_loss": 1.878043,
+              "val_accuracy": 0.456055
+            },
+            {
+              "step": 17000,
+              "val_loss": 1.865674,
+              "val_accuracy": 0.45752
+            },
+            {
+              "step": 18000,
+              "val_loss": 1.859648,
+              "val_accuracy": 0.459473
+            },
+            {
+              "step": 19000,
+              "val_loss": 1.839221,
+              "val_accuracy": 0.462158
+            },
+            {
+              "step": 20000,
+              "val_loss": 1.840002,
+              "val_accuracy": 0.470459
+            }
+          ],
+          "best_checkpoint": {
+            "step": 19000,
+            "val_loss": 1.839221,
+            "val_accuracy": 0.462158
+          },
+          "final_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.840002,
+            "val_accuracy": 0.470459
+          },
+          "final_training_loss": 1.687985,
+          "wall_seconds": 156.569082,
+          "mix_coefficients": {
+            "token": [
+              0.4260167181491852,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "blocks": [
+              0.7587759494781494,
+              0.8218714594841003,
+              0.8653392195701599,
+              0.8777483105659485
+            ],
+            "rates": [
+              1,
+              2,
+              4,
+              8
+            ],
+            "internal_steps": 1,
+            "readout_mode": "all",
+            "token_injection": "block0",
+            "topology": "upward",
+            "readout_weights": [
+              0.6531201601028442,
+              0.14089375734329224,
+              0.10993442684412003,
+              0.09605171531438828
+            ]
+          }
+        },
+        {
+          "seed": 43,
+          "variant": "D_4block_multirate",
+          "label": "wikitext_baseline_D_4block_multirate",
+          "class_name": "ParallelDiagonalModel",
+          "d_model": 256,
+          "feedforward_dim": 512,
+          "num_blocks": 4,
+          "rates": [
+            1,
+            2,
+            4,
+            8
+          ],
+          "readout_mode": "all",
+          "token_injection": "block0",
+          "topology": "upward",
+          "parameter_count": 3614592,
+          "checkpoints": [
+            {
+              "step": 0,
+              "val_loss": 8.560883,
+              "val_accuracy": 0.0
+            },
+            {
+              "step": 1000,
+              "val_loss": 2.612306,
+              "val_accuracy": 0.289062
+            },
+            {
+              "step": 2000,
+              "val_loss": 2.360724,
+              "val_accuracy": 0.335205
+            },
+            {
+              "step": 3000,
+              "val_loss": 2.259407,
+              "val_accuracy": 0.356689
+            },
+            {
+              "step": 4000,
+              "val_loss": 2.194362,
+              "val_accuracy": 0.37085
+            },
+            {
+              "step": 5000,
+              "val_loss": 2.131945,
+              "val_accuracy": 0.384277
+            },
+            {
+              "step": 6000,
+              "val_loss": 2.100363,
+              "val_accuracy": 0.397705
+            },
+            {
+              "step": 7000,
+              "val_loss": 2.055132,
+              "val_accuracy": 0.407471
+            },
+            {
+              "step": 8000,
+              "val_loss": 2.037993,
+              "val_accuracy": 0.405518
+            },
+            {
+              "step": 9000,
+              "val_loss": 2.007226,
+              "val_accuracy": 0.421143
+            },
+            {
+              "step": 10000,
+              "val_loss": 1.978228,
+              "val_accuracy": 0.428223
+            },
+            {
+              "step": 11000,
+              "val_loss": 1.984914,
+              "val_accuracy": 0.41748
+            },
+            {
+              "step": 12000,
+              "val_loss": 1.943801,
+              "val_accuracy": 0.432861
+            },
+            {
+              "step": 13000,
+              "val_loss": 1.907507,
+              "val_accuracy": 0.445312
+            },
+            {
+              "step": 14000,
+              "val_loss": 1.903727,
+              "val_accuracy": 0.447021
+            },
+            {
+              "step": 15000,
+              "val_loss": 1.89026,
+              "val_accuracy": 0.447266
+            },
+            {
+              "step": 16000,
+              "val_loss": 1.880849,
+              "val_accuracy": 0.448975
+            },
+            {
+              "step": 17000,
+              "val_loss": 1.858226,
+              "val_accuracy": 0.461914
+            },
+            {
+              "step": 18000,
+              "val_loss": 1.851054,
+              "val_accuracy": 0.458984
+            },
+            {
+              "step": 19000,
+              "val_loss": 1.848814,
+              "val_accuracy": 0.458984
+            },
+            {
+              "step": 20000,
+              "val_loss": 1.818331,
+              "val_accuracy": 0.467285
+            }
+          ],
+          "best_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.818331,
+            "val_accuracy": 0.467285
+          },
+          "final_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.818331,
+            "val_accuracy": 0.467285
+          },
+          "final_training_loss": 1.50855,
+          "wall_seconds": 156.252587,
+          "mix_coefficients": {
+            "token": [
+              0.44452735781669617,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "blocks": [
+              0.751133918762207,
+              0.8131201863288879,
+              0.8624314665794373,
+              0.8708410263061523
+            ],
+            "rates": [
+              1,
+              2,
+              4,
+              8
+            ],
+            "internal_steps": 1,
+            "readout_mode": "all",
+            "token_injection": "block0",
+            "topology": "upward",
+            "readout_weights": [
+              0.6591044068336487,
+              0.13797134160995483,
+              0.1076512336730957,
+              0.09527303278446198
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "comparison": {
+    "mean_final_val_loss_delta_B_minus_A": -0.100719,
+    "mean_final_val_accuracy_delta_B_minus_A": 0.031373,
+    "mean_final_val_loss_delta_C_minus_A": 0.002761,
+    "mean_final_val_accuracy_delta_C_minus_A": -0.007324,
+    "mean_final_val_loss_delta_D_minus_A": -0.011643,
+    "mean_final_val_accuracy_delta_D_minus_A": -0.000488,
+    "mean_final_val_loss_delta_B_minus_C": -0.10348,
+    "mean_final_val_accuracy_delta_B_minus_C": 0.038697,
+    "mean_final_val_loss_delta_D_minus_C": -0.014404,
+    "mean_final_val_accuracy_delta_D_minus_C": 0.006836
+  }
+}

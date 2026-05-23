@@ -1,0 +1,185 @@
+{"stage": "experiment_started", "seeds": [42, 43], "training_steps": 20000, "eval_interval": 1000, "batch_size": 64, "eval_batch_size": 512, "learning_rate": 0.0003, "device": "cuda", "train_path": "C:\\Users\\maxeo\\gildnn\\data\\wikitext-103-raw\\wiki.train.raw", "val_path": "C:\\Users\\maxeo\\gildnn\\data\\wikitext-103-raw\\wiki.valid.raw", "vocab_size": 4980, "train_dataset_size": 538294301, "val_examples": 4096, "trainer": "GraphTrainer"}
+{"stage": "seed_started", "seed": 42}
+{"stage": "run_restarted", "timestamp": "2026-05-23T14:49:58.854173Z", "previous_lines": 2}
+{"stage": "experiment_started", "seeds": [42, 43], "training_steps": 20000, "eval_interval": 1000, "batch_size": 64, "eval_batch_size": 512, "learning_rate": 0.0003, "device": "cuda", "train_path": "C:\\Users\\maxeo\\gildnn\\data\\wikitext-103-raw\\wiki.train.raw", "val_path": "C:\\Users\\maxeo\\gildnn\\data\\wikitext-103-raw\\wiki.valid.raw", "vocab_size": 4980, "train_dataset_size": 538294301, "val_examples": 4096, "trainer": "GraphTrainer"}
+{"stage": "seed_started", "seed": 42}
+{"stage": "variant_started", "seed": 42, "variant": "A_single_block", "label": "wikitext_baseline_A_single_block", "parameter_count": 2825846, "initial_checkpoint": {"step": 0, "val_loss": 8.633526, "val_accuracy": 0.0}, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 1000, "val_loss": 2.453665, "val_accuracy": 0.321289, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 2000, "val_loss": 2.317151, "val_accuracy": 0.347656, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 3000, "val_loss": 2.235255, "val_accuracy": 0.365967, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 4000, "val_loss": 2.183173, "val_accuracy": 0.386963, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 5000, "val_loss": 2.141073, "val_accuracy": 0.38501, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 6000, "val_loss": 2.100108, "val_accuracy": 0.395996, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 7000, "val_loss": 2.061198, "val_accuracy": 0.407471, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 8000, "val_loss": 2.048767, "val_accuracy": 0.410156, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 9000, "val_loss": 2.014461, "val_accuracy": 0.415283, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 10000, "val_loss": 1.990003, "val_accuracy": 0.427734, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 11000, "val_loss": 1.982703, "val_accuracy": 0.423096, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 12000, "val_loss": 1.956804, "val_accuracy": 0.430176, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 13000, "val_loss": 1.932501, "val_accuracy": 0.439941, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 14000, "val_loss": 1.930386, "val_accuracy": 0.442139, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 15000, "val_loss": 1.913727, "val_accuracy": 0.442871, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 16000, "val_loss": 1.889523, "val_accuracy": 0.450195, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 17000, "val_loss": 1.875691, "val_accuracy": 0.45459, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 18000, "val_loss": 1.872379, "val_accuracy": 0.461426, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 19000, "val_loss": 1.845781, "val_accuracy": 0.467041, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single_block", "step": 20000, "val_loss": 1.848765, "val_accuracy": 0.472168, "readout_weights": null}
+{"stage": "variant_done", "seed": 42, "variant": "A_single_block", "final_checkpoint": {"step": 20000, "val_loss": 1.848765, "val_accuracy": 0.472168}, "final_training_loss": 1.671228, "wall_seconds": 97.353897, "readout_weights": null}
+{"stage": "variant_started", "seed": 42, "variant": "B_4block_old", "label": "wikitext_baseline_B_4block_old", "parameter_count": 3614592, "initial_checkpoint": {"step": 0, "val_loss": 8.636583, "val_accuracy": 0.0}, "readout_weights": [0.25, 0.25, 0.25, 0.25]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 1000, "val_loss": 2.518593, "val_accuracy": 0.309082, "readout_weights": [0.369751, 0.202625, 0.206595, 0.221029]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 2000, "val_loss": 2.339753, "val_accuracy": 0.347412, "readout_weights": [0.430438, 0.19105, 0.183467, 0.195046]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 3000, "val_loss": 2.227209, "val_accuracy": 0.364502, "readout_weights": [0.461463, 0.183637, 0.170724, 0.184176]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 4000, "val_loss": 2.155965, "val_accuracy": 0.395508, "readout_weights": [0.471209, 0.181525, 0.163967, 0.183299]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 5000, "val_loss": 2.10671, "val_accuracy": 0.393799, "readout_weights": [0.47351, 0.181918, 0.159449, 0.185122]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 6000, "val_loss": 2.055322, "val_accuracy": 0.407471, "readout_weights": [0.468849, 0.185188, 0.157447, 0.188516]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 7000, "val_loss": 2.015835, "val_accuracy": 0.419922, "readout_weights": [0.461021, 0.1893, 0.157156, 0.192523]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 8000, "val_loss": 1.992536, "val_accuracy": 0.431641, "readout_weights": [0.450456, 0.19375, 0.157393, 0.198401]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 9000, "val_loss": 1.94956, "val_accuracy": 0.438232, "readout_weights": [0.441323, 0.196144, 0.158288, 0.204245]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 10000, "val_loss": 1.922183, "val_accuracy": 0.448486, "readout_weights": [0.429518, 0.200346, 0.160562, 0.209574]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 11000, "val_loss": 1.909917, "val_accuracy": 0.453125, "readout_weights": [0.420797, 0.202771, 0.162293, 0.214139]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 12000, "val_loss": 1.88115, "val_accuracy": 0.456543, "readout_weights": [0.410993, 0.20462, 0.16487, 0.219517]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 13000, "val_loss": 1.85832, "val_accuracy": 0.468018, "readout_weights": [0.399349, 0.207847, 0.167735, 0.225069]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 14000, "val_loss": 1.848748, "val_accuracy": 0.474609, "readout_weights": [0.391553, 0.209232, 0.169343, 0.229872]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 15000, "val_loss": 1.833069, "val_accuracy": 0.470947, "readout_weights": [0.38382, 0.21054, 0.171108, 0.234532]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 16000, "val_loss": 1.806023, "val_accuracy": 0.481445, "readout_weights": [0.376833, 0.211572, 0.173081, 0.238514]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 17000, "val_loss": 1.794036, "val_accuracy": 0.484375, "readout_weights": [0.368938, 0.213265, 0.175566, 0.242231]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 18000, "val_loss": 1.784464, "val_accuracy": 0.484863, "readout_weights": [0.362902, 0.213848, 0.177382, 0.245868]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 19000, "val_loss": 1.76451, "val_accuracy": 0.488525, "readout_weights": [0.356167, 0.214477, 0.179776, 0.24958]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_4block_old", "step": 20000, "val_loss": 1.745489, "val_accuracy": 0.499512, "readout_weights": [0.349422, 0.214849, 0.181938, 0.25379]}
+{"stage": "variant_done", "seed": 42, "variant": "B_4block_old", "final_checkpoint": {"step": 20000, "val_loss": 1.745489, "val_accuracy": 0.499512}, "final_training_loss": 1.54872, "wall_seconds": 343.015113, "readout_weights": [0.349422, 0.214849, 0.181938, 0.25379]}
+{"stage": "variant_started", "seed": 42, "variant": "C_4block_corrected", "label": "wikitext_baseline_C_4block_corrected", "parameter_count": 3614592, "initial_checkpoint": {"step": 0, "val_loss": 8.568499, "val_accuracy": 0.0}, "readout_weights": [0.25, 0.25, 0.25, 0.25]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 1000, "val_loss": 2.599169, "val_accuracy": 0.299805, "readout_weights": [0.349844, 0.210643, 0.211735, 0.227778]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 2000, "val_loss": 2.372964, "val_accuracy": 0.337891, "readout_weights": [0.411661, 0.195093, 0.188051, 0.205196]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 3000, "val_loss": 2.26513, "val_accuracy": 0.355957, "readout_weights": [0.449611, 0.185913, 0.173964, 0.190512]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 4000, "val_loss": 2.201373, "val_accuracy": 0.381348, "readout_weights": [0.475216, 0.180685, 0.164368, 0.179732]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 5000, "val_loss": 2.151207, "val_accuracy": 0.387939, "readout_weights": [0.498637, 0.176602, 0.155268, 0.169493]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 6000, "val_loss": 2.106453, "val_accuracy": 0.397461, "readout_weights": [0.516974, 0.173614, 0.148057, 0.161355]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 7000, "val_loss": 2.065424, "val_accuracy": 0.408936, "readout_weights": [0.532914, 0.171172, 0.141908, 0.154005]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 8000, "val_loss": 2.04557, "val_accuracy": 0.42041, "readout_weights": [0.545989, 0.170095, 0.136468, 0.147447]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 9000, "val_loss": 2.00328, "val_accuracy": 0.422852, "readout_weights": [0.556447, 0.16901, 0.132349, 0.142194]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 10000, "val_loss": 1.978752, "val_accuracy": 0.428467, "readout_weights": [0.562949, 0.169395, 0.129167, 0.13849]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 11000, "val_loss": 1.969512, "val_accuracy": 0.430908, "readout_weights": [0.568121, 0.170029, 0.12685, 0.135]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 12000, "val_loss": 1.942796, "val_accuracy": 0.438721, "readout_weights": [0.572282, 0.17116, 0.12465, 0.131907]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 13000, "val_loss": 1.919243, "val_accuracy": 0.448242, "readout_weights": [0.575683, 0.172259, 0.122667, 0.129391]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 14000, "val_loss": 1.93343, "val_accuracy": 0.447998, "readout_weights": [0.580576, 0.172737, 0.121193, 0.125495]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 15000, "val_loss": 1.908601, "val_accuracy": 0.446777, "readout_weights": [0.579956, 0.173108, 0.121203, 0.125733]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 16000, "val_loss": 1.886978, "val_accuracy": 0.450195, "readout_weights": [0.579372, 0.173658, 0.121022, 0.125948]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 17000, "val_loss": 1.87817, "val_accuracy": 0.452393, "readout_weights": [0.57873, 0.174479, 0.120697, 0.126094]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 18000, "val_loss": 1.87602, "val_accuracy": 0.450439, "readout_weights": [0.578541, 0.175211, 0.120058, 0.12619]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 19000, "val_loss": 1.863604, "val_accuracy": 0.457764, "readout_weights": [0.578591, 0.176357, 0.118976, 0.126077]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_4block_corrected", "step": 20000, "val_loss": 1.86272, "val_accuracy": 0.455322, "readout_weights": [0.577156, 0.178509, 0.118265, 0.126071]}
+{"stage": "variant_done", "seed": 42, "variant": "C_4block_corrected", "final_checkpoint": {"step": 20000, "val_loss": 1.86272, "val_accuracy": 0.455322}, "final_training_loss": 1.702127, "wall_seconds": 292.148711, "readout_weights": [0.577156, 0.178509, 0.118265, 0.126071]}
+{"stage": "variant_started", "seed": 42, "variant": "D_4block_multirate", "label": "wikitext_baseline_D_4block_multirate", "parameter_count": 3614592, "initial_checkpoint": {"step": 0, "val_loss": 8.545634, "val_accuracy": 0.0}, "readout_weights": [0.25, 0.25, 0.25, 0.25]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 1000, "val_loss": 2.624281, "val_accuracy": 0.295166, "readout_weights": [0.365473, 0.202785, 0.222168, 0.209574]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 2000, "val_loss": 2.382881, "val_accuracy": 0.333984, "readout_weights": [0.43159, 0.182016, 0.199268, 0.187126]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 3000, "val_loss": 2.278535, "val_accuracy": 0.349609, "readout_weights": [0.472575, 0.169389, 0.185045, 0.172991]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 4000, "val_loss": 2.211733, "val_accuracy": 0.36792, "readout_weights": [0.503199, 0.161238, 0.173678, 0.161886]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 5000, "val_loss": 2.155562, "val_accuracy": 0.383789, "readout_weights": [0.530485, 0.154257, 0.163369, 0.151889]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 6000, "val_loss": 2.108469, "val_accuracy": 0.394043, "readout_weights": [0.551875, 0.149145, 0.155193, 0.143787]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 7000, "val_loss": 2.07263, "val_accuracy": 0.403564, "readout_weights": [0.569647, 0.145491, 0.148131, 0.136731]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 8000, "val_loss": 2.059435, "val_accuracy": 0.413086, "readout_weights": [0.585699, 0.142321, 0.14184, 0.130139]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 9000, "val_loss": 2.015553, "val_accuracy": 0.424072, "readout_weights": [0.597303, 0.140565, 0.136808, 0.125324]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 10000, "val_loss": 1.989758, "val_accuracy": 0.428955, "readout_weights": [0.607365, 0.139009, 0.132884, 0.120743]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 11000, "val_loss": 1.980286, "val_accuracy": 0.428711, "readout_weights": [0.615021, 0.138193, 0.12962, 0.117166]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 12000, "val_loss": 1.951527, "val_accuracy": 0.433594, "readout_weights": [0.621856, 0.137905, 0.126451, 0.113788]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 13000, "val_loss": 1.927773, "val_accuracy": 0.442627, "readout_weights": [0.629687, 0.137931, 0.122725, 0.109657]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 14000, "val_loss": 1.92461, "val_accuracy": 0.450684, "readout_weights": [0.635049, 0.138351, 0.11981, 0.10679]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 15000, "val_loss": 1.905851, "val_accuracy": 0.452393, "readout_weights": [0.63927, 0.138643, 0.117602, 0.104484]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 16000, "val_loss": 1.878043, "val_accuracy": 0.456055, "readout_weights": [0.645683, 0.137295, 0.114933, 0.102089]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 17000, "val_loss": 1.865674, "val_accuracy": 0.45752, "readout_weights": [0.647936, 0.13786, 0.113843, 0.100362]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 18000, "val_loss": 1.859648, "val_accuracy": 0.459473, "readout_weights": [0.650131, 0.139053, 0.112102, 0.098713]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 19000, "val_loss": 1.839221, "val_accuracy": 0.462158, "readout_weights": [0.652462, 0.139946, 0.110604, 0.096988]}
+{"stage": "checkpoint", "seed": 42, "variant": "D_4block_multirate", "step": 20000, "val_loss": 1.840002, "val_accuracy": 0.470459, "readout_weights": [0.65312, 0.140894, 0.109934, 0.096052]}
+{"stage": "variant_done", "seed": 42, "variant": "D_4block_multirate", "final_checkpoint": {"step": 20000, "val_loss": 1.840002, "val_accuracy": 0.470459}, "final_training_loss": 1.687985, "wall_seconds": 156.569082, "readout_weights": [0.65312, 0.140894, 0.109934, 0.096052]}
+{"stage": "seed_done", "seed": 42}
+{"stage": "seed_started", "seed": 43}
+{"stage": "variant_started", "seed": 43, "variant": "A_single_block", "label": "wikitext_baseline_A_single_block", "parameter_count": 2825846, "initial_checkpoint": {"step": 0, "val_loss": 8.636805, "val_accuracy": 0.0}, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 1000, "val_loss": 2.436586, "val_accuracy": 0.31665, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 2000, "val_loss": 2.28093, "val_accuracy": 0.35376, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 3000, "val_loss": 2.211329, "val_accuracy": 0.367676, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 4000, "val_loss": 2.160591, "val_accuracy": 0.373291, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 5000, "val_loss": 2.106568, "val_accuracy": 0.397217, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 6000, "val_loss": 2.08269, "val_accuracy": 0.405518, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 7000, "val_loss": 2.047572, "val_accuracy": 0.413818, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 8000, "val_loss": 2.031505, "val_accuracy": 0.417725, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 9000, "val_loss": 2.009651, "val_accuracy": 0.423828, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 10000, "val_loss": 1.981248, "val_accuracy": 0.423584, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 11000, "val_loss": 1.982806, "val_accuracy": 0.421143, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 12000, "val_loss": 1.951785, "val_accuracy": 0.436279, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 13000, "val_loss": 1.914866, "val_accuracy": 0.445801, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 14000, "val_loss": 1.925336, "val_accuracy": 0.443604, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 15000, "val_loss": 1.900328, "val_accuracy": 0.446777, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 16000, "val_loss": 1.90108, "val_accuracy": 0.45166, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 17000, "val_loss": 1.871456, "val_accuracy": 0.460693, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 18000, "val_loss": 1.874197, "val_accuracy": 0.456055, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 19000, "val_loss": 1.863311, "val_accuracy": 0.464111, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single_block", "step": 20000, "val_loss": 1.832852, "val_accuracy": 0.466553, "readout_weights": null}
+{"stage": "variant_done", "seed": 43, "variant": "A_single_block", "final_checkpoint": {"step": 20000, "val_loss": 1.832852, "val_accuracy": 0.466553}, "final_training_loss": 1.491683, "wall_seconds": 98.665454, "readout_weights": null}
+{"stage": "variant_started", "seed": 43, "variant": "B_4block_old", "label": "wikitext_baseline_B_4block_old", "parameter_count": 3614592, "initial_checkpoint": {"step": 0, "val_loss": 8.658183, "val_accuracy": 0.0}, "readout_weights": [0.25, 0.25, 0.25, 0.25]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 1000, "val_loss": 2.513758, "val_accuracy": 0.305908, "readout_weights": [0.369297, 0.204761, 0.204262, 0.22168]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 2000, "val_loss": 2.30503, "val_accuracy": 0.345459, "readout_weights": [0.436958, 0.189739, 0.179075, 0.194228]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 3000, "val_loss": 2.209403, "val_accuracy": 0.371826, "readout_weights": [0.468894, 0.182318, 0.165021, 0.183767]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 4000, "val_loss": 2.145701, "val_accuracy": 0.383301, "readout_weights": [0.482649, 0.179192, 0.156014, 0.182145]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 5000, "val_loss": 2.082962, "val_accuracy": 0.399414, "readout_weights": [0.485503, 0.178959, 0.1504, 0.185139]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 6000, "val_loss": 2.048151, "val_accuracy": 0.414062, "readout_weights": [0.483319, 0.180745, 0.14798, 0.187956]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 7000, "val_loss": 2.005972, "val_accuracy": 0.427246, "readout_weights": [0.476748, 0.182728, 0.147301, 0.193223]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 8000, "val_loss": 1.984269, "val_accuracy": 0.430664, "readout_weights": [0.470547, 0.185019, 0.147258, 0.197176]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 9000, "val_loss": 1.951194, "val_accuracy": 0.439941, "readout_weights": [0.463922, 0.186809, 0.147076, 0.202192]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 10000, "val_loss": 1.924031, "val_accuracy": 0.443604, "readout_weights": [0.454352, 0.190302, 0.148547, 0.206799]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 11000, "val_loss": 1.912018, "val_accuracy": 0.443604, "readout_weights": [0.444295, 0.193038, 0.149954, 0.212714]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 12000, "val_loss": 1.876003, "val_accuracy": 0.454102, "readout_weights": [0.436308, 0.194153, 0.150627, 0.218911]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 13000, "val_loss": 1.83369, "val_accuracy": 0.474854, "readout_weights": [0.428066, 0.195873, 0.151742, 0.224319]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 14000, "val_loss": 1.833361, "val_accuracy": 0.476562, "readout_weights": [0.420573, 0.19731, 0.152316, 0.229801]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 15000, "val_loss": 1.814825, "val_accuracy": 0.47583, "readout_weights": [0.4129, 0.199952, 0.153166, 0.233982]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 16000, "val_loss": 1.8062, "val_accuracy": 0.47876, "readout_weights": [0.404158, 0.201422, 0.155869, 0.238552]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 17000, "val_loss": 1.787674, "val_accuracy": 0.484863, "readout_weights": [0.397115, 0.202731, 0.155457, 0.244698]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 18000, "val_loss": 1.778236, "val_accuracy": 0.480957, "readout_weights": [0.389586, 0.204945, 0.15691, 0.24856]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 19000, "val_loss": 1.771132, "val_accuracy": 0.489746, "readout_weights": [0.382362, 0.204895, 0.157954, 0.254789]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_4block_old", "step": 20000, "val_loss": 1.734692, "val_accuracy": 0.501953, "readout_weights": [0.375927, 0.204175, 0.160455, 0.259443]}
+{"stage": "variant_done", "seed": 43, "variant": "B_4block_old", "final_checkpoint": {"step": 20000, "val_loss": 1.734692, "val_accuracy": 0.501953}, "final_training_loss": 1.446931, "wall_seconds": 343.85279, "readout_weights": [0.375927, 0.204175, 0.160455, 0.259443]}
+{"stage": "variant_started", "seed": 43, "variant": "C_4block_corrected", "label": "wikitext_baseline_C_4block_corrected", "parameter_count": 3614592, "initial_checkpoint": {"step": 0, "val_loss": 8.558455, "val_accuracy": 0.0}, "readout_weights": [0.25, 0.25, 0.25, 0.25]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 1000, "val_loss": 2.606382, "val_accuracy": 0.297852, "readout_weights": [0.344835, 0.212414, 0.213122, 0.229629]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 2000, "val_loss": 2.345919, "val_accuracy": 0.336182, "readout_weights": [0.409959, 0.193843, 0.189814, 0.206384]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 3000, "val_loss": 2.247711, "val_accuracy": 0.357422, "readout_weights": [0.448296, 0.184635, 0.176251, 0.190818]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 4000, "val_loss": 2.188668, "val_accuracy": 0.369629, "readout_weights": [0.477233, 0.177468, 0.165613, 0.179686]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 5000, "val_loss": 2.128182, "val_accuracy": 0.38916, "readout_weights": [0.500338, 0.172093, 0.157194, 0.170374]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 6000, "val_loss": 2.097205, "val_accuracy": 0.399414, "readout_weights": [0.520513, 0.167484, 0.149964, 0.16204]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 7000, "val_loss": 2.05312, "val_accuracy": 0.408447, "readout_weights": [0.536426, 0.16361, 0.144329, 0.155635]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 8000, "val_loss": 2.033295, "val_accuracy": 0.402588, "readout_weights": [0.550556, 0.160508, 0.139431, 0.149505]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 9000, "val_loss": 2.000744, "val_accuracy": 0.420166, "readout_weights": [0.562394, 0.157846, 0.135291, 0.14447]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 10000, "val_loss": 1.974276, "val_accuracy": 0.428711, "readout_weights": [0.570841, 0.157054, 0.132035, 0.140069]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 11000, "val_loss": 1.984763, "val_accuracy": 0.414062, "readout_weights": [0.576279, 0.156605, 0.130062, 0.137054]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 12000, "val_loss": 1.943586, "val_accuracy": 0.436523, "readout_weights": [0.5828, 0.156001, 0.127738, 0.133461]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 13000, "val_loss": 1.905636, "val_accuracy": 0.44751, "readout_weights": [0.587011, 0.15651, 0.125938, 0.13054]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 14000, "val_loss": 1.907194, "val_accuracy": 0.447998, "readout_weights": [0.591155, 0.156783, 0.124203, 0.12786]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 15000, "val_loss": 1.893187, "val_accuracy": 0.448486, "readout_weights": [0.595111, 0.157623, 0.122635, 0.124631]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 16000, "val_loss": 1.886334, "val_accuracy": 0.455566, "readout_weights": [0.593937, 0.15989, 0.122403, 0.123769]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 17000, "val_loss": 1.864466, "val_accuracy": 0.462646, "readout_weights": [0.593508, 0.162193, 0.121878, 0.12242]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 18000, "val_loss": 1.856557, "val_accuracy": 0.4646, "readout_weights": [0.59522, 0.164025, 0.120501, 0.120254]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 19000, "val_loss": 1.848524, "val_accuracy": 0.460449, "readout_weights": [0.594448, 0.16541, 0.120155, 0.119987]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_4block_corrected", "step": 20000, "val_loss": 1.824419, "val_accuracy": 0.46875, "readout_weights": [0.593807, 0.167978, 0.119846, 0.118369]}
+{"stage": "variant_done", "seed": 43, "variant": "C_4block_corrected", "final_checkpoint": {"step": 20000, "val_loss": 1.824419, "val_accuracy": 0.46875}, "final_training_loss": 1.541653, "wall_seconds": 291.726124, "readout_weights": [0.593807, 0.167978, 0.119846, 0.118369]}
+{"stage": "variant_started", "seed": 43, "variant": "D_4block_multirate", "label": "wikitext_baseline_D_4block_multirate", "parameter_count": 3614592, "initial_checkpoint": {"step": 0, "val_loss": 8.560883, "val_accuracy": 0.0}, "readout_weights": [0.25, 0.25, 0.25, 0.25]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 1000, "val_loss": 2.612306, "val_accuracy": 0.289062, "readout_weights": [0.361028, 0.206041, 0.223879, 0.209051]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 2000, "val_loss": 2.360724, "val_accuracy": 0.335205, "readout_weights": [0.42881, 0.18551, 0.19994, 0.18574]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 3000, "val_loss": 2.259407, "val_accuracy": 0.356689, "readout_weights": [0.469655, 0.174219, 0.184466, 0.171661]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 4000, "val_loss": 2.194362, "val_accuracy": 0.37085, "readout_weights": [0.500131, 0.165615, 0.173133, 0.161121]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 5000, "val_loss": 2.131945, "val_accuracy": 0.384277, "readout_weights": [0.526456, 0.158623, 0.163084, 0.151837]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 6000, "val_loss": 2.100363, "val_accuracy": 0.397705, "readout_weights": [0.548376, 0.153186, 0.154569, 0.143869]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 7000, "val_loss": 2.055132, "val_accuracy": 0.407471, "readout_weights": [0.56691, 0.14853, 0.147652, 0.136908]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 8000, "val_loss": 2.037993, "val_accuracy": 0.405518, "readout_weights": [0.58252, 0.145001, 0.141542, 0.130937]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 9000, "val_loss": 2.007226, "val_accuracy": 0.421143, "readout_weights": [0.595333, 0.142232, 0.136399, 0.126036]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 10000, "val_loss": 1.978228, "val_accuracy": 0.428223, "readout_weights": [0.60684, 0.139555, 0.132195, 0.12141]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 11000, "val_loss": 1.984914, "val_accuracy": 0.41748, "readout_weights": [0.615966, 0.138193, 0.12825, 0.117591]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 12000, "val_loss": 1.943801, "val_accuracy": 0.432861, "readout_weights": [0.623937, 0.137191, 0.12504, 0.113832]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 13000, "val_loss": 1.907507, "val_accuracy": 0.445312, "readout_weights": [0.632942, 0.135545, 0.121092, 0.110421]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 14000, "val_loss": 1.903727, "val_accuracy": 0.447021, "readout_weights": [0.638568, 0.135304, 0.118248, 0.107879]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 15000, "val_loss": 1.89026, "val_accuracy": 0.447266, "readout_weights": [0.645172, 0.135331, 0.115125, 0.104373]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 16000, "val_loss": 1.880849, "val_accuracy": 0.448975, "readout_weights": [0.648383, 0.135091, 0.113887, 0.102639]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 17000, "val_loss": 1.858226, "val_accuracy": 0.461914, "readout_weights": [0.651428, 0.135949, 0.111764, 0.100859]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 18000, "val_loss": 1.851054, "val_accuracy": 0.458984, "readout_weights": [0.65543, 0.136234, 0.109627, 0.098709]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 19000, "val_loss": 1.848814, "val_accuracy": 0.458984, "readout_weights": [0.658677, 0.136436, 0.108443, 0.096444]}
+{"stage": "checkpoint", "seed": 43, "variant": "D_4block_multirate", "step": 20000, "val_loss": 1.818331, "val_accuracy": 0.467285, "readout_weights": [0.659104, 0.137971, 0.107651, 0.095273]}
+{"stage": "variant_done", "seed": 43, "variant": "D_4block_multirate", "final_checkpoint": {"step": 20000, "val_loss": 1.818331, "val_accuracy": 0.467285}, "final_training_loss": 1.50855, "wall_seconds": 156.252587, "readout_weights": [0.659104, 0.137971, 0.107651, 0.095273]}
+{"stage": "seed_done", "seed": 43}
+{"stage": "done", "report_path": "C:\\Users\\maxeo\\gildnn\\experiments\\wikitext_103\\artifacts\\baseline\\report.json", "summary_by_variant": {"A_single_block": {"mean_final_val_loss": 1.840809, "mean_final_val_accuracy": 0.46936}, "B_4block_old": {"mean_final_val_loss": 1.74009, "mean_final_val_accuracy": 0.500733}, "C_4block_corrected": {"mean_final_val_loss": 1.84357, "mean_final_val_accuracy": 0.462036}, "D_4block_multirate": {"mean_final_val_loss": 1.829166, "mean_final_val_accuracy": 0.468872}}}

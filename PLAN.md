@@ -12,7 +12,7 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Active
 
-- **[RUNNING] WikiText-103 baseline** — A_single_block seed 42 at step 8K/20K. PID 12212. Expected ~45 min total for 4 conditions × 2 seeds.
+- **[RUNNING] WikiText-103 baseline** — B_4block_old seed 42 at step 10K/20K. PID 2268. A_single_block seed 42 done (val_loss=1.849). Expected ~30 more min for remaining conditions.
 
 ## Next
 
