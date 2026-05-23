@@ -4,54 +4,48 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Current state
 
-**TinyShakespeare is exhausted.** At d=256, single block achieves 1.712 — no architecture variant beats it. The dataset is saturated at this model capacity.
+**The spectator problem is confirmed and diagnosed.** Under the corrected architecture (only block 0 receives tokens), upper blocks become spectators. Three WikiText-103 experiments confirm this is **information poverty, not optimization failure:**
 
-**WikiText-103 baseline DONE.** Key result: corrected architecture (block0-only injection) has a spectator problem even with larger data. Residual stream alone is insufficient for inter-block information flow.
+1. **Baseline:** corrected 4-block ≈ single block (1.844 vs 1.841). Old arch (all tokens) wins big (-0.101) but is just an ensemble.
+2. **Aux loss:** giving upper blocks their own prediction loss — they learn (aux loss 8.5→2.9) but contribute nothing to the main model (+0.003).
+3. **Equal readout:** forcing equal weight to all blocks HURTS (+0.024 vs single). Upper blocks genuinely lack useful complementary information.
 
-| Variant | Mean val_loss (2 seeds) | vs A | Readout pattern |
-|---|---|---|---|
-| A: single block | 1.841 | — | — |
-| B: 4-block old (all tokens) | **1.740** | **-0.101** | distributed |
-| C: 4-block corrected (block0 only) | 1.844 | +0.003 | block0 dominant (58%) |
-| D: 4-block multi-rate (block0 only) | 1.829 | -0.012 | block0 dominant (65%) |
-
-**Implication:** Multi-block only helps when every block has direct token access (B). Under the corrected architecture, upper blocks become spectators. Multi-rate gives a tiny edge but doesn't solve the fundamental information flow problem.
+**Root cause:** Block 0 sees the token directly and dominates. Upper blocks only see a delayed, compressed summary via the residual stream. They can decode it (aux losses decrease), but what they decode isn't MORE useful than what block 0 already provides to the readout.
 
 ## Active
 
 Nothing running. GPU free.
 
-## Next
+## Next — architecture must change
 
-The spectator problem is the central obstacle. Three approaches:
+The current shared-residual-stream model cannot support useful multi-block learning under the corrected architecture. Upper blocks need **exclusive useful information** that block 0 doesn't have. Three approaches, ranked by think agent analysis:
 
-- [ ] **Local learning** — Give each block its own auxiliary loss, so upper blocks have gradient signal independent of the readout. This is the original research question (dictation 2026-05-23-5). Predictive coding theory work done (`research/questions/local-learning/README.md`). Now the spectator result makes it urgent — local loss is a natural solution to the vanishing-gradient-to-upper-blocks problem.
-- [ ] **Wider architecture (more blocks)** — Per [dictation 2026-05-23-4](dictations/2026-05-23-4.md), "width" means many more parallel blocks. Test whether 8/16/32 blocks with block0-only injection still collapse. With more blocks, maybe some find useful niches even without direct token access.
-- [ ] **Transformer baseline** — Per [dictation 2026-05-23-4](dictations/2026-05-23-4.md). Methodological debt — no matched-compute comparison exists. Important for paper-readiness but not blocking exploration.
+- [ ] **⚠ Temporal window architecture** — Give upper blocks access to a short history of lower-block states (last k time steps), not just the current residual stream value. This gives them something exclusive: trajectory information / temporal patterns that block 0's single-step processing can't capture. Requires changes to `core/model.py`.
+- [ ] **Staggered/lagged input** — block i receives token embedding from t-i steps ago. Each block has exclusive temporal context. Risk: may collapse into variant B (each block independently solves with different lag).
+- [ ] **Interface predictive-coding loss** — Instead of "predict next token," upper blocks predict the future incoming lower-level state or prediction error. Trains the communication protocol itself. Most aligned with Max's local-learning research question. But requires temporal window first.
 
 ## Queue (lower priority)
 
-- **Scale up context** — ctx=128 or ctx=256 after architecture problem is solved.
-- **Graph architecture** — Per [dictation 2026-05-23-5](dictations/2026-05-23-5.md). Dense at low level, sparse at high level.
-- **CPU-parallel small runs** — Per [dictation 2026-05-23-4](dictations/2026-05-23-4.md).
-- Named/typed tensor dimensions — einops + jaxtyping. Per [dictation 2026-05-22-14](dictations/2026-05-22-14.md).
-- Loop management tooling — per [dictation 2026-05-20-14](dictations/2026-05-20-14.md).
+- **Transformer baseline** — Methodological debt. Per [dictation 2026-05-23-4](dictations/2026-05-23-4.md).
+- **Many more blocks (16/32)** — Per [dictation 2026-05-23-4](dictations/2026-05-23-4.md). But think agent says likely to just confirm spectator pattern at scale.
+- **Scale up context** — ctx=128+ after architecture works.
+- **Graph architecture** — Per [dictation 2026-05-23-5](dictations/2026-05-23-5.md). Dense at low, sparse at high.
+- Named/typed tensor dimensions — einops + jaxtyping.
+- Loop management tooling.
 
 ## Key completed findings
 
-All on TinyShakespeare unless noted. See `experiments/` for artifacts.
+All on WikiText-103 (ctx=32, d=256, 20K steps) unless noted.
 
 | Experiment | Result | Notes |
 |---|---|---|
-| **WikiText-103 baseline** | B wins (-0.101), C≈A, D tiny edge | Spectator problem persists with more data |
-| Bidirectional top-down | **HURTS** (+0.06-0.08) | Single block wins on TinyShakespeare |
-| Architecture correction (block0 only) | **HURTS** (+0.034 vs single) | Upper blocks are spectators |
-| Width scaling (d=256, 4-block) | **WINS** (-0.023, 2.5× faster) | Best TinyShakespeare result (old arch) |
-| Matched-FLOP parallel multi-rate | **WINS** (+0.019 avg) | 2/3 seeds clearly better (old arch) |
-| Longer training | Parallel 2.6× faster to near-equal | Both overfit past 35K |
+| WikiText-103 baseline | B wins (-0.101), C≈A, D tiny edge | Spectator persists with more data |
+| Local aux loss | **NULL** (+0.003) | Upper blocks learn but don't contribute |
+| Equal readout | **HURTS** (+0.024) | Confirms information poverty |
+| Bidirectional top-down | **HURTS** (+0.06-0.08) | TinyShakespeare |
+| Architecture correction | **HURTS** (+0.034 vs single) | Upper blocks are spectators |
+| Width scaling (d=256, 4-block, old arch) | **WINS** (-0.023, 2.5× faster) | Best TinyShakespeare result |
+| Matched-FLOP multi-rate (old arch) | **WINS** (+0.019 avg) | 2/3 seeds better |
 | CUDA Graph training | 10.86× speedup | GraphTrainer in core/ |
-| Self-prediction | NULL | Zero task effect across all lambdas |
-| Hierarchical prediction | NULL (wrong arch) | Needs re-test on corrected arch |
-| Local learning / lateral gradients | INVALIDATED (wrong arch) | Must re-test with block0-only injection |
-| Cosine LR | NULL | Dataset bottleneck, not LR schedule |
-| Compute frontier | Parallel wins low-compute, sequential wins high-compute | Parallel plateaus past 4 blocks at d=128 |
+| Self-prediction | NULL | Zero task effect |
+| Cosine LR | NULL | Dataset bottleneck |
