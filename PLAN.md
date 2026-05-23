@@ -19,13 +19,13 @@ Architecture:
 - **Quality at equal FLOPs: BETTER (+0.019 avg, 2/3 seeds clearly better, 1 tied)** ✓
 
 Next steps:
-- [ ] **⚠ ARCHITECTURE CORRECTION** — Per [dictation 2026-05-23-7](dictations/2026-05-23-7.md): ONLY block 0 should receive the token embedding. Higher blocks get info ONLY via lateral propagation. This invalidates local-learning, hierarchical-prediction, and self-prediction results (all run on wrong architecture where every block saw tokens directly). Must fix and re-test.
-- [ ] **Corrected architecture sanity check** — After implementing fix: 4-block all-rate-1 corrected vs single-block. Does the propagation-delayed hierarchy learn at all?
-- [ ] **Re-test local learning on corrected architecture** — Detaching lateral gradients NOW should hurt (since higher blocks depend on them for input). If it still doesn't hurt, that's genuinely surprising.
-- [ ] **Scale up: larger dataset** — TinyShakespeare (250K tokens) is a ceiling; many experiments produce null results because the model memorizes it. Need OpenWebText subset or WikiText-103.
-- [ ] **Matched-compute transformer baseline** — Existing baseline (1.643 @ 187K params, d=72 3-layer) already beats our best at matched wall-time.
-- [ ] **Context scaling with more compute** — ctx=128 with [1,4,16,32] is worse than ctx=32 (1.796 vs 1.718). Sequential 6-block at ctx=128 reaches 1.716 — proving ctx=128 CAN work. Try: parallel 6+ blocks at ctx=128.
-- [ ] **More blocks at d=256** — Max's "width" vision means MORE PARALLEL BLOCKS. Untested at d=256.
+- [ ] **⚠ ARCHITECTURE CORRECTION** — Per [dictation 2026-05-23-7](dictations/2026-05-23-7.md): ONLY block 0 should receive the token embedding. ✓ Implemented (`token_injection="block0"`, commit 93147c1). But the corrected architecture makes upper blocks **spectators** (= single block quality). Root cause: upper blocks have strictly staler info with no exclusive information.
+- [x] **Corrected architecture sanity check** — RUNNING (PID 14456). Seed 42 + 43 confirm: corrected = single block (0 to +0.019 vs single). Old architecture helps because it's an ensemble, not a hierarchy.
+- [ ] **⚠ Bidirectional top-down** — THE KEY NEXT TEST. Added `topology="top_down_to_first"` (commit 67b4426): block 0 reads block 1's state (top-down). This gives upper blocks a causal path to the output. Also added `readout_mode="first"` (block 0 only outputs). Script ready: `runs/bidirectional_sanity.py`.
+- [ ] **Scale up: larger dataset** — TinyShakespeare (250K tokens) is a ceiling. If bidirectional also fails at this scale → data is the bottleneck, not architecture.
+- [ ] **Local learning on working architecture** — Only test local learning (detach lateral) AFTER proving multi-block adds value. Pointless to test local learning on spectator blocks.
+- [ ] **Predictive coding as local learning rule** — Multiple think iterations completed: per-block predict-lower-future-latent, multi-horizon matched to rate. Only relevant once upper blocks have value to protect.
+- [ ] **Matched-compute transformer baseline** — Existing baseline (1.643 @ 187K params) beats us. Need fair comparison.
 
 Recent findings this session:
 - [x] **Cosine LR** — DOES NOT HELP. Same overfitting pattern as constant LR (model memorizes TinyShakespeare before LR decays meaningfully). Dataset is the bottleneck, not LR schedule.
