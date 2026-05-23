@@ -474,6 +474,7 @@ class ParallelDiagonalModel(nn.Module):
         internal_steps: int = 1,
         readout_mode: str = "last",
         token_injection: str = "block0",
+        topology: str = "upward",
         token_mix_init: float = 0.5,
         block_mix_init: float = 0.9,
         detach_lateral: bool = False,
@@ -492,7 +493,7 @@ class ParallelDiagonalModel(nn.Module):
             )
         if any(rate <= 0 for rate in resolved_rates):
             raise ValueError(f"ParallelDiagonalModel rates must be positive, got {resolved_rates}.")
-        valid_readout_modes = {"last", "all"}
+        valid_readout_modes = {"last", "all", "first"}
         if readout_mode not in valid_readout_modes:
             raise ValueError(
                 "ParallelDiagonalModel readout_mode must be one of "
@@ -504,6 +505,17 @@ class ParallelDiagonalModel(nn.Module):
                 "ParallelDiagonalModel token_injection must be one of "
                 f"{sorted(valid_token_injections)}, got {token_injection!r}."
             )
+        valid_topologies = {"upward", "top_down_to_first"}
+        if topology not in valid_topologies:
+            raise ValueError(
+                "ParallelDiagonalModel topology must be one of "
+                f"{sorted(valid_topologies)}, got {topology!r}."
+            )
+        if num_blocks == 1 and topology != "upward":
+            raise ValueError(
+                "ParallelDiagonalModel with one block must use topology='upward' because "
+                "no upper neighbor exists."
+            )
         self.context_size = context_size
         self.d_model = d_model
         self.feedforward_dim = feedforward_dim
@@ -512,6 +524,7 @@ class ParallelDiagonalModel(nn.Module):
         self.internal_steps = internal_steps
         self.readout_mode = readout_mode
         self.token_injection = token_injection
+        self.topology = topology
         self.detach_lateral = detach_lateral
         self.token_embedding = nn.Embedding(vocab_size, d_model)
         self.position_embedding = nn.Embedding(context_size, d_model)
@@ -556,13 +569,22 @@ class ParallelDiagonalModel(nn.Module):
             "internal_steps": self.internal_steps,
             "readout_mode": self.readout_mode,
             "token_injection": self.token_injection,
+            "topology": self.topology,
             "readout_weights": readout_weights,
         }
+
+    def _maybe_detach_lateral(
+        self,
+        state: Float[Tensor, "batch d_model"],
+    ) -> Float[Tensor, "batch d_model"]:
+        return state.detach() if self.detach_lateral else state
 
     def _readout_state(
         self,
         states: list[Float[Tensor, "batch d_model"]],
     ) -> Float[Tensor, "batch d_model"]:
+        if self.readout_mode == "first":
+            return states[0]
         if self.readout_mode == "last":
             return states[-1]
         if self.readout_logits is None:
@@ -607,15 +629,18 @@ class ParallelDiagonalModel(nn.Module):
                     if time_index % rate != 0:
                         continue
                     state_input = seeded_states[block_index] if internal_step == 0 else current_states[block_index]
-                    if block_index == 0:
+                    if block_index == 0 and self.topology == "upward":
                         block_input = state_input
                     else:
-                        if internal_step == 0:
-                            neighbor_state = previous_states[block_index - 1]
+                        if block_index == 0:
+                            lateral_source = previous_states[1] if internal_step == 0 else current_states[1]
                         else:
-                            neighbor_state = current_states[block_index - 1]
-                        if self.detach_lateral:
-                            neighbor_state = neighbor_state.detach()
+                            lateral_source = (
+                                previous_states[block_index - 1]
+                                if internal_step == 0
+                                else current_states[block_index - 1]
+                            )
+                        neighbor_state = self._maybe_detach_lateral(lateral_source)
                         block_input = 0.5 * (state_input + neighbor_state)
                     block_delta = block(block_input)
                     next_states[block_index] = block_mix(block_input, block_delta)
