@@ -1,6 +1,7 @@
 /target/
 **/*.rs.bk
 /.venv/
+/data/
 __pycache__/
 runs/*.log
 runs/*.err
