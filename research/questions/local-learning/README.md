@@ -4,7 +4,13 @@ Serves [dictation 2026-05-23-5](../../../dictations/2026-05-23-5.md): "How can I
 
 ## Status
 
-**H1 CONFIRMED.** Lateral gradient terms are negligible. Detaching all inter-block gradients produces the same or slightly better quality than full backprop (3-seed average: -0.009 nats in favor of detach). Parallel training of blocks is essentially free for this architecture.
+**INVALIDATED — tested on wrong architecture.** The experiment below was run with `token_injection="all"` (every block sees tokens directly). Per [dictation 2026-05-23-7](../../../dictations/2026-05-23-7.md): only block 0 should receive the token embedding. Higher blocks depend on lateral propagation for their input.
+
+Max's exact words: "of course they don't matter if every block already has direct access to the tokens. In my intended architecture, deeper blocks *depend* on lateral propagation for their input."
+
+The results below are factually correct for the old (wrong) architecture but do not answer the local learning question for Max's intended design. Must re-test after architecture correction (`token_injection="block0"`, committed in `93147c1`).
+
+### Old result (wrong architecture, kept for reference)
 
 ## Results
 
@@ -130,6 +136,6 @@ This question does NOT address:
 
 ## Next steps
 
-1. **Run the discriminating experiment.** Three conditions × 3 seeds × 20K steps. This is the single highest-value next action.
-2. Based on outcome, either (a) declare shared-adjoint training viable and integrate it, or (b) implement the next mechanism on the ranked list and re-test.
-3. If H1 holds: measure wall-clock speedup from actually parallelizing the backward passes (not just detaching — actually computing them concurrently).
+1. **Re-run on corrected architecture** (`token_injection="block0"`). In this architecture, detaching lateral gradients removes the ONLY information pathway to higher blocks. H1 likely fails — but how badly?
+2. **Test whether all-block readout provides sufficient local signal.** Even without lateral gradients, each block gets a direct task gradient from its readout contribution. This may partially compensate.
+3. **If H3 holds:** Explore predictive coding / target propagation style local objectives for interior blocks. Max mentions "something where the local objective is grounded in real prediction error, not just social selection." The attention-based "usefulness" signal is disfavored.
