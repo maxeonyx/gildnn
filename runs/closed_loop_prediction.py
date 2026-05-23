@@ -258,7 +258,7 @@ class ClosedLoopPredictionModel(nn.Module):
             s0 = self.block0_mix(x0, delta0)
 
             if self.block1_ffn is not None and self.block1_mix is not None and time_index % 2 == 0:
-                x1 = 0.5 * (s1 + s0)
+                x1 = 0.5 * (s1 + s0.detach())
                 delta1 = self.block1_ffn(x1)
                 s1 = self.block1_mix(x1, delta1)
                 if self.prediction_head is not None:
