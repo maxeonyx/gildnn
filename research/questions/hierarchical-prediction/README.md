@@ -6,7 +6,9 @@ Serves [dictation 2026-05-23-5](../../../dictations/2026-05-23-5.md): "Block one
 
 **Mechanism works. Net performance benefit tentative.** V3 closed-loop with additive zero-init gate: both seeds show predictive coding mode (negative gain), deep integration (ablation gap +0.22), but the end-task improvement over 1-block baseline is -0.006 — barely past the preregistered threshold of -0.005, n=2 only.
 
-Phase 2 strict-local test now running — tests whether the mechanism survives without CE flowing through the feedback path.
+**Strict-local COLLAPSED.** Phase 2 tested whether the mechanism survives without CE flowing through the feedback path. It does not — both seeds collapse catastrophically (D=3.05 vs A=1.67). Full-state cosine prediction without task gradient is a bad local objective. See `research/questions/local-learning-variants/README.md` for the detailed analysis.
+
+**Currently testing: E_grounded** — strict-local with a local CE loss for block 1 (task-grounded representations). Tests whether the collapse was caused by the target or by locality itself.
 
 ## Phase 1: aux-only (NULL)
 
@@ -114,6 +116,6 @@ Key metrics at convergence (averaged across seeds):
 ## What this does not settle
 
 - Whether the net performance benefit is real (could be noise/params — needs more seeds or matched capacity).
-- Whether the mechanism works under truly local gradients (Phase 2 strict-local running now — tests block 1 training on pred_loss only, no CE gradient through feedback).
+- ~~Whether the mechanism works under truly local gradients~~ → **ANSWERED: NO.** Strict-local with full-state cosine prediction collapses. CE through the feedback interface is load-bearing. Currently testing whether task-grounded local objectives (E_grounded: block 1 has its own CE) can rescue strict-local.
 - Whether this scales beyond 2 blocks.
 - Whether the prediction quality is sufficient to help at larger model scale (currently 263K backbone params).
