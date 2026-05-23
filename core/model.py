@@ -478,6 +478,7 @@ class ParallelDiagonalModel(nn.Module):
         token_mix_init: float = 0.5,
         block_mix_init: float = 0.9,
         detach_lateral: bool = False,
+        temporal_window: int = 0,
     ) -> None:
         super().__init__()
         if num_blocks <= 0:
@@ -493,6 +494,10 @@ class ParallelDiagonalModel(nn.Module):
             )
         if any(rate <= 0 for rate in resolved_rates):
             raise ValueError(f"ParallelDiagonalModel rates must be positive, got {resolved_rates}.")
+        if temporal_window < 0:
+            raise ValueError(
+                f"ParallelDiagonalModel temporal_window must be non-negative, got {temporal_window}."
+            )
         valid_readout_modes = {"last", "all", "first"}
         if readout_mode not in valid_readout_modes:
             raise ValueError(
@@ -526,6 +531,7 @@ class ParallelDiagonalModel(nn.Module):
         self.token_injection = token_injection
         self.topology = topology
         self.detach_lateral = detach_lateral
+        self.temporal_window = temporal_window
         self.token_embedding = nn.Embedding(vocab_size, d_model)
         self.position_embedding = nn.Embedding(context_size, d_model)
         self.token_mixes = nn.ModuleList([MixAdd(init=token_mix_init) for _ in range(num_blocks)])
@@ -542,6 +548,11 @@ class ParallelDiagonalModel(nn.Module):
         self.readout_logits = (
             nn.Parameter(torch.zeros(num_blocks, dtype=torch.float32))
             if readout_mode == "all"
+            else None
+        )
+        self.window_proj = (
+            nn.Linear(temporal_window * d_model, d_model)
+            if temporal_window > 0
             else None
         )
         self.output = nn.Linear(d_model, vocab_size)
@@ -567,6 +578,7 @@ class ParallelDiagonalModel(nn.Module):
             "blocks": [mix.coefficient_value() for mix in self.block_mixes],
             "rates": list(self.rates),
             "internal_steps": self.internal_steps,
+            "temporal_window": self.temporal_window,
             "readout_mode": self.readout_mode,
             "token_injection": self.token_injection,
             "topology": self.topology,
@@ -575,8 +587,8 @@ class ParallelDiagonalModel(nn.Module):
 
     def _maybe_detach_lateral(
         self,
-        state: Float[Tensor, "batch d_model"],
-    ) -> Float[Tensor, "batch d_model"]:
+        state: Tensor,
+    ) -> Tensor:
         return state.detach() if self.detach_lateral else state
 
     def _readout_state(
@@ -608,6 +620,20 @@ class ParallelDiagonalModel(nn.Module):
             torch.zeros(batch_size, self.d_model, device=tokens.device, dtype=embeddings.dtype)
             for _ in range(self.num_blocks)
         ]
+        temporal_history = (
+            [
+                torch.zeros(
+                    batch_size,
+                    self.temporal_window,
+                    self.d_model,
+                    device=tokens.device,
+                    dtype=embeddings.dtype,
+                )
+                for _ in range(self.num_blocks)
+            ]
+            if self.temporal_window > 0
+            else None
+        )
         block_output_history = [[] for _ in range(self.num_blocks)] if return_state else None
 
         for time_index in range(self.context_size):
@@ -641,11 +667,27 @@ class ParallelDiagonalModel(nn.Module):
                                 else current_states[block_index - 1]
                             )
                         neighbor_state = self._maybe_detach_lateral(lateral_source)
+                        if block_index > 0 and self.window_proj is not None and temporal_history is not None:
+                            lower_history = self._maybe_detach_lateral(temporal_history[block_index - 1])
+                            temporal_neighbor = self.window_proj(
+                                rearrange(
+                                    lower_history,
+                                    "batch window d_model -> batch (window d_model)",
+                                )
+                            )
+                            neighbor_state = 0.5 * (neighbor_state + temporal_neighbor)
                         block_input = 0.5 * (state_input + neighbor_state)
                     block_delta = block(block_input)
                     next_states[block_index] = block_mix(block_input, block_delta)
                 current_states = next_states
             previous_states = current_states
+            if temporal_history is not None:
+                for block_index, (state, rate) in enumerate(zip(previous_states, self.rates, strict=True)):
+                    if time_index % rate != 0:
+                        continue
+                    updated_history = torch.roll(temporal_history[block_index], shifts=-1, dims=1)
+                    updated_history[:, -1, :] = state
+                    temporal_history[block_index] = updated_history
             if block_output_history is not None:
                 for block_index, state in enumerate(previous_states):
                     block_output_history[block_index].append(state)
