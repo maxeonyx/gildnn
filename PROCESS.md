@@ -284,6 +284,15 @@ Use `runs/active.lock` to record the active large run. Format: one line with exp
 - Use a single documented `Start-Process` pattern. Do not improvise argument passing — use comma-separated array for simple args, or a wrapper script for complex commands.
 - **Before launching a GPU run, preflight GPU availability** — confirm `nvidia-smi` shows the GPU idle and CUDA will initialize. On this desktop, gaming can hold the GPU exclusively; CUDA init will block indefinitely if the GPU is busy.
 - If launch infrastructure is flaky, fix and document the launch mechanism before spending more time on experiments.
+- **Do NOT use `-RedirectStandardOutput`/`-RedirectStandardError` with `Start-Process -WindowStyle Hidden`.** This causes the child process to hang when stdout buffers fill (the hidden window has no console to flush to). Instead: let stdout go to the hidden window's console (effectively discarded) and rely on the experiment's own JSONL log file for monitoring.
+- **Corpus loading takes ~90 seconds** (WikiText-103 raw is 538M chars). The log file won't appear until after loading completes. Don't assume the process is dead during this period — check CPU/memory via `Get-Process`.
+
+**torch.compile vs CUDA graphs:**
+
+- **Default: use `--no-compile`** (which activates the `ClosedLoopPredictionGraphTrainer` CUDA graph path). This starts fast and trains fast.
+- **`torch.compile` (`--compile`)**: uses `aot_eager` backend. Can take 5-10+ minutes for initial trace on complex models (E_grounded's extra LM head makes it worse). Once traced, training is fast. Use only when CUDA graphs aren't available or the model has incompatible dynamic control flow.
+- The CUDA graph path requires fixed batch sizes and static tensor shapes. Models with dynamic shapes can't use it.
+- If adding new model variants, always test with `--sanity-check --no-compile` first to verify the CUDA graph path works before attempting compiled runs.
 
 **Experiment log files (JSONL):**
 
