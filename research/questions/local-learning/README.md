@@ -4,7 +4,22 @@ Serves [dictation 2026-05-23-5](../../../dictations/2026-05-23-5.md): "How can I
 
 ## Status
 
-Theory complete. Discriminating experiment designed but not yet run.
+**H1 CONFIRMED.** Lateral gradient terms are negligible. Detaching all inter-block gradients produces the same or slightly better quality than full backprop (3-seed average: -0.009 nats in favor of detach). Parallel training of blocks is essentially free for this architecture.
+
+## Results
+
+| Seed | Full backprop | Lateral detached | Delta |
+|------|---------------|------------------|-------|
+| 42 | 1.718 | 1.720 | +0.002 |
+| 43 | 1.749 | 1.707 | **-0.042** |
+| 44 | 1.737 | 1.752 | +0.015 |
+| **Avg** | **1.735** | **1.726** | **-0.009** |
+
+Artifact: [`experiments/fixed_multi_rate/artifacts/local_learning_gradient/`](../../../experiments/fixed_multi_rate/artifacts/local_learning_gradient/)
+
+The "1-hop truncated" condition produced identical results to "fully detached" — because with only neighbor-lateral connections in a parallel architecture, there's at most 1 hop per timestep. The distinction is architecturally meaningless here.
+
+**Interpretation:** The shared additive stream provides ALL the useful gradient signal. The lateral connections carry useful *forward* information (for quality — we know removing them in the forward pass hurts), but their *gradient* contribution is negligible. Blocks can be trained as if they were independent modules all writing to the same output, because mathematically that's what the gradient tells us they are.
 
 ## The mathematical result
 
