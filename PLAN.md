@@ -6,63 +6,69 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 **PID 20572**, log: `experiments/wikitext_103/artifacts/closed_loop_prediction/run_v3.jsonl`
 
-### What happened in v1 and v2
+### Seed 42 COMPLETE — provisional POSITIVE result
 
-**V1 (no detach):** Catastrophic collapse — val_loss stuck at 3.14 (vs A's 1.67). pred_loss gradient flowed into block 0, training it to be constant.
+| Variant | val_loss | accuracy |
+|---------|----------|----------|
+| A_single | 1.669 | 0.523 |
+| B_spectator | 1.668 | 0.532 |
+| **C_closed_loop** | **1.660** | **0.529** |
 
-**V2 (s0.detach()):** STILL collapsed at 3.15, then went NaN at step 10K. Detach solved the wrong problem.
+C beats A by **0.009 nats**. First positive result on corrected architecture.
 
-**Root cause (corrected):** Not gradient flow — forward-path instability. The MixAdd formula `sqrt(0.9)*seed + sqrt(0.1)*prior = 0.949*seed + 0.316*prior` gives **31.6% prior influence** (not 10% as intended). Combined with final-only CE supervision over 128 recurrent steps, this creates a stable collapsed fixed point. The untrained prior contaminates every timestep, and one CE signal at position 128 can't overcome 127 steps of corruption.
+Key C metrics at convergence:
+- `prior_gain`: -0.071 (negative = predictive coding: subtract prediction, process residual)
+- `pred_loss`: 0.294 (non-trivial — block 1 making real predictions, not collapsed)
+- `ablation gap`: +0.231 (removing predictions hurts significantly)
 
-### V3 fix (current)
+The gain went NEGATIVE, which means the model learned: "subtract the predicted state from my input → process only what differs from prediction." This is classic predictive coding — unexpected inputs get amplified, expected inputs get suppressed.
 
-Replace MixAdd with **additive residual gate**:
-```python
-x0 = seed0 + prior_gain * layer_norm(prior_t)  # gain=0 at init
-```
+### Seed 43 IN PROGRESS
 
-Block 0 starts IDENTICAL to A_single. Gain grows only if CE discovers predictions help. No contamination at initialization. LayerNorm keeps prior magnitude controlled.
+Started A_single. ETA ~75 minutes for all 3 variants. Same decision rules apply.
 
-### Expected behavior
+### What happened in v1 and v2 (prior failures)
 
-- Steps 0-1K: C tracks A closely (gain ≈ 0, block 0 is effectively A_single)
-- Steps 1K+: EITHER gain grows (predictions help → C < A) OR gain stays ≈ 0 (null result → C ≈ A)
-- **NO collapse** regardless — gain=0 means block 0 always has a clean training path
+- **V1:** Catastrophic collapse (val_loss stuck at 3.14). Root cause: pred_loss gradient into block 0.
+- **V2:** Collapse + NaN. Root cause: MixAdd `sqrt(0.1) = 0.316` prior coefficient (31.6% influence, not 10% as intended). Combined with final-only CE over 128 recurrent steps = stable collapsed fixed point.
+- **V3 fix:** Replace MixAdd with `x0 = seed0 + gain * LayerNorm(prior)`, gain=0 at init. Block 0 starts identical to A_single. Gain grows/shrinks only if CE benefits.
 
-### Decision rules
+### Decision rules (after seed 43)
 
-- **C < A (val_loss):** Predictions help! Gain learned to incorporate them. Proceed to strict-local test.
-- **C ≈ A, gain ≈ 0:** Block 1's predictions don't help CE. Mechanism works but predictions aren't task-useful. Consider: is the prediction target wrong? Should block 1 predict something different?
-- **C ≈ A, gain > 0 but ablation gap ≈ 0:** Predictions incorporated but cancel out. Strange. Investigate.
+Average C-A across both seeds:
+- **Mean(C-A) < -0.005:** Positive result. Proceed to strict-local test (Phase 2).
+- **Mean(C-A) ∈ [-0.005, +0.005]:** Borderline null. Predictions used but marginal benefit. Consider larger scale or different prediction target.
+- **Mean(C-A) > +0.005:** Null/negative. Predictions don't help despite being used. Change prediction target.
 
-### If positive: next experiments
+## If positive → next experiments (see research/questions/local-learning-variants/README.md)
 
-See `research/questions/local-learning-variants/README.md` for the full decision tree.
+1. **Strict-local:** Also detach feedback path. Block 1 trained ONLY by pred_loss. Tests if pure local learning works.
+2. **Per-dimension gate:** Replace scalar gain with vector gate (Linear layer, zero init). More expressive.
+3. **Different prediction target:** Predict next TOKEN embedding instead of s0. Provides genuinely new information.
+4. **N=3 chain:** Three blocks, adjacent prediction, tests multi-hop grounding.
 
-1. **Strict-local (Phase 2):** Also detach the feedback path. Block 1 trained ONLY by pred_loss. Key test: does purely local prediction still help?
-2. **N=3 chain (Phase 3):** Three blocks, adjacent prediction, strict-local. Tests multi-hop grounding.
+## Critical findings this session
 
-## Theoretical findings this session
-
-1. **MixAdd sqrt formula gives 31.6% influence at init=0.9** — documented as root cause of collapse. The parameter value is NOT the coefficient.
-2. **Current "semi-local" is NOT genuinely local** — CE flows through feedback path. Global backprop through a narrow interface. See `research/questions/local-learning-variants/README.md`.
-3. **Strict-local is the real test of local learning.** First clean experiment that's genuinely more parallel than standard backprop.
-4. **Final-only CE + 128-step recurrence = BPTT through 128 steps.** Even with inter-block locality, the temporal dimension is still global. Future question: temporal locality.
-5. **Transformer baseline at matched total params is misleading.** With vocab=4980, embeddings eat 90% of params. A_single's backbone is only ~263K; a "matched" transformer backbone would be ~1.53M. See think agent analysis (not yet written up in question doc).
+1. **MixAdd sqrt formula at init=0.9 gives 31.6% coefficient, not 10%.** Root cause of v1/v2 collapse.
+2. **Final-only CE over 128 recurrent steps can't overcome strong prior contamination.** The MixAdd + recurrence created a stable collapsed fixed point.
+3. **Additive zero-init gate works.** No collapse. Model learns gain automatically. Negative gain = predictive coding.
+4. **Predictions provide early-learning acceleration** (C beats A by 0.03 at step 2K) that **narrows but persists at convergence** (C beats A by 0.009 at step 20K, seed 42).
+5. **Semi-local is NOT genuinely local.** CE flows through the feedback path. The current setup is global backprop through a narrow interface. Strict-local (detach feedback too) is the real test.
 
 ## Queue
 
-- Transformer matched-compute baseline (complex fairness issues — see findings #5)
+- Transformer matched-compute baseline (unfair at total params — backbone 263K vs 1.53M)
 - Named/typed tensor dimensions
 - Loop management tooling
-- Graph architecture idea from dictation
+- Graph architecture from dictation
 
 ## Key completed findings
 
 | Experiment | Result | Notes |
 |---|---|---|
+| **Closed-loop v3** | **C < A by 0.009** (1 seed) | First positive! Predictive coding mode, gain=-0.07 |
 | **Closed-loop v1** | **COLLAPSE** (+1.47) | pred_loss trained block 0 to be constant |
-| **Closed-loop v2** | **COLLAPSE → NaN** | MixAdd 31.6% prior + final-only CE = stable collapsed fixed point |
+| **Closed-loop v2** | **COLLAPSE → NaN** | MixAdd 31.6% prior = stable collapsed fixed point |
 | ctx=128 corrected | **HURTS** (+0.014) | Spectator worse at longer context |
 | ctx=128 ensemble | Tiny benefit (-0.020) | Was -0.101 at ctx=32; collapses |
 | ctx=32 baseline | B wins (-0.101), C≈A | Spectator on corrected arch |
