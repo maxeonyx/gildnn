@@ -4,65 +4,75 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Current state
 
-**The spectator problem is robust and hard to break.** Five WikiText-103 experiments (all ctx=32, d=256, 20K steps) converge on the same conclusion: under the corrected architecture (only block 0 receives tokens), upper blocks cannot be made useful. Specifically:
+**The multi-rate architecture is fundamentally broken.** Six WikiText-103 experiments now show:
 
-| Intervention | Result | What it tested |
+1. Under corrected architecture (block0 only): upper blocks are spectators at ALL context lengths.
+2. Under old architecture (all tokens): the ensemble benefit **collapses from -0.101 (ctx=32) to -0.020 (ctx=128).**
+3. The mechanism "process less frequently" doesn't create useful hierarchy — it just means "miss more information."
+
+### ctx=128 results (definitive)
+
+| Variant | Mean val_loss | vs A |
 |---|---|---|
-| Baseline (corrected vs old) | C≈A, B wins -0.101 | Multi-block only helps as ensemble |
-| Aux prediction loss | NULL (+0.003) | Gradient signal isn't the bottleneck |
-| Equal readout | HURTS (+0.024) | Readout collapse isn't the bottleneck |
-| Temporal window (k=8) | NULL (+0.003) | Lower-neighbor trajectory isn't enough |
+| A_single | 1.838 | — |
+| B_corrected (block0, rates 1,2,4,8) | 1.852 | +0.014 (HURTS) |
+| C_old (all tokens, rates 1,2,4,8) | 1.818 | -0.020 (tiny) |
 
-**Diagnosis:** The residual stream alone is insufficient for inter-block information propagation. Upper blocks CAN learn (aux losses decrease to 2.9) but what they learn isn't more useful for next-token prediction than what block 0 already provides. Temporal history helps block 1 slightly (readout 14%→18%) but doesn't cascade up.
+Compare ctx=32 where C_old was -0.101. The architecture becomes LESS useful at longer context.
 
-**Emerging hypothesis:** At ctx=32, the prediction task may be too simple for hierarchical processing. A single feedforward with direct token access captures enough pattern. Hierarchy might only matter at longer contexts where slower blocks could model dependencies beyond a single block's horizon.
+### Why multi-rate fails at longer context
+
+With rates=(1,2,4,8) and ctx=128:
+- Block 0: 128 activations (sees everything)
+- Block 1: 64 activations (misses half)
+- Block 2: 32 activations (misses 3/4)
+- Block 3: 16 activations (misses 7/8)
+
+Slow blocks don't "model longer-range patterns" — they just **miss tokens**. At ctx=32 the damage was small enough that ensemble averaging helped. At ctx=128 the gaps are too large.
+
+### Full diagnostic evidence (ctx=32, WikiText-103)
+
+| Intervention | Result | What it ruled out |
+|---|---|---|
+| Baseline corrected | NULL (+0.003) | Not just small dataset |
+| Aux prediction loss | NULL (+0.003) | Not gradient signal |
+| Equal readout | HURTS (+0.024) | Not readout collapse |
+| Temporal window (k=8) | NULL (+0.003) | Not missing trajectory info |
+| ctx=128 | HURTS (+0.014) | Not short context |
+
+**Conclusion:** The multi-rate diagonal architecture cannot support useful multi-block learning under any tested conditions. The corrected architecture (only block 0 sees tokens) is definitively broken. The old architecture (ensemble) loses its benefit at longer context.
 
 ## Active
 
 Nothing running. GPU free.
 
-## Next — two candidate directions
+## Next — fundamental rethink needed
 
-### Option 1: Scale context to test the hierarchy-needs-longer-context hypothesis
-- Increase context from 32 to 128 or 256
-- At longer contexts, slower blocks (rate 8 = processing every 8 steps) should genuinely capture patterns the fast block can't
-- This tests whether the architecture becomes useful when the task actually requires multi-timescale processing
-- Risk: longer context changes many things at once; may not isolate the effect
+The current architecture is exhausted. We need a genuinely different approach to multi-module parallel learning. Key constraint from Max's dictation: "how can I get local learning, i.e. enabling parallelism?"
 
-### Option 2: All-blocks-get-tokens but with local learning (true parallelism test)
-- Use variant B architecture (every block sees tokens) — this is the only one that works
-- Add stop-grad: each block trains on its OWN loss only, no global backprop
-- Test whether blocks can learn INDEPENDENTLY and still combine usefully
-- This is the closest thing to Max's actual research question about parallelism
-- The question becomes: can an ensemble of independently-trained modules outperform a single module?
+Possible new directions (need fresh think session to evaluate):
 
-### Option 3: Transformer baseline (methodological debt)
-- Build a transformer at matched compute (~3.6M params) on WikiText-103 ctx=32
-- Tell us where 1.83 sits relative to standard architectures
-- Important context for interpreting all results
+- [ ] **Aggregation-based slow blocks** — Instead of "process every Nth step and skip the rest," slow blocks could AGGREGATE multiple steps (pool/attend over N consecutive fast-block outputs before processing). This is "summarize, then process" rather than "ignore, then process."
+- [ ] **Heterogeneous specialization** — Different blocks get different computation types entirely (e.g., one does local ngram patterns, one does position-invariant features). Rather than identical blocks at different rates.
+- [ ] **True mixture-of-experts** — Route different tokens to different blocks. Each block processes all tokens that route to it. This is the established approach to parallel specialization.
+- [ ] **Transformer baseline** — Before pursuing any new architecture, know where we stand. Build a standard transformer at matched compute.
 
-## Queue (lower priority)
+## Queue
 
-- **Many more blocks (16/32)** — unlikely to help based on current evidence
-- **Graph architecture** — Per [dictation 2026-05-23-5](dictations/2026-05-23-5.md)
-- **Interface predictive-coding loss** — requires working architecture first
 - Named/typed tensor dimensions
 - Loop management tooling
+- Graph architecture idea from dictation
 
 ## Key completed findings
 
-All on WikiText-103 (ctx=32, d=256, 20K steps) unless noted.
-
 | Experiment | Result | Notes |
 |---|---|---|
-| WikiText-103 baseline | B wins (-0.101), C≈A, D tiny edge | Spectator persists with more data |
-| Local aux loss | **NULL** (+0.003) | Gradient signal isn't the problem |
-| Equal readout | **HURTS** (+0.024) | Confirms information poverty |
-| Temporal window (k=8) | **NULL** (+0.003) | History helps block 1 readout but no val_loss improvement |
-| Bidirectional top-down | **HURTS** (+0.06-0.08) | TinyShakespeare |
-| Architecture correction | **HURTS** (+0.034 vs single) | Upper blocks are spectators |
-| Width scaling (d=256, 4-block, old arch) | **WINS** (-0.023) | Best TinyShakespeare result |
-| Matched-FLOP multi-rate (old arch) | **WINS** (+0.019 avg) | 2/3 seeds better |
+| ctx=128 corrected | **HURTS** (+0.014) | Spectator worse at longer context |
+| ctx=128 ensemble | Tiny benefit (-0.020) | Was -0.101 at ctx=32; collapses |
+| ctx=32 baseline | B wins (-0.101), C≈A | Spectator on corrected arch |
+| ctx=32 local aux loss | **NULL** (+0.003) | Gradient isn't the problem |
+| ctx=32 equal readout | **HURTS** (+0.024) | Information poverty confirmed |
+| ctx=32 temporal window | **NULL** (+0.003) | History doesn't help |
+| Bidirectional top-down | **HURTS** | TinyShakespeare |
 | CUDA Graph training | 10.86× speedup | GraphTrainer in core/ |
-| Self-prediction | NULL | Zero task effect |
-| Cosine LR | NULL | Dataset bottleneck |
+| Self-prediction | NULL | Zero effect |
