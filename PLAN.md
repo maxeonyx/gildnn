@@ -19,6 +19,8 @@ Architecture:
 - **Quality at equal FLOPs: BETTER (+0.019 avg, 2/3 seeds clearly better, 1 tied)** ✓
 
 Next steps:
+- [ ] **LOCAL LEARNING CONFIRMED — integrate** — Lateral gradient terms are noise (avg -0.009 = detaching is better). The shared-adjoint training algorithm is now experimentally validated. Next: actually implement parallel backward passes and measure wall-clock speedup.
+- [ ] **Hierarchical prediction experiment** — Theory work done (see `research/questions/local-learning/README.md` theory section). First experiment: add 32-d bottleneck latent z_1, have block 2 predict future-averaged z_1. Measures whether the multi-rate hierarchy enables predictive processing.
 - [ ] **Context scaling with more compute** — ctx=128 with [1,4,16,32] is worse than ctx=32 (1.796 vs 1.718). Root cause: insufficient compute per token at wider rates. Sequential 6-block at ctx=128 reaches 1.716 — BETTER than ctx=32 best. So ctx=128 CAN work with enough compute. Try: parallel 6-block or 8-block at ctx=128, or parallel 4-block d=384/512 at ctx=128.
 - [ ] **Wider model at ctx=128 with µP LR** — d=384 with LR=2e-4 (µP-scaled), or d=512 with LR=1.5e-4. The overfitting we saw at ctx=32 may not happen at ctx=128 (more diverse training windows).
 - [ ] **Real dataset** — TinyShakespeare (~250K tokens) is a ceiling. Overfitting dominates many experiments. A larger corpus (OpenWebText subset, WikiText-103) would let us see true scaling behavior.
