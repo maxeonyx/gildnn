@@ -10,11 +10,9 @@ This is the thing that might actually give wall-clock speedup. If it doesn't giv
 
 A secondary advantage: modules running at different rates. Some iterate rapidly, some update infrequently, some handle different timescales. Not by hard-coded schedules but by the stale-reads mechanism — pack more into one area of the GPU for a rapidly-iterating module, swap between five in another area, swap between a hundred in a third. Multi-rate execution means a certain part of the network is implicitly attempting to predict further into the future.
 
-**Current experimental status (as of 2026-05-24):** TinyShakespeare (250K tokens, ctx=32) is saturated at d=256 — a single block achieves 1.712, and no architectural variant beats it. The earlier positive multi-rate results (+20.7% speedup) were real but on a dataset too small to differentiate architectures at this capacity.
+**Current experimental status (as of 2026-05-24):** The multi-rate diagonal architecture (identical blocks at rates 1,2,4,8 on a shared residual stream) is **definitively broken** on the corrected architecture. Six experiments on WikiText-103 (538M chars, d=256, ctx=32 and ctx=128) all confirm the spectator problem: upper blocks become non-contributing regardless of information access, gradient signal, or context length. The problem is NOT information poverty — it's that same-objective identical blocks have no reason to specialize when block 0 already sees every token.
 
-Architecture correction (block0-only token injection, per dictation 2026-05-23-7) revealed that upper blocks are spectators when every block sees tokens. The corrected architecture hurts at TinyShakespeare scale (+0.034 vs single block). Bidirectional top-down messaging also hurts.
-
-**Next discriminator: WikiText-103** (538M chars). Infrastructure is ready. This is the first dataset where single-block shouldn't saturate, making it possible to test whether multi-block actually adds value. If it does, local learning and predictive coding become the exciting next questions. If it doesn't, the architecture needs rethinking.
+**Current experiment: closed-loop hierarchical prediction.** Block 1 predicts block 0's future states and feeds predictions BACK into block 0's computation. This is the first test of role differentiation — giving blocks genuinely different objectives. Early sanity checks show the mechanism is active (block 0 uses predictions). Full results pending. See `research/questions/hierarchical-prediction/README.md`.
 
 ## The architecture: diagonal residual connections across time and depth
 
