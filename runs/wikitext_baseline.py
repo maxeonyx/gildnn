@@ -111,16 +111,16 @@ def variant_specs() -> dict[str, VariantSpec]:
             token_injection="block0",
             topology="upward",
         ),
-        "D_4block_bidirectional": VariantSpec(
-            key="D_4block_bidirectional",
-            label="wikitext_baseline_D_4block_bidirectional",
+        "D_4block_multirate": VariantSpec(
+            key="D_4block_multirate",
+            label="wikitext_baseline_D_4block_multirate",
             d_model=D_MODEL,
             feedforward_dim=FEEDFORWARD_DIM,
             num_blocks=4,
-            rates=FOUR_BLOCK_RATES,
-            readout_mode="first",
+            rates=(1, 2, 4, 8),
+            readout_mode="all",
             token_injection="block0",
-            topology="top_down_to_first",
+            topology="upward",
         ),
     }
 
@@ -403,12 +403,12 @@ def comparison(summary_by_variant: dict[str, object]) -> dict[str, float]:
             6,
         ),
         "mean_final_val_loss_delta_D_minus_A": round(
-            summary_by_variant["D_4block_bidirectional"]["mean_final_val_loss"]
+            summary_by_variant["D_4block_multirate"]["mean_final_val_loss"]
             - summary_by_variant["A_single_block"]["mean_final_val_loss"],
             6,
         ),
         "mean_final_val_accuracy_delta_D_minus_A": round(
-            summary_by_variant["D_4block_bidirectional"]["mean_final_val_accuracy"]
+            summary_by_variant["D_4block_multirate"]["mean_final_val_accuracy"]
             - summary_by_variant["A_single_block"]["mean_final_val_accuracy"],
             6,
         ),
@@ -423,12 +423,12 @@ def comparison(summary_by_variant: dict[str, object]) -> dict[str, float]:
             6,
         ),
         "mean_final_val_loss_delta_D_minus_C": round(
-            summary_by_variant["D_4block_bidirectional"]["mean_final_val_loss"]
+            summary_by_variant["D_4block_multirate"]["mean_final_val_loss"]
             - summary_by_variant["C_4block_corrected"]["mean_final_val_loss"],
             6,
         ),
         "mean_final_val_accuracy_delta_D_minus_C": round(
-            summary_by_variant["D_4block_bidirectional"]["mean_final_val_accuracy"]
+            summary_by_variant["D_4block_multirate"]["mean_final_val_accuracy"]
             - summary_by_variant["C_4block_corrected"]["mean_final_val_accuracy"],
             6,
         ),
@@ -471,7 +471,7 @@ def main() -> int:
         train_path=args.train_path,
         val_path=args.val_path,
         context_size=CONTEXT_SIZE,
-        eval_samples=1024,
+        eval_samples=4096,
     )
     val_inputs = corpus.val_inputs.to(device=device, dtype=torch.long)
     val_targets = corpus.val_targets.to(device=device, dtype=torch.long)
