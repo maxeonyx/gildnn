@@ -1,0 +1,2122 @@
+{
+  "config": {
+    "training_steps": 20000,
+    "eval_interval": 1000,
+    "batch_size": 64,
+    "eval_batch_size": 512,
+    "learning_rate": 0.0003,
+    "seeds": [
+      42,
+      43
+    ],
+    "warmup_steps": 3,
+    "context_size": 128,
+    "temporal_window": 0,
+    "dataset_vocab_size": 4980,
+    "trainer": "GraphTrainer",
+    "dataset": "wikitext-103-raw",
+    "train_path": "C:\\Users\\maxeo\\gildnn\\data\\wikitext-103-raw\\wiki.train.raw",
+    "val_path": "C:\\Users\\maxeo\\gildnn\\data\\wikitext-103-raw\\wiki.valid.raw"
+  },
+  "environment": {
+    "git_sha": "c96d074f90aca0646abffc28146422d255819193",
+    "git_working_tree_clean": false,
+    "git_status_short": [
+      "?? experiments/wikitext_103/artifacts/ctx128_corrected/"
+    ],
+    "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+    "torch_version": "2.11.0+cu128",
+    "device": "cuda",
+    "cuda_device_name": "NVIDIA GeForce RTX 3090"
+  },
+  "dataset": {
+    "train_examples": 538294205,
+    "val_examples": 4096,
+    "vocab_size": 4980
+  },
+  "timing": {
+    "overall_wall_seconds": 3866.067622
+  },
+  "variants": {
+    "A_single": {
+      "key": "A_single",
+      "label": "ctx128_corrected_A_single",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 1,
+      "rates": [
+        1
+      ],
+      "readout_mode": "last",
+      "token_injection": "block0",
+      "topology": "upward"
+    },
+    "B_corrected": {
+      "key": "B_corrected",
+      "label": "ctx128_corrected_B_corrected",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 4,
+      "rates": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "readout_mode": "all",
+      "token_injection": "block0",
+      "topology": "upward"
+    },
+    "C_old": {
+      "key": "C_old",
+      "label": "ctx128_corrected_C_old",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 4,
+      "rates": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "readout_mode": "all",
+      "token_injection": "all",
+      "topology": "upward"
+    }
+  },
+  "per_seed_results": [
+    {
+      "seed": 42,
+      "variant": "A_single",
+      "label": "ctx128_corrected_A_single",
+      "class_name": "ParallelDiagonalModel",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 1,
+      "rates": [
+        1
+      ],
+      "readout_mode": "last",
+      "token_injection": "block0",
+      "topology": "upward",
+      "temporal_window": 0,
+      "parameter_count": 2850422,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 8.567463,
+          "val_accuracy": 0.000244
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.432287,
+          "val_accuracy": 0.322266
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.303955,
+          "val_accuracy": 0.347656
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.226086,
+          "val_accuracy": 0.369629
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.182495,
+          "val_accuracy": 0.381348
+        },
+        {
+          "step": 5000,
+          "val_loss": 2.134009,
+          "val_accuracy": 0.393311
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.091551,
+          "val_accuracy": 0.40625
+        },
+        {
+          "step": 7000,
+          "val_loss": 2.058672,
+          "val_accuracy": 0.411621
+        },
+        {
+          "step": 8000,
+          "val_loss": 2.037129,
+          "val_accuracy": 0.416992
+        },
+        {
+          "step": 9000,
+          "val_loss": 2.011689,
+          "val_accuracy": 0.42749
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.986495,
+          "val_accuracy": 0.435547
+        },
+        {
+          "step": 11000,
+          "val_loss": 1.972377,
+          "val_accuracy": 0.435791
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.942862,
+          "val_accuracy": 0.442627
+        },
+        {
+          "step": 13000,
+          "val_loss": 1.934779,
+          "val_accuracy": 0.440186
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.921163,
+          "val_accuracy": 0.44751
+        },
+        {
+          "step": 15000,
+          "val_loss": 1.913949,
+          "val_accuracy": 0.45874
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.882725,
+          "val_accuracy": 0.460938
+        },
+        {
+          "step": 17000,
+          "val_loss": 1.87366,
+          "val_accuracy": 0.466553
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.875621,
+          "val_accuracy": 0.460938
+        },
+        {
+          "step": 19000,
+          "val_loss": 1.848009,
+          "val_accuracy": 0.470459
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.831718,
+          "val_accuracy": 0.47168
+        }
+      ],
+      "best_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.831718,
+        "val_accuracy": 0.47168
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.831718,
+        "val_accuracy": 0.47168
+      },
+      "final_training_loss": 1.837541,
+      "wall_seconds": 456.350574,
+      "mix_coefficients": {
+        "token": [
+          0.43528568744659424
+        ],
+        "blocks": [
+          0.7583056688308716
+        ],
+        "rates": [
+          1
+        ],
+        "internal_steps": 1,
+        "temporal_window": 0,
+        "readout_mode": "last",
+        "token_injection": "block0",
+        "topology": "upward",
+        "readout_weights": null
+      }
+    },
+    {
+      "seed": 42,
+      "variant": "B_corrected",
+      "label": "ctx128_corrected_B_corrected",
+      "class_name": "ParallelDiagonalModel",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 4,
+      "rates": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "readout_mode": "all",
+      "token_injection": "block0",
+      "topology": "upward",
+      "temporal_window": 0,
+      "parameter_count": 3639168,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 8.483711,
+          "val_accuracy": 0.0
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.582315,
+          "val_accuracy": 0.297607
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.374963,
+          "val_accuracy": 0.333252
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.278323,
+          "val_accuracy": 0.353271
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.229759,
+          "val_accuracy": 0.364502
+        },
+        {
+          "step": 5000,
+          "val_loss": 2.184283,
+          "val_accuracy": 0.377686
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.130971,
+          "val_accuracy": 0.397461
+        },
+        {
+          "step": 7000,
+          "val_loss": 2.087721,
+          "val_accuracy": 0.40332
+        },
+        {
+          "step": 8000,
+          "val_loss": 2.070093,
+          "val_accuracy": 0.402344
+        },
+        {
+          "step": 9000,
+          "val_loss": 2.037546,
+          "val_accuracy": 0.419678
+        },
+        {
+          "step": 10000,
+          "val_loss": 2.005873,
+          "val_accuracy": 0.427734
+        },
+        {
+          "step": 11000,
+          "val_loss": 1.989735,
+          "val_accuracy": 0.43335
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.963855,
+          "val_accuracy": 0.438477
+        },
+        {
+          "step": 13000,
+          "val_loss": 1.951218,
+          "val_accuracy": 0.434082
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.935953,
+          "val_accuracy": 0.436523
+        },
+        {
+          "step": 15000,
+          "val_loss": 1.929768,
+          "val_accuracy": 0.446045
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.900573,
+          "val_accuracy": 0.442627
+        },
+        {
+          "step": 17000,
+          "val_loss": 1.88507,
+          "val_accuracy": 0.454346
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.887942,
+          "val_accuracy": 0.457764
+        },
+        {
+          "step": 19000,
+          "val_loss": 1.868165,
+          "val_accuracy": 0.459473
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.849137,
+          "val_accuracy": 0.463135
+        }
+      ],
+      "best_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.849137,
+        "val_accuracy": 0.463135
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.849137,
+        "val_accuracy": 0.463135
+      },
+      "final_training_loss": 1.761572,
+      "wall_seconds": 683.928023,
+      "mix_coefficients": {
+        "token": [
+          0.4303250312805176,
+          0.5,
+          0.5,
+          0.5
+        ],
+        "blocks": [
+          0.7666789889335632,
+          0.8431386947631836,
+          0.876447319984436,
+          0.8805752396583557
+        ],
+        "rates": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "internal_steps": 1,
+        "temporal_window": 0,
+        "readout_mode": "all",
+        "token_injection": "block0",
+        "topology": "upward",
+        "readout_weights": [
+          0.663688600063324,
+          0.13878117501735687,
+          0.09387625753879547,
+          0.10365396738052368
+        ]
+      }
+    },
+    {
+      "seed": 42,
+      "variant": "C_old",
+      "label": "ctx128_corrected_C_old",
+      "class_name": "ParallelDiagonalModel",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 4,
+      "rates": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "readout_mode": "all",
+      "token_injection": "all",
+      "topology": "upward",
+      "temporal_window": 0,
+      "parameter_count": 3639168,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 8.487154,
+          "val_accuracy": 0.000244
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.574627,
+          "val_accuracy": 0.299316
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.357369,
+          "val_accuracy": 0.337158
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.255462,
+          "val_accuracy": 0.36792
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.19645,
+          "val_accuracy": 0.375977
+        },
+        {
+          "step": 5000,
+          "val_loss": 2.146953,
+          "val_accuracy": 0.394287
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.093104,
+          "val_accuracy": 0.408691
+        },
+        {
+          "step": 7000,
+          "val_loss": 2.048963,
+          "val_accuracy": 0.421143
+        },
+        {
+          "step": 8000,
+          "val_loss": 2.027416,
+          "val_accuracy": 0.417969
+        },
+        {
+          "step": 9000,
+          "val_loss": 1.998596,
+          "val_accuracy": 0.427002
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.971583,
+          "val_accuracy": 0.44043
+        },
+        {
+          "step": 11000,
+          "val_loss": 1.953868,
+          "val_accuracy": 0.444336
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.925563,
+          "val_accuracy": 0.449707
+        },
+        {
+          "step": 13000,
+          "val_loss": 1.920221,
+          "val_accuracy": 0.444336
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.905364,
+          "val_accuracy": 0.452148
+        },
+        {
+          "step": 15000,
+          "val_loss": 1.903006,
+          "val_accuracy": 0.449463
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.867753,
+          "val_accuracy": 0.459961
+        },
+        {
+          "step": 17000,
+          "val_loss": 1.857448,
+          "val_accuracy": 0.464111
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.859496,
+          "val_accuracy": 0.466553
+        },
+        {
+          "step": 19000,
+          "val_loss": 1.828506,
+          "val_accuracy": 0.470947
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.8199,
+          "val_accuracy": 0.47876
+        }
+      ],
+      "best_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.8199,
+        "val_accuracy": 0.47876
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.8199,
+        "val_accuracy": 0.47876
+      },
+      "final_training_loss": 1.769433,
+      "wall_seconds": 787.702357,
+      "mix_coefficients": {
+        "token": [
+          0.4227515757083893,
+          0.31387263536453247,
+          0.4388740062713623,
+          0.5818047523498535
+        ],
+        "blocks": [
+          0.7666752338409424,
+          0.7661362886428833,
+          0.8436252474784851,
+          0.8711349368095398
+        ],
+        "rates": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "internal_steps": 1,
+        "temporal_window": 0,
+        "readout_mode": "all",
+        "token_injection": "all",
+        "topology": "upward",
+        "readout_weights": [
+          0.5839899182319641,
+          0.22591617703437805,
+          0.10848432034254074,
+          0.0816095620393753
+        ]
+      }
+    },
+    {
+      "seed": 43,
+      "variant": "A_single",
+      "label": "ctx128_corrected_A_single",
+      "class_name": "ParallelDiagonalModel",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 1,
+      "rates": [
+        1
+      ],
+      "readout_mode": "last",
+      "token_injection": "block0",
+      "topology": "upward",
+      "temporal_window": 0,
+      "parameter_count": 2850422,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 8.518232,
+          "val_accuracy": 0.0
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.425735,
+          "val_accuracy": 0.324219
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.297974,
+          "val_accuracy": 0.356201
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.221513,
+          "val_accuracy": 0.370605
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.158121,
+          "val_accuracy": 0.384521
+        },
+        {
+          "step": 5000,
+          "val_loss": 2.13209,
+          "val_accuracy": 0.398682
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.098352,
+          "val_accuracy": 0.408203
+        },
+        {
+          "step": 7000,
+          "val_loss": 2.064373,
+          "val_accuracy": 0.413086
+        },
+        {
+          "step": 8000,
+          "val_loss": 2.03438,
+          "val_accuracy": 0.418701
+        },
+        {
+          "step": 9000,
+          "val_loss": 2.0152,
+          "val_accuracy": 0.422852
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.991852,
+          "val_accuracy": 0.422852
+        },
+        {
+          "step": 11000,
+          "val_loss": 1.964418,
+          "val_accuracy": 0.439209
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.955207,
+          "val_accuracy": 0.43042
+        },
+        {
+          "step": 13000,
+          "val_loss": 1.937526,
+          "val_accuracy": 0.446289
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.925414,
+          "val_accuracy": 0.449707
+        },
+        {
+          "step": 15000,
+          "val_loss": 1.924368,
+          "val_accuracy": 0.451172
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.888665,
+          "val_accuracy": 0.460938
+        },
+        {
+          "step": 17000,
+          "val_loss": 1.881628,
+          "val_accuracy": 0.458496
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.858549,
+          "val_accuracy": 0.468262
+        },
+        {
+          "step": 19000,
+          "val_loss": 1.863413,
+          "val_accuracy": 0.469238
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.844912,
+          "val_accuracy": 0.471436
+        }
+      ],
+      "best_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.844912,
+        "val_accuracy": 0.471436
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.844912,
+        "val_accuracy": 0.471436
+      },
+      "final_training_loss": 2.049031,
+      "wall_seconds": 458.449543,
+      "mix_coefficients": {
+        "token": [
+          0.4314131736755371
+        ],
+        "blocks": [
+          0.7476378679275513
+        ],
+        "rates": [
+          1
+        ],
+        "internal_steps": 1,
+        "temporal_window": 0,
+        "readout_mode": "last",
+        "token_injection": "block0",
+        "topology": "upward",
+        "readout_weights": null
+      }
+    },
+    {
+      "seed": 43,
+      "variant": "B_corrected",
+      "label": "ctx128_corrected_B_corrected",
+      "class_name": "ParallelDiagonalModel",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 4,
+      "rates": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "readout_mode": "all",
+      "token_injection": "block0",
+      "topology": "upward",
+      "temporal_window": 0,
+      "parameter_count": 3639168,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 8.581628,
+          "val_accuracy": 0.0
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.596183,
+          "val_accuracy": 0.294434
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.379814,
+          "val_accuracy": 0.335449
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.274785,
+          "val_accuracy": 0.354004
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.20911,
+          "val_accuracy": 0.37207
+        },
+        {
+          "step": 5000,
+          "val_loss": 2.182356,
+          "val_accuracy": 0.377197
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.148656,
+          "val_accuracy": 0.391846
+        },
+        {
+          "step": 7000,
+          "val_loss": 2.109126,
+          "val_accuracy": 0.39917
+        },
+        {
+          "step": 8000,
+          "val_loss": 2.07771,
+          "val_accuracy": 0.402344
+        },
+        {
+          "step": 9000,
+          "val_loss": 2.049306,
+          "val_accuracy": 0.412109
+        },
+        {
+          "step": 10000,
+          "val_loss": 2.019484,
+          "val_accuracy": 0.42041
+        },
+        {
+          "step": 11000,
+          "val_loss": 1.987439,
+          "val_accuracy": 0.430176
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.973653,
+          "val_accuracy": 0.428467
+        },
+        {
+          "step": 13000,
+          "val_loss": 1.952766,
+          "val_accuracy": 0.437744
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.939052,
+          "val_accuracy": 0.44043
+        },
+        {
+          "step": 15000,
+          "val_loss": 1.930499,
+          "val_accuracy": 0.447754
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.89765,
+          "val_accuracy": 0.447998
+        },
+        {
+          "step": 17000,
+          "val_loss": 1.889686,
+          "val_accuracy": 0.456055
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.868897,
+          "val_accuracy": 0.458008
+        },
+        {
+          "step": 19000,
+          "val_loss": 1.869703,
+          "val_accuracy": 0.463379
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.85464,
+          "val_accuracy": 0.467529
+        }
+      ],
+      "best_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.85464,
+        "val_accuracy": 0.467529
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.85464,
+        "val_accuracy": 0.467529
+      },
+      "final_training_loss": 2.029584,
+      "wall_seconds": 683.887432,
+      "mix_coefficients": {
+        "token": [
+          0.4295925796031952,
+          0.5,
+          0.5,
+          0.5
+        ],
+        "blocks": [
+          0.7507069110870361,
+          0.850714385509491,
+          0.8756942749023438,
+          0.8827419281005859
+        ],
+        "rates": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "internal_steps": 1,
+        "temporal_window": 0,
+        "readout_mode": "all",
+        "token_injection": "block0",
+        "topology": "upward",
+        "readout_weights": [
+          0.6838840842247009,
+          0.12607228755950928,
+          0.09069764614105225,
+          0.09934602677822113
+        ]
+      }
+    },
+    {
+      "seed": 43,
+      "variant": "C_old",
+      "label": "ctx128_corrected_C_old",
+      "class_name": "ParallelDiagonalModel",
+      "d_model": 256,
+      "feedforward_dim": 512,
+      "num_blocks": 4,
+      "rates": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "readout_mode": "all",
+      "token_injection": "all",
+      "topology": "upward",
+      "temporal_window": 0,
+      "parameter_count": 3639168,
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 8.630886,
+          "val_accuracy": 0.0
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.610624,
+          "val_accuracy": 0.295898
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.371683,
+          "val_accuracy": 0.339111
+        },
+        {
+          "step": 3000,
+          "val_loss": 2.26561,
+          "val_accuracy": 0.352051
+        },
+        {
+          "step": 4000,
+          "val_loss": 2.188252,
+          "val_accuracy": 0.378906
+        },
+        {
+          "step": 5000,
+          "val_loss": 2.148297,
+          "val_accuracy": 0.390137
+        },
+        {
+          "step": 6000,
+          "val_loss": 2.109278,
+          "val_accuracy": 0.406006
+        },
+        {
+          "step": 7000,
+          "val_loss": 2.068622,
+          "val_accuracy": 0.41748
+        },
+        {
+          "step": 8000,
+          "val_loss": 2.036409,
+          "val_accuracy": 0.416016
+        },
+        {
+          "step": 9000,
+          "val_loss": 2.009589,
+          "val_accuracy": 0.428711
+        },
+        {
+          "step": 10000,
+          "val_loss": 1.985913,
+          "val_accuracy": 0.427002
+        },
+        {
+          "step": 11000,
+          "val_loss": 1.951552,
+          "val_accuracy": 0.439453
+        },
+        {
+          "step": 12000,
+          "val_loss": 1.937836,
+          "val_accuracy": 0.439697
+        },
+        {
+          "step": 13000,
+          "val_loss": 1.922513,
+          "val_accuracy": 0.450684
+        },
+        {
+          "step": 14000,
+          "val_loss": 1.912182,
+          "val_accuracy": 0.451904
+        },
+        {
+          "step": 15000,
+          "val_loss": 1.898814,
+          "val_accuracy": 0.45752
+        },
+        {
+          "step": 16000,
+          "val_loss": 1.870771,
+          "val_accuracy": 0.460938
+        },
+        {
+          "step": 17000,
+          "val_loss": 1.860119,
+          "val_accuracy": 0.473145
+        },
+        {
+          "step": 18000,
+          "val_loss": 1.843415,
+          "val_accuracy": 0.470459
+        },
+        {
+          "step": 19000,
+          "val_loss": 1.842749,
+          "val_accuracy": 0.473633
+        },
+        {
+          "step": 20000,
+          "val_loss": 1.815583,
+          "val_accuracy": 0.482178
+        }
+      ],
+      "best_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.815583,
+        "val_accuracy": 0.482178
+      },
+      "final_checkpoint": {
+        "step": 20000,
+        "val_loss": 1.815583,
+        "val_accuracy": 0.482178
+      },
+      "final_training_loss": 2.006884,
+      "wall_seconds": 787.398832,
+      "mix_coefficients": {
+        "token": [
+          0.41456013917922974,
+          0.31569409370422363,
+          0.42629390954971313,
+          0.5851103067398071
+        ],
+        "blocks": [
+          0.7616623640060425,
+          0.7725504636764526,
+          0.8466334939002991,
+          0.8717145919799805
+        ],
+        "rates": [
+          1,
+          2,
+          4,
+          8
+        ],
+        "internal_steps": 1,
+        "temporal_window": 0,
+        "readout_mode": "all",
+        "token_injection": "all",
+        "topology": "upward",
+        "readout_weights": [
+          0.5747191905975342,
+          0.22652485966682434,
+          0.11199349910020828,
+          0.08676247298717499
+        ]
+      }
+    }
+  ],
+  "summary_by_variant": {
+    "A_single": {
+      "label": "ctx128_corrected_A_single",
+      "readout_mode": "last",
+      "token_injection": "block0",
+      "topology": "upward",
+      "temporal_window": 0,
+      "num_runs": 2,
+      "mean_final_val_loss": 1.838315,
+      "std_final_val_loss": 0.006597,
+      "mean_final_val_accuracy": 0.471558,
+      "std_final_val_accuracy": 0.000122,
+      "mean_best_val_loss": 1.838315,
+      "mean_best_val_accuracy": 0.471558,
+      "mean_wall_seconds": 457.400059,
+      "runs": [
+        {
+          "seed": 42,
+          "variant": "A_single",
+          "label": "ctx128_corrected_A_single",
+          "class_name": "ParallelDiagonalModel",
+          "d_model": 256,
+          "feedforward_dim": 512,
+          "num_blocks": 1,
+          "rates": [
+            1
+          ],
+          "readout_mode": "last",
+          "token_injection": "block0",
+          "topology": "upward",
+          "temporal_window": 0,
+          "parameter_count": 2850422,
+          "checkpoints": [
+            {
+              "step": 0,
+              "val_loss": 8.567463,
+              "val_accuracy": 0.000244
+            },
+            {
+              "step": 1000,
+              "val_loss": 2.432287,
+              "val_accuracy": 0.322266
+            },
+            {
+              "step": 2000,
+              "val_loss": 2.303955,
+              "val_accuracy": 0.347656
+            },
+            {
+              "step": 3000,
+              "val_loss": 2.226086,
+              "val_accuracy": 0.369629
+            },
+            {
+              "step": 4000,
+              "val_loss": 2.182495,
+              "val_accuracy": 0.381348
+            },
+            {
+              "step": 5000,
+              "val_loss": 2.134009,
+              "val_accuracy": 0.393311
+            },
+            {
+              "step": 6000,
+              "val_loss": 2.091551,
+              "val_accuracy": 0.40625
+            },
+            {
+              "step": 7000,
+              "val_loss": 2.058672,
+              "val_accuracy": 0.411621
+            },
+            {
+              "step": 8000,
+              "val_loss": 2.037129,
+              "val_accuracy": 0.416992
+            },
+            {
+              "step": 9000,
+              "val_loss": 2.011689,
+              "val_accuracy": 0.42749
+            },
+            {
+              "step": 10000,
+              "val_loss": 1.986495,
+              "val_accuracy": 0.435547
+            },
+            {
+              "step": 11000,
+              "val_loss": 1.972377,
+              "val_accuracy": 0.435791
+            },
+            {
+              "step": 12000,
+              "val_loss": 1.942862,
+              "val_accuracy": 0.442627
+            },
+            {
+              "step": 13000,
+              "val_loss": 1.934779,
+              "val_accuracy": 0.440186
+            },
+            {
+              "step": 14000,
+              "val_loss": 1.921163,
+              "val_accuracy": 0.44751
+            },
+            {
+              "step": 15000,
+              "val_loss": 1.913949,
+              "val_accuracy": 0.45874
+            },
+            {
+              "step": 16000,
+              "val_loss": 1.882725,
+              "val_accuracy": 0.460938
+            },
+            {
+              "step": 17000,
+              "val_loss": 1.87366,
+              "val_accuracy": 0.466553
+            },
+            {
+              "step": 18000,
+              "val_loss": 1.875621,
+              "val_accuracy": 0.460938
+            },
+            {
+              "step": 19000,
+              "val_loss": 1.848009,
+              "val_accuracy": 0.470459
+            },
+            {
+              "step": 20000,
+              "val_loss": 1.831718,
+              "val_accuracy": 0.47168
+            }
+          ],
+          "best_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.831718,
+            "val_accuracy": 0.47168
+          },
+          "final_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.831718,
+            "val_accuracy": 0.47168
+          },
+          "final_training_loss": 1.837541,
+          "wall_seconds": 456.350574,
+          "mix_coefficients": {
+            "token": [
+              0.43528568744659424
+            ],
+            "blocks": [
+              0.7583056688308716
+            ],
+            "rates": [
+              1
+            ],
+            "internal_steps": 1,
+            "temporal_window": 0,
+            "readout_mode": "last",
+            "token_injection": "block0",
+            "topology": "upward",
+            "readout_weights": null
+          }
+        },
+        {
+          "seed": 43,
+          "variant": "A_single",
+          "label": "ctx128_corrected_A_single",
+          "class_name": "ParallelDiagonalModel",
+          "d_model": 256,
+          "feedforward_dim": 512,
+          "num_blocks": 1,
+          "rates": [
+            1
+          ],
+          "readout_mode": "last",
+          "token_injection": "block0",
+          "topology": "upward",
+          "temporal_window": 0,
+          "parameter_count": 2850422,
+          "checkpoints": [
+            {
+              "step": 0,
+              "val_loss": 8.518232,
+              "val_accuracy": 0.0
+            },
+            {
+              "step": 1000,
+              "val_loss": 2.425735,
+              "val_accuracy": 0.324219
+            },
+            {
+              "step": 2000,
+              "val_loss": 2.297974,
+              "val_accuracy": 0.356201
+            },
+            {
+              "step": 3000,
+              "val_loss": 2.221513,
+              "val_accuracy": 0.370605
+            },
+            {
+              "step": 4000,
+              "val_loss": 2.158121,
+              "val_accuracy": 0.384521
+            },
+            {
+              "step": 5000,
+              "val_loss": 2.13209,
+              "val_accuracy": 0.398682
+            },
+            {
+              "step": 6000,
+              "val_loss": 2.098352,
+              "val_accuracy": 0.408203
+            },
+            {
+              "step": 7000,
+              "val_loss": 2.064373,
+              "val_accuracy": 0.413086
+            },
+            {
+              "step": 8000,
+              "val_loss": 2.03438,
+              "val_accuracy": 0.418701
+            },
+            {
+              "step": 9000,
+              "val_loss": 2.0152,
+              "val_accuracy": 0.422852
+            },
+            {
+              "step": 10000,
+              "val_loss": 1.991852,
+              "val_accuracy": 0.422852
+            },
+            {
+              "step": 11000,
+              "val_loss": 1.964418,
+              "val_accuracy": 0.439209
+            },
+            {
+              "step": 12000,
+              "val_loss": 1.955207,
+              "val_accuracy": 0.43042
+            },
+            {
+              "step": 13000,
+              "val_loss": 1.937526,
+              "val_accuracy": 0.446289
+            },
+            {
+              "step": 14000,
+              "val_loss": 1.925414,
+              "val_accuracy": 0.449707
+            },
+            {
+              "step": 15000,
+              "val_loss": 1.924368,
+              "val_accuracy": 0.451172
+            },
+            {
+              "step": 16000,
+              "val_loss": 1.888665,
+              "val_accuracy": 0.460938
+            },
+            {
+              "step": 17000,
+              "val_loss": 1.881628,
+              "val_accuracy": 0.458496
+            },
+            {
+              "step": 18000,
+              "val_loss": 1.858549,
+              "val_accuracy": 0.468262
+            },
+            {
+              "step": 19000,
+              "val_loss": 1.863413,
+              "val_accuracy": 0.469238
+            },
+            {
+              "step": 20000,
+              "val_loss": 1.844912,
+              "val_accuracy": 0.471436
+            }
+          ],
+          "best_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.844912,
+            "val_accuracy": 0.471436
+          },
+          "final_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.844912,
+            "val_accuracy": 0.471436
+          },
+          "final_training_loss": 2.049031,
+          "wall_seconds": 458.449543,
+          "mix_coefficients": {
+            "token": [
+              0.4314131736755371
+            ],
+            "blocks": [
+              0.7476378679275513
+            ],
+            "rates": [
+              1
+            ],
+            "internal_steps": 1,
+            "temporal_window": 0,
+            "readout_mode": "last",
+            "token_injection": "block0",
+            "topology": "upward",
+            "readout_weights": null
+          }
+        }
+      ]
+    },
+    "B_corrected": {
+      "label": "ctx128_corrected_B_corrected",
+      "readout_mode": "all",
+      "token_injection": "block0",
+      "topology": "upward",
+      "temporal_window": 0,
+      "num_runs": 2,
+      "mean_final_val_loss": 1.851889,
+      "std_final_val_loss": 0.002752,
+      "mean_final_val_accuracy": 0.465332,
+      "std_final_val_accuracy": 0.002197,
+      "mean_best_val_loss": 1.851889,
+      "mean_best_val_accuracy": 0.465332,
+      "mean_wall_seconds": 683.907727,
+      "runs": [
+        {
+          "seed": 42,
+          "variant": "B_corrected",
+          "label": "ctx128_corrected_B_corrected",
+          "class_name": "ParallelDiagonalModel",
+          "d_model": 256,
+          "feedforward_dim": 512,
+          "num_blocks": 4,
+          "rates": [
+            1,
+            2,
+            4,
+            8
+          ],
+          "readout_mode": "all",
+          "token_injection": "block0",
+          "topology": "upward",
+          "temporal_window": 0,
+          "parameter_count": 3639168,
+          "checkpoints": [
+            {
+              "step": 0,
+              "val_loss": 8.483711,
+              "val_accuracy": 0.0
+            },
+            {
+              "step": 1000,
+              "val_loss": 2.582315,
+              "val_accuracy": 0.297607
+            },
+            {
+              "step": 2000,
+              "val_loss": 2.374963,
+              "val_accuracy": 0.333252
+            },
+            {
+              "step": 3000,
+              "val_loss": 2.278323,
+              "val_accuracy": 0.353271
+            },
+            {
+              "step": 4000,
+              "val_loss": 2.229759,
+              "val_accuracy": 0.364502
+            },
+            {
+              "step": 5000,
+              "val_loss": 2.184283,
+              "val_accuracy": 0.377686
+            },
+            {
+              "step": 6000,
+              "val_loss": 2.130971,
+              "val_accuracy": 0.397461
+            },
+            {
+              "step": 7000,
+              "val_loss": 2.087721,
+              "val_accuracy": 0.40332
+            },
+            {
+              "step": 8000,
+              "val_loss": 2.070093,
+              "val_accuracy": 0.402344
+            },
+            {
+              "step": 9000,
+              "val_loss": 2.037546,
+              "val_accuracy": 0.419678
+            },
+            {
+              "step": 10000,
+              "val_loss": 2.005873,
+              "val_accuracy": 0.427734
+            },
+            {
+              "step": 11000,
+              "val_loss": 1.989735,
+              "val_accuracy": 0.43335
+            },
+            {
+              "step": 12000,
+              "val_loss": 1.963855,
+              "val_accuracy": 0.438477
+            },
+            {
+              "step": 13000,
+              "val_loss": 1.951218,
+              "val_accuracy": 0.434082
+            },
+            {
+              "step": 14000,
+              "val_loss": 1.935953,
+              "val_accuracy": 0.436523
+            },
+            {
+              "step": 15000,
+              "val_loss": 1.929768,
+              "val_accuracy": 0.446045
+            },
+            {
+              "step": 16000,
+              "val_loss": 1.900573,
+              "val_accuracy": 0.442627
+            },
+            {
+              "step": 17000,
+              "val_loss": 1.88507,
+              "val_accuracy": 0.454346
+            },
+            {
+              "step": 18000,
+              "val_loss": 1.887942,
+              "val_accuracy": 0.457764
+            },
+            {
+              "step": 19000,
+              "val_loss": 1.868165,
+              "val_accuracy": 0.459473
+            },
+            {
+              "step": 20000,
+              "val_loss": 1.849137,
+              "val_accuracy": 0.463135
+            }
+          ],
+          "best_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.849137,
+            "val_accuracy": 0.463135
+          },
+          "final_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.849137,
+            "val_accuracy": 0.463135
+          },
+          "final_training_loss": 1.761572,
+          "wall_seconds": 683.928023,
+          "mix_coefficients": {
+            "token": [
+              0.4303250312805176,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "blocks": [
+              0.7666789889335632,
+              0.8431386947631836,
+              0.876447319984436,
+              0.8805752396583557
+            ],
+            "rates": [
+              1,
+              2,
+              4,
+              8
+            ],
+            "internal_steps": 1,
+            "temporal_window": 0,
+            "readout_mode": "all",
+            "token_injection": "block0",
+            "topology": "upward",
+            "readout_weights": [
+              0.663688600063324,
+              0.13878117501735687,
+              0.09387625753879547,
+              0.10365396738052368
+            ]
+          }
+        },
+        {
+          "seed": 43,
+          "variant": "B_corrected",
+          "label": "ctx128_corrected_B_corrected",
+          "class_name": "ParallelDiagonalModel",
+          "d_model": 256,
+          "feedforward_dim": 512,
+          "num_blocks": 4,
+          "rates": [
+            1,
+            2,
+            4,
+            8
+          ],
+          "readout_mode": "all",
+          "token_injection": "block0",
+          "topology": "upward",
+          "temporal_window": 0,
+          "parameter_count": 3639168,
+          "checkpoints": [
+            {
+              "step": 0,
+              "val_loss": 8.581628,
+              "val_accuracy": 0.0
+            },
+            {
+              "step": 1000,
+              "val_loss": 2.596183,
+              "val_accuracy": 0.294434
+            },
+            {
+              "step": 2000,
+              "val_loss": 2.379814,
+              "val_accuracy": 0.335449
+            },
+            {
+              "step": 3000,
+              "val_loss": 2.274785,
+              "val_accuracy": 0.354004
+            },
+            {
+              "step": 4000,
+              "val_loss": 2.20911,
+              "val_accuracy": 0.37207
+            },
+            {
+              "step": 5000,
+              "val_loss": 2.182356,
+              "val_accuracy": 0.377197
+            },
+            {
+              "step": 6000,
+              "val_loss": 2.148656,
+              "val_accuracy": 0.391846
+            },
+            {
+              "step": 7000,
+              "val_loss": 2.109126,
+              "val_accuracy": 0.39917
+            },
+            {
+              "step": 8000,
+              "val_loss": 2.07771,
+              "val_accuracy": 0.402344
+            },
+            {
+              "step": 9000,
+              "val_loss": 2.049306,
+              "val_accuracy": 0.412109
+            },
+            {
+              "step": 10000,
+              "val_loss": 2.019484,
+              "val_accuracy": 0.42041
+            },
+            {
+              "step": 11000,
+              "val_loss": 1.987439,
+              "val_accuracy": 0.430176
+            },
+            {
+              "step": 12000,
+              "val_loss": 1.973653,
+              "val_accuracy": 0.428467
+            },
+            {
+              "step": 13000,
+              "val_loss": 1.952766,
+              "val_accuracy": 0.437744
+            },
+            {
+              "step": 14000,
+              "val_loss": 1.939052,
+              "val_accuracy": 0.44043
+            },
+            {
+              "step": 15000,
+              "val_loss": 1.930499,
+              "val_accuracy": 0.447754
+            },
+            {
+              "step": 16000,
+              "val_loss": 1.89765,
+              "val_accuracy": 0.447998
+            },
+            {
+              "step": 17000,
+              "val_loss": 1.889686,
+              "val_accuracy": 0.456055
+            },
+            {
+              "step": 18000,
+              "val_loss": 1.868897,
+              "val_accuracy": 0.458008
+            },
+            {
+              "step": 19000,
+              "val_loss": 1.869703,
+              "val_accuracy": 0.463379
+            },
+            {
+              "step": 20000,
+              "val_loss": 1.85464,
+              "val_accuracy": 0.467529
+            }
+          ],
+          "best_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.85464,
+            "val_accuracy": 0.467529
+          },
+          "final_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.85464,
+            "val_accuracy": 0.467529
+          },
+          "final_training_loss": 2.029584,
+          "wall_seconds": 683.887432,
+          "mix_coefficients": {
+            "token": [
+              0.4295925796031952,
+              0.5,
+              0.5,
+              0.5
+            ],
+            "blocks": [
+              0.7507069110870361,
+              0.850714385509491,
+              0.8756942749023438,
+              0.8827419281005859
+            ],
+            "rates": [
+              1,
+              2,
+              4,
+              8
+            ],
+            "internal_steps": 1,
+            "temporal_window": 0,
+            "readout_mode": "all",
+            "token_injection": "block0",
+            "topology": "upward",
+            "readout_weights": [
+              0.6838840842247009,
+              0.12607228755950928,
+              0.09069764614105225,
+              0.09934602677822113
+            ]
+          }
+        }
+      ]
+    },
+    "C_old": {
+      "label": "ctx128_corrected_C_old",
+      "readout_mode": "all",
+      "token_injection": "all",
+      "topology": "upward",
+      "temporal_window": 0,
+      "num_runs": 2,
+      "mean_final_val_loss": 1.817741,
+      "std_final_val_loss": 0.002159,
+      "mean_final_val_accuracy": 0.480469,
+      "std_final_val_accuracy": 0.001709,
+      "mean_best_val_loss": 1.817741,
+      "mean_best_val_accuracy": 0.480469,
+      "mean_wall_seconds": 787.550594,
+      "runs": [
+        {
+          "seed": 42,
+          "variant": "C_old",
+          "label": "ctx128_corrected_C_old",
+          "class_name": "ParallelDiagonalModel",
+          "d_model": 256,
+          "feedforward_dim": 512,
+          "num_blocks": 4,
+          "rates": [
+            1,
+            2,
+            4,
+            8
+          ],
+          "readout_mode": "all",
+          "token_injection": "all",
+          "topology": "upward",
+          "temporal_window": 0,
+          "parameter_count": 3639168,
+          "checkpoints": [
+            {
+              "step": 0,
+              "val_loss": 8.487154,
+              "val_accuracy": 0.000244
+            },
+            {
+              "step": 1000,
+              "val_loss": 2.574627,
+              "val_accuracy": 0.299316
+            },
+            {
+              "step": 2000,
+              "val_loss": 2.357369,
+              "val_accuracy": 0.337158
+            },
+            {
+              "step": 3000,
+              "val_loss": 2.255462,
+              "val_accuracy": 0.36792
+            },
+            {
+              "step": 4000,
+              "val_loss": 2.19645,
+              "val_accuracy": 0.375977
+            },
+            {
+              "step": 5000,
+              "val_loss": 2.146953,
+              "val_accuracy": 0.394287
+            },
+            {
+              "step": 6000,
+              "val_loss": 2.093104,
+              "val_accuracy": 0.408691
+            },
+            {
+              "step": 7000,
+              "val_loss": 2.048963,
+              "val_accuracy": 0.421143
+            },
+            {
+              "step": 8000,
+              "val_loss": 2.027416,
+              "val_accuracy": 0.417969
+            },
+            {
+              "step": 9000,
+              "val_loss": 1.998596,
+              "val_accuracy": 0.427002
+            },
+            {
+              "step": 10000,
+              "val_loss": 1.971583,
+              "val_accuracy": 0.44043
+            },
+            {
+              "step": 11000,
+              "val_loss": 1.953868,
+              "val_accuracy": 0.444336
+            },
+            {
+              "step": 12000,
+              "val_loss": 1.925563,
+              "val_accuracy": 0.449707
+            },
+            {
+              "step": 13000,
+              "val_loss": 1.920221,
+              "val_accuracy": 0.444336
+            },
+            {
+              "step": 14000,
+              "val_loss": 1.905364,
+              "val_accuracy": 0.452148
+            },
+            {
+              "step": 15000,
+              "val_loss": 1.903006,
+              "val_accuracy": 0.449463
+            },
+            {
+              "step": 16000,
+              "val_loss": 1.867753,
+              "val_accuracy": 0.459961
+            },
+            {
+              "step": 17000,
+              "val_loss": 1.857448,
+              "val_accuracy": 0.464111
+            },
+            {
+              "step": 18000,
+              "val_loss": 1.859496,
+              "val_accuracy": 0.466553
+            },
+            {
+              "step": 19000,
+              "val_loss": 1.828506,
+              "val_accuracy": 0.470947
+            },
+            {
+              "step": 20000,
+              "val_loss": 1.8199,
+              "val_accuracy": 0.47876
+            }
+          ],
+          "best_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.8199,
+            "val_accuracy": 0.47876
+          },
+          "final_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.8199,
+            "val_accuracy": 0.47876
+          },
+          "final_training_loss": 1.769433,
+          "wall_seconds": 787.702357,
+          "mix_coefficients": {
+            "token": [
+              0.4227515757083893,
+              0.31387263536453247,
+              0.4388740062713623,
+              0.5818047523498535
+            ],
+            "blocks": [
+              0.7666752338409424,
+              0.7661362886428833,
+              0.8436252474784851,
+              0.8711349368095398
+            ],
+            "rates": [
+              1,
+              2,
+              4,
+              8
+            ],
+            "internal_steps": 1,
+            "temporal_window": 0,
+            "readout_mode": "all",
+            "token_injection": "all",
+            "topology": "upward",
+            "readout_weights": [
+              0.5839899182319641,
+              0.22591617703437805,
+              0.10848432034254074,
+              0.0816095620393753
+            ]
+          }
+        },
+        {
+          "seed": 43,
+          "variant": "C_old",
+          "label": "ctx128_corrected_C_old",
+          "class_name": "ParallelDiagonalModel",
+          "d_model": 256,
+          "feedforward_dim": 512,
+          "num_blocks": 4,
+          "rates": [
+            1,
+            2,
+            4,
+            8
+          ],
+          "readout_mode": "all",
+          "token_injection": "all",
+          "topology": "upward",
+          "temporal_window": 0,
+          "parameter_count": 3639168,
+          "checkpoints": [
+            {
+              "step": 0,
+              "val_loss": 8.630886,
+              "val_accuracy": 0.0
+            },
+            {
+              "step": 1000,
+              "val_loss": 2.610624,
+              "val_accuracy": 0.295898
+            },
+            {
+              "step": 2000,
+              "val_loss": 2.371683,
+              "val_accuracy": 0.339111
+            },
+            {
+              "step": 3000,
+              "val_loss": 2.26561,
+              "val_accuracy": 0.352051
+            },
+            {
+              "step": 4000,
+              "val_loss": 2.188252,
+              "val_accuracy": 0.378906
+            },
+            {
+              "step": 5000,
+              "val_loss": 2.148297,
+              "val_accuracy": 0.390137
+            },
+            {
+              "step": 6000,
+              "val_loss": 2.109278,
+              "val_accuracy": 0.406006
+            },
+            {
+              "step": 7000,
+              "val_loss": 2.068622,
+              "val_accuracy": 0.41748
+            },
+            {
+              "step": 8000,
+              "val_loss": 2.036409,
+              "val_accuracy": 0.416016
+            },
+            {
+              "step": 9000,
+              "val_loss": 2.009589,
+              "val_accuracy": 0.428711
+            },
+            {
+              "step": 10000,
+              "val_loss": 1.985913,
+              "val_accuracy": 0.427002
+            },
+            {
+              "step": 11000,
+              "val_loss": 1.951552,
+              "val_accuracy": 0.439453
+            },
+            {
+              "step": 12000,
+              "val_loss": 1.937836,
+              "val_accuracy": 0.439697
+            },
+            {
+              "step": 13000,
+              "val_loss": 1.922513,
+              "val_accuracy": 0.450684
+            },
+            {
+              "step": 14000,
+              "val_loss": 1.912182,
+              "val_accuracy": 0.451904
+            },
+            {
+              "step": 15000,
+              "val_loss": 1.898814,
+              "val_accuracy": 0.45752
+            },
+            {
+              "step": 16000,
+              "val_loss": 1.870771,
+              "val_accuracy": 0.460938
+            },
+            {
+              "step": 17000,
+              "val_loss": 1.860119,
+              "val_accuracy": 0.473145
+            },
+            {
+              "step": 18000,
+              "val_loss": 1.843415,
+              "val_accuracy": 0.470459
+            },
+            {
+              "step": 19000,
+              "val_loss": 1.842749,
+              "val_accuracy": 0.473633
+            },
+            {
+              "step": 20000,
+              "val_loss": 1.815583,
+              "val_accuracy": 0.482178
+            }
+          ],
+          "best_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.815583,
+            "val_accuracy": 0.482178
+          },
+          "final_checkpoint": {
+            "step": 20000,
+            "val_loss": 1.815583,
+            "val_accuracy": 0.482178
+          },
+          "final_training_loss": 2.006884,
+          "wall_seconds": 787.398832,
+          "mix_coefficients": {
+            "token": [
+              0.41456013917922974,
+              0.31569409370422363,
+              0.42629390954971313,
+              0.5851103067398071
+            ],
+            "blocks": [
+              0.7616623640060425,
+              0.7725504636764526,
+              0.8466334939002991,
+              0.8717145919799805
+            ],
+            "rates": [
+              1,
+              2,
+              4,
+              8
+            ],
+            "internal_steps": 1,
+            "temporal_window": 0,
+            "readout_mode": "all",
+            "token_injection": "all",
+            "topology": "upward",
+            "readout_weights": [
+              0.5747191905975342,
+              0.22652485966682434,
+              0.11199349910020828,
+              0.08676247298717499
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "comparison": {
+    "mean_final_val_loss_delta_B_minus_A": 0.013574,
+    "mean_final_val_accuracy_delta_B_minus_A": -0.006226,
+    "mean_final_val_loss_delta_C_minus_A": -0.020574,
+    "mean_final_val_accuracy_delta_C_minus_A": 0.008911,
+    "mean_final_val_loss_delta_B_minus_C": 0.034148,
+    "mean_final_val_accuracy_delta_B_minus_C": -0.015137
+  }
+}

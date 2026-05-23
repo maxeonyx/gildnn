@@ -1,0 +1,138 @@
+{"stage": "experiment_started", "seeds": [42, 43], "training_steps": 20000, "eval_interval": 1000, "batch_size": 64, "eval_batch_size": 512, "learning_rate": 0.0003, "context_size": 128, "temporal_window": 0, "device": "cuda", "train_path": "C:\\Users\\maxeo\\gildnn\\data\\wikitext-103-raw\\wiki.train.raw", "val_path": "C:\\Users\\maxeo\\gildnn\\data\\wikitext-103-raw\\wiki.valid.raw", "vocab_size": 4980, "train_dataset_size": 538294205, "val_examples": 4096, "trainer": "GraphTrainer"}
+{"stage": "seed_started", "seed": 42}
+{"stage": "variant_started", "seed": 42, "variant": "A_single", "label": "ctx128_corrected_A_single", "parameter_count": 2850422, "initial_checkpoint": {"step": 0, "val_loss": 8.567463, "val_accuracy": 0.000244}, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 1000, "val_loss": 2.432287, "val_accuracy": 0.322266, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 2000, "val_loss": 2.303955, "val_accuracy": 0.347656, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 3000, "val_loss": 2.226086, "val_accuracy": 0.369629, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 4000, "val_loss": 2.182495, "val_accuracy": 0.381348, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 5000, "val_loss": 2.134009, "val_accuracy": 0.393311, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 6000, "val_loss": 2.091551, "val_accuracy": 0.40625, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 7000, "val_loss": 2.058672, "val_accuracy": 0.411621, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 8000, "val_loss": 2.037129, "val_accuracy": 0.416992, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 9000, "val_loss": 2.011689, "val_accuracy": 0.42749, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 10000, "val_loss": 1.986495, "val_accuracy": 0.435547, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 11000, "val_loss": 1.972377, "val_accuracy": 0.435791, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 12000, "val_loss": 1.942862, "val_accuracy": 0.442627, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 13000, "val_loss": 1.934779, "val_accuracy": 0.440186, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 14000, "val_loss": 1.921163, "val_accuracy": 0.44751, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 15000, "val_loss": 1.913949, "val_accuracy": 0.45874, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 16000, "val_loss": 1.882725, "val_accuracy": 0.460938, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 17000, "val_loss": 1.87366, "val_accuracy": 0.466553, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 18000, "val_loss": 1.875621, "val_accuracy": 0.460938, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 19000, "val_loss": 1.848009, "val_accuracy": 0.470459, "readout_weights": null}
+{"stage": "checkpoint", "seed": 42, "variant": "A_single", "step": 20000, "val_loss": 1.831718, "val_accuracy": 0.47168, "readout_weights": null}
+{"stage": "variant_done", "seed": 42, "variant": "A_single", "final_checkpoint": {"step": 20000, "val_loss": 1.831718, "val_accuracy": 0.47168}, "final_training_loss": 1.837541, "wall_seconds": 456.350574, "readout_weights": null}
+{"stage": "variant_started", "seed": 42, "variant": "B_corrected", "label": "ctx128_corrected_B_corrected", "parameter_count": 3639168, "initial_checkpoint": {"step": 0, "val_loss": 8.483711, "val_accuracy": 0.0}, "readout_weights": [0.25, 0.25, 0.25, 0.25]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 1000, "val_loss": 2.582315, "val_accuracy": 0.297607, "readout_weights": [0.360094, 0.20919, 0.202384, 0.228332]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 2000, "val_loss": 2.374963, "val_accuracy": 0.333252, "readout_weights": [0.423291, 0.189722, 0.180309, 0.206679]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 3000, "val_loss": 2.278323, "val_accuracy": 0.353271, "readout_weights": [0.463384, 0.178733, 0.166289, 0.191594]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 4000, "val_loss": 2.229759, "val_accuracy": 0.364502, "readout_weights": [0.495365, 0.169964, 0.154051, 0.180619]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 5000, "val_loss": 2.184283, "val_accuracy": 0.377686, "readout_weights": [0.524403, 0.16143, 0.143806, 0.170361]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 6000, "val_loss": 2.130971, "val_accuracy": 0.397461, "readout_weights": [0.549396, 0.154579, 0.135299, 0.160727]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 7000, "val_loss": 2.087721, "val_accuracy": 0.40332, "readout_weights": [0.569197, 0.149281, 0.128633, 0.152889]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 8000, "val_loss": 2.070093, "val_accuracy": 0.402344, "readout_weights": [0.585179, 0.145587, 0.123109, 0.146125]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 9000, "val_loss": 2.037546, "val_accuracy": 0.419678, "readout_weights": [0.600941, 0.141705, 0.117768, 0.139587]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 10000, "val_loss": 2.005873, "val_accuracy": 0.427734, "readout_weights": [0.611762, 0.140082, 0.114048, 0.134109]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 11000, "val_loss": 1.989735, "val_accuracy": 0.43335, "readout_weights": [0.62338, 0.137551, 0.110134, 0.128935]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 12000, "val_loss": 1.963855, "val_accuracy": 0.438477, "readout_weights": [0.631734, 0.136795, 0.106961, 0.12451]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 13000, "val_loss": 1.951218, "val_accuracy": 0.434082, "readout_weights": [0.638529, 0.135687, 0.104718, 0.121066]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 14000, "val_loss": 1.935953, "val_accuracy": 0.436523, "readout_weights": [0.647103, 0.134422, 0.101722, 0.116753]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 15000, "val_loss": 1.929768, "val_accuracy": 0.446045, "readout_weights": [0.649766, 0.134847, 0.100916, 0.114471]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 16000, "val_loss": 1.900573, "val_accuracy": 0.442627, "readout_weights": [0.654866, 0.134664, 0.099062, 0.111408]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 17000, "val_loss": 1.88507, "val_accuracy": 0.454346, "readout_weights": [0.658443, 0.135247, 0.097362, 0.108947]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 18000, "val_loss": 1.887942, "val_accuracy": 0.457764, "readout_weights": [0.661866, 0.136424, 0.095434, 0.106276]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 19000, "val_loss": 1.868165, "val_accuracy": 0.459473, "readout_weights": [0.663467, 0.137094, 0.094589, 0.104851]}
+{"stage": "checkpoint", "seed": 42, "variant": "B_corrected", "step": 20000, "val_loss": 1.849137, "val_accuracy": 0.463135, "readout_weights": [0.663689, 0.138781, 0.093876, 0.103654]}
+{"stage": "variant_done", "seed": 42, "variant": "B_corrected", "final_checkpoint": {"step": 20000, "val_loss": 1.849137, "val_accuracy": 0.463135}, "final_training_loss": 1.761572, "wall_seconds": 683.928023, "readout_weights": [0.663689, 0.138781, 0.093876, 0.103654]}
+{"stage": "variant_started", "seed": 42, "variant": "C_old", "label": "ctx128_corrected_C_old", "parameter_count": 3639168, "initial_checkpoint": {"step": 0, "val_loss": 8.487154, "val_accuracy": 0.000244}, "readout_weights": [0.25, 0.25, 0.25, 0.25]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 1000, "val_loss": 2.574627, "val_accuracy": 0.299316, "readout_weights": [0.389779, 0.213724, 0.193162, 0.203336]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 2000, "val_loss": 2.357369, "val_accuracy": 0.337158, "readout_weights": [0.459112, 0.194383, 0.169268, 0.177237]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 3000, "val_loss": 2.255462, "val_accuracy": 0.36792, "readout_weights": [0.501184, 0.185611, 0.153833, 0.159372]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 4000, "val_loss": 2.19645, "val_accuracy": 0.375977, "readout_weights": [0.529108, 0.18129, 0.142908, 0.146693]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 5000, "val_loss": 2.146953, "val_accuracy": 0.394287, "readout_weights": [0.551188, 0.179208, 0.134004, 0.1356]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 6000, "val_loss": 2.093104, "val_accuracy": 0.408691, "readout_weights": [0.567728, 0.179806, 0.126191, 0.126275]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 7000, "val_loss": 2.048963, "val_accuracy": 0.421143, "readout_weights": [0.578048, 0.181583, 0.121416, 0.118953]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 8000, "val_loss": 2.027416, "val_accuracy": 0.417969, "readout_weights": [0.583878, 0.185285, 0.117992, 0.112845]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 9000, "val_loss": 1.998596, "val_accuracy": 0.427002, "readout_weights": [0.590428, 0.187454, 0.115144, 0.106975]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 10000, "val_loss": 1.971583, "val_accuracy": 0.44043, "readout_weights": [0.591287, 0.191405, 0.114024, 0.103283]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 11000, "val_loss": 1.953868, "val_accuracy": 0.444336, "readout_weights": [0.594535, 0.194481, 0.11186, 0.099123]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 12000, "val_loss": 1.925563, "val_accuracy": 0.449707, "readout_weights": [0.594467, 0.198267, 0.11077, 0.096496]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 13000, "val_loss": 1.920221, "val_accuracy": 0.444336, "readout_weights": [0.593493, 0.201996, 0.110427, 0.094084]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 14000, "val_loss": 1.905364, "val_accuracy": 0.452148, "readout_weights": [0.59538, 0.204038, 0.109325, 0.091256]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 15000, "val_loss": 1.903006, "val_accuracy": 0.449463, "readout_weights": [0.593959, 0.206806, 0.109984, 0.089251]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 16000, "val_loss": 1.867753, "val_accuracy": 0.459961, "readout_weights": [0.592163, 0.211239, 0.109481, 0.087117]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 17000, "val_loss": 1.857448, "val_accuracy": 0.464111, "readout_weights": [0.591145, 0.214153, 0.109252, 0.085451]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 18000, "val_loss": 1.859496, "val_accuracy": 0.466553, "readout_weights": [0.588854, 0.218423, 0.108817, 0.083907]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 19000, "val_loss": 1.828506, "val_accuracy": 0.470947, "readout_weights": [0.585567, 0.223109, 0.108749, 0.082574]}
+{"stage": "checkpoint", "seed": 42, "variant": "C_old", "step": 20000, "val_loss": 1.8199, "val_accuracy": 0.47876, "readout_weights": [0.58399, 0.225916, 0.108484, 0.08161]}
+{"stage": "variant_done", "seed": 42, "variant": "C_old", "final_checkpoint": {"step": 20000, "val_loss": 1.8199, "val_accuracy": 0.47876}, "final_training_loss": 1.769433, "wall_seconds": 787.702357, "readout_weights": [0.58399, 0.225916, 0.108484, 0.08161]}
+{"stage": "seed_done", "seed": 42}
+{"stage": "seed_started", "seed": 43}
+{"stage": "variant_started", "seed": 43, "variant": "A_single", "label": "ctx128_corrected_A_single", "parameter_count": 2850422, "initial_checkpoint": {"step": 0, "val_loss": 8.518232, "val_accuracy": 0.0}, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 1000, "val_loss": 2.425735, "val_accuracy": 0.324219, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 2000, "val_loss": 2.297974, "val_accuracy": 0.356201, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 3000, "val_loss": 2.221513, "val_accuracy": 0.370605, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 4000, "val_loss": 2.158121, "val_accuracy": 0.384521, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 5000, "val_loss": 2.13209, "val_accuracy": 0.398682, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 6000, "val_loss": 2.098352, "val_accuracy": 0.408203, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 7000, "val_loss": 2.064373, "val_accuracy": 0.413086, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 8000, "val_loss": 2.03438, "val_accuracy": 0.418701, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 9000, "val_loss": 2.0152, "val_accuracy": 0.422852, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 10000, "val_loss": 1.991852, "val_accuracy": 0.422852, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 11000, "val_loss": 1.964418, "val_accuracy": 0.439209, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 12000, "val_loss": 1.955207, "val_accuracy": 0.43042, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 13000, "val_loss": 1.937526, "val_accuracy": 0.446289, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 14000, "val_loss": 1.925414, "val_accuracy": 0.449707, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 15000, "val_loss": 1.924368, "val_accuracy": 0.451172, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 16000, "val_loss": 1.888665, "val_accuracy": 0.460938, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 17000, "val_loss": 1.881628, "val_accuracy": 0.458496, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 18000, "val_loss": 1.858549, "val_accuracy": 0.468262, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 19000, "val_loss": 1.863413, "val_accuracy": 0.469238, "readout_weights": null}
+{"stage": "checkpoint", "seed": 43, "variant": "A_single", "step": 20000, "val_loss": 1.844912, "val_accuracy": 0.471436, "readout_weights": null}
+{"stage": "variant_done", "seed": 43, "variant": "A_single", "final_checkpoint": {"step": 20000, "val_loss": 1.844912, "val_accuracy": 0.471436}, "final_training_loss": 2.049031, "wall_seconds": 458.449543, "readout_weights": null}
+{"stage": "variant_started", "seed": 43, "variant": "B_corrected", "label": "ctx128_corrected_B_corrected", "parameter_count": 3639168, "initial_checkpoint": {"step": 0, "val_loss": 8.581628, "val_accuracy": 0.0}, "readout_weights": [0.25, 0.25, 0.25, 0.25]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 1000, "val_loss": 2.596183, "val_accuracy": 0.294434, "readout_weights": [0.35841, 0.210624, 0.203673, 0.227293]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 2000, "val_loss": 2.379814, "val_accuracy": 0.335449, "readout_weights": [0.423856, 0.190726, 0.180895, 0.204523]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 3000, "val_loss": 2.274785, "val_accuracy": 0.354004, "readout_weights": [0.466812, 0.178301, 0.166122, 0.188765]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 4000, "val_loss": 2.20911, "val_accuracy": 0.37207, "readout_weights": [0.499385, 0.169087, 0.154147, 0.17738]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 5000, "val_loss": 2.182356, "val_accuracy": 0.377197, "readout_weights": [0.525985, 0.160433, 0.144531, 0.169051]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 6000, "val_loss": 2.148656, "val_accuracy": 0.391846, "readout_weights": [0.549161, 0.153572, 0.136421, 0.160846]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 7000, "val_loss": 2.109126, "val_accuracy": 0.39917, "readout_weights": [0.569018, 0.147522, 0.130054, 0.153406]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 8000, "val_loss": 2.07771, "val_accuracy": 0.402344, "readout_weights": [0.590011, 0.141623, 0.123218, 0.145148]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 9000, "val_loss": 2.049306, "val_accuracy": 0.412109, "readout_weights": [0.605789, 0.13763, 0.118182, 0.1384]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 10000, "val_loss": 2.019484, "val_accuracy": 0.42041, "readout_weights": [0.618461, 0.134841, 0.114078, 0.13262]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 11000, "val_loss": 1.987439, "val_accuracy": 0.430176, "readout_weights": [0.631636, 0.132054, 0.109622, 0.126688]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 12000, "val_loss": 1.973653, "val_accuracy": 0.428467, "readout_weights": [0.64122, 0.129417, 0.106816, 0.122547]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 13000, "val_loss": 1.952766, "val_accuracy": 0.437744, "readout_weights": [0.649657, 0.127744, 0.104363, 0.118236]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 14000, "val_loss": 1.939052, "val_accuracy": 0.44043, "readout_weights": [0.659043, 0.126662, 0.101113, 0.113182]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 15000, "val_loss": 1.930499, "val_accuracy": 0.447754, "readout_weights": [0.663881, 0.126252, 0.099276, 0.110591]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 16000, "val_loss": 1.89765, "val_accuracy": 0.447998, "readout_weights": [0.66811, 0.12653, 0.097619, 0.107741]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 17000, "val_loss": 1.889686, "val_accuracy": 0.456055, "readout_weights": [0.674229, 0.125699, 0.095332, 0.104739]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 18000, "val_loss": 1.868897, "val_accuracy": 0.458008, "readout_weights": [0.676094, 0.126622, 0.093976, 0.103308]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 19000, "val_loss": 1.869703, "val_accuracy": 0.463379, "readout_weights": [0.680281, 0.12658, 0.091998, 0.101142]}
+{"stage": "checkpoint", "seed": 43, "variant": "B_corrected", "step": 20000, "val_loss": 1.85464, "val_accuracy": 0.467529, "readout_weights": [0.683884, 0.126072, 0.090698, 0.099346]}
+{"stage": "variant_done", "seed": 43, "variant": "B_corrected", "final_checkpoint": {"step": 20000, "val_loss": 1.85464, "val_accuracy": 0.467529}, "final_training_loss": 2.029584, "wall_seconds": 683.887432, "readout_weights": [0.683884, 0.126072, 0.090698, 0.099346]}
+{"stage": "variant_started", "seed": 43, "variant": "C_old", "label": "ctx128_corrected_C_old", "parameter_count": 3639168, "initial_checkpoint": {"step": 0, "val_loss": 8.630886, "val_accuracy": 0.0}, "readout_weights": [0.25, 0.25, 0.25, 0.25]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 1000, "val_loss": 2.610624, "val_accuracy": 0.295898, "readout_weights": [0.380069, 0.208192, 0.19981, 0.211929]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 2000, "val_loss": 2.371683, "val_accuracy": 0.339111, "readout_weights": [0.450949, 0.189552, 0.17519, 0.184309]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 3000, "val_loss": 2.26561, "val_accuracy": 0.352051, "readout_weights": [0.493793, 0.179235, 0.15998, 0.166992]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 4000, "val_loss": 2.188252, "val_accuracy": 0.378906, "readout_weights": [0.523651, 0.173805, 0.148397, 0.154147]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 5000, "val_loss": 2.148297, "val_accuracy": 0.390137, "readout_weights": [0.546376, 0.170931, 0.139623, 0.14307]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 6000, "val_loss": 2.109278, "val_accuracy": 0.406006, "readout_weights": [0.561873, 0.170834, 0.132959, 0.134335]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 7000, "val_loss": 2.068622, "val_accuracy": 0.41748, "readout_weights": [0.571808, 0.172717, 0.128138, 0.127338]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 8000, "val_loss": 2.036409, "val_accuracy": 0.416016, "readout_weights": [0.580301, 0.175491, 0.123759, 0.12045]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 9000, "val_loss": 2.009589, "val_accuracy": 0.428711, "readout_weights": [0.583593, 0.179371, 0.12098, 0.116056]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 10000, "val_loss": 1.985913, "val_accuracy": 0.427002, "readout_weights": [0.584982, 0.183796, 0.119386, 0.111836]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 11000, "val_loss": 1.951552, "val_accuracy": 0.439453, "readout_weights": [0.585521, 0.188574, 0.118012, 0.107892]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 12000, "val_loss": 1.937836, "val_accuracy": 0.439697, "readout_weights": [0.585914, 0.191721, 0.117205, 0.10516]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 13000, "val_loss": 1.922513, "val_accuracy": 0.450684, "readout_weights": [0.584343, 0.196635, 0.116946, 0.102076]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 14000, "val_loss": 1.912182, "val_accuracy": 0.451904, "readout_weights": [0.584795, 0.200898, 0.116107, 0.0982]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 15000, "val_loss": 1.898814, "val_accuracy": 0.45752, "readout_weights": [0.583173, 0.205245, 0.115648, 0.095935]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 16000, "val_loss": 1.870771, "val_accuracy": 0.460938, "readout_weights": [0.58003, 0.210375, 0.115563, 0.094032]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 17000, "val_loss": 1.860119, "val_accuracy": 0.473145, "readout_weights": [0.579441, 0.214501, 0.114422, 0.091635]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 18000, "val_loss": 1.843415, "val_accuracy": 0.470459, "readout_weights": [0.577669, 0.218949, 0.113369, 0.090013]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 19000, "val_loss": 1.842749, "val_accuracy": 0.473633, "readout_weights": [0.57589, 0.222471, 0.113003, 0.088636]}
+{"stage": "checkpoint", "seed": 43, "variant": "C_old", "step": 20000, "val_loss": 1.815583, "val_accuracy": 0.482178, "readout_weights": [0.574719, 0.226525, 0.111993, 0.086762]}
+{"stage": "variant_done", "seed": 43, "variant": "C_old", "final_checkpoint": {"step": 20000, "val_loss": 1.815583, "val_accuracy": 0.482178}, "final_training_loss": 2.006884, "wall_seconds": 787.398832, "readout_weights": [0.574719, 0.226525, 0.111993, 0.086762]}
+{"stage": "seed_done", "seed": 43}
+{"stage": "done", "report_path": "C:\\Users\\maxeo\\gildnn\\experiments\\wikitext_103\\artifacts\\ctx128_corrected\\report.json", "summary_by_variant": {"A_single": {"mean_final_val_loss": 1.838315, "mean_final_val_accuracy": 0.471558}, "B_corrected": {"mean_final_val_loss": 1.851889, "mean_final_val_accuracy": 0.465332}, "C_old": {"mean_final_val_loss": 1.817741, "mean_final_val_accuracy": 0.480469}}}
