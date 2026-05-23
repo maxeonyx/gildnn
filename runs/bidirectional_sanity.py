@@ -5,6 +5,7 @@ import gc
 import json
 import sys
 from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from statistics import mean
 from time import perf_counter
@@ -388,7 +389,17 @@ def main() -> int:
 
     args.report_path.parent.mkdir(parents=True, exist_ok=True)
     args.log_path.parent.mkdir(parents=True, exist_ok=True)
-    args.log_path.write_text("", encoding="utf-8")
+    if args.log_path.exists():
+        previous_log = args.log_path.read_text(encoding="utf-8")
+        if previous_log:
+            append_log(
+                args.log_path,
+                {
+                    "stage": "run_restarted",
+                    "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+                    "previous_lines": len(previous_log.splitlines()),
+                },
+            )
 
     device = torch.device("cuda")
     set_seed(args.seeds[0])
