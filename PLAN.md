@@ -19,9 +19,9 @@ Architecture:
 - **Quality at equal FLOPs: BETTER (+0.019 avg, 2/3 seeds clearly better, 1 tied)** ✓
 
 Next steps:
-- [ ] **Width scaling** — Try parallel 4-block with bigger width (d=256, ff=512) to see if parallel scales via width. If wider parallel 4-block beats sequential 6-block at equal wall-time, that's the best-case outcome for the architecture.
-- [ ] **LR schedule for longer training** — Both models overfit past ~35-40K steps. Add cosine decay to enable meaningful 100K+ comparisons.
-- [ ] **Context scaling** — ctx=32 limits rate dilation (rate=32 fires once). Longer context would make the multi-rate story richer.
+- [ ] **Width scaling frontier** — d=256 wins big. What about d=384, d=512? How far does it go before diminishing returns? Also: does the wider model benefit from a different rate schedule?
+- [ ] **LR schedule for longer training** — Both models overfit past ~35-40K steps. Add cosine decay to enable meaningful 100K+ comparisons. Width-scaled model might benefit even more from longer training.
+- [ ] **Context scaling** — ctx=32 limits rate dilation (rate=32 fires once). Longer context would make the multi-rate story richer and enable more aggressive temporal hierarchies.
 
 ## Recently completed
 
@@ -40,6 +40,7 @@ Next steps:
 - [x] **Rate dilation sweep** — [1,2,4,16] ≈ [1,2,4,8], [1,2,4,32] slightly worse. Aggressive dilation is a wash at ctx=32 (rate=32 fires once at t=0, just a static prior). See `experiments/fixed_multi_rate/artifacts/rate_dilation_sweep/`.
 - [x] **Self-prediction sweep** — NEUTRAL. Cosine alignment (adjacent fast→slow, d_aux=32) reduces aux loss 3× but has ZERO task effect across all lambdas [0, 1e-4, 3e-4, 1e-3, 3e-3, 1e-2]. Blocks specialize naturally; alignment doesn't help. See `experiments/fixed_multi_rate/artifacts/self_prediction_sweep/`.
 - [x] **Longer training** — Both models peak at ~35-40K then catastrophically overfit (no LR decay). Key finding: parallel peaks at 1.742 in 289s wall-time, sequential peaks at 1.731 in 739s. **Parallel is 2.6× faster to near-equal quality.** Gap is only 0.010 nats. See `experiments/fixed_multi_rate/artifacts/longer_training/`.
+- [x] **Width scaling** — **MAJOR WIN.** Parallel 4-block d=256 achieves 1.718 in 198s vs sequential 6-block d=128 at 1.741 in 493s. Parallel wins in BOTH quality (-0.023) AND wall-time (2.5× faster). Width is the natural scaling axis for parallel architecture. See `experiments/fixed_multi_rate/artifacts/width_scaling/`.
 - [x] **Async hardware** — CLOSED. 28% block concurrency, but irrelevant vs 10.86× whole-step graph.
 
 ## Queue (lower priority)
