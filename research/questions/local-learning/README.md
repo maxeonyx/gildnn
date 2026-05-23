@@ -200,8 +200,7 @@ The attention-based "usefulness" signal is explicitly **disfavored** by Max (sal
 
 ## Next steps
 
-1. **[RUNNING] Confirm spectator result** across seeds 43-44 (PID 14456)
-2. **Fixed equal readout weights** — cheapest diagnostic. Does forced participation change anything? If yes → training collapse. If no → forward info flow is broken.
-3. **Windowed lateral input** — give upper blocks a FIFO of recent lower-block states (e.g. last 4 steps), not just the latest. This provides exclusive temporal information. Simplest version: concatenate last K states, project down.
-4. **Re-evaluate local learning AFTER upper blocks have value** — detached-lateral only matters once upper blocks contribute. Don't test local learning on a broken architecture.
-5. **Predictive coding** — once upper blocks have exclusive temporal info (windowed input), predict lower-block future states. This becomes meaningful because they can extrapolate from the trajectory.
+1. **Confirm spectator result** across seeds — done (3-seed result: corrected = single block on TinyShakespeare at d=256). See `experiments/fixed_multi_rate/artifacts/token_injection_sanity/`.
+2. **WikiText-103 baseline** — test whether multi-block helps on a dataset where single-block hasn't saturated. Running or queued.
+3. **Re-evaluate local learning AFTER upper blocks have value** — detached-lateral only matters once upper blocks contribute. Don't test local learning on a broken architecture.
+4. **Predictive coding** — once upper blocks have exclusive temporal info (e.g. windowed input), predict lower-block future states. This becomes meaningful because they can extrapolate from the trajectory.
