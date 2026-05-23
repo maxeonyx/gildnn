@@ -47,20 +47,23 @@ Recent findings this session:
 - [x] **Self-prediction sweep** — NEUTRAL. Cosine alignment (adjacent fast→slow, d_aux=32) reduces aux loss 3× but has ZERO task effect across all lambdas [0, 1e-4, 3e-4, 1e-3, 3e-3, 1e-2]. Blocks specialize naturally; alignment doesn't help. See `experiments/fixed_multi_rate/artifacts/self_prediction_sweep/`.
 - [x] **Longer training** — Both models peak at ~35-40K then catastrophically overfit (no LR decay). Key finding: parallel peaks at 1.742 in 289s wall-time, sequential peaks at 1.731 in 739s. **Parallel is 2.6× faster to near-equal quality.** Gap is only 0.010 nats. See `experiments/fixed_multi_rate/artifacts/longer_training/`.
 - [x] **Width scaling** — **MAJOR WIN.** Parallel 4-block d=256 achieves 1.718 in 198s vs sequential 6-block d=128 at 1.741 in 493s. Parallel wins in BOTH quality (-0.023) AND wall-time (2.5× faster). Width is the natural scaling axis for parallel architecture. See `experiments/fixed_multi_rate/artifacts/width_scaling/`.
-- [x] **Async hardware** — CLOSED. 28% block concurrency, but irrelevant vs 10.86× whole-step graph.
+- [x] **Async hardware measurement** — 28% block concurrency on this GPU at current scale. CUDA graph training is a separate speedup (10.86×) that's orthogonal to async — it's about fused execution, not parallelism. Async remains an open direction for many-block (50-100+) architectures per [dictation 2026-05-23-4](dictations/2026-05-23-4.md).
 
 ## Queue (lower priority)
 
+- **Transformer baseline** — MISSING per [dictation 2026-05-23-4](dictations/2026-05-23-4.md). We have NO transformer comparison. Every claim about our architecture is currently ablation-only. Need a standard transformer at matched compute on the same dataset. This is methodological debt.
+- **More parallel blocks** — Per [dictation 2026-05-23-4](dictations/2026-05-23-4.md), "width scaling" to Max means MORE BLOCKS in parallel, not wider d_model. "What is the optimal number of blocks for my GPU?" needs answering. We stopped at 4 because the compute frontier showed diminishing returns, but that was at d=128.
+- **Local learning / async parallelism** — Per [dictation 2026-05-23-5](dictations/2026-05-23-5.md), the REAL research question. "How can I get local learning, enabling parallelism, some kind of mechanism to learn well without requiring global backpropagation?" This needs serious theory work to operationalize into concrete architecture variants.
+- **Hierarchical prediction** — Per [dictation 2026-05-23-5](dictations/2026-05-23-5.md). Higher blocks predict latent features that explain lower-level output, not raw tokens. "Block one tries to predict the next word, but block two tries to predict the features that predict the distribution over the next word."
+- **Graph architecture** — Per [dictation 2026-05-23-5](dictations/2026-05-23-5.md). Dense at low level, sparse at high level. Overlapping rates. Not just a horizontal chain.
+- **Larger dataset** — Per [dictation 2026-05-23-2](dictations/2026-05-23-2.md). Max wants thousands of tokens of context, large datasets, real runs. TinyShakespeare is a ceiling.
+- **CPU-parallel small runs** — Per [dictation 2026-05-23-4](dictations/2026-05-23-4.md). Small runs on CPU while GPU does big runs.
 - Named/typed tensor dimensions — continue converting codebase to einops + jaxtyping style. Per [dictation 2026-05-22-14](dictations/2026-05-22-14.md). (Started: core/model.py done.)
 - Loop management tooling — script to show recent agent messages, manage the autonomous loop. Per [dictation 2026-05-20-14](dictations/2026-05-20-14.md).
-- Immediate dictation notification — OpenCode plugin for real-time detection. Per [dictation 2026-05-22-14](dictations/2026-05-22-14.md), [dictation 2026-05-22-15](dictations/2026-05-22-15.md). (Done: `.opencode/plugins/dictation-notifier.ts` — injects message into session on new file.)
-- Muon optimizer — ~~swap in Muon and rerun window size ablation.~~ **DONE.** See `research/questions/muon-optimizer/README.md`.
 - Arbitrary-order sampling — deprioritized per [dictation 2026-05-22-6](dictations/2026-05-22-6.md). Prototype works (MSE 0.0195).
-- Self-prediction — NEGATIVE at 2K steps (+0.011-0.018 nats). Worth revisiting at 20K.
 - Dynamic token count — not yet explored
 - Complex-valued / orthogonal parameterization — exp-map was quality-negative
 - Volume-preserving nonlinearities — highly speculative
-- Declining batch size — easy bolt-on for any run
 
 ## Done
 

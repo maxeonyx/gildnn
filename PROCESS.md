@@ -214,9 +214,14 @@ If an experimental branch taught nothing and is only clutter, delete it.
 
 Trustworthy baseline experiments are part of the foundation, not optional side work.
 
+Every comparison claim requires TWO controls per [dictation 2026-05-23-4](dictations/2026-05-23-4.md):
+
+1. **Ablation control** — the most similar possible network WITHOUT the modification being tested. Same architecture family, same compute budget, one thing removed.
+2. **Standard baseline** — a transformer (the accepted state-of-the-art architecture) on the same dataset and task, achieving results consistent with published expectations.
+
 Before making strong claims about a custom architecture, establish what a standard model should achieve on the same dataset and reproduce that result closely enough to trust the training stack, data pipeline, and evaluation. Standard baselines belong in `base-experiments/`, and the reusable parts of those implementations belong in `core/`.
 
-A custom result without a trusted baseline is weak evidence.
+A custom result without both controls is weak evidence. "Wins versus our own ablation" is interesting but insufficient. "Wins versus transformer baseline at matched compute" is a real claim.
 
 ### Architectural options
 
@@ -250,8 +255,7 @@ Rules:
 - **Use unbuffered Python output** for background runs: set `$env:PYTHONUNBUFFERED = '1'` before `Start-Process`, or pass `-u` to the Python interpreter. Without this, stdout is buffered and logs appear empty until the process ends.
 - At most one large training run (>10 min) at a time.
 - One small/fast experiment can run alongside a large run.
-- While any run is active, do other useful work: theory, integration, reporting, small experiments.
-- Do not wait idly for any run to complete.
+- **NEVER be idle while a run is active.** This is not optional. GPU time is the project's most expensive resource — the agent's job is to maximize the value produced per GPU-hour by doing high-quality intellectual work in parallel. See the "Quality loops while GPU is busy" section below.
 - The orchestrator checks progress when it decides to — subagents do not poll.
 
 **Subagent instruction requirement — this is mandatory, not optional:**
@@ -279,6 +283,47 @@ Use `runs/active.lock` to record the active large run (PID, log path, start time
 - Use a single documented `Start-Process` pattern. Do not improvise argument passing — use comma-separated array for simple args, or a wrapper script for complex commands.
 - **Before launching a GPU run, preflight GPU availability** — confirm `nvidia-smi` shows the GPU idle and CUDA will initialize. On this desktop, gaming can hold the GPU exclusively; CUDA init will block indefinitely if the GPU is busy.
 - If launch infrastructure is flaky, fix and document the launch mechanism before spending more time on experiments.
+
+---
+
+## Quality loops while GPU is busy
+
+**This is a first-class obligation, not a fallback.** Per [dictation 2026-05-23-6](dictations/2026-05-23-6.md): "Right now, go through the process and make it extremely heavy and obvious that while there are experiments running, you should never be idle."
+
+The GPU produces evidence. The agent's parallel job is to produce *understanding* — operationalize concepts, challenge assumptions, improve communication quality, and prepare for what comes next. Idle time during a GPU run is process failure.
+
+### What to do (priority order)
+
+1. **Deep theory work** — Send the same design question to a thinker 5-10 times with different framings. Collect alternatives. Do the maths to operationalize concepts into concrete architecture variants. Don't accept the first answer — iterate until real alternatives emerge.
+
+2. **Improve past reports** — Model the reader (Max). Reread past daily/weekly narratives. Are they actually good? Do they tell a story? Are they dense and interesting? Rewrite the weak ones. Every report should be worth reading, not just technically present.
+
+3. **First-principles re-derivation** — Go back to the dictations. Re-derive the project direction from scratch. Does the current framing match Max's actual intent? Has something drifted? What open questions have been quietly assumed closed?
+
+4. **Skill and process consistency** — Check the repo against Max's global skills (code-principles, information-architecture, etc.). Is the codebase consistent with them? Are the AGENTS.md files accurate? Is PROCESS.md up to date?
+
+5. **Get critique and iterate** — Delegate a review to an agent. Have it challenge the current approach. Then respond to the challenges substantively. Repeat. The goal is to surface blind spots, not to confirm the status quo.
+
+6. **Design next experiments** — Write the question doc, hypotheses, and planned evidence for the next thing to run. Don't just pick the next item off the list — think about what would be most discriminating.
+
+### Quality standard for theory work
+
+Theory work during GPU time is not "thinking about it." It must produce durable artifacts:
+
+- A written analysis in `research/questions/<topic>/README.md`
+- Multiple concrete alternative formulations (not just one)
+- Mathematical operationalization where applicable
+- Explicit comparison to the current approach
+- Clear statement of what experiment would discriminate between alternatives
+
+If the theory work doesn't produce a written artifact, it didn't happen.
+
+### Anti-patterns (process failures)
+
+- Polling the log file every 5 minutes → set a timer and do real work in between
+- Doing "quick cleanups" that take 2 minutes each → batch them or do substantial work instead
+- Writing a single thinker prompt and accepting the answer → iterate 5-10 times minimum for design questions
+- Waiting for "a natural stopping point" → the stopping point is now; start theory work immediately after launch
 
 ---
 
