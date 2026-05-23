@@ -20,8 +20,8 @@ Architecture:
 
 Next steps:
 - [ ] **Cosine LR longer training RUNNING** (PID 6204, started ~4pm Sat May 23, ~5h total). 3 variants × 100K steps with warmup+cosine decay: parallel d=256, sequential d=128, sequential d=256. Log: `experiments/fixed_multi_rate/artifacts/cosine_lr_longer/run.jsonl`. Key question: does cosine decay prevent overfitting and let d=256 improve beyond 1.718?
-- [ ] **Context scaling** — ctx=32 limits rate dilation. Longer context would enable more temporal hierarchy and make rate=16/32 meaningful as slow feature extractors rather than static priors.
-- [ ] **d=384 dead spot investigation** — Why does d=384 fail while d=256 and d=512 (with lower LR) work? Could be initialization variance, could be width-to-block-count mismatch.
+- [ ] **Context scaling (script ready: `runs/context_scaling.py`)** — ctx=128 with rates=[1,4,16,32] (all blocks ≥4 firings), plus [1,2,8,32] and [1,2,4,8] baselines. Key question: does wider rate spacing become meaningful at longer context? Launch after cosine LR finishes.
+- [x] **d=384 dead spot investigation** — RESOLVED: pure overfitting, not structural. d=384 peaks at 1.732 (step 14K) then overfits (train loss 1.26 → massive gap). µP predicts optimal LR ∝ 1/width (d=384 wants ~2e-4). Cosine LR should fix this.
 
 ## Recently completed
 
