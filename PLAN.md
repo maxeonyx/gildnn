@@ -12,7 +12,7 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Active
 
-- **[RUNNING] Bidirectional test** (PID 20984) — `topology="top_down_to_first"` + `readout_mode="first"` on TinyShakespeare. Partial results (6/12 from a previous crashed run) show it hurts (B_topdown_first: 1.779-1.801 vs A_upward_all: 1.719). Expected to confirm TinyShakespeare saturation.
+- **[RUNNING] WikiText-103 baseline** — A_single_block seed 42 at step 8K/20K. PID 12212. Expected ~45 min total for 4 conditions × 2 seeds.
 
 ## Next
 
