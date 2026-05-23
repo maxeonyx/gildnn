@@ -16,7 +16,7 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Next
 
-- [ ] **⚠ WikiText-103 baseline** — THE TOP PRIORITY. 4 conditions (single / old-4-block / corrected / bidirectional) × 2 seeds. Launch when GPU is free. This determines whether multi-block architecture has value at a scale where single-block hasn't already saturated. `runs/wikitext_baseline.py` ready.
+- [ ] **⚠ WikiText-103 baseline** — THE TOP PRIORITY. 4 conditions × 2 seeds: A) single block, B) old 4-block (all tokens), C) corrected 4-block (block0 only), D) corrected multi-rate [1,2,4,8]. 20K steps as pilot — extend to 50K+ if curves still declining. ctx=32 (isolate dataset scale from context scale). `runs/wikitext_baseline.py` ready.
 - [ ] **Local learning on WikiText-103** — Only test after multi-block shows value on larger data. Predictive coding theory work done (4 iterations, `research/questions/local-learning/README.md`).
 - [ ] **Scale up context** — After WikiText-103 ctx=32 works, try ctx=128.
 
