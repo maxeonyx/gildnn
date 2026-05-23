@@ -473,6 +473,7 @@ class ParallelDiagonalModel(nn.Module):
         rates: tuple[int, ...] | list[int] | None = None,
         internal_steps: int = 1,
         readout_mode: str = "last",
+        token_injection: str = "block0",
         token_mix_init: float = 0.5,
         block_mix_init: float = 0.9,
         detach_lateral: bool = False,
@@ -497,6 +498,12 @@ class ParallelDiagonalModel(nn.Module):
                 "ParallelDiagonalModel readout_mode must be one of "
                 f"{sorted(valid_readout_modes)}, got {readout_mode!r}."
             )
+        valid_token_injections = {"block0", "all"}
+        if token_injection not in valid_token_injections:
+            raise ValueError(
+                "ParallelDiagonalModel token_injection must be one of "
+                f"{sorted(valid_token_injections)}, got {token_injection!r}."
+            )
         self.context_size = context_size
         self.d_model = d_model
         self.feedforward_dim = feedforward_dim
@@ -504,6 +511,7 @@ class ParallelDiagonalModel(nn.Module):
         self.rates = resolved_rates
         self.internal_steps = internal_steps
         self.readout_mode = readout_mode
+        self.token_injection = token_injection
         self.detach_lateral = detach_lateral
         self.token_embedding = nn.Embedding(vocab_size, d_model)
         self.position_embedding = nn.Embedding(context_size, d_model)
@@ -547,6 +555,7 @@ class ParallelDiagonalModel(nn.Module):
             "rates": list(self.rates),
             "internal_steps": self.internal_steps,
             "readout_mode": self.readout_mode,
+            "token_injection": self.token_injection,
             "readout_weights": readout_weights,
         }
 
@@ -581,10 +590,14 @@ class ParallelDiagonalModel(nn.Module):
 
         for time_index in range(self.context_size):
             token_state = embeddings[:, time_index, :]
-            seeded_states = [
-                token_mix(previous_state, token_state)
-                for token_mix, previous_state in zip(self.token_mixes, previous_states, strict=True)
-            ]
+            if self.token_injection == "all":
+                seeded_states = [
+                    token_mix(previous_state, token_state)
+                    for token_mix, previous_state in zip(self.token_mixes, previous_states, strict=True)
+                ]
+            else:
+                seeded_states = list(previous_states)
+                seeded_states[0] = self.token_mixes[0](previous_states[0], token_state)
             current_states = list(previous_states)
             for internal_step in range(self.internal_steps):
                 next_states = list(current_states)
