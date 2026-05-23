@@ -134,11 +134,27 @@ This question does NOT address:
 - The graph topology question from the dictation (separate from gradient routing)
 - Normalizing flows / norm preservation (acknowledged as separate direction in the dictation)
 
-## Next steps
+## Architecture problem: upper blocks have no exclusive information
 
-1. **Sanity check: does corrected architecture train?** RUNNING (PID 14456). Tests `token_injection="block0"` vs `"all"` vs single-block at 4-block all-rate-1. Expected ~25 min.
-2. **Re-run local learning test on corrected architecture** with better diagnostics: full vs detached lateral, measuring not just val loss but per-block readout weights and per-block ablation (zero each block's contribution, measure loss increase). Shallow collapse (upper blocks unused) is the expected failure mode — val loss alone can hide this.
-3. **If detached fails (expected):** implement predictive coding on inter-block interfaces. Each block predicts the future state at its input boundary, with prediction horizon matched to its rate. This trains the *communication protocol*, not just "use what you get."
+**Early empirical result (seed 42, all-rate-1, 20K steps):**
+
+| Variant | val_loss |
+|---------|----------|
+| Single block | 1.719 |
+| 4-block token_injection="all" (old wrong) | 1.689 |
+| 4-block token_injection="block0" (corrected) | **1.719** |
+
+The corrected architecture matches a single block exactly. Upper blocks are spectators.
+
+**Root cause analysis (multiple think iterations):** In the corrected architecture, upper blocks are **strictly staler decoders of block 0's lossy summary**. They never see raw tokens, never see current position, and only receive whatever block 0 exposes in its compressed state. On TinyShakespeare (where recent suffix is most predictive), upper blocks are exactly the modules that LACK the recent suffix. The static weighted-sum readout gives the optimizer permission to ignore them.
+
+**This is NOT just a training problem.** It's architectural: upper blocks have no exclusive information that block 0 doesn't already provide through its own readout contribution.
+
+**Cheapest diagnostic:** Fixed equal readout weights during training. If corrected arch + equal weights beats single block → problem is training collapse. If it ties → problem is forward information flow.
+
+**Likely architectural fix:** Give upper blocks a WINDOW of past lower-block states (not just the latest). This provides exclusive temporal information (patterns in block 0's state evolution over multiple steps) that block 0 doesn't trivially expose in its current single state.
+
+**Connection to predictive coding:** If upper blocks had exclusive temporal information (a window), then predicting block 0's FUTURE state becomes a meaningful task — they can extrapolate from the trajectory. Without that window, "predict the future" is just "predict a slightly staler version of what you already have."
 
 ## Theoretical analysis (corrected architecture)
 
@@ -156,11 +172,13 @@ The all-block readout creates an **escape hatch**: the network doesn't NEED to m
 
 ### Predicted outcome spectrum
 
-| Condition | Expected result |
-|---|---|
-| Full backprop, corrected | Works (slower blocks learn from delayed info) |
-| Detached lateral, corrected | Trains, but upper blocks get near-zero readout weight |
-| Single-block baseline | Similar to detached (if collapse is complete) |
+**UPDATE:** Seed 42 of the running experiment shows even full-backprop corrected = single block (1.719). The "shallow collapse" happens EVEN WITH full gradients. This suggests the problem is not gradient flow but INFORMATION FLOW — upper blocks simply have nothing useful to add when they only get stale compressed state.
+
+| Condition | Expected result | Actual (seed 42) |
+|---|---|---|
+| Full backprop, corrected | Works (slower blocks learn from delayed info) | **= single block (1.719)** |
+| Detached lateral, corrected | Trains, but upper blocks get near-zero readout weight | Not yet tested |
+| Single-block baseline | Similar to detached (if collapse is complete) | 1.719 |
 
 The decisive signal is NOT val loss — it's **per-block ablation magnitude** and **readout weight distribution**.
 
@@ -179,3 +197,11 @@ Per [dictation 2026-05-23-7](../../../dictations/2026-05-23-7.md): "More promisi
 4. **Target propagation** — Compute per-block targets from above. More complex machinery (learned inverses), historically brittle with recurrence/stale dynamics. Lower priority.
 
 The attention-based "usefulness" signal is explicitly **disfavored** by Max (salience learning, grounding decay with depth, chicken-and-egg problems).
+
+## Next steps
+
+1. **[RUNNING] Confirm spectator result** across seeds 43-44 (PID 14456)
+2. **Fixed equal readout weights** — cheapest diagnostic. Does forced participation change anything? If yes → training collapse. If no → forward info flow is broken.
+3. **Windowed lateral input** — give upper blocks a FIFO of recent lower-block states (e.g. last 4 steps), not just the latest. This provides exclusive temporal information. Simplest version: concatenate last K states, project down.
+4. **Re-evaluate local learning AFTER upper blocks have value** — detached-lateral only matters once upper blocks contribute. Don't test local learning on a broken architecture.
+5. **Predictive coding** — once upper blocks have exclusive temporal info (windowed input), predict lower-block future states. This becomes meaningful because they can extrapolate from the trajectory.
