@@ -32,6 +32,7 @@ D_MODEL = 256
 FEEDFORWARD_DIM = 512
 EVAL_SAMPLES = 4096
 PREDICTION_LOSS_WEIGHT = 0.1
+LOCAL_CE_WEIGHT = 1.0
 SANITY_STEPS = 100
 SANITY_EVAL_INTERVAL = 25
 WARMUP_STEPS = 3
@@ -46,12 +47,14 @@ class VariantSpec:
     readout_mode: str
     closed_loop: bool
     strict_local: bool = False
+    local_ce: bool = False
 
 
 @dataclass(frozen=True)
 class LossBreakdown:
     ce_loss: Tensor
     pred_loss: Tensor
+    local_ce_loss: Tensor
     total_loss: Tensor
 
 
@@ -66,7 +69,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--learning-rate", type=float, default=LEARNING_RATE)
     parser.add_argument("--eval-samples", type=int, default=EVAL_SAMPLES)
     parser.add_argument("--seeds", type=int, nargs="+", default=list(DEFAULT_SEEDS))
-    parser.add_argument("--variants", nargs="+", default=["A_single", "B_spectator", "C_closed_loop", "D_strict_local"])
+    parser.add_argument(
+        "--variants",
+        nargs="+",
+        default=["A_single", "B_spectator", "C_closed_loop", "D_strict_local", "E_grounded"],
+    )
     parser.add_argument("--compile", dest="compile_model", action="store_true")
     parser.add_argument("--no-compile", dest="compile_model", action="store_false")
     parser.set_defaults(compile_model=True)
@@ -122,6 +129,16 @@ def variant_specs() -> dict[str, VariantSpec]:
             readout_mode="block0",
             closed_loop=True,
             strict_local=True,
+        ),
+        "E_grounded": VariantSpec(
+            key="E_grounded",
+            label="closed_loop_prediction_E_grounded",
+            num_blocks=2,
+            rates=(1, 2),
+            readout_mode="block0",
+            closed_loop=True,
+            strict_local=True,
+            local_ce=True,
         ),
     }
 
@@ -205,6 +222,8 @@ class ClosedLoopPredictionModel(nn.Module):
         self.prior_norm: nn.LayerNorm | None = None
         self.prediction_head: nn.Linear | None = None
         self.readout_logits: nn.Parameter | None = None
+        self.block1_norm: nn.LayerNorm | None = None
+        self.block1_lm_head: nn.Linear | None = None
 
         if spec.num_blocks == 2:
             self.block1_ffn = FeedForwardBlock(d_model=d_model, feedforward_dim=feedforward_dim)
@@ -213,6 +232,9 @@ class ClosedLoopPredictionModel(nn.Module):
             self.prior_gain = nn.Parameter(torch.tensor(0.0, dtype=torch.float32))
             self.prior_norm = nn.LayerNorm(d_model)
             self.prediction_head = nn.Linear(d_model, 2 * d_model)
+        if spec.local_ce:
+            self.block1_norm = nn.LayerNorm(d_model)
+            self.block1_lm_head = nn.Linear(d_model, vocab_size)
         if spec.readout_mode == "weighted":
             self.readout_logits = nn.Parameter(torch.zeros(spec.num_blocks, dtype=torch.float32))
 
@@ -233,7 +255,7 @@ class ClosedLoopPredictionModel(nn.Module):
         readout_weights = torch.softmax(self.readout_logits.to(device=s0.device, dtype=s0.dtype), dim=0)
         return (stacked_states * readout_weights.view(1, 2, 1)).sum(dim=1)
 
-    def forward(self, tokens: Tensor, *, use_priors: bool = True) -> tuple[Tensor, Tensor, Tensor, Tensor, Tensor]:
+    def forward(self, tokens: Tensor, *, use_priors: bool = True) -> tuple[Tensor, Tensor | None, Tensor, Tensor, Tensor, Tensor]:
         embeddings = self.embedded_tokens(tokens)
         batch_size = tokens.shape[0]
         device = embeddings.device
@@ -283,8 +305,11 @@ class ClosedLoopPredictionModel(nn.Module):
 
         readout_state = self.readout_state(s0, s1)
         logits = self.lm_head(self.final_norm(readout_state))
+        block1_logits = None
+        if self.block1_norm is not None and self.block1_lm_head is not None:
+            block1_logits = self.block1_lm_head(self.block1_norm(s1))
         final_states = torch.stack((s0, s1), dim=1)
-        return logits, state0_history, prior_used_history, prior_valid_history, final_states
+        return logits, block1_logits, state0_history, prior_used_history, prior_valid_history, final_states
 
     @torch.no_grad()
     def mix_coefficients(self) -> dict[str, object]:
@@ -325,11 +350,13 @@ def prediction_loss_terms(
 def compute_losses(
     *,
     logits: Tensor,
+    block1_logits: Tensor | None,
     targets: Tensor,
     state0_history: Tensor,
     prior_used_history: Tensor,
     prior_valid_history: Tensor,
     prediction_loss_weight: float,
+    local_ce_weight: float,
 ) -> LossBreakdown:
     ce_loss = F.cross_entropy(logits, targets)
     pred_loss_sum, pred_valid_count = prediction_loss_terms(
@@ -338,8 +365,11 @@ def compute_losses(
         prior_valid_history=prior_valid_history,
     )
     pred_loss = pred_loss_sum / pred_valid_count.clamp_min(1.0)
-    total_loss = ce_loss + (prediction_loss_weight * pred_loss)
-    return LossBreakdown(ce_loss=ce_loss, pred_loss=pred_loss, total_loss=total_loss)
+    local_ce_loss = ce_loss.new_zeros(())
+    if block1_logits is not None:
+        local_ce_loss = F.cross_entropy(block1_logits, targets)
+    total_loss = ce_loss + (prediction_loss_weight * pred_loss) + (local_ce_weight * local_ce_loss)
+    return LossBreakdown(ce_loss=ce_loss, pred_loss=pred_loss, local_ce_loss=local_ce_loss, total_loss=total_loss)
 
 
 def build_model(
@@ -392,6 +422,7 @@ class ClosedLoopPredictionGraphTrainer:
         self.static_target = torch.empty((batch_size,), device=device, dtype=torch.long)
         self.static_ce_loss = torch.zeros((), device=device)
         self.static_pred_loss = torch.zeros((), device=device)
+        self.static_local_ce_loss = torch.zeros((), device=device)
         self.static_total_loss = torch.zeros((), device=device)
 
     def _copy_batch(self, *, batch_input: Tensor, batch_target: Tensor) -> None:
@@ -406,19 +437,25 @@ class ClosedLoopPredictionGraphTrainer:
 
     def _training_step(self) -> None:
         self.optimizer.zero_grad(set_to_none=True)
-        logits, state0_history, prior_used_history, prior_valid_history, _ = self.model(self.static_input, use_priors=True)
+        logits, block1_logits, state0_history, prior_used_history, prior_valid_history, _ = self.model(
+            self.static_input,
+            use_priors=True,
+        )
         losses = compute_losses(
             logits=logits,
+            block1_logits=block1_logits,
             targets=self.static_target,
             state0_history=state0_history,
             prior_used_history=prior_used_history,
             prior_valid_history=prior_valid_history,
             prediction_loss_weight=PREDICTION_LOSS_WEIGHT,
+            local_ce_weight=LOCAL_CE_WEIGHT,
         )
         losses.total_loss.backward()
         self.optimizer.step()
         self.static_ce_loss.copy_(losses.ce_loss.detach())
         self.static_pred_loss.copy_(losses.pred_loss.detach())
+        self.static_local_ce_loss.copy_(losses.local_ce_loss.detach())
         self.static_total_loss.copy_(losses.total_loss.detach())
 
     def capture(self, warmup_batches: list[tuple[Tensor, Tensor]]) -> None:
@@ -454,6 +491,7 @@ class ClosedLoopPredictionGraphTrainer:
         return LossBreakdown(
             ce_loss=self.static_ce_loss.detach().clone(),
             pred_loss=self.static_pred_loss.detach().clone(),
+            local_ce_loss=self.static_local_ce_loss.detach().clone(),
             total_loss=self.static_total_loss.detach().clone(),
         )
 
@@ -516,18 +554,23 @@ def evaluate_variant(
     total_correct = 0
     total_pred_loss_sum = 0.0
     total_pred_count = 0.0
+    total_block1_ce_loss = 0.0
+    total_block1_correct = 0
 
     for start in range(0, inputs.shape[0], batch_size):
         stop = min(start + batch_size, inputs.shape[0])
         batch_inputs = inputs[start:stop]
         batch_targets = targets[start:stop]
-        logits, state0_history, prior_used_history, prior_valid_history, _ = model_call(
+        logits, block1_logits, state0_history, prior_used_history, prior_valid_history, _ = model_call(
             batch_inputs,
             use_priors=not disable_priors,
         )
         batch_examples = batch_targets.shape[0]
         total_ce_loss += F.cross_entropy(logits, batch_targets, reduction="sum").item()
         total_correct += (logits.argmax(dim=1) == batch_targets).sum().item()
+        if block1_logits is not None:
+            total_block1_ce_loss += F.cross_entropy(block1_logits, batch_targets, reduction="sum").item()
+            total_block1_correct += (block1_logits.argmax(dim=1) == batch_targets).sum().item()
         pred_loss_sum, pred_count = prediction_loss_terms(
             prior_used_history=prior_used_history,
             state0_history=state0_history,
@@ -547,6 +590,8 @@ def evaluate_variant(
         "loss": total_ce_loss / total_examples,
         "accuracy": total_correct / total_examples,
         "pred_loss": pred_loss,
+        "block1_ce_loss": None if model.block1_lm_head is None else total_block1_ce_loss / total_examples,
+        "block1_accuracy": None if model.block1_lm_head is None else total_block1_correct / total_examples,
         "prediction_mix_coeff": model.mix_coefficients()["prediction_mix"],
         "readout_weights": model.mix_coefficients()["readout_weights"],
     }
@@ -597,6 +642,8 @@ def checkpoint_metrics(
         "val_loss": round_float(metrics["loss"]),
         "val_accuracy": round_float(metrics["accuracy"]),
         "pred_loss": round_float(metrics["pred_loss"]),
+        "block1_ce_loss": round_float(metrics["block1_ce_loss"]),
+        "block1_accuracy": round_float(metrics["block1_accuracy"]),
         "prediction_mix_coeff": round_float(metrics["prediction_mix_coeff"]),
         "ablated_val_loss": ablated_val_loss,
         "readout_weights": rounded_list(metrics["readout_weights"]),
@@ -615,14 +662,19 @@ def verify_forward_and_gradients(
         model_call.train()
     dummy_inputs = torch.randint(0, vocab_size, (4, CONTEXT_SIZE), device=device)
     dummy_targets = torch.randint(0, vocab_size, (4,), device=device)
-    logits, state0_history, prior_used_history, prior_valid_history, _ = model_call(dummy_inputs, use_priors=True)
+    logits, block1_logits, state0_history, prior_used_history, prior_valid_history, _ = model_call(
+        dummy_inputs,
+        use_priors=True,
+    )
     losses = compute_losses(
         logits=logits,
+        block1_logits=block1_logits,
         targets=dummy_targets,
         state0_history=state0_history,
         prior_used_history=prior_used_history,
         prior_valid_history=prior_valid_history,
         prediction_loss_weight=PREDICTION_LOSS_WEIGHT,
+        local_ce_weight=LOCAL_CE_WEIGHT,
     )
     if not torch.isfinite(losses.total_loss):
         raise RuntimeError("Closed-loop prediction verification failed: dummy total loss is not finite.")
@@ -646,6 +698,7 @@ def verify_forward_and_gradients(
         "dummy_total_loss": round(losses.total_loss.item(), 6),
         "dummy_ce_loss": round(losses.ce_loss.item(), 6),
         "dummy_pred_loss": round(losses.pred_loss.item(), 6),
+        "dummy_local_ce_loss": round(losses.local_ce_loss.item(), 6),
         "nonzero_gradient_parameters": nonzero_gradient_parameters,
         "gradient_norm_sum": round(gradient_norm_sum, 6),
     }
@@ -749,14 +802,19 @@ def train_single_variant(
             losses = trainer.step(batch_input=batch_input, batch_target=batch_target)
         else:
             optimizer.zero_grad(set_to_none=True)
-            logits, state0_history, prior_used_history, prior_valid_history, _ = model_call(batch_input, use_priors=True)
+            logits, block1_logits, state0_history, prior_used_history, prior_valid_history, _ = model_call(
+                batch_input,
+                use_priors=True,
+            )
             losses = compute_losses(
                 logits=logits,
+                block1_logits=block1_logits,
                 targets=batch_target,
                 state0_history=state0_history,
                 prior_used_history=prior_used_history,
                 prior_valid_history=prior_valid_history,
                 prediction_loss_weight=PREDICTION_LOSS_WEIGHT,
+                local_ce_weight=LOCAL_CE_WEIGHT,
             )
             if not torch.isfinite(losses.total_loss):
                 raise RuntimeError(
@@ -772,6 +830,7 @@ def train_single_variant(
                     "step": step,
                     "ce_loss": round(losses.ce_loss.item(), 6),
                     "pred_loss": round(losses.pred_loss.item(), 6),
+                    "local_ce_loss": round(losses.local_ce_loss.item(), 6),
                     "total_loss": round(losses.total_loss.item(), 6),
                 }
             )
@@ -824,6 +883,7 @@ def train_single_variant(
         "final_checkpoint": checkpoints[-1],
         "final_training_ce_loss": round(last_losses.ce_loss.item(), 6),
         "final_training_pred_loss": round(last_losses.pred_loss.item(), 6),
+        "final_training_local_ce_loss": round(last_losses.local_ce_loss.item(), 6),
         "final_training_total_loss": round(last_losses.total_loss.item(), 6),
         "wall_seconds": round(wall_seconds, 6),
         "mix_coefficients": model.mix_coefficients(),
@@ -877,6 +937,11 @@ def summarize_results(
         final_losses = [run["final_checkpoint"]["val_loss"] for run in runs]
         final_accuracies = [run["final_checkpoint"]["val_accuracy"] for run in runs]
         pred_losses = [run["final_checkpoint"]["pred_loss"] for run in runs]
+        block1_accuracies = [
+            run["final_checkpoint"]["block1_accuracy"]
+            for run in runs
+            if run["final_checkpoint"]["block1_accuracy"] is not None
+        ]
         wall_seconds = [run["wall_seconds"] for run in runs]
         summary[key] = {
             "label": specs[key].label,
@@ -885,6 +950,7 @@ def summarize_results(
             "std_final_val_loss": std_rounded(final_losses),
             "mean_final_val_accuracy": mean_rounded(final_accuracies),
             "mean_final_pred_loss": mean_rounded(pred_losses),
+            "mean_final_block1_accuracy": None if len(block1_accuracies) == 0 else mean_rounded(block1_accuracies),
             "mean_wall_seconds": mean_rounded(wall_seconds),
             "runs": runs,
         }
@@ -909,6 +975,12 @@ def comparison(summary_by_variant: dict[str, object]) -> dict[str, float]:
         comparison_values["mean_final_val_loss_delta_C_minus_B"] = round(
             summary_by_variant["C_closed_loop"]["mean_final_val_loss"]
             - summary_by_variant["B_spectator"]["mean_final_val_loss"],
+            6,
+        )
+    if "A_single" in summary_by_variant and "E_grounded" in summary_by_variant:
+        comparison_values["mean_final_val_loss_delta_E_minus_A"] = round(
+            summary_by_variant["E_grounded"]["mean_final_val_loss"]
+            - summary_by_variant["A_single"]["mean_final_val_loss"],
             6,
         )
     return comparison_values
