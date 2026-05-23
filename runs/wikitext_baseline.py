@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Iterator
 import gc
 import json
 import sys
@@ -11,7 +12,6 @@ from statistics import mean, pstdev
 from time import perf_counter
 
 import torch
-from torch.utils.data import DataLoader
 
 from core.dataset import CorpusData, load_corpus
 from core.fixed_window_char import set_seed
@@ -175,40 +175,39 @@ def readout_weights_or_none(model: ParallelDiagonalModel) -> list[float] | None:
     return [round(float(weight), 6) for weight in readout_weights]
 
 
-def batch_to_device(
-    batch: tuple[torch.Tensor, torch.Tensor],
+def random_batches(
+    encoded_corpus: torch.Tensor,
     *,
-    device: torch.device,
-) -> tuple[torch.Tensor, torch.Tensor]:
-    inputs, targets = batch
-    return (
-        inputs.to(device=device, dtype=torch.long, non_blocking=True),
-        targets.to(device=device, dtype=torch.long, non_blocking=True),
-    )
-
-
-def build_dataloader(
-    corpus: CorpusData,
-    *,
+    context_size: int,
     batch_size: int,
-) -> DataLoader[tuple[torch.Tensor, torch.Tensor]]:
-    return DataLoader(
-        corpus.train_dataset,
-        batch_size=batch_size,
-        shuffle=True,
-        drop_last=True,
-        pin_memory=torch.cuda.is_available(),
-    )
-
-
-def dataloader_batches(
-    dataloader: DataLoader[tuple[torch.Tensor, torch.Tensor]],
-    *,
     device: torch.device,
-) -> tuple[torch.Tensor, torch.Tensor]:
+    rng: torch.Generator,
+) -> Iterator[tuple[torch.Tensor, torch.Tensor]]:
+    if encoded_corpus.ndim != 1:
+        raise ValueError(f"random_batches expects a 1D corpus tensor, got shape {tuple(encoded_corpus.shape)}.")
+    if encoded_corpus.dtype != torch.long:
+        raise ValueError(f"random_batches expects torch.long tokens, got {encoded_corpus.dtype}.")
+
+    max_start = encoded_corpus.numel() - context_size
+    if max_start <= 0:
+        raise ValueError(
+            "random_batches needs more encoded tokens than context_size. "
+            f"Got corpus length {encoded_corpus.numel()} and context_size {context_size}."
+        )
+
+    offsets = torch.arange(context_size, dtype=torch.long)
+    pin_memory = device.type == "cuda"
     while True:
-        for batch in dataloader:
-            yield batch_to_device(batch, device=device)
+        starts = torch.randint(0, max_start, (batch_size,), generator=rng)
+        inputs = encoded_corpus[starts[:, None] + offsets]
+        targets = encoded_corpus[starts + context_size]
+        if pin_memory:
+            inputs = inputs.pin_memory()
+            targets = targets.pin_memory()
+        yield (
+            inputs.to(device=device, dtype=torch.long, non_blocking=pin_memory),
+            targets.to(device=device, dtype=torch.long, non_blocking=pin_memory),
+        )
 
 
 def mean_rounded(values: list[float]) -> float:
@@ -233,8 +232,21 @@ def train_single_variant(
     val_targets: torch.Tensor,
 ) -> dict[str, object]:
     set_seed(seed)
-    dataloader = build_dataloader(corpus, batch_size=args.batch_size)
-    batch_iterator = dataloader_batches(dataloader, device=device)
+    encoded_corpus = getattr(corpus.train_dataset, "encoded_corpus", None)
+    if not isinstance(encoded_corpus, torch.Tensor):
+        raise TypeError(
+            "train_single_variant expects corpus.train_dataset to expose encoded_corpus as a torch.Tensor."
+        )
+
+    batch_rng = torch.Generator()
+    batch_rng.manual_seed(seed)
+    batch_iterator = random_batches(
+        encoded_corpus,
+        context_size=CONTEXT_SIZE,
+        batch_size=args.batch_size,
+        device=device,
+        rng=batch_rng,
+    )
     warmup_batches = [next(batch_iterator) for _ in range(WARMUP_STEPS)]
 
     set_seed(seed)
@@ -339,7 +351,6 @@ def train_single_variant(
     del trainer
     del optimizer
     del model
-    del dataloader
     del batch_iterator
     gc.collect()
     torch.cuda.empty_cache()
