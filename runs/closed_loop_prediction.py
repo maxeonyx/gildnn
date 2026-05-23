@@ -45,6 +45,7 @@ class VariantSpec:
     rates: tuple[int, ...]
     readout_mode: str
     closed_loop: bool
+    strict_local: bool = False
 
 
 @dataclass(frozen=True)
@@ -65,7 +66,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--learning-rate", type=float, default=LEARNING_RATE)
     parser.add_argument("--eval-samples", type=int, default=EVAL_SAMPLES)
     parser.add_argument("--seeds", type=int, nargs="+", default=list(DEFAULT_SEEDS))
-    parser.add_argument("--variants", nargs="+", default=["A_single", "B_spectator", "C_closed_loop"])
+    parser.add_argument("--variants", nargs="+", default=["A_single", "B_spectator", "C_closed_loop", "D_strict_local"])
     parser.add_argument("--compile", dest="compile_model", action="store_true")
     parser.add_argument("--no-compile", dest="compile_model", action="store_false")
     parser.set_defaults(compile_model=True)
@@ -112,6 +113,15 @@ def variant_specs() -> dict[str, VariantSpec]:
             rates=(1, 2),
             readout_mode="block0",
             closed_loop=True,
+        ),
+        "D_strict_local": VariantSpec(
+            key="D_strict_local",
+            label="closed_loop_prediction_D_strict_local",
+            num_blocks=2,
+            rates=(1, 2),
+            readout_mode="block0",
+            closed_loop=True,
+            strict_local=True,
         ),
     }
 
@@ -252,7 +262,8 @@ class ClosedLoopPredictionModel(nn.Module):
             token_state = embeddings[:, time_index, :]
             seed0 = self.token_mix(s0, token_state)
             if self.prior_gain is not None and self.prior_norm is not None:
-                predicted_x0 = seed0 + self.prior_gain * self.prior_norm(prior_t)
+                effective_prior = prior_t.detach() if self.spec.strict_local else prior_t
+                predicted_x0 = seed0 + self.prior_gain * self.prior_norm(effective_prior)
                 x0 = predicted_x0 if has_prior else seed0
             else:
                 x0 = seed0
