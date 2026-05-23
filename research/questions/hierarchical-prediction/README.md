@@ -4,7 +4,9 @@ Serves [dictation 2026-05-23-5](../../../dictations/2026-05-23-5.md): "Block one
 
 ## Status
 
-**ACTIVE — detached closed-loop rerun running.** Previous aux-only test was NULL (on wrong architecture). Closed-loop v1 did give block 1 a forward role, but then collapsed catastrophically because the prediction loss rewarded block 0 for becoming predictable. V2 keeps the same experiment and controls, but detaches `s0` from block 1's input so the prediction loss stays local to block 1.
+**Mechanism works. Net performance benefit tentative.** V3 closed-loop with additive zero-init gate: both seeds show predictive coding mode (negative gain), deep integration (ablation gap +0.22), but the end-task improvement over 1-block baseline is -0.006 — barely past the preregistered threshold of -0.005, n=2 only.
+
+Phase 2 strict-local test now running — tests whether the mechanism survives without CE flowing through the feedback path.
 
 ## Phase 1: aux-only (NULL)
 
@@ -21,138 +23,97 @@ The hierarchical loss DOES learn (0.94 → 0.41 cosine distance) — blocks CAN 
 
 Artifact: [`experiments/fixed_multi_rate/artifacts/hierarchical_prediction/`](../../../experiments/fixed_multi_rate/artifacts/hierarchical_prediction/)
 
-## Why aux-only is insufficient (diagnosis from 6 subsequent experiments)
+## Why aux-only is insufficient
 
-The spectator problem on corrected architecture (`token_injection="block0"`) is NOT about:
-- Gradient signal (aux losses proved blocks can learn, +0.003)
-- Information access (temporal window k=8 with learned projection, +0.003)
-- Readout competition (equal readout HURTS +0.024)
-- Short context (ctx=128 makes it WORSE +0.014)
+The spectator problem on corrected architecture (`token_injection="block0"`) is NOT about gradient signal, information access, readout competition, or short context. Six follow-up experiments confirm this (all NULL or HURTS).
 
-**Root cause:** Same-objective identical blocks with the corrected architecture have no reason to specialize. Block 0 already does the task optimally because it touches every token. More information for upper blocks doesn't help because they have nothing DIFFERENT to do with it.
+**Root cause:** Same-objective identical blocks have no reason to specialize. Block 0 already does the task optimally because it touches every token. Any auxiliary loss that doesn't affect the forward pass is just "blocks learn something on the side."
 
-Any auxiliary loss that doesn't affect the forward pass is just "blocks learn something on the side" — the spectator problem is a forward-pass architecture problem, not a training signal problem.
+The spectator problem is a forward-pass architecture problem, not a training signal problem.
 
 ## Phase 2: closed-loop hierarchical prediction
 
-**Key difference from Phase 1:** Block 1's predictions are fed BACK into block 0's computation via MixAdd. Block 0 learns to USE the predictions. This gives block 1 a genuine forward role — block 0's output depends on block 1's prediction quality.
+**Key difference from Phase 1:** Block 1's predictions feed BACK into block 0's computation. Block 0 learns to USE the predictions. This gives block 1 a genuine forward role.
 
-### Architecture
+### Architecture (all versions)
 
 Two blocks: block 0 (rate=1), block 1 (rate=2). Block 0 only sees tokens.
 
 - Block 1 receives block 0's state, processes via FFN, produces prediction of block 0's next 2 states
 - Predictions stored in a 2-slot buffer
-- At each timestep, block 0 receives the prediction for THIS timestep via a learnable MixAdd gate
-- Block 0 computes: `x0 = prediction_mix(seed0, prior)` — learns how much to trust the prediction
+- At each timestep, block 0 receives the prediction for THIS timestep via a gating mechanism
+- Block 1 input: `x1 = 0.5 * (s1 + s0.detach())` (detach cuts pred_loss → block 0 path)
 
-### Loss
+**Loss:** CE (next-token from final state) + 0.1 × pred_loss (cosine distance on LayerNorm'd states).
 
-- Block 0: standard CE (next-token from final state)
-- Block 1: cosine distance on LayerNorm'd states: `1 - cos(LN(predicted), LN(stopgrad(actual_state0)))`
-- Total: `CE + 0.1 * pred_loss`
-
-### Controls
-
+**Controls:**
 - A_single: 1 block only (baseline)
 - B_spectator: 2 blocks, shared CE, weighted readout (reconfirms spectator)
 - C_closed_loop: 2 blocks, block 1 predicts, predictions fed back
 
-### v1 early signal (100-step sanity check, before collapse)
+### V1: catastrophic collapse
 
-```
-C_closed_loop:
-  val_loss:          3.233
-  ablated_val_loss:  4.130  ← predictions zeroed out
-  pred_loss:         0.50 → 0.19 (decreasing)
-  prediction_mix:    0.900
+Block 0 feedback gate was MixAdd. In v1, `s0` was NOT detached from block 1's input, so pred_loss could train block 0 to be predictable. Collapse to constant state — val_loss stuck at 3.14 while A converges to 1.67.
 
-A_single:
-  val_loss:          3.222
-```
+### V2: collapse + NaN (detach alone insufficient)
 
-The ablation gap (+0.90 nats) proves block 0 IS USING the predictions — first time any upper block has shown clear forward contribution in this project. This was real, but it did not survive training.
+Added `s0.detach()` to block 1's input. Still collapsed, then NaN at step 10K.
 
-### V1 result: catastrophic collapse
+The problem was not the gradient path from pred_loss. It was MixAdd's initialization formula.
 
-Full 20K-step training showed the closed-loop mechanism collapsing instead of helping.
+### Root cause: MixAdd sqrt formula
 
-| Condition | Val loss |
-|---|---:|
-| A_single | 1.670 |
-| B_spectator | 1.664 |
-| C_closed_loop | 3.142 |
+`MixAdd(init_keep=0.9)` computes `sqrt(mix)*keep + sqrt(1-mix)*add`.
 
-Accuracy in `C_closed_loop` froze at `0.194` from step 1K onward. `pred_loss` went to ~0, not because block 1 learned rich dynamics, but because block 0 collapsed to an almost constant state that block 1 could predict trivially.
+At initialization: `sqrt(0.9)=0.949` keep, `sqrt(0.1)=0.316` add. The "prior" signal gets **31.6% influence**, not 10%.
 
-The failure mode was: block 1 initially helps, the auxiliary objective then finds an easier route than improving prediction quality, and the whole system falls into a degenerate regime where "be predictable" beats "be useful."
+Combined with final-only CE over 128 recurrent steps, this creates a stable collapsed fixed point: a random/garbage prediction signal at 31.6% influence at EVERY recurrent step overwhelms the single CE signal at the end. Block 0 can't recover → collapses → block 1 trivially predicts constant → pred_loss→0.
 
-### Root cause analysis
+### V3: additive zero-init gate (the fix that works)
 
-In v1, block 1 was built from a live average of block 1's state and block 0's state:
+Replaced MixAdd with:
 
-`x1 = 0.5 * (s1 + s0)`
-
-That leaves this gradient path alive:
-
-```text
-pred_loss
-  → prediction_head
-  → block1_ffn
-  → x1
-  → s0
-  → block0_ffn
+```python
+x0 = seed0 + gain * LayerNorm(prior)
 ```
 
-So the prediction loss was not actually local to block 1. It directly rewarded block 0 for producing states that were easier to predict. The easiest-to-predict state is a constant or near-constant one, so training created an attractor: block 0 drifts toward constant outputs, block 1 learns to predict that constant, `pred_loss` goes to zero, and CE can no longer recover useful token information.
+`gain` is a scalar parameter initialized to **0**. Block 0 starts identical to A_single — zero contamination at init. Gain grows or shrinks only if CE benefits.
 
-### Fix: detach s0 from block 1 input
+### V3 results (2 seeds)
 
-The fix is one line:
+| Variant | Mean val_loss | C−A |
+|---------|--------------|-----|
+| A_single | 1.6703 | — |
+| B_spectator | 1.6766 | +0.006 |
+| **C_closed_loop** | **1.6647** | **-0.006** |
 
-`x1 = 0.5 * (s1 + s0.detach())`
+Per-seed: Seed 42 C−A = -0.009, Seed 43 C−A = -0.003. Mean: **-0.0056**.
 
-This cuts the bad path at `s0`. After the change, `pred_loss` still trains the prediction head and block 1's FFN, but no longer sends any "be predictable" pressure into block 0.
+Key metrics at convergence (averaged across seeds):
 
-Gradient flow after the fix:
+| Metric | Value | Meaning |
+|--------|-------|---------|
+| gain | -0.065 | Negative = predictive coding (subtract expected, process surprise) |
+| pred_loss | ~0.29 | Non-trivial predictions (not collapsed) |
+| ablation gap | +0.22 | Zeroing predictions hurts — deeply integrated |
+| Wall time C vs A | ~980s vs ~545s | Prediction head + feedback loop overhead |
 
-```text
-pred_loss
-  → prediction_head
-  → block1_ffn
-  → x1
-  ✕ s0
-```
+### Honest assessment
 
-This gives the mechanism the intended semi-local property:
+**Mechanism evidence: strong.** Both seeds show negative gain, large ablation gap, non-trivial pred_loss. The model spontaneously discovers predictive coding — it subtracts the expected and processes surprise. This is stable and deeply integrated.
 
-- `pred_loss` is local to block 1
-- `CE` is semi-local: it still trains both blocks through the closed-loop feedback path, because the prediction buffer `.copy_()` preserves autograd back into the prediction-producing path
+**Performance evidence: tentative.** n=2, barely past the -0.005 threshold, ~30-40% chance a third seed flips it. 14% parameter confound (C has more params than A due to prediction head). B being worse than A (+0.006) suggests extra params alone don't help — the closed-loop mechanism specifically does — but this is weak evidence with n=2.
 
-So block 0 now learns only from task loss, while block 1 learns both to help CE indirectly and to make good local predictions.
+## What this settles
 
-### V2 (running)
+- The corrected architecture CAN support predictive feedback without collapse, given the right gating (additive zero-init, not MixAdd).
+- The model spontaneously discovers predictive coding (negative gain = subtract expected, process surprise).
+- The spectator problem is solved by role differentiation — prediction task gives block 1 a unique function that contributes to the forward pass.
+- MixAdd's sqrt formula creates pathological initialization for recurrent feedback (31.6% influence at "10%" setting).
 
-V2 is the same experiment design, same controls, same dataset, same 20K-step run, with only the detach fix applied.
+## What this does not settle
 
-Expected behavior: no catastrophic collapse, block 0 learns normally from CE only, and block 1 is pressured to produce genuinely useful predictions rather than making block 0 constant.
-
-### What results would mean
-
-- **V2 C < A:** Detached closed-loop hierarchical prediction makes multi-block genuinely useful. Upper blocks have a valid forward role as dynamics predictors without collapsing the lower block.
-- **V2 C ≈ A ≥ B:** The detach fix removes the collapse and spectator harm, but prediction feedback still does not buy much.
-- **V2 C ≈ B:** Detaching fixes the failure mode but closed-loop prediction is still not enough to create a useful differentiated role.
-- **V2 collapses again:** The bug was not just the gradient leak through `s0`; the mechanism likely has a deeper instability.
-
-## What this question settles (if positive)
-
-- That the corrected architecture CAN support useful multi-block learning — specifically through role differentiation (different objectives per block)
-- That blocks don't need to see tokens directly to be useful — they can model dynamics instead
-- That the spectator problem is solvable through architectural means (closed-loop feedback), not just training signal tweaks
-
-## What this doesn't settle
-
-- Whether this extends to many blocks (4, 8, 16+)
-- Whether stop-grad local learning can work on top of this
-- Whether the prediction quality is sufficient for the mechanism to help at convergence (vs only helping transiently)
-- Whether the parameter overhead (prediction head, MixAdd gate) is justified vs adding those params to block 0 directly
+- Whether the net performance benefit is real (could be noise/params — needs more seeds or matched capacity).
+- Whether the mechanism works under truly local gradients (Phase 2 strict-local running now — tests block 1 training on pred_loss only, no CE gradient through feedback).
+- Whether this scales beyond 2 blocks.
+- Whether the prediction quality is sufficient to help at larger model scale (currently 263K backbone params).
