@@ -4,9 +4,15 @@
 
 Serves [dictation 2026-05-23-5](../../../dictations/2026-05-23-5.md): "how can I get local learning, i.e. enabling parallelism?"
 
-Max's framing: "It doesn't have to be totally local. We can be using backpropagation through a local neighborhood of blocks. Then if we can do that, we can parallelize training significantly more." The question is whether the hierarchical prediction mechanism (v3, now showing a positive result on seed 42) can work under strictly local gradients — no cross-boundary backprop at all — or whether CE shaping through the feedback path is load-bearing.
+Max's framing: "It doesn't have to be totally local. We can be using backpropagation through a local neighborhood of blocks. Then if we can do that, we can parallelize training significantly more."
 
-This is open. V3's positive result (C < A by 0.009 nats, gain = -0.071, ablation gap +0.231) proves the mechanism works under semi-local conditions, but semi-local is not genuinely local. The discriminating test hasn't run yet.
+## Status: ANSWERED (strict-local fails, neighborhood-local works)
+
+**CE shaping through the feedback path is load-bearing.** Strict-local with full-state cosine prediction collapses catastrophically (D=3.05 vs A=1.67, both seeds). Semi-local (neighborhood-local) works — C < A by 0.006 averaged over 2 seeds.
+
+This means: backprop through a local neighborhood (the interface between adjacent blocks) is the minimum viable locality. Each block pair forms an independent neighborhood. Parallelism scales with N (number of neighborhoods that can be updated simultaneously), but not to the limit of one-block-per-device without cross-boundary gradient.
+
+The remaining open question: does neighborhood-local work beyond N=2? (Phase 3: N=3 chain.)
 
 ## Key insight: "parallel" means three different things
 
@@ -68,33 +74,48 @@ REINFORCE becomes relevant only if the interface becomes discrete (send/skip gat
 
 ## Experimental plan (decision tree)
 
-### Phase 1: current v3 (semi-local, running)
+### Phase 1: v3 semi-local — DONE ✓
 
-Tests whether the mechanism works at all — can hierarchical prediction produce a net benefit over the single-block baseline?
+Both seeds confirm C < A (mean -0.006). Mechanism works under semi-local conditions.
 
-- **C < A (both seeds):** Mechanism works. Predictions are useful and stable. Proceed to Phase 2.
-- **C ≈ A:** Feedback helps training dynamics but washes out at convergence. Still proceed — strict-local might show a different equilibrium.
-- **C >> A:** The mechanism hurts despite v3 fixes. Something deeper is wrong. Investigate before testing locality variants.
+| Variant | Mean val_loss | vs A |
+|---------|--------------|------|
+| A_single | 1.670 | — |
+| C_closed_loop | 1.665 | -0.006 |
+| B_spectator | 1.677 | +0.006 |
 
-Seed 42 landed in the first bucket (C < A by 0.009). Seed 43 is running. Decision after both complete.
+Evidence: [`report_v3.json`](../../../experiments/wikitext_103/artifacts/closed_loop_prediction/report_v3.json)
 
-### Phase 2: strict-local vs semi-local (N=2)
+### Phase 2: strict-local — DONE ✓ (COLLAPSE)
 
-The discriminating experiment. Same architecture, same controls (A/B/C), same training — one extra `detach()` on the feedback path into block 0.
+Same architecture, one extra `detach()` on the feedback path. Result: **catastrophic collapse**, both seeds.
 
-- **Strict-local C < A:** Local learning works. Block 1 finds task-relevant predictions without any task gradient. This is the key result — it means training can genuinely parallelize.
-- **Strict-local C ≈ A but semi-local C < A:** CE shaping through the feedback path is load-bearing. The mechanism isn't fully local yet — block 1 needs task gradient to predict useful things.
-- **Strict-local C > A:** Without CE guidance, the predictor learns wrong things. Gate collapses to zero (ignores predictions) or worse, predictions actively mislead block 0.
+| Variant | Mean val_loss | vs A |
+|---------|--------------|------|
+| A_single | 1.670 | — |
+| **D_strict_local** | **3.047** | **+1.377** |
 
-This is the experiment that answers Max's question. Everything else is contingent on it.
+Collapse trajectory:
+1. Steps 1–2K: D was *better* than A (early predictions helpful regardless of alignment)
+2. Steps 3–13K: D much worse, slowly improving (predictions drift, co-adaptation)
+3. Steps 14–20K: Collapse (pred_loss → 0, accuracy frozen 0.19, gain → -0.17)
 
-### Phase 3: N=3 strict-local chain (only if Phase 2 positive)
+**Root cause:** full-state cosine prediction treats all hidden dimensions equally. Without CE shaping, block 1 predicts "whatever's easiest" rather than "what helps the task." Block 0 co-adapts (gain goes deeply negative → hard dependency on predictions), then when predictions drift from task-relevance, block 0 can't recover.
 
-Three blocks: 0←1←2. Block 0 has CE. Block 1 predicts block 0. Block 2 predicts block 1. All feedback detached.
+**Decision:** Strict-local with full-state cosine prediction is dead. The local objective doesn't select for task-relevance. Two paths remain: (a) accept neighborhood-local and scale to N>2, or (b) design a task-grounded local objective.
 
-Tests whether task grounding survives two hops. N=2 can't distinguish "strict-local works" from "strict-local works only when your prediction target is directly CE-trained." At N=3, block 2's targets are one hop removed from task relevance. If it still helps, multi-hop grounding is viable. If block 2 collapses while block 1 stays useful, grounding drift is real and depth is limited.
+Evidence: [`report_strict_local.json`](../../../experiments/wikitext_103/artifacts/closed_loop_prediction/report_strict_local.json)
 
-Only worth running if Phase 2 is positive.
+### Phase 3: N=3 neighborhood-local chain — NEXT
+
+**Revised scope:** since strict-local fails, this is now the semi-local (neighborhood-local) variant. Three blocks: 0←1←2. Block 0 has CE. Block 1 predicts block 0 (CE flows through interface). Block 2 predicts block 1 (CE flows through interface).
+
+Tests: does neighborhood-local scale beyond N=2? Can task grounding survive two hops via the chain 0←1←2? This is the question that determines whether the architecture has practical parallelism benefits — each adjacent pair is a "neighborhood" that can update partially independently.
+
+Decision rules:
+- **N=3 still helps:** Architecture scales. Depth = more parallelism.
+- **Block 2 collapses but block 1 stays useful:** Grounding drift is real. Parallelism limited to adjacent pairs only.
+- **Everything collapses at N=3:** Semi-local doesn't scale. Need stronger mechanisms (task-grounded targets, synthetic gradients).
 
 ## What this does NOT cover
 
