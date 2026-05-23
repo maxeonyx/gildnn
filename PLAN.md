@@ -40,7 +40,12 @@ The full-state cosine prediction target is dead as a local objective. Three live
 - Reduces co-adaptation risk but doesn't solve the fundamental target problem
 - Worth combining with either path above
 
-**Immediate next step:** Write today's daily report. Then decide between path 1 (safest, most direct) and path 2 (more interesting, higher risk). Both can be done as separate experiments.
+**Currently running:** E_grounded (path 2 at N=2). PID 24688, log at `experiments/wikitext_103/artifacts/closed_loop_prediction/run_grounded.jsonl`. Variants: A_single + E_grounded, 2 seeds, 20K steps, no-compile (CUDA graphs). Expected ~1.5 hours total. Started ~11:45am NZST.
+
+**Decision rules:**
+- **E does NOT collapse:** The problem was the target, not locality. Genuine strict-local learning works with task-grounded objectives. → Scale to N=3 with local CE on every block.
+- **E collapses anyway:** Locality itself is too weak, even with good targets. → Accept neighborhood-local as mainline, test width scaling.
+- **E matches A but no benefit:** Block 1's local CE grounds it, but its predictions don't help block 0. → The prediction mechanism itself might not be the right communication channel.
 
 ## Critical findings (carry forward)
 
