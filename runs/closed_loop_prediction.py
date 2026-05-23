@@ -191,7 +191,8 @@ class ClosedLoopPredictionModel(nn.Module):
 
         self.block1_ffn: FeedForwardBlock | None = None
         self.block1_mix: MixAdd | None = None
-        self.prediction_mix: MixAdd | None = None
+        self.prior_gain: nn.Parameter | None = None
+        self.prior_norm: nn.LayerNorm | None = None
         self.prediction_head: nn.Linear | None = None
         self.readout_logits: nn.Parameter | None = None
 
@@ -199,7 +200,8 @@ class ClosedLoopPredictionModel(nn.Module):
             self.block1_ffn = FeedForwardBlock(d_model=d_model, feedforward_dim=feedforward_dim)
             self.block1_mix = MixAdd(init_keep=0.9)
         if spec.closed_loop:
-            self.prediction_mix = MixAdd(init_keep=0.9)
+            self.prior_gain = nn.Parameter(torch.tensor(0.0, dtype=torch.float32))
+            self.prior_norm = nn.LayerNorm(d_model)
             self.prediction_head = nn.Linear(d_model, 2 * d_model)
         if spec.readout_mode == "weighted":
             self.readout_logits = nn.Parameter(torch.zeros(spec.num_blocks, dtype=torch.float32))
@@ -249,8 +251,8 @@ class ClosedLoopPredictionModel(nn.Module):
 
             token_state = embeddings[:, time_index, :]
             seed0 = self.token_mix(s0, token_state)
-            if self.prediction_mix is not None:
-                predicted_x0 = self.prediction_mix(seed0, prior_t)
+            if self.prior_gain is not None and self.prior_norm is not None:
+                predicted_x0 = seed0 + self.prior_gain * self.prior_norm(prior_t)
                 x0 = predicted_x0 if has_prior else seed0
             else:
                 x0 = seed0
@@ -279,8 +281,8 @@ class ClosedLoopPredictionModel(nn.Module):
         if self.readout_logits is not None:
             readout_weights = torch.softmax(self.readout_logits, dim=0).cpu().tolist()
         prediction_mix = None
-        if self.prediction_mix is not None:
-            prediction_mix = self.prediction_mix.coefficient_value()
+        if self.prior_gain is not None:
+            prediction_mix = float(self.prior_gain.item())
         return {
             "token_mix": self.token_mix.coefficient_value(),
             "block0_mix": self.block0_mix.coefficient_value(),
