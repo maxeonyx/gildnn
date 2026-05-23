@@ -4,7 +4,9 @@ Serves [dictation 2026-05-23-5](../../../dictations/2026-05-23-5.md): "Block one
 
 ## Status
 
-**NULL.** The hierarchical prediction objective learns (blocks CAN predict each other's future features), but adds zero benefit to the main task. Same "learns something unused" pattern as the self-prediction experiment.
+**NULL (on wrong architecture).** Tested with `token_injection="all"` — every block saw tokens directly. Per [dictation 2026-05-23-7](../../../dictations/2026-05-23-7.md), only block 0 should receive tokens; higher blocks depend on lateral propagation. When every block already has the answer, *of course* predicting features between blocks adds nothing.
+
+This result may reverse on the corrected architecture (`token_injection="block0"`), where higher blocks genuinely depend on lower blocks for information and predictive objectives could help form the inter-block protocol. See `research/questions/local-learning/README.md` for the re-test plan.
 
 ## Results
 
