@@ -4,64 +4,52 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## Current state
 
-**The multi-rate architecture is fundamentally broken.** Six WikiText-103 experiments now show:
+**The multi-rate architecture is fundamentally broken.** Six WikiText-103 experiments confirm spectator collapse.
 
-1. Under corrected architecture (block0 only): upper blocks are spectators at ALL context lengths.
-2. Under old architecture (all tokens): the ensemble benefit **collapses from -0.101 (ctx=32) to -0.020 (ctx=128).**
-3. The mechanism "process less frequently" doesn't create useful hierarchy — it just means "miss more information."
+**Root cause (refined):** Not just "missed tokens." The temporal window (k=8, learned projection of block 0's recent outputs) was also NULL — proving the problem isn't information access. It's that **same-objective identical blocks have no reason to specialize.** Block 0 already does the job optimally; giving other blocks more information doesn't help because they have nothing DIFFERENT to do with it.
 
-### ctx=128 results (definitive)
+**Implication:** The next experiment must give blocks DIFFERENT ROLES, not just different information or rates.
 
-| Variant | Mean val_loss | vs A |
-|---|---|---|
-| A_single | 1.838 | — |
-| B_corrected (block0, rates 1,2,4,8) | 1.852 | +0.014 (HURTS) |
-| C_old (all tokens, rates 1,2,4,8) | 1.818 | -0.020 (tiny) |
+## Active — closed-loop hierarchical prediction experiment
 
-Compare ctx=32 where C_old was -0.101. The architecture becomes LESS useful at longer context.
+**Hypothesis:** If upper blocks predict block 0's FUTURE states (a different objective) and feed predictions BACK into block 0 (closed-loop), they become genuinely useful — not as token predictors but as dynamics modelers.
 
-### Why multi-rate fails at longer context
+**Design (from 4 architectural think sessions):**
 
-With rates=(1,2,4,8) and ctx=128:
-- Block 0: 128 activations (sees everything)
-- Block 1: 64 activations (misses half)
-- Block 2: 32 activations (misses 3/4)
-- Block 3: 16 activations (misses 7/8)
+- 2 blocks: block 0 (rate=1), block 1 (rate=2)
+- Block 0: sees tokens, predicts next token (CE from final state)
+- Block 1: predicts block 0's next 2 states via prediction_head → `[batch, 2, d_model]`
+- Closed loop: block 1's predictions fed back to block 0 via MixAdd at each step
+- Loss: `CE + 0.1 * cosine_prediction_loss` (on LayerNorm'd targets, stop-grad)
+- Readout: block 0 only (for variant C)
+- Fixed-shape buffers for CUDA graph compatibility
 
-Slow blocks don't "model longer-range patterns" — they just **miss tokens**. At ctx=32 the damage was small enough that ensemble averaging helped. At ctx=128 the gaps are too large.
+**Variants:**
+- A: single block (baseline)
+- B: 2 blocks, shared CE, corrected arch (reconfirms spectator)
+- C: 2 blocks, closed-loop hierarchical prediction
 
-### Full diagnostic evidence (ctx=32, WikiText-103)
+**Diagnostics:**
+- val_loss
+- prediction_mix coefficient over training
+- pred_loss trajectory
+- C ablation: zero out priors at eval → if CE unchanged, block 1 still spectator
 
-| Intervention | Result | What it ruled out |
-|---|---|---|
-| Baseline corrected | NULL (+0.003) | Not just small dataset |
-| Aux prediction loss | NULL (+0.003) | Not gradient signal |
-| Equal readout | HURTS (+0.024) | Not readout collapse |
-| Temporal window (k=8) | NULL (+0.003) | Not missing trajectory info |
-| ctx=128 | HURTS (+0.014) | Not short context |
+**Decision rules:**
+- C > A → hierarchical prediction genuinely helps! Next: add more blocks, test local learning
+- C ≈ A > B → prediction prevents harm but no benefit (need richer mechanism)
+- C ≈ B → closed-loop not enough either (may need structural change to residual stream)
 
-**Conclusion:** The multi-rate diagonal architecture cannot support useful multi-block learning under any tested conditions. The corrected architecture (only block 0 sees tokens) is definitively broken. The old architecture (ensemble) loses its benefit at longer context.
+## Why NOT aggregation (mean-pooling)
 
-## Active
-
-Nothing running. GPU free.
-
-## Next — fundamental rethink needed
-
-The current architecture is exhausted. We need a genuinely different approach to multi-module parallel learning. Key constraint from Max's dictation: "how can I get local learning, i.e. enabling parallelism?"
-
-Possible new directions (need fresh think session to evaluate):
-
-- [ ] **Aggregation-based slow blocks** — Instead of "process every Nth step and skip the rest," slow blocks could AGGREGATE multiple steps (pool/attend over N consecutive fast-block outputs before processing). This is "summarize, then process" rather than "ignore, then process."
-- [ ] **Heterogeneous specialization** — Different blocks get different computation types entirely (e.g., one does local ngram patterns, one does position-invariant features). Rather than identical blocks at different rates.
-- [ ] **True mixture-of-experts** — Route different tokens to different blocks. Each block processes all tokens that route to it. This is the established approach to parallel specialization.
-- [ ] **Transformer baseline** — Before pursuing any new architecture, know where we stand. Build a standard transformer at matched compute.
+Temporal window (k=8) already tested a SUPERSET of mean-pooling — a learned linear projection of block 0's last 8 states. Result: NULL. Mean-pooling is a special case of learned projection and cannot outperform it. Skip.
 
 ## Queue
 
 - Named/typed tensor dimensions
 - Loop management tooling
 - Graph architecture idea from dictation
+- Transformer matched-compute baseline
 
 ## Key completed findings
 
@@ -72,7 +60,7 @@ Possible new directions (need fresh think session to evaluate):
 | ctx=32 baseline | B wins (-0.101), C≈A | Spectator on corrected arch |
 | ctx=32 local aux loss | **NULL** (+0.003) | Gradient isn't the problem |
 | ctx=32 equal readout | **HURTS** (+0.024) | Information poverty confirmed |
-| ctx=32 temporal window | **NULL** (+0.003) | History doesn't help |
+| ctx=32 temporal window | **NULL** (+0.003) | Learned projection of history doesn't help |
 | Bidirectional top-down | **HURTS** | TinyShakespeare |
 | CUDA Graph training | 10.86× speedup | GraphTrainer in core/ |
 | Self-prediction | NULL | Zero effect |
