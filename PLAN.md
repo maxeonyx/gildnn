@@ -19,13 +19,12 @@ Architecture:
 - **Quality at equal FLOPs: BETTER (+0.019 avg, 2/3 seeds clearly better, 1 tied)** ✓
 
 Next steps:
-- [ ] **⚠ ARCHITECTURE CORRECTION** — Per [dictation 2026-05-23-7](dictations/2026-05-23-7.md): ONLY block 0 should receive the token embedding. ✓ Implemented (`token_injection="block0"`, commit 93147c1). But the corrected architecture makes upper blocks **spectators** (= single block quality). Root cause: upper blocks have strictly staler info with no exclusive information.
-- [x] **Corrected architecture sanity check** — RUNNING (PID 14456). Seed 42 + 43 confirm: corrected = single block (0 to +0.019 vs single). Old architecture helps because it's an ensemble, not a hierarchy.
-- [ ] **⚠ Bidirectional top-down** — THE KEY NEXT TEST. Added `topology="top_down_to_first"` (commit 67b4426): block 0 reads block 1's state (top-down). This gives upper blocks a causal path to the output. Also added `readout_mode="first"` (block 0 only outputs). Script ready: `runs/bidirectional_sanity.py`.
-- [ ] **Scale up: larger dataset** — TinyShakespeare (250K tokens) is a ceiling. If bidirectional also fails at this scale → data is the bottleneck, not architecture.
-- [ ] **Local learning on working architecture** — Only test local learning (detach lateral) AFTER proving multi-block adds value. Pointless to test local learning on spectator blocks.
-- [ ] **Predictive coding as local learning rule** — Multiple think iterations completed: per-block predict-lower-future-latent, multi-horizon matched to rate. Only relevant once upper blocks have value to protect.
-- [ ] **Matched-compute transformer baseline** — Existing baseline (1.643 @ 187K params) beats us. Need fair comparison.
+- [ ] **⚠ WikiText-103 baseline** — THE TOP PRIORITY. TinyShakespeare is confirmed saturated at d=256. `runs/wikitext_baseline.py` is ready. 4 conditions (single / old-4-block / corrected / bidirectional) × 2 seeds on WikiText-103. Launch when GPU is free.
+- [x] **Architecture correction** — `token_injection="block0"` implemented (commit 93147c1). Corrected arch = single block on TinyShakespeare: upper blocks are spectators.
+- [x] **Corrected architecture sanity check** — 3-seed result: single=1.712, old=1.713, corrected=**1.746** (hurts). Report: `experiments/fixed_multi_rate/artifacts/token_injection_sanity/`.
+- [ ] **[RUNNING] Bidirectional test** (PID 4356) — `topology="top_down_to_first"` + `readout_mode="first"`. Seeds 42-43 already show it HURTS (1.779, 1.801 vs 1.719 single). Expected to confirm: no architectural trick helps at TinyShakespeare d=256.
+- [ ] **Local learning on WikiText-103** — Only test after multi-block shows value on larger data. Predictive coding theory work done (4 think iterations, documented in `research/questions/local-learning/README.md`).
+- [ ] **Scale up context** — After WikiText-103 ctx=32 works, try ctx=128.
 
 Recent findings this session:
 - [x] **Cosine LR** — DOES NOT HELP. Same overfitting pattern as constant LR (model memorizes TinyShakespeare before LR decays meaningfully). Dataset is the bottleneck, not LR schedule.
