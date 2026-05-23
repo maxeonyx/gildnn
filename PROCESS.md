@@ -285,6 +285,12 @@ Use `runs/active.lock` to record the active large run. Format: one line with exp
 - **Before launching a GPU run, preflight GPU availability** — confirm `nvidia-smi` shows the GPU idle and CUDA will initialize. On this desktop, gaming can hold the GPU exclusively; CUDA init will block indefinitely if the GPU is busy.
 - If launch infrastructure is flaky, fix and document the launch mechanism before spending more time on experiments.
 
+**Experiment log files (JSONL):**
+
+- Experiment scripts write progress to JSONL log files using `append_log()`.
+- On startup, scripts must NOT truncate existing logs. If the log file exists and has content, append a `run_restarted` marker. This preserves partial results from crashed runs.
+- The `write_text("")` pattern that was previously used to clear logs on startup is a bug — it destroys evidence from prior runs.
+
 ---
 
 ## Quality loops while GPU is busy
