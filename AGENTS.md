@@ -128,14 +128,11 @@ Evidence in question READMEs must be **embedded inline** in the markdown (tables
 
 **Background execution.** Experiments expected to take more than ~5 minutes must use a **two-phase delegation**: Phase 1 (launch only) — subagent starts the process, returns PID and log path, and stops. It does NOT wait, poll, or check results. Phase 2 (check) — orchestrator decides when to check back and resumes the subagent to analyse results. Failing to split this way is a process failure. See `PROCESS.md` for the full rule.
 
-## Dictation check
+## Dictation notification
 
-**Check for new dictations frequently.** Run `& .\.venv\Scripts\python.exe -m core.check_dictations` at:
-- Session start
-- After any long operation (>30s)
-- Before deciding "nothing to do"
+New dictations are detected automatically by the `.opencode/plugins/dictation-notifier.ts` plugin. When a new `.md` file appears in `dictations/`, a message is injected into the active session that the agent will see on its next turn. No polling required — the agent cannot miss it.
 
-If new dictations are found, read them immediately — they contain Max's instructions and take priority. After reading, mark seen with `--mark` flag.
+When you see a `[DICTATION NOTIFICATION]` message, read the dictation file immediately — it contains Max's instructions and takes priority over current work.
 
 **Don't interrupt the desktop** when launching background processes. Always use `-WindowStyle Hidden` on `Start-Process`. Never use `-NoNewWindow` (which inherits the parent console and can steal focus).
 
@@ -144,8 +141,7 @@ If new dictations are found, read them immediately — they contain Max's instru
 When picking up after a handover:
 1. Read `VISION.md` — understand where the current work sits in the bigger picture
 2. Read `PLAN.md` — immediate checklist and next steps
-3. **Check for new dictations** — `& .\.venv\Scripts\python.exe -m core.check_dictations`
-4. Check for `TASK-*.ignore.md` in root — read any that exist
+3. Check for `TASK-*.ignore.md` in root — read any that exist
 5. Check `runs/active.lock` — if a background run is active, do other work (don't start a second long run)
 6. **Check the time** — if after 4pm, write the daily report at the next natural stopping point; if Thursday, weekly too
 
