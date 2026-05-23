@@ -2,60 +2,54 @@
 
 Immediate checklist. What's next, what I'll do based on each outcome. For the bigger picture, read VISION.md.
 
-## Active — strict-local test (Phase 2) NEXT
+## What just happened
 
-The closed-loop v3 experiment is complete. Mechanism works. Next: test if it survives without CE flowing through the feedback path. See `research/questions/local-learning-variants/README.md` for the full analysis.
+**Strict-local COLLAPSES.** Phase 2 complete. Full-state prediction as a local objective doesn't work — the predictor learns task-irrelevant patterns, block 0 co-adapts, then the system collapses to the same degenerate state as v1.
 
-**Implementation:** One extra `.detach()` on the feedback path — either detach `prior_t` before it enters block 0, or detach `pred_pair` before `.copy_()`. This cuts the CE→block1 gradient. Block 1 trains ONLY on pred_loss. Block 0 trains ONLY on CE. No gradient crosses the boundary.
+| Variant | Mean val_loss | vs A |
+|---------|--------------|------|
+| A_single | 1.670 | — |
+| C_closed_loop (semi-local) | 1.665 | -0.006 |
+| **D_strict_local** | **3.047** | **+1.377 (COLLAPSE)** |
 
-Same run script, same controls (A/B/C), same seeds, same 20K steps.
+The decisive finding: **CE shaping through the feedback path is load-bearing.** Without task gradient reaching block 1, predictions aren't task-aligned and the system eventually collapses.
 
-### Decision rules (strict-local)
+From dictation 2026-05-23-5: "It doesn't have to be totally local. We can be using backpropagation through a local neighborhood of blocks." The semi-local result IS backprop through a local neighborhood (the interface). It's legitimate.
 
-- **Strict-local C < A:** LOCAL LEARNING WORKS. Block 1 finds task-relevant predictions without any task gradient. Training can genuinely parallelize.
-- **Strict-local C ≈ A but semi-local C < A:** CE shaping through the feedback path is load-bearing. Not fully local yet.
-- **Strict-local C > A:** Without CE guidance, predictor learns wrong things. Gate collapses to zero or predictions mislead.
+## What's next
 
-## Closed-loop v3 DONE — mechanism works, net benefit tentative
+The full-state cosine prediction target is dead as a local objective. Three live paths:
 
-### Final results (2 seeds averaged)
+### 1. Accept neighborhood-local as mainline, scale to N=3 (recommended)
+- Semi-local with N=3 blocks: each block predicts its neighbor, CE propagates through interfaces
+- Tests whether semi-local extends beyond 2 blocks
+- If it does: the architecture parallelizes in proportion to N (each block pair is a "neighborhood")
+- Max explicitly allows this: "backprop through a local neighborhood"
 
-| Variant | Mean val_loss | C−A |
-|---------|--------------|-----|
-| A_single | 1.6703 | — |
-| B_spectator | 1.6766 | +0.006 |
-| **C_closed_loop** | **1.6647** | **-0.006** |
+### 2. Task-grounded prediction target (fresh strict-local attempt)
+- Replace "predict full hidden state" with a target that's task-relevant by construction:
+  - Predict next-token logits / teacher distribution (local LM loss)
+  - Predict a CE-grounded bottleneck latent (small projection that's trained to be CE-relevant)
+  - Target propagation / synthetic gradients
+- The fundamental problem with full-state: predicting all dimensions equally doesn't select for task-relevance
+- A task-grounded target constrains the objective to only predict useful things
 
-Per-seed: Seed 42 C-A = -0.009, Seed 43 C-A = -0.003. Mean: **-0.0056** (barely past -0.005 threshold).
+### 3. Per-dimension gate + semi-local (protector, not solution)
+- Replace scalar gain with vector gate (zero-init Linear)
+- Lets CE suppress nuisance prediction dimensions, keep useful ones
+- Reduces co-adaptation risk but doesn't solve the fundamental target problem
+- Worth combining with either path above
 
-### Honest assessment
-
-- **Mechanism evidence: strong.** Both seeds show negative gain (-0.07, -0.06), huge ablation gap (+0.23, +0.22), non-trivial pred_loss (~0.29). Model uses predictions deeply.
-- **Performance evidence: tentative.** n=2, barely past threshold, ~30-40% chance a third seed would flip it back below threshold. Parameter confound: C has 14% more params than A.
-- **B confirms spectator problem:** B is WORSE than A (+0.006 averaged). Extra params alone don't help; the closed-loop mechanism specifically does.
-
-The key takeaway: v3 consistently learned and used the closed-loop prediction pathway, but its end-task gain over the 1-block baseline is tiny, barely over the preregistered threshold, and still plausibly explained by seed noise and unmatched capacity. What IS clear: the mechanism is active, stable, and deeply integrated. That's sufficient to proceed with the strict-local test — which is the actual question (can this work without global backprop?).
-
-### V3 architecture summary
-
-- `x0 = seed0 + gain * LayerNorm(prior)`, gain=0 at init
-- Block 1 input: `x1 = 0.5 * (s1 + s0.detach())`
-- Gain goes NEGATIVE (-0.06 to -0.07) = predictive coding: subtract expected, process surprise
-- Ablation gap +0.22: predictions deeply embedded despite tiny net benefit
-
-### Prior failures and their fixes
-
-- **V1:** Catastrophic collapse (val_loss stuck at 3.14). pred_loss gradient into block 0.
-- **V2:** Collapse + NaN. MixAdd `sqrt(0.1)` = 31.6% prior coefficient (not 10%). Stable collapsed fixed point with final-only CE.
-- **V3 fix:** Additive zero-init gate. No contamination at init.
+**Immediate next step:** Write today's daily report. Then decide between path 1 (safest, most direct) and path 2 (more interesting, higher risk). Both can be done as separate experiments.
 
 ## Critical findings (carry forward)
 
 1. **MixAdd sqrt formula at init=0.9 gives 31.6% coefficient, not 10%.** Root cause of v1/v2 collapse.
 2. **Additive zero-init gate works.** No collapse. Model learns gain automatically. Negative gain = predictive coding.
-3. **Semi-local is NOT genuinely local.** CE flows through feedback. Current v3 is global backprop through a narrow interface.
-4. **Predictions provide early-learning acceleration** (C beats A by 0.03 at step 2K) that narrows at convergence.
-5. **The spectator problem is real and persistent.** B hurts on average (+0.006). Extra blocks with shared objective don't help.
+3. **Semi-local is NOT genuinely local.** CE flows through feedback. Current v3 is global backprop through a narrow interface. ← CONFIRMED by strict-local collapse.
+4. **Full-state cosine prediction is a bad local objective.** It doesn't select for task-relevant components. Predictor learns easy/average patterns, block 0 co-adapts, system collapses.
+5. **Neighborhood-local is legitimate.** Max explicitly allows it. Interface-level CE shaping works.
+6. **The spectator problem is solved by role differentiation.** B hurts on average (+0.006). Closed-loop gives block 1 a unique function.
 
 ## Queue
 
@@ -68,7 +62,8 @@ The key takeaway: v3 consistently learned and used the closed-loop prediction pa
 
 | Experiment | Result | Notes |
 |---|---|---|
-| **Closed-loop v3** | **C < A by 0.006** (2 seeds) | Mechanism active, net benefit tentative. Predictive coding mode. |
+| **Strict-local (D)** | **COLLAPSE** (+1.38) | CE shaping is load-bearing. Full-state local prediction fails. |
+| **Closed-loop v3 (C)** | **C < A by 0.006** (2 seeds) | Mechanism active, net benefit tentative. Semi-local. |
 | **Closed-loop v1** | **COLLAPSE** (+1.47) | pred_loss trained block 0 to be constant |
 | **Closed-loop v2** | **COLLAPSE → NaN** | MixAdd 31.6% prior = stable collapsed fixed point |
 | ctx=128 corrected | **HURTS** (+0.014) | Spectator worse at longer context |
