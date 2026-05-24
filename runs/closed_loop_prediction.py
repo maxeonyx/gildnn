@@ -48,6 +48,25 @@ class VariantSpec:
     closed_loop: bool
     strict_local: bool = False
     local_ce: bool = False
+    phases: tuple[int, ...] = ()
+    per_helper_prediction_loss: bool = False
+
+    def __post_init__(self) -> None:
+        if len(self.rates) != self.num_blocks:
+            raise ValueError(
+                f"VariantSpec {self.key!r} requires len(rates) == num_blocks, got {len(self.rates)} and {self.num_blocks}."
+            )
+        phases = self.phases if len(self.phases) > 0 else tuple(0 for _ in range(self.num_blocks))
+        if len(phases) != self.num_blocks:
+            raise ValueError(
+                f"VariantSpec {self.key!r} requires len(phases) == num_blocks, got {len(phases)} and {self.num_blocks}."
+            )
+        for index, (phase, rate) in enumerate(zip(phases, self.rates, strict=True)):
+            if not 0 <= phase < rate:
+                raise ValueError(
+                    f"VariantSpec {self.key!r} requires 0 <= phases[{index}] < rates[{index}], got phase={phase}, rate={rate}."
+                )
+        object.__setattr__(self, "phases", phases)
 
 
 @dataclass(frozen=True)
@@ -102,6 +121,7 @@ def variant_specs() -> dict[str, VariantSpec]:
             label="closed_loop_prediction_A_single",
             num_blocks=1,
             rates=(1,),
+            phases=(0,),
             readout_mode="block0",
             closed_loop=False,
         ),
@@ -110,6 +130,7 @@ def variant_specs() -> dict[str, VariantSpec]:
             label="closed_loop_prediction_B_spectator",
             num_blocks=2,
             rates=(1, 2),
+            phases=(0, 0),
             readout_mode="weighted",
             closed_loop=False,
         ),
@@ -118,6 +139,7 @@ def variant_specs() -> dict[str, VariantSpec]:
             label="closed_loop_prediction_C_closed_loop",
             num_blocks=2,
             rates=(1, 2),
+            phases=(0, 0),
             readout_mode="block0",
             closed_loop=True,
         ),
@@ -126,6 +148,7 @@ def variant_specs() -> dict[str, VariantSpec]:
             label="closed_loop_prediction_D_strict_local",
             num_blocks=2,
             rates=(1, 2),
+            phases=(0, 0),
             readout_mode="block0",
             closed_loop=True,
             strict_local=True,
@@ -135,6 +158,7 @@ def variant_specs() -> dict[str, VariantSpec]:
             label="closed_loop_prediction_E_grounded",
             num_blocks=2,
             rates=(1, 2),
+            phases=(0, 0),
             readout_mode="block0",
             closed_loop=True,
             strict_local=True,
@@ -145,6 +169,7 @@ def variant_specs() -> dict[str, VariantSpec]:
             label="closed_loop_prediction_F_star_3block",
             num_blocks=3,
             rates=(1, 2, 4),
+            phases=(0, 0, 0),
             readout_mode="block0",
             closed_loop=True,
         ),
@@ -153,8 +178,29 @@ def variant_specs() -> dict[str, VariantSpec]:
             label="closed_loop_prediction_G_rate4_only",
             num_blocks=2,
             rates=(1, 4),
+            phases=(0, 0),
             readout_mode="block0",
             closed_loop=True,
+        ),
+        "I_phase_offset": VariantSpec(
+            key="I_phase_offset",
+            label="closed_loop_prediction_I_phase_offset",
+            num_blocks=3,
+            rates=(1, 2, 2),
+            phases=(0, 0, 1),
+            readout_mode="block0",
+            closed_loop=True,
+            per_helper_prediction_loss=True,
+        ),
+        "I_control": VariantSpec(
+            key="I_control",
+            label="closed_loop_prediction_I_control",
+            num_blocks=3,
+            rates=(1, 2, 2),
+            phases=(0, 0, 0),
+            readout_mode="block0",
+            closed_loop=True,
+            per_helper_prediction_loss=True,
         ),
     }
 
@@ -275,11 +321,14 @@ class ClosedLoopPredictionModel(nn.Module):
         return self.token_embedding(tokens) + self.position_embedding(positions).unsqueeze(0)
 
     @staticmethod
-    def _pop_prior_buffer(prior_buffer: Tensor) -> Tensor:
+    def _pop_prior_buffer(prior_buffer: Tensor, prior_valid_buffer: Tensor) -> tuple[Tensor, Tensor]:
         prior_t = prior_buffer[:, 0, :].clone()
+        prior_valid_t = prior_valid_buffer[0].clone()
         prior_buffer[:, :-1, :].copy_(prior_buffer[:, 1:, :])
         prior_buffer[:, -1, :].zero_()
-        return prior_t
+        prior_valid_buffer[:-1].copy_(prior_valid_buffer[1:])
+        prior_valid_buffer[-1] = False
+        return prior_t, prior_valid_t
 
     def readout_state(self, states: tuple[Tensor, ...]) -> Tensor:
         if self.spec.readout_mode == "block0":
@@ -290,11 +339,12 @@ class ClosedLoopPredictionModel(nn.Module):
         readout_weights = torch.softmax(self.readout_logits.to(device=states[0].device, dtype=states[0].dtype), dim=0)
         return (stacked_states * readout_weights.view(1, self.num_blocks, 1)).sum(dim=1)
 
-    def forward(self, tokens: Tensor, *, use_priors: bool = True) -> tuple[Tensor, Tensor | None, Tensor, Tensor, Tensor, Tensor]:
+    def forward(
+        self, tokens: Tensor, *, use_priors: bool = True
+    ) -> tuple[Tensor, Tensor | None, Tensor, tuple[Tensor, ...], tuple[Tensor, ...], Tensor]:
         embeddings = self.embedded_tokens(tokens)
         batch_size = tokens.shape[0]
         device = embeddings.device
-        dtype = embeddings.dtype
 
         s0 = embeddings.new_zeros((batch_size, self.d_model))
         s1 = embeddings.new_zeros((batch_size, self.d_model))
@@ -302,55 +352,85 @@ class ClosedLoopPredictionModel(nn.Module):
         zero_state = embeddings.new_zeros((batch_size, self.d_model))
         block1_rate = self.spec.rates[1] if self.spec.num_blocks >= 2 else 1
         prior_buffer_1 = embeddings.new_zeros((batch_size, block1_rate, self.d_model))
+        prior_valid_buffer_1 = torch.zeros((block1_rate,), device=device, dtype=torch.bool)
         prior_buffer_2 = None
+        prior_valid_buffer_2 = None
         if self.spec.num_blocks == 3:
             prior_buffer_2 = embeddings.new_zeros((batch_size, self.spec.rates[2], self.d_model))
+            prior_valid_buffer_2 = torch.zeros((self.spec.rates[2],), device=device, dtype=torch.bool)
         state0_history = embeddings.new_zeros((batch_size, self.context_size, self.d_model))
-        prior_used_history = embeddings.new_zeros((batch_size, self.context_size, self.d_model))
-        prior_valid_history = torch.zeros((self.context_size,), device=device, dtype=torch.bool)
+        prior_history_1 = embeddings.new_zeros((batch_size, self.context_size, self.d_model))
+        prior_valid_history_1 = torch.zeros((self.context_size,), device=device, dtype=torch.bool)
+        prior_history_2 = None
+        prior_valid_history_2 = None
+        if self.spec.num_blocks == 3:
+            prior_history_2 = embeddings.new_zeros((batch_size, self.context_size, self.d_model))
+            prior_valid_history_2 = torch.zeros((self.context_size,), device=device, dtype=torch.bool)
 
         allow_priors = self.spec.closed_loop and use_priors
-        if allow_priors and self.context_size > 1:
-            prior_valid_history[1:].fill_(True)
         for time_index in range(self.context_size):
             has_prior = allow_priors and time_index > 0
             if has_prior:
-                prior_t_1 = self._pop_prior_buffer(prior_buffer_1)
-                prior_t_2 = zero_state if prior_buffer_2 is None else self._pop_prior_buffer(prior_buffer_2)
+                prior_t_1, prior_valid_t_1 = self._pop_prior_buffer(prior_buffer_1, prior_valid_buffer_1)
+                if prior_buffer_2 is None or prior_valid_buffer_2 is None:
+                    prior_t_2 = zero_state
+                    prior_valid_t_2 = torch.zeros((), device=device, dtype=torch.bool)
+                else:
+                    prior_t_2, prior_valid_t_2 = self._pop_prior_buffer(prior_buffer_2, prior_valid_buffer_2)
             else:
                 prior_t_1 = zero_state
+                prior_valid_t_1 = torch.zeros((), device=device, dtype=torch.bool)
                 prior_t_2 = zero_state
+                prior_valid_t_2 = torch.zeros((), device=device, dtype=torch.bool)
 
             token_state = embeddings[:, time_index, :]
             seed0 = self.token_mix(s0, token_state)
             x0 = seed0
-            if has_prior and self.prior_gain_1 is not None and self.prior_norm_1 is not None:
+            if has_prior and bool(prior_valid_t_1.item()) and self.prior_gain_1 is not None and self.prior_norm_1 is not None:
                 effective_prior_1 = prior_t_1.detach() if self.spec.strict_local else prior_t_1
                 x0 = x0 + self.prior_gain_1 * self.prior_norm_1(effective_prior_1)
-            if has_prior and self.prior_gain_2 is not None and self.prior_norm_2 is not None:
+            if has_prior and bool(prior_valid_t_2.item()) and self.prior_gain_2 is not None and self.prior_norm_2 is not None:
                 effective_prior_2 = prior_t_2.detach() if self.spec.strict_local else prior_t_2
                 x0 = x0 + self.prior_gain_2 * self.prior_norm_2(effective_prior_2)
             delta0 = self.block0_ffn(x0)
             s0 = self.block0_mix(x0, delta0)
 
-            if self.block1_ffn is not None and self.block1_mix is not None and time_index % self.spec.rates[1] == 0:
+            if (
+                self.block1_ffn is not None
+                and self.block1_mix is not None
+                and (time_index - self.spec.phases[1]) % self.spec.rates[1] == 0
+            ):
                 x1 = 0.5 * (s1 + s0.detach())
                 delta1 = self.block1_ffn(x1)
                 s1 = self.block1_mix(x1, delta1)
                 if self.prediction_head_1 is not None:
                     pred_pair = self.prediction_head_1(s1).view(batch_size, self.spec.rates[1], self.d_model)
                     prior_buffer_1.copy_(pred_pair)
+                    prior_valid_buffer_1.fill_(True)
 
-            if self.block2_ffn is not None and self.block2_mix is not None and time_index % self.spec.rates[2] == 0:
+            if (
+                self.block2_ffn is not None
+                and self.block2_mix is not None
+                and (time_index - self.spec.phases[2]) % self.spec.rates[2] == 0
+            ):
                 x2 = 0.5 * (s2 + s0.detach())
                 delta2 = self.block2_ffn(x2)
                 s2 = self.block2_mix(x2, delta2)
-                if self.prediction_head_2 is not None and prior_buffer_2 is not None:
+                if (
+                    self.prediction_head_2 is not None
+                    and prior_buffer_2 is not None
+                    and prior_valid_buffer_2 is not None
+                ):
                     pred_quad = self.prediction_head_2(s2).view(batch_size, self.spec.rates[2], self.d_model)
                     prior_buffer_2.copy_(pred_quad)
+                    prior_valid_buffer_2.fill_(True)
 
             state0_history[:, time_index, :].copy_(s0)
-            prior_used_history[:, time_index, :].copy_(prior_t_1 + prior_t_2)
+            prior_history_1[:, time_index, :].copy_(prior_t_1)
+            prior_valid_history_1[time_index] = prior_valid_t_1
+            if prior_history_2 is not None and prior_valid_history_2 is not None:
+                prior_history_2[:, time_index, :].copy_(prior_t_2)
+                prior_valid_history_2[time_index] = prior_valid_t_2
 
         states = (s0,) if self.num_blocks == 1 else (s0, s1) if self.num_blocks == 2 else (s0, s1, s2)
         readout_state = self.readout_state(states)
@@ -359,7 +439,11 @@ class ClosedLoopPredictionModel(nn.Module):
         if self.block1_norm is not None and self.block1_lm_head is not None:
             block1_logits = self.block1_lm_head(self.block1_norm(s1))
         final_states = torch.stack(states, dim=1)
-        return logits, block1_logits, state0_history, prior_used_history, prior_valid_history, final_states
+        prior_histories = (prior_history_1,) if prior_history_2 is None else (prior_history_1, prior_history_2)
+        prior_valid_histories = (
+            (prior_valid_history_1,) if prior_valid_history_2 is None else (prior_valid_history_1, prior_valid_history_2)
+        )
+        return logits, block1_logits, state0_history, prior_histories, prior_valid_histories, final_states
 
     @torch.no_grad()
     def mix_coefficients(self) -> dict[str, object]:
@@ -382,19 +466,21 @@ class ClosedLoopPredictionModel(nn.Module):
             "prediction_mix_2": prediction_mix_2,
             "readout_weights": readout_weights,
             "rates": list(self.spec.rates),
+            "phases": list(self.spec.phases),
             "readout_mode": self.spec.readout_mode,
             "closed_loop": self.spec.closed_loop,
+            "per_helper_prediction_loss": self.spec.per_helper_prediction_loss,
         }
 
 
 def prediction_loss_terms(
     *,
-    prior_used_history: Tensor,
+    prior_history: Tensor,
     state0_history: Tensor,
     prior_valid_history: Tensor,
 ) -> tuple[Tensor, Tensor]:
     d_model = state0_history.shape[-1]
-    pred_normalized = F.layer_norm(prior_used_history, (d_model,))
+    pred_normalized = F.layer_norm(prior_history, (d_model,))
     target_normalized = F.layer_norm(state0_history.detach(), (d_model,))
     cosine_distance = 1.0 - F.cosine_similarity(pred_normalized, target_normalized, dim=-1, eps=1e-6)
     valid_weights = prior_valid_history.to(device=state0_history.device, dtype=state0_history.dtype).view(1, -1)
@@ -403,24 +489,61 @@ def prediction_loss_terms(
     return loss_sum, valid_count
 
 
+def combined_prior_histories(
+    *,
+    prior_histories: tuple[Tensor, ...],
+    prior_valid_histories: tuple[Tensor, ...],
+) -> tuple[Tensor, Tensor]:
+    if len(prior_histories) != len(prior_valid_histories):
+        raise ValueError(
+            "combined_prior_histories requires matching prior history and validity tuples, "
+            f"got {len(prior_histories)} and {len(prior_valid_histories)}."
+        )
+    if len(prior_histories) == 0:
+        raise ValueError("combined_prior_histories requires at least one prior history.")
+    combined_prior = torch.stack(prior_histories, dim=0).sum(dim=0)
+    combined_valid = torch.stack(prior_valid_histories, dim=0).any(dim=0)
+    return combined_prior, combined_valid
+
+
 def compute_losses(
     *,
     logits: Tensor,
     block1_logits: Tensor | None,
     targets: Tensor,
     state0_history: Tensor,
-    prior_used_history: Tensor,
-    prior_valid_history: Tensor,
+    prior_histories: tuple[Tensor, ...],
+    prior_valid_histories: tuple[Tensor, ...],
     prediction_loss_weight: float,
     local_ce_weight: float,
+    per_helper_prediction_loss: bool,
 ) -> LossBreakdown:
     ce_loss = F.cross_entropy(logits, targets)
-    pred_loss_sum, pred_valid_count = prediction_loss_terms(
-        prior_used_history=prior_used_history,
-        state0_history=state0_history,
-        prior_valid_history=prior_valid_history,
-    )
-    pred_loss = pred_loss_sum / pred_valid_count.clamp_min(1.0)
+    if len(prior_histories) != len(prior_valid_histories):
+        raise ValueError(
+            "compute_losses requires matching prior history and validity tuples, "
+            f"got {len(prior_histories)} and {len(prior_valid_histories)}."
+        )
+    pred_loss = ce_loss.new_zeros(())
+    if per_helper_prediction_loss:
+        for prior_history, prior_valid_history in zip(prior_histories, prior_valid_histories, strict=True):
+            pred_loss_sum, pred_valid_count = prediction_loss_terms(
+                prior_history=prior_history,
+                state0_history=state0_history,
+                prior_valid_history=prior_valid_history,
+            )
+            pred_loss = pred_loss + (pred_loss_sum / pred_valid_count.clamp_min(1.0))
+    else:
+        combined_prior, combined_valid = combined_prior_histories(
+            prior_histories=prior_histories,
+            prior_valid_histories=prior_valid_histories,
+        )
+        pred_loss_sum, pred_valid_count = prediction_loss_terms(
+            prior_history=combined_prior,
+            state0_history=state0_history,
+            prior_valid_history=combined_valid,
+        )
+        pred_loss = pred_loss_sum / pred_valid_count.clamp_min(1.0)
     local_ce_loss = ce_loss.new_zeros(())
     if block1_logits is not None:
         local_ce_loss = F.cross_entropy(block1_logits, targets)
@@ -493,7 +616,7 @@ class ClosedLoopPredictionGraphTrainer:
 
     def _training_step(self) -> None:
         self.optimizer.zero_grad(set_to_none=True)
-        logits, block1_logits, state0_history, prior_used_history, prior_valid_history, _ = self.model(
+        logits, block1_logits, state0_history, prior_histories, prior_valid_histories, _ = self.model(
             self.static_input,
             use_priors=True,
         )
@@ -502,10 +625,11 @@ class ClosedLoopPredictionGraphTrainer:
             block1_logits=block1_logits,
             targets=self.static_target,
             state0_history=state0_history,
-            prior_used_history=prior_used_history,
-            prior_valid_history=prior_valid_history,
+            prior_histories=prior_histories,
+            prior_valid_histories=prior_valid_histories,
             prediction_loss_weight=PREDICTION_LOSS_WEIGHT,
             local_ce_weight=LOCAL_CE_WEIGHT,
+            per_helper_prediction_loss=self.model.spec.per_helper_prediction_loss,
         )
         losses.total_loss.backward()
         self.optimizer.step()
@@ -612,6 +736,8 @@ def evaluate_variant(
     total_correct = 0
     total_pred_loss_sum = 0.0
     total_pred_count = 0.0
+    total_pred_loss_sum_by_helper: list[float] | None = None
+    total_pred_count_by_helper: list[float] | None = None
     total_block1_ce_loss = 0.0
     total_block1_correct = 0
 
@@ -619,7 +745,7 @@ def evaluate_variant(
         stop = min(start + batch_size, inputs.shape[0])
         batch_inputs = inputs[start:stop]
         batch_targets = targets[start:stop]
-        logits, block1_logits, state0_history, prior_used_history, prior_valid_history, _ = model_call(
+        logits, block1_logits, state0_history, prior_histories, prior_valid_histories, _ = model_call(
             batch_inputs,
             use_priors=not disable_priors,
         )
@@ -629,13 +755,35 @@ def evaluate_variant(
         if block1_logits is not None:
             total_block1_ce_loss += F.cross_entropy(block1_logits, batch_targets, reduction="sum").item()
             total_block1_correct += (block1_logits.argmax(dim=1) == batch_targets).sum().item()
-        pred_loss_sum, pred_count = prediction_loss_terms(
-            prior_used_history=prior_used_history,
-            state0_history=state0_history,
-            prior_valid_history=prior_valid_history,
-        )
-        total_pred_loss_sum += pred_loss_sum.item()
-        total_pred_count += float(pred_count.item())
+        if model.spec.per_helper_prediction_loss:
+            if total_pred_loss_sum_by_helper is None or total_pred_count_by_helper is None:
+                helper_count = len(prior_histories)
+                total_pred_loss_sum_by_helper = [0.0 for _ in range(helper_count)]
+                total_pred_count_by_helper = [0.0 for _ in range(helper_count)]
+            for helper_index, (prior_history, prior_valid_history) in enumerate(
+                zip(prior_histories, prior_valid_histories, strict=True)
+            ):
+                helper_loss_sum, helper_count = prediction_loss_terms(
+                    prior_history=prior_history,
+                    state0_history=state0_history,
+                    prior_valid_history=prior_valid_history,
+                )
+                total_pred_loss_sum_by_helper[helper_index] += helper_loss_sum.item()
+                total_pred_count_by_helper[helper_index] += float(helper_count.item())
+        else:
+            combined_prior, combined_valid = combined_prior_histories(
+                prior_histories=prior_histories,
+                prior_valid_histories=prior_valid_histories,
+            )
+            pred_loss_sum_tensor, pred_count_tensor = prediction_loss_terms(
+                prior_history=combined_prior,
+                state0_history=state0_history,
+                prior_valid_history=combined_valid,
+            )
+            pred_loss_sum = pred_loss_sum_tensor.item()
+            pred_count = float(pred_count_tensor.item())
+            total_pred_loss_sum += pred_loss_sum
+            total_pred_count += pred_count
         total_examples += batch_examples
 
     if was_training:
@@ -643,7 +791,15 @@ def evaluate_variant(
         if model_call is not model:
             model_call.train()
 
-    pred_loss = 0.0 if total_pred_count == 0.0 else total_pred_loss_sum / total_pred_count
+    if model.spec.per_helper_prediction_loss:
+        if total_pred_loss_sum_by_helper is None or total_pred_count_by_helper is None:
+            pred_loss = 0.0
+        else:
+            pred_loss = 0.0
+            for helper_loss_sum, helper_count in zip(total_pred_loss_sum_by_helper, total_pred_count_by_helper, strict=True):
+                pred_loss += 0.0 if helper_count == 0.0 else helper_loss_sum / helper_count
+    else:
+        pred_loss = 0.0 if total_pred_count == 0.0 else total_pred_loss_sum / total_pred_count
     return {
         "loss": total_ce_loss / total_examples,
         "accuracy": total_correct / total_examples,
@@ -725,7 +881,7 @@ def verify_forward_and_gradients(
             model_call.train()
         dummy_inputs = torch.randint(0, vocab_size, (4, CONTEXT_SIZE), device=device)
         dummy_targets = torch.randint(0, vocab_size, (4,), device=device)
-        logits, block1_logits, state0_history, prior_used_history, prior_valid_history, _ = model_call(
+        logits, block1_logits, state0_history, prior_histories, prior_valid_histories, _ = model_call(
             dummy_inputs,
             use_priors=True,
         )
@@ -734,10 +890,11 @@ def verify_forward_and_gradients(
             block1_logits=block1_logits,
             targets=dummy_targets,
             state0_history=state0_history,
-            prior_used_history=prior_used_history,
-            prior_valid_history=prior_valid_history,
+            prior_histories=prior_histories,
+            prior_valid_histories=prior_valid_histories,
             prediction_loss_weight=PREDICTION_LOSS_WEIGHT,
             local_ce_weight=LOCAL_CE_WEIGHT,
+            per_helper_prediction_loss=model.spec.per_helper_prediction_loss,
         )
         if not torch.isfinite(losses.total_loss):
             raise RuntimeError("Closed-loop prediction verification failed: dummy total loss is not finite.")
@@ -920,7 +1077,7 @@ def train_single_variant(
             losses = trainer.step(batch_input=batch_input, batch_target=batch_target)
         else:
             optimizer.zero_grad(set_to_none=True)
-            logits, block1_logits, state0_history, prior_used_history, prior_valid_history, _ = model_call(
+            logits, block1_logits, state0_history, prior_histories, prior_valid_histories, _ = model_call(
                 batch_input,
                 use_priors=True,
             )
@@ -929,10 +1086,11 @@ def train_single_variant(
                 block1_logits=block1_logits,
                 targets=batch_target,
                 state0_history=state0_history,
-                prior_used_history=prior_used_history,
-                prior_valid_history=prior_valid_history,
+                prior_histories=prior_histories,
+                prior_valid_histories=prior_valid_histories,
                 prediction_loss_weight=PREDICTION_LOSS_WEIGHT,
                 local_ce_weight=LOCAL_CE_WEIGHT,
+                per_helper_prediction_loss=spec.per_helper_prediction_loss,
             )
             if not torch.isfinite(losses.total_loss):
                 raise RuntimeError(
@@ -990,8 +1148,10 @@ def train_single_variant(
         "feedforward_dim": FEEDFORWARD_DIM,
         "num_blocks": spec.num_blocks,
         "rates": list(spec.rates),
+        "phases": list(spec.phases),
         "readout_mode": spec.readout_mode,
         "closed_loop": spec.closed_loop,
+        "per_helper_prediction_loss": spec.per_helper_prediction_loss,
         "parameter_count": parameter_count,
         "compiled": args.compile_model,
         "verification": verification,
@@ -1123,6 +1283,12 @@ def comparison(summary_by_variant: dict[str, object]) -> dict[str, float]:
         comparison_values["mean_final_val_loss_delta_G_minus_C"] = round(
             summary_by_variant["G_rate4_only"]["mean_final_val_loss"]
             - summary_by_variant["C_closed_loop"]["mean_final_val_loss"],
+            6,
+        )
+    if "I_phase_offset" in summary_by_variant and "I_control" in summary_by_variant:
+        comparison_values["mean_final_val_loss_delta_I_phase_offset_minus_I_control"] = round(
+            summary_by_variant["I_phase_offset"]["mean_final_val_loss"]
+            - summary_by_variant["I_control"]["mean_final_val_loss"],
             6,
         )
     return comparison_values
