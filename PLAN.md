@@ -16,7 +16,19 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 - distinct_matched: **1.818** (41 min) ✅ — weight tying is genuine inductive bias (+0.020 nats at matched params)
 - distinct_rich: **1.750** (45 min) ✅ — beats tied_8iter by 0.048 nats with 65% more params. **Not a ceiling.**
 
-**Seed 43 RUNNING:** A_single at step 2K (~365K tok/s). ETA full experiment finish: ~09:00 NZST.
+**Seed 43 IN PROGRESS:**
+- A_single: **1.845** (consistent with seed 42) ✅
+- tied_8iter: **2.549** ⚠️ **CATASTROPHIC FAILURE** — 0.751 nats worse than seed 42 (1.798)
+- distinct_matched: RUNNING (just started)
+- distinct_rich: pending
+
+**⚠️ CRITICAL FINDING: tied_8iter is training-unstable across seeds.**
+- Seed 42: 1.798 (good — beats A_single by 0.034)
+- Seed 43: 2.549 (catastrophic — 0.704 nats WORSE than A_single 1.845)
+- A_single varies only 0.013 nats between seeds (normal)
+- tied_8iter varies 0.751 nats between seeds (architecture-specific instability)
+- The "no instability through 12 iterations" finding was single-seed and **did not catch this**
+- Conclusion: tied depth has a severe initialization sensitivity. Some seeds converge normally, others get trapped at high loss plateaus. This is a fundamental problem for the architecture.
 
 **C_old ablation script READY.** `runs/c_old_ablation.py` committed. Trains C_lateral (upward) vs C_isolated (no lateral, same params). Added "isolated" topology to `core/model.py`. Launch after tied-depth finishes.
 
@@ -26,8 +38,8 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 - Working experiment infrastructure (training loop, eval, multi-seed, ablation, JSONL logs, CUDA graphs)
 - Transformer baseline: val_loss 1.643, 186K params, TinyShakespeare ctx=32 (in base-experiments/)
 - RNN baseline: val_loss 1.711, 186K params, TinyShakespeare ctx=32 (in base-experiments/)
-- **Pathway 1 confirmed:** tied-depth = distinct-layer at matched params (mean diff 0.0002 nats, 3 seeds)
-- **Iteration scaling:** no instability through 12, quality peaks ~8, diminishing returns after that
+- **Pathway 1 confirmed:** tied-depth = distinct-layer at matched params (mean diff 0.0002 nats, 3 seeds) — BUT this was tiny-rung only
+- **Iteration scaling:** no instability through 12 on single seed — **CONTRADICTED by seed 43 failure at WikiText-103 scale**
 - Evidence: strict-local collapses, semi-local barely helps, prediction target matters more than topology
 - Evidence: multi-rate [1,2,4,8] provides inductive bias (better per-step val_loss)
 - Evidence: CUDA Graph concurrency gives 28% speedup; stale reads don't hurt quality
@@ -88,7 +100,7 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 | Transformer baseline | all | val_loss 1.643, 186K params, TinyShakespeare ctx=32 | Done, in base-experiments/ |
 | RNN baseline | all | val_loss 1.711, 186K params | Done, in base-experiments/ |
 | **Tied-depth vs transformer (tiny rung)** | **1** | **Identical: mean diff 0.0002 nats** | **Weight sharing is free. Viable architecture.** |
-| **Iteration scaling (6, 8, 12)** | **1** | **No instability; quality peaks ~8** | **Diminishing returns after 8. Limit is optimization/representational, not numerical.** |
+| **Iteration scaling (6, 8, 12)** | **1** | **No instability on single seed; quality peaks ~8** | **⚠️ Contradicted at WikiText-103 scale: seed 43 shows catastrophic training failure for tied_8iter.** |
 | Per-token depth heterogeneity | 5 | Inconclusive | Heterogeneity exists but methodology flawed (non-standard eval frame, ε too loose). Hint only. |
 | **Propagation-delay 2-block (tiny)** | **3** | **Spectator** | **Block B adds nothing at TinyShakespeare ctx=32. Hardcoded 0.5 mixing harmful; zero-init gate fixes ceiling but B stays closed.** |
 | **Multi-block corrected at WikiText-103 ctx=128** | **3** | **Spectator** | **4-block corrected (hardcoded 0.5) is +0.014 worse than single-block. 4-block old (token_injection=all) is -0.021 better. Blocks help when fed fresh tokens; lateral-only with 0.5 mixing fails.** |
@@ -107,7 +119,7 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 
 (Agent records evidence here; Max decides whether to update ROADMAP.md)
 
-- **Pathway 1 (Wide Recurrent):** Weight sharing is free (3-iteration tied = 3-layer distinct). Iteration scaling shows no instability through 12, quality peaks around 8 on single seed. Diminishing returns flatten around depth 8–11. Pathway is alive and well-grounded at tiny rung.
+- **Pathway 1 (Wide Recurrent):** Weight sharing is free (3-iteration tied = 3-layer distinct). Iteration scaling shows no instability through 12 on single seed at tiny scale — **but WikiText-103 2-seed experiment reveals catastrophic seed-sensitivity: seed 42 tied_8iter=1.798 vs seed 43 tied_8iter=2.549 (0.751 nat gap).** This is a fundamental training stability problem. Diminishing returns flatten around depth 8–11. Pathway is alive but the stability issue is a first-order concern.
 - **Pathway 2 (Async):** Prior positive — 28% concurrency via CUDA Graphs, stale reads don't hurt. Next: custom CUDA.
 - **Pathway 3 (Local Learning):** Confidence **decreased**. Every attempt at lateral-only multi-block has failed: hardcoded 0.5 (+0.014 worse), zero-init gates (+0.245 worse, cold-start trap). Only token_injection=all (C_old, -0.021 better) makes blocks useful — but that may not involve lateral communication at all (might just be an ensemble). **Local learning remains untestable until we confirm lateral communication is actually used in a working multi-block config.** Suggest roadmap update: note that Pathway 3 is blocked pending C_old ablation study; the original "propagation-delay → local learning" progression has not reached the point where local learning can be tested.
 - **Pathway 5 (Dynamic Depth):** Now enabled by Pathway 1 iteration scaling. Per-depth losses show clear variation — some tokens probably benefit more from extra iterations than others. First measurement (per-token variance) not yet done.
