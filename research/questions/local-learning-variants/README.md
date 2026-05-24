@@ -334,9 +334,9 @@ All variants below use the **same gated additive interface** (change one thing: 
 
 J won clearly. Remaining run order:
 1. ✅ **J_older_window** — DONE. Target was the bottleneck.
-2. 🔄 **J_far_window** (offset 12) — RUNNING. Tests offset sensitivity.
-3. → **J_fixed_embedding** — next regardless of J_far outcome. Separates "older content" from "older hidden-state codes."
-4. → **Width with J target** — multiple helpers at different offsets (only if J_fixed ≈ J or worse)
+2. ✅ **J_far_window** (offset 12) — DONE. Gentle inverted-U; -0.007 (slightly worse than offset 8's -0.010).
+3. 🔄 **J_fixed_embedding** — RUNNING. Separates "older content" from "older hidden-state codes."
+4. → **Width with J target** — multiple helpers at different offsets. J_dual_band (8,12) + J_dual_same_band (8,8) control implemented.
 5. → **L** (future chunk code) — different hypothesis family, if memory hypothesis stalls
 6. → **K** (nonlocal residue) — deprioritized. High collapse risk, less discriminating than J_fixed.
 
