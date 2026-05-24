@@ -184,20 +184,36 @@ The prior "hardcoded 0.5" failure was a red herring for the local-learning quest
 **What this does NOT mean:**
 - NOT "propagation delay is broken" (prior evidence: stale reads cost +0.005 nats — negligible)
 - NOT "local learning is impossible" (never tested in a regime where the ceiling block helps)
-- NOT "multi-block is useless" (untested at larger scale where 1 block is insufficient)
+- NOT "multi-block is useless" — see existing WikiText-103 ctx=128 evidence below
 
 ---
 
-## Next step: scale to WikiText-103 ctx=128
+## Existing WikiText-103 ctx=128 evidence (discovered post-experiment)
 
-The local learning question needs a regime where:
-1. Single-block is provably insufficient (val_loss significantly above baseline)
-2. 2-block full-backprop demonstrably improves on single-block
-3. THEN: does stop-gradient + local signal preserve that improvement?
+`experiments/wikitext_103/artifacts/ctx128_corrected/` contains a prior run at the larger scale with the hardcoded 0.5 mixing:
 
-WikiText-103 at ctx=128 with a larger model (d_model=128+) is the natural next test bed per PLAN.md priority 2 ("Scale to WikiText-103 ctx=128"). If the gated 2-block model matches or beats single-block there, the local learning experiment becomes meaningful.
+| Config | Val loss (2-seed mean) | Δ vs single |
+|--------|----------------------|-------------|
+| A_single (1-block, 2.8M) | ~1.84 | — |
+| B_corrected (4-block, 0.5 mixing, token_injection=block0) | ~1.86 | **+0.014 worse** |
+| C_old (4-block, token_injection=all) | ~1.82 | **-0.021 better** |
 
-This also serves Pathway 1 directly: "does tied-depth match transformer at real scale?"
+**Key insight:** The spectator problem persists at WikiText-103 ctx=128 with hardcoded 0.5 mixing. But C_old proves extra blocks CAN help when they receive fresh tokens directly. The question is whether the zero-init gate (which fixes the interface at TinyShakespeare) also fixes it at this scale.
+
+---
+
+## Next step: gated multi-block at WikiText-103 ctx=128
+
+The original framing ("scale up and blocks will help") was wrong. The scale-up has already been done — and blocks DON'T help with the hardcoded 0.5 interface.
+
+The correct question is now: **does the zero-init gate fix lateral information flow at a scale where extra blocks CAN contribute?**
+
+Experiment in progress: `experiments/gated_wikitext/` — 4-block with zero-init gates at WikiText-103 ctx=128.
+
+Possible outcomes:
+1. **Gated < single-block (~1.84):** Interface was the problem. Pathway 3 unblocked. Test local learning next.
+2. **Gated ≈ single-block:** Gates may open but lateral signal is too weak. Need richer lateral channel (not just prior step's state).
+3. **Gated > single-block:** Lateral-only fundamentally insufficient with this architecture. Pathway 3 needs redesign.
 
 ---
 
