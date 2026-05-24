@@ -15,33 +15,22 @@ Ablation gap = 0 at both seeds. Helper predictions are not contributing at infer
 
 **This settles the G decision rules:** G ≈ A (neutral). Rate-4 predictions are too stale. F's instability was the multi-helper interaction under shared loss, not rate-4 being harmful per se.
 
-## Current experiment: I (phase offsets) — RUNNING
+## Current: Phase 5 implementation (J — older-window target)
 
-**Question:** Can width help if both helpers operate at rate-2 but at different phases?
+**I result (seed 42 complete, seed 43 interrupted at step 13K by GPU use):**
+- I_phase_offset ≈ I_control ≈ A - 0.006. Width saturates. Target is the bottleneck.
+- Seed 43 A_single confirmed (1.672). I_phase_offset seed 43 was tracking identically before interruption.
+- Pattern matches ALL prior experiments (C, G, I all give -0.006). Effectively resolved.
+- Formal seed 43 completion deferred to next available GPU window.
 
-**Architecture:** 3 blocks. Block 0 at rate 1. Block 1 at rate 2, phase 0 (updates on even steps). Block 2 at rate 2, phase 1 (updates on odd steps). Per-helper prediction losses (no shared objective — the known coupling fix).
+**Phase 5 J:** Change the prediction target from "full block-0 state" (which block 0 already knows) to "mean of block-0 states from 5-8 steps ago" (older context block 0 may not preserve). This directly tests Max's framing: "predict something block 0 couldn't already know — information from a longer time ago."
 
-**Control:** I_control — same as I_phase_offset but both helpers at phase 0. Isolates whether phase diversity matters or whether "two rate-2 helpers" is sufficient.
+**Implementation:** Add `prediction_target` field to VariantSpec. Compute `target_history` from older window of `state0_history`. Pass to same `prediction_loss_terms`. Adjust valid mask (first 8 positions invalid).
 
 **Decision rules:**
-- **I_phase_offset < A (helps) AND < I_control:** Phase offset creates useful role differentiation. Width + temporal diversity = the scaling path.
-- **I_phase_offset ≈ I_control < A:** Both help, offset doesn't matter. Width alone scales (just add more rate-2 helpers).
-- **I_phase_offset ≈ I_control ≈ A:** Per-helper losses removed the instability but helpers still get pruned under CE/gate competition. Would need alternating optimization.
-- **I_phase_offset > A (hurts):** Something about per-helper losses + multi-helper is intrinsically bad. Investigate.
-
-**Interim result (seed 42 only — PROVISIONAL):**
-- I_phase_offset final: val_loss = 1.663, ablation gap = 0.351, both helpers active (gains -0.050, -0.033)
-- A_single final: val_loss = 1.669
-- **I_phase_offset ≈ C (-0.006 vs A)**. Two helpers achieve the same benefit as one. Width doesn't add.
-- Ablation gap is MUCH larger (0.351 vs C's 0.22) — both helpers deeply integrated — but net benefit saturates.
-- I_control seed 42 FINAL: val_loss = 1.663, ablated = 1.938, gains -0.039/-0.040 (symmetric). Identical to I_phase_offset. Phase offset doesn't matter.
-- **Seed 42 verdict: decision rule #3 applies.** I_phase_offset ≈ I_control ≈ A - 0.006. Width adds no benefit beyond one helper. Target is the bottleneck.
-- Still needs: seed 43 confirmation (A_single at step 3K, then I_phase_offset + I_control). ETA: ~5:50pm.
-
-**Emerging hypothesis:** The benefit saturates at ≈ -0.006 regardless of helper count because the prediction TARGET is the bottleneck, not architecture/coupling. Full-state prediction provides redundant info (block 0 already knows its own state). This strongly motivates Phase 5 (prediction target change). If Phase 5's "predict something block 0 doesn't know" gives > -0.006, it confirms the target was the binding constraint.
-
-**Running:** A_single + I_phase_offset + I_control, 2 seeds × 20K steps each. Started ~3:49pm.
-Log: `experiments/wikitext_103/artifacts/closed_loop_prediction/run_i.jsonl`
+- **J < C (beats -0.006):** Target WAS the bottleneck. Older memory is genuinely useful. Scale further (K, L, then width + good target).
+- **J ≈ C:** Older-window target at 5-8 char lag is too short to help at ctx=32→128. Try L (future chunk, different hypothesis family).
+- **J > A (hurts) or collapses:** Self-generated target creates co-adaptation. Try J' (fixed embedding target).
 
 ## Critical findings (carry forward)
 
@@ -58,9 +47,11 @@ Log: `experiments/wikitext_103/artifacts/closed_loop_prediction/run_i.jsonl`
 
 ## Queue
 
-- **I (phase offsets)** — RUNNING (seed 42 complete, seed 43 A_single done, I_phase_offset + I_control remaining ~48 min)
-- Transformer matched-param baseline — `runs/transformer_baseline.py`, 2.856M params, ready to launch after I
-- **Phase 5: prediction target change** (J/K/L variants) — designed in `research/questions/local-learning-variants/README.md`. Directly motivated by I's saturation result.
+- **I (phase offsets)** — DONE (seed 42 complete; seed 43 interrupted at step 13K by GPU use, deferred)
+- ~~Transformer matched-param baseline~~ — blocked on GPU (Max gaming)
+- **Phase 5: prediction target change** (J first) — IMPLEMENTING NOW (code changes, no GPU needed)
+- Transformer matched-param baseline — `runs/transformer_baseline.py`, 2.856M params, launch when GPU free
+- I seed 43 completion — rerun when GPU free (low priority, pattern already clear)
 - Named/typed tensor dimensions
 - Graph architecture exploration (from dictation 2026-05-24-1) — see `research/questions/graph-architecture/README.md`
 - Hierarchical dynamic tokenization (from dictation 2026-05-24-3) — queued, not active
