@@ -6,25 +6,26 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ## Current state (2026-05-25)
 
-**Process overhaul complete.** Max reviewed the project direction and found the loop agent was stuck amplifying marginal signals (the "closed loop prediction" / J experiment series) with no connection to the actual project thesis. Three documents restructured: VISION.md (requirements), ROADMAP.md (11 research pathways), PROCESS.md (nested loops with adversarial review gates).
-
-The "closed loop prediction" experiment family (variants A through J, agent-coined name) is **done**. It produced some useful evidence about local learning failure modes but the mechanism itself is architecturally incoherent and the results are marginal. Do not continue it.
+**Pathway 1 validated at tiny rung.** The tied-depth transformer (same MHA+FFN weights applied N times) matches a distinct-layer transformer exactly — no quality cost for weight sharing. Iteration scaling tested through 12 depths with no catastrophic instability; quality peaks around 8 iterations. Pathway 5 (dynamic depth) probe was inconclusive — heterogeneity in per-token marginal gains exists but the measurement methodology was flawed.
 
 **What we have:**
 - Working experiment infrastructure (training loop, eval, multi-seed, ablation, JSONL logs, CUDA graphs)
 - Transformer baseline: val_loss 1.643, 186K params, TinyShakespeare ctx=32 (in base-experiments/)
 - RNN baseline: val_loss 1.711, 186K params, TinyShakespeare ctx=32 (in base-experiments/)
+- **Pathway 1 confirmed:** tied-depth = distinct-layer at matched params (mean diff 0.0002 nats, 3 seeds)
+- **Iteration scaling:** no instability through 12, quality peaks ~8, diminishing returns after that
 - Evidence: strict-local collapses, semi-local barely helps, prediction target matters more than topology
 - Evidence: multi-rate [1,2,4,8] provides inductive bias (better per-step val_loss)
 - Evidence: CUDA Graph concurrency gives 28% speedup; stale reads don't hurt quality
 - 10.8x CUDA graph training speedup in core/
+- `.gitignore` now blocks `*.pt` files (model weights never committed)
 
 **What we DON'T have:**
-- The fundamental comparison (Pathway 1): wide recurrent vs transformer at matched compute
-- Any experiment with real propagation delay
-- Any experiment with self-prediction (computation compression)
+- Any experiment with real propagation delay (the actual architecture vision)
+- Any experiment at scale beyond TinyShakespeare ctx=32 (~70K-186K params)
 - Any custom CUDA concurrency beyond the Graph approach
-- Any experiment at ctx > 128
+- Self-prediction (computation compression)
+- Clean dynamic-depth measurement (the probe was methodologically flawed)
 
 ---
 
