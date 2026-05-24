@@ -55,6 +55,7 @@ class VariantSpec:
     prediction_target: str = "full_state"
     prediction_window_offset: int = 8
     prediction_window_size: int = 4
+    helper_prediction_window_offsets: tuple[int, ...] = ()
 
     def __post_init__(self) -> None:
         if len(self.rates) != self.num_blocks:
@@ -76,6 +77,17 @@ class VariantSpec:
                 f"VariantSpec {self.key!r} requires prediction_target in {{'full_state', 'older_window', 'fixed_embedding'}}, "
                 f"got {self.prediction_target!r}."
             )
+        if len(self.helper_prediction_window_offsets) > 0:
+            expected_helper_count = self.num_blocks - 1
+            if len(self.helper_prediction_window_offsets) != expected_helper_count:
+                raise ValueError(
+                    f"VariantSpec {self.key!r} requires len(helper_prediction_window_offsets) == num_blocks - 1, "
+                    f"got {len(self.helper_prediction_window_offsets)} and {expected_helper_count}."
+                )
+            if not self.per_helper_prediction_loss:
+                raise ValueError(
+                    f"VariantSpec {self.key!r} requires per_helper_prediction_loss=True when helper_prediction_window_offsets are set."
+                )
         object.__setattr__(self, "phases", phases)
 
 
@@ -243,6 +255,32 @@ def variant_specs() -> dict[str, VariantSpec]:
             readout_mode="block0",
             closed_loop=True,
             prediction_target="fixed_embedding",
+        ),
+        "J_dual_band": VariantSpec(
+            key="J_dual_band",
+            label="closed_loop_prediction_J_dual_band",
+            num_blocks=3,
+            rates=(1, 2, 2),
+            phases=(0, 0, 0),
+            readout_mode="block0",
+            closed_loop=True,
+            per_helper_prediction_loss=True,
+            prediction_target="older_window",
+            prediction_window_size=4,
+            helper_prediction_window_offsets=(8, 12),
+        ),
+        "J_dual_same_band": VariantSpec(
+            key="J_dual_same_band",
+            label="closed_loop_prediction_J_dual_same_band",
+            num_blocks=3,
+            rates=(1, 2, 2),
+            phases=(0, 0, 0),
+            readout_mode="block0",
+            closed_loop=True,
+            per_helper_prediction_loss=True,
+            prediction_target="older_window",
+            prediction_window_size=4,
+            helper_prediction_window_offsets=(8, 8),
         ),
         "J_strict_local": VariantSpec(
             key="J_strict_local",
@@ -591,6 +629,22 @@ def combined_prior_histories(
     return combined_prior, combined_valid
 
 
+def resolve_helper_prediction_window_offsets(
+    *,
+    helper_count: int,
+    prediction_window_offset: int,
+    helper_prediction_window_offsets: tuple[int, ...],
+) -> tuple[int, ...]:
+    if len(helper_prediction_window_offsets) > 0:
+        if len(helper_prediction_window_offsets) != helper_count:
+            raise ValueError(
+                "resolve_helper_prediction_window_offsets requires helper offsets to match helper count, "
+                f"got {len(helper_prediction_window_offsets)} and {helper_count}."
+            )
+        return helper_prediction_window_offsets
+    return tuple(prediction_window_offset for _ in range(helper_count))
+
+
 def compute_losses(
     *,
     logits: Tensor,
@@ -606,6 +660,7 @@ def compute_losses(
     prediction_target: str,
     prediction_window_offset: int,
     prediction_window_size: int,
+    helper_prediction_window_offsets: tuple[int, ...],
 ) -> LossBreakdown:
     ce_loss = F.cross_entropy(logits, targets)
     if len(prior_histories) != len(prior_valid_histories):
@@ -613,16 +668,23 @@ def compute_losses(
             "compute_losses requires matching prior history and validity tuples, "
             f"got {len(prior_histories)} and {len(prior_valid_histories)}."
         )
-    target_history, target_valid = prediction_target_history_and_mask(
-        prediction_target=prediction_target,
-        prediction_window_offset=prediction_window_offset,
-        prediction_window_size=prediction_window_size,
-        state0_history=state0_history,
-        embeddings=embeddings,
-    )
     pred_loss = ce_loss.new_zeros(())
     if per_helper_prediction_loss:
-        for prior_history, prior_valid_history in zip(prior_histories, prior_valid_histories, strict=True):
+        helper_offsets = resolve_helper_prediction_window_offsets(
+            helper_count=len(prior_histories),
+            prediction_window_offset=prediction_window_offset,
+            helper_prediction_window_offsets=helper_prediction_window_offsets,
+        )
+        for prior_history, prior_valid_history, helper_offset in zip(
+            prior_histories, prior_valid_histories, helper_offsets, strict=True
+        ):
+            target_history, target_valid = prediction_target_history_and_mask(
+                prediction_target=prediction_target,
+                prediction_window_offset=helper_offset,
+                prediction_window_size=prediction_window_size,
+                state0_history=state0_history,
+                embeddings=embeddings,
+            )
             pred_loss_sum, pred_valid_count = prediction_loss_terms(
                 prior_history=prior_history,
                 target_history=target_history,
@@ -630,6 +692,13 @@ def compute_losses(
             )
             pred_loss = pred_loss + (pred_loss_sum / pred_valid_count.clamp_min(1.0))
     else:
+        target_history, target_valid = prediction_target_history_and_mask(
+            prediction_target=prediction_target,
+            prediction_window_offset=prediction_window_offset,
+            prediction_window_size=prediction_window_size,
+            state0_history=state0_history,
+            embeddings=embeddings,
+        )
         combined_prior, combined_valid = combined_prior_histories(
             prior_histories=prior_histories,
             prior_valid_histories=prior_valid_histories,
@@ -730,6 +799,7 @@ class ClosedLoopPredictionGraphTrainer:
             prediction_target=self.model.spec.prediction_target,
             prediction_window_offset=self.model.spec.prediction_window_offset,
             prediction_window_size=self.model.spec.prediction_window_size,
+            helper_prediction_window_offsets=self.model.spec.helper_prediction_window_offsets,
         )
         losses.total_loss.backward()
         self.optimizer.step()
@@ -855,21 +925,26 @@ def evaluate_variant(
         if block1_logits is not None:
             total_block1_ce_loss += F.cross_entropy(block1_logits, batch_targets, reduction="sum").item()
             total_block1_correct += (block1_logits.argmax(dim=1) == batch_targets).sum().item()
-        target_history, target_valid = prediction_target_history_and_mask(
-            prediction_target=model.spec.prediction_target,
-            prediction_window_offset=model.spec.prediction_window_offset,
-            prediction_window_size=model.spec.prediction_window_size,
-            state0_history=state0_history,
-            embeddings=embeddings,
-        )
         if model.spec.per_helper_prediction_loss:
             if total_pred_loss_sum_by_helper is None or total_pred_count_by_helper is None:
                 helper_count = len(prior_histories)
                 total_pred_loss_sum_by_helper = [0.0 for _ in range(helper_count)]
                 total_pred_count_by_helper = [0.0 for _ in range(helper_count)]
-            for helper_index, (prior_history, prior_valid_history) in enumerate(
-                zip(prior_histories, prior_valid_histories, strict=True)
+            helper_offsets = resolve_helper_prediction_window_offsets(
+                helper_count=len(prior_histories),
+                prediction_window_offset=model.spec.prediction_window_offset,
+                helper_prediction_window_offsets=model.spec.helper_prediction_window_offsets,
+            )
+            for helper_index, (prior_history, prior_valid_history, helper_offset) in enumerate(
+                zip(prior_histories, prior_valid_histories, helper_offsets, strict=True)
             ):
+                target_history, target_valid = prediction_target_history_and_mask(
+                    prediction_target=model.spec.prediction_target,
+                    prediction_window_offset=helper_offset,
+                    prediction_window_size=model.spec.prediction_window_size,
+                    state0_history=state0_history,
+                    embeddings=embeddings,
+                )
                 helper_loss_sum, helper_count = prediction_loss_terms(
                     prior_history=prior_history,
                     target_history=target_history,
@@ -878,6 +953,13 @@ def evaluate_variant(
                 total_pred_loss_sum_by_helper[helper_index] += helper_loss_sum.item()
                 total_pred_count_by_helper[helper_index] += float(helper_count.item())
         else:
+            target_history, target_valid = prediction_target_history_and_mask(
+                prediction_target=model.spec.prediction_target,
+                prediction_window_offset=model.spec.prediction_window_offset,
+                prediction_window_size=model.spec.prediction_window_size,
+                state0_history=state0_history,
+                embeddings=embeddings,
+            )
             combined_prior, combined_valid = combined_prior_histories(
                 prior_histories=prior_histories,
                 prior_valid_histories=prior_valid_histories,
@@ -1006,6 +1088,7 @@ def verify_forward_and_gradients(
             prediction_target=model.spec.prediction_target,
             prediction_window_offset=model.spec.prediction_window_offset,
             prediction_window_size=model.spec.prediction_window_size,
+            helper_prediction_window_offsets=model.spec.helper_prediction_window_offsets,
         )
         if not torch.isfinite(losses.total_loss):
             raise RuntimeError("Closed-loop prediction verification failed: dummy total loss is not finite.")
@@ -1206,6 +1289,7 @@ def train_single_variant(
                 prediction_target=spec.prediction_target,
                 prediction_window_offset=spec.prediction_window_offset,
                 prediction_window_size=spec.prediction_window_size,
+                helper_prediction_window_offsets=spec.helper_prediction_window_offsets,
             )
             if not torch.isfinite(losses.total_loss):
                 raise RuntimeError(
