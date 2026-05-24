@@ -10,7 +10,14 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 **Tied-depth experiment RUNNING.** PID 12984, `runs/tied_depth.py`, 4 variants (A_single, tied_8iter, distinct_matched, distinct_rich), 2 seeds, 20K steps each. Logging to `experiments/wikitext_103/artifacts/tied_depth/run.jsonl`. Launched 04:36 NZST. Expected completion ~06:30-07:00 (tied_8iter is slow: 80K tok/s vs 330K for A_single).
 
-**Progress:** tied_8iter seed 42 **FINISHED** — final val_loss **1.798** (0.034 nats below A_single's 1.832). Closes 14% of the 0.240-nat gap to transformer. Wall time: 35 min. `distinct_matched` seed 42 now running (2,847,908 params, well-matched to tied_8iter's 2,850,422). ETA for full experiment: ~07:00-07:30 NZST.
+**Progress (seed 42):**
+- A_single: **1.832** (6 min) ✅
+- tied_8iter: **1.798** (35 min) ✅ — 0.034 below A_single, closes 14% of transformer gap
+- distinct_matched: **1.818** (41 min) ✅ — between tied and single. **Weight tying is a genuine inductive bias advantage** (0.020 nats over distinct at matched params)
+- distinct_rich: RUNNING (4.69M params, 65% more than tied). Started ~06:03 NZST.
+- Seed 43 runs for all 4 variants: queued after distinct_rich
+
+ETA for full experiment: ~08:45-09:00 NZST.
 
 **C_old ablation script READY.** `runs/c_old_ablation.py` committed. Trains C_lateral (upward) vs C_isolated (no lateral, same params). Added "isolated" topology to `core/model.py`. Launch after tied-depth finishes.
 
