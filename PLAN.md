@@ -34,7 +34,8 @@ Ablation gap = 0 at both seeds. Helper predictions are not contributing at infer
 - A_single final: val_loss = 1.669
 - **I_phase_offset ≈ C (-0.006 vs A)**. Two helpers achieve the same benefit as one. Width doesn't add.
 - Ablation gap is MUCH larger (0.351 vs C's 0.22) — both helpers deeply integrated — but net benefit saturates.
-- I_control running (step 3K of 20K). Still needs seed 43 for both variants. ETA: ~6:30pm.
+- I_control seed 42 at step 19K (val_loss 1.673, gains -0.039/-0.039 — perfectly symmetric). Converging to ~1.66 ≈ I_phase_offset. Phase offset doesn't matter.
+- Still needs: A_single seed 43, I_phase_offset seed 43, I_control seed 43. ETA: ~6:00pm.
 
 **Emerging hypothesis:** The benefit saturates at ≈ -0.006 regardless of helper count because the prediction TARGET is the bottleneck, not architecture/coupling. Full-state prediction provides redundant info (block 0 already knows its own state). This strongly motivates Phase 5 (prediction target change). If Phase 5's "predict something block 0 doesn't know" gives > -0.006, it confirms the target was the binding constraint.
 
@@ -56,7 +57,7 @@ Log: `experiments/wikitext_103/artifacts/closed_loop_prediction/run_i.jsonl`
 
 ## Queue
 
-- **I (phase offsets)** — RUNNING (I_control seed 42 at step 3K)
+- **I (phase offsets)** — RUNNING (I_control seed 42 finishing, 3 runs remaining ~50 min)
 - Transformer matched-param baseline — `runs/transformer_baseline.py`, 2.856M params, ready to launch after I
 - **Phase 5: prediction target change** (J/K/L variants) — designed in `research/questions/local-learning-variants/README.md`. Directly motivated by I's saturation result.
 - Named/typed tensor dimensions
