@@ -21,7 +21,7 @@ See [`research/questions/local-learning-theory/README.md`](../local-learning-the
 
 ---
 
-## Status: ANSWERED for N=2; N=3 seed-sensitive, investigating
+## Status: Phases 1-4 COMPLETE. Width saturates — target is the bottleneck. Phase 5 IMPLEMENTED.
 
 **Neighborhood-local (CE flows through block interfaces) is the minimum viable locality.** The full N=2 experiment series proved this:
 
@@ -39,7 +39,7 @@ See [`research/questions/local-learning-theory/README.md`](../local-learning-the
 
 Only job (2) actually improves performance. E_grounded proves this: it solves collapse (via local CE) but can't solve selection (no feedback gradient). Result: stable but slightly worse than baseline.
 
-**Now testing:** I (phase offsets) — two rate-2 helpers at different temporal phases with per-helper prediction losses. Tests whether width scales when coupling and staleness are both removed. See Phase 4 section below.
+**Phase 4 resolved (I):** Two rate-2 helpers (with or without phase offsets) saturate at the same -0.006 benefit as one helper. Per-helper losses fix coupling (both helpers survive). Width doesn't help because the prediction target is the bottleneck — full-state prediction provides redundant info block 0 already has. Phase 5 (prediction target change) directly motivated by this finding. Code implemented, awaiting GPU for sanity check and run.
 
 ## Key insight: "parallel" means three different things
 
@@ -224,7 +224,7 @@ H was designed for the "G ≈ C" outcome (rate-4 viable alone, coupling was the 
 
 H remains relevant only if I shows that even rate-2 helpers get pruned under CE competition. Then per-helper losses might help by removing the last coupling mechanism. But it's no longer the primary path.
 
-### I: phase offsets — RUNNING NOW
+### I: phase offsets — DONE ✓ (width saturates, target is bottleneck)
 
 **Hypothesis:** Width can help if both helpers operate at rate-2 (proven to work) with different temporal phases. Phase offset gives temporal diversity without staleness.
 
@@ -232,17 +232,25 @@ H remains relevant only if I shows that even rate-2 helpers get pruned under CE 
 
 **Control (I_control):** Two rate-2 helpers, both at phase 0. Same per-helper losses. Isolates whether phase diversity is the key factor or whether two rate-2 helpers compose regardless.
 
-**Decision rules:**
-- **I_phase_offset < I_control < A:** Phase offset creates genuine role differentiation. Width + temporal diversity = scaling path.
-- **I_phase_offset ≈ I_control < A:** Both help, offset doesn't matter. Width alone scales.
-- **I_phase_offset ≈ I_control ≈ A:** Helpers get pruned under CE competition even with separate losses. Would need alternating optimization.
-- **One helps, one ≈ A:** Interesting asymmetry. Investigate which configuration survives and why.
+**Result (seed 42 complete; seed 43 A_single confirmed 1.672, I variants interrupted by GPU use):**
 
-**Open question:** If I works, is the mechanism temporal ensembling (two different-age predictions averaged) or phase specialization (each helper learns a different function because it sees the stream at different offsets)? Would need per-helper ablation to distinguish.
+| Variant | val_loss (s42) | Δ vs A | ablation gap | gain_1 | gain_2 |
+|---------|----------------|--------|-------------|--------|--------|
+| A_single | 1.669 | — | — | — | — |
+| I_phase_offset | 1.663 | -0.006 | 0.351 | -0.050 | -0.033 |
+| I_control (same phase) | 1.663 | -0.006 | 0.274 | -0.039 | -0.040 |
 
-## Phase 5: prediction target change (planned, after I resolves mechanism questions)
+**Verdict: decision rule #3.** I_phase_offset ≈ I_control ≈ A - 0.006. Width adds no benefit beyond one helper. Both helpers survive (per-helper losses fix coupling). Ablation gap is much larger than C's 0.22 (helpers are deeply integrated) but net val benefit saturates.
+
+**Why width doesn't help:** The prediction target is full block-0 state — which block 0 already knows. More helpers predicting the same redundant thing can't add information. The gate saturates at the point where "subtract prediction, process surprise" extracts the small useful signal from any single predictor.
+
+**Phase offset does break symmetry** (I_phase_offset gains are asymmetric: -0.050, -0.033; I_control gains are symmetric: -0.039, -0.040) but this doesn't increase net benefit. Differentiation without new information is cosmetic.
+
+## Phase 5: prediction target change (IMPLEMENTED — awaiting GPU)
 
 Per [dictation 2026-05-24-5](../../../dictations/2026-05-24-5.md): the current full-state cosine prediction target is a simplification for mechanism testing. The real goal is "predict something block 0 couldn't already know" — specifically, information from further back in time.
+
+**Implementation status:** `J_older_window` and `J_fixed_embedding` variants added to `runs/closed_loop_prediction.py`. Same architecture as C, only target changes. Ready for sanity check + full run.
 
 **Caveat:** "Block 0 can't compute this" is too strong information-theoretically. With ctx=32 and a recurrent-style rollout, block 0 could in principle encode past information. The real test is operational: can a dedicated helper objective make block 1 carry a **cleaner long-range signal** than block 0 bothers to preserve in its fast single state?
 
@@ -345,12 +353,11 @@ The change is **localized to the loss computation.** The rate/phase/buffer mecha
 
 For L, the target comes from `embeddings` (token embedding matrix), not from `state0_history`. This means `embeddings` must be accessible at loss computation time.
 
-### Prerequisites
+### Prerequisites — MET
 
-Phase 5 should only start AFTER:
-1. I resolves whether width (multiple helpers) works mechanistically
-2. Results are integrated and understood
-3. Prediction target change is clearly the next binding question (not architecture/coupling)
+1. ✓ I resolved: width saturates at full-state target (seed 42 complete, seed 43 consistent before interruption)
+2. ✓ Results integrated and understood (Phase 4 I section above, daily report updated)
+3. ✓ Prediction target change is clearly the next binding question
 
 ---
 
