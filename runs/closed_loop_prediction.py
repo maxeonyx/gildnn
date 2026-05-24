@@ -1113,6 +1113,18 @@ def comparison(summary_by_variant: dict[str, object]) -> dict[str, float]:
             - summary_by_variant["C_closed_loop"]["mean_final_val_loss"],
             6,
         )
+    if "A_single" in summary_by_variant and "G_rate4_only" in summary_by_variant:
+        comparison_values["mean_final_val_loss_delta_G_minus_A"] = round(
+            summary_by_variant["G_rate4_only"]["mean_final_val_loss"]
+            - summary_by_variant["A_single"]["mean_final_val_loss"],
+            6,
+        )
+    if "C_closed_loop" in summary_by_variant and "G_rate4_only" in summary_by_variant:
+        comparison_values["mean_final_val_loss_delta_G_minus_C"] = round(
+            summary_by_variant["G_rate4_only"]["mean_final_val_loss"]
+            - summary_by_variant["C_closed_loop"]["mean_final_val_loss"],
+            6,
+        )
     return comparison_values
 
 
