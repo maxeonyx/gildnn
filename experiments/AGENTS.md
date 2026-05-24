@@ -11,7 +11,7 @@ Each experiment gets its own subdirectory: `experiments/<experiment-name>/`. The
 - Raw outputs: prediction dumps, loss logs, debug traces, text samples
 - Any artifact that is too messy or verbose for the Max-readable report
 
-Run experiments from the repo root: `python -m experiments.<dir-name>`
+Run experiments from the repo root: `.\.venv\Scripts\python.exe -m runs.<name>` (e.g. `runs.closed_loop_prediction`, `runs.transformer_baseline`). The `experiments/` directory holds artifacts, not entry-point scripts.
 
 ## What does NOT go here
 
@@ -39,4 +39,4 @@ Experiments expected to take more than ~5 minutes use a **two-phase delegation**
 1. **Phase 1 (launch only):** Start the process in the background (`Start-Process` on Windows). Return the PID and log path. Stop immediately — do NOT wait, poll, or check results.
 2. **Phase 2 (check):** The orchestrator resumes you later to analyse results. The orchestrator decides when; you don't.
 
-Set `PYTHONUNBUFFERED=1` before launching. Write PID/log/start-time to `runs/active.lock`. Failing to split this way is a process failure.
+Set `PYTHONUNBUFFERED=1` before launching. The experiment scripts manage `runs/active.lock` automatically (create on startup, remove on exit via `atexit`). Failing to split the two-phase delegation is a process failure.
