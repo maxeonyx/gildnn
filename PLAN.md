@@ -67,10 +67,7 @@ Ablation gap = 0 at both seeds. Helper predictions are not contributing at infer
 - Transformer matched-param baseline — `runs/transformer_baseline.py`, 2.856M params, launch when GPU free
 - I seed 43 completion — low priority, pattern already clear
 - Named/typed tensor dimensions
-- Graph architecture exploration (from dictation 2026-05-24-1) — blocked on Phase 5 results
-- Hierarchical dynamic tokenization (from dictation 2026-05-24-3) — queued, not active
-- Named/typed tensor dimensions
-- Graph architecture exploration (from dictation 2026-05-24-1) — see `research/questions/graph-architecture/README.md`
+- Graph architecture exploration (from dictation 2026-05-24-1) — blocked on Phase 5 results. See `research/questions/graph-architecture/README.md`
 - Hierarchical dynamic tokenization (from dictation 2026-05-24-3) — queued, not active
 
 ## Key completed findings
