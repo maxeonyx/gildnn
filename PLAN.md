@@ -50,12 +50,12 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 
 | Priority | Experiment | Pathway | Why |
 |---|---|---|---|
-| 1 | **Iteration scaling** — take tied-depth to 6, 8, 12 iterations. Where does stability break? | 1, 9 | Determines whether Muon is needed and how many iterations are viable. |
-| 2 | **Muon optimizer swap** — does it fix gradient instability through many iterations? | 9 (norm-preserving) | Quick to test. Enabler for pathway 1 at high iteration count. |
-| 3 | **Propagation-delay 2-block** — block 1 sees block 0's PREVIOUS output only | 1, 3 | The actual architecture vision. Never tested correctly. |
-| 4 | **Scale to WikiText-103 ctx=128** — does tied-depth still match baseline at real scale? | 1 | Critical: tiny TinyShakespeare may not generalize. |
-| 5 | **Gradient radius sweep** — vary stop-gradient from k=1 to k=full | 3 (local learning) | Quantifies the locality constraint. |
-| 6 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | Next step after the 28% CUDA Graph result. |
+| 1 | **Per-token loss variance** — does benefit from more iterations vary across tokens? | 5 (dynamic depth) | Pure measurement, very cheap. Determines if dynamic depth is worth pursuing. |
+| 2 | **Propagation-delay 2-block** — block 1 sees block 0's PREVIOUS output only | 1, 3 | The actual architecture vision. Genuinely new direction (breadth). |
+| 3 | **Scale to WikiText-103 ctx=128** — does tied-depth still match baseline at real scale? | 1 | Critical for external validity. TinyShakespeare results may not generalize. |
+| 4 | **Gradient radius sweep** — vary stop-gradient from k=1 to k=full | 3 (local learning) | Quantifies the locality constraint. |
+| 5 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | Next step after the 28% CUDA Graph result. |
+| 6 | **Muon optimizer swap** | 9 | De-prioritized: no instability found through 12 iterations on tiny rung. May matter at larger scale. |
 
 ---
 
@@ -66,6 +66,7 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 | Transformer baseline | all | val_loss 1.643, 186K params, TinyShakespeare ctx=32 | Done, in base-experiments/ |
 | RNN baseline | all | val_loss 1.711, 186K params | Done, in base-experiments/ |
 | **Tied-depth vs transformer (tiny rung)** | **1** | **Identical: mean diff 0.0002 nats** | **Weight sharing is free. Viable architecture.** |
+| **Iteration scaling (6, 8, 12)** | **1** | **No instability; quality peaks ~8** | **Diminishing returns after 8. Limit is optimization/representational, not numerical.** |
 | Multi-rate [1,2,4,8] | 8 | Spectator problem | Block 0 sees all tokens → no specialization |
 | Closed-loop variants A-J | — | Marginal (-0.006 to -0.012) | Architecturally incoherent. Not on any pathway. Done. |
 | CUDA graph training | infra | 10.8x speedup | In core/ |
@@ -79,8 +80,9 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 
 (Agent records evidence here; Max decides whether to update ROADMAP.md)
 
-- **Pathway 1 (Wide Recurrent):** NEW — 3-iteration tied-depth matches 3-layer transformer exactly at both matched-FLOPs AND matched-params on TinyShakespeare ctx=32. Weight sharing is free. Per-depth losses confirm iterative refinement. Next: iteration scaling and WikiText-103.
+- **Pathway 1 (Wide Recurrent):** Weight sharing is free (3-iteration tied = 3-layer distinct). Iteration scaling shows no instability through 12, quality peaks around 8 on single seed. Diminishing returns flatten around depth 8–11. Pathway is alive and well-grounded at tiny rung.
 - **Pathway 2 (Async):** Prior positive — 28% concurrency via CUDA Graphs, stale reads don't hurt. Next: custom CUDA.
 - **Pathway 3 (Local Learning):** Prior negative — strict-local collapses. Prior weak-positive — neighborhood-local helps slightly BUT tested on wrong architecture. Needs redo with propagation delay.
+- **Pathway 5 (Dynamic Depth):** Now enabled by Pathway 1 iteration scaling. Per-depth losses show clear variation — some tokens probably benefit more from extra iterations than others. First measurement (per-token variance) not yet done.
 - **Pathway 8 (Multi-Rate):** Prior weak-positive — inductive bias confirmed at ctx=32. Needs longer context to be meaningful.
-- **Pathway 9 (Norm-Preserving):** Untested. Muon swap is cheapest first step. Now MORE important given Pathway 1 result — stability through many iterations is the key question.
+- **Pathway 9 (Norm-Preserving):** De-prioritized after iteration scaling showed no instability through 12 on tiny rung. May still matter at larger scale or higher iteration counts.
