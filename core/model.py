@@ -510,13 +510,13 @@ class ParallelDiagonalModel(nn.Module):
                 "ParallelDiagonalModel token_injection must be one of "
                 f"{sorted(valid_token_injections)}, got {token_injection!r}."
             )
-        valid_topologies = {"upward", "top_down_to_first"}
+        valid_topologies = {"upward", "top_down_to_first", "isolated"}
         if topology not in valid_topologies:
             raise ValueError(
                 "ParallelDiagonalModel topology must be one of "
                 f"{sorted(valid_topologies)}, got {topology!r}."
             )
-        if num_blocks == 1 and topology != "upward":
+        if num_blocks == 1 and topology not in {"upward", "isolated"}:
             raise ValueError(
                 "ParallelDiagonalModel with one block must use topology='upward' because "
                 "no upper neighbor exists."
@@ -655,7 +655,7 @@ class ParallelDiagonalModel(nn.Module):
                     if time_index % rate != 0:
                         continue
                     state_input = seeded_states[block_index] if internal_step == 0 else current_states[block_index]
-                    if block_index == 0 and self.topology == "upward":
+                    if self.topology == "isolated" or (block_index == 0 and self.topology == "upward"):
                         block_input = state_input
                     else:
                         if block_index == 0:
