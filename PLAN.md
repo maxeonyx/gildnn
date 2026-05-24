@@ -22,27 +22,48 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 The feedback gradient does two things: (a) prevents collapse (which local CE also does ✓), and (b) teaches which prediction dimensions are useful (which local CE does NOT do ✗). Only (b) actually helps performance.
 
-## What's next: N=3 semi-local width test
+## What's next: discriminate rate-4 viability
 
-The local-learning-variants question is answered (neighborhood-local is the minimum viable locality, strict-local doesn't add value). Now test whether the mechanism scales.
+### N=3 interim result (seed 42 still running, but trajectory is decisive)
 
-**N=3 semi-local star topology** (from think agent analysis):
-- Block 0: processes tokens, has CE loss
-- Block 1 (rate=2): reads s0.detach(), predicts s0 future, feeds predictions to block 0. CE flows through interface.
-- Block 2 (rate=4): reads s0.detach(), predicts s0 future, feeds predictions to block 0 via SEPARATE gain. CE flows through interface.
-- Star topology: both helpers predict block 0 directly (not a chain)
-- Different rates give different time horizons (short-horizon vs long-horizon predictions)
+**F_star_3block ≈ C.** Helper 2 (rate=4) was actively driven to zero by CE:
 
-**Why star, not chain:**
-- Chain (0←1←2) means block 2 is one hop from CE — same grounding-drift problem
-- Star means both helpers get direct CE shaping through their interfaces
-- Matches Max's "many more parallel blocks" vision better (scale by adding more spokes)
-- Max's original vision note: "graph" not "chain"
+| Step | gain_1 (rate=2) | gain_2 (rate=4) |
+|------|-----------------|-----------------|
+| 5K   | -0.057          | -0.013          |
+| 9K   | -0.058          | -0.007          |
+| 15K  | -0.068          | -0.0004         |
 
-**Decision rules (N=3 star):**
-- **N=3 star helps more than N=2:** Width composition works! The architecture scales. Move quickly toward N=8.
-- **N=3 star ≈ N=2:** Two helpers don't combine usefully. Maybe they're redundant (both predict same thing). Need to differentiate their roles more.
-- **N=3 star hurts or collapses:** Something about adding a second helper breaks the mechanism. Investigate.
+gain_1 approaches C's final value (-0.071). gain_2 is effectively dead. The model self-pruned the redundant helper.
+
+**Why this happened (analysis):** The prediction loss is computed on the SUM of both helpers' priors (`prior_t_1 + prior_t_2`). Helper 1 satisfies the prediction objective; helper 2 becomes underdetermined. Meanwhile, CE actively pushes gain_2 toward zero because helper 2's signal doesn't improve block 0's output beyond what helper 1 already provides. This is an **identifiability failure** in the current training objective, not necessarily proof that rate-4 predictions are useless.
+
+### Next discriminating experiment: G_rate4_only
+
+**Question:** Is rate-4 intrinsically bad (4-step predictions too noisy to be useful), or just unable to compete with rate-2 under the shared objective?
+
+**Test:** Run C_closed_loop but with a rate-4 helper instead of rate-2. Same everything else: 2 blocks, star topology, CE flows through interface.
+
+**Decision rules:**
+- **G_rate4_only ≈ C:** Rate-4 is viable in isolation! The N=3 failure was identifiability, not task difficulty. Fix: per-helper prediction losses.
+- **G_rate4_only << C (but doesn't collapse):** Rate-4 is intrinsically weaker. Fix: don't use very different rates; instead try phase offsets (two helpers at rate=2, different phases).
+- **G_rate4_only collapses:** Something specific about rate-4 breaks. Investigate.
+
+**Code changes needed:**
+- Make block 1's rate configurable in VariantSpec (currently hardcoded: fires `time_index % 2 == 0`, prediction head = `Linear(d_model, 2*d_model)`)
+- New spec: `rates=(1, 4)` → block 1 fires every 4 steps, predicts 4 future states
+- Safe to implement after current run completes (Python loaded code at start; file modification won't affect running process, but avoid in case of crash/restart)
+
+### After G_rate4_only
+
+If G works (rate-4 viable in isolation), test **per-helper prediction loss** at N=3:
+- Each helper gets its own cosine loss against its own target segment
+- Removes the identifiability problem
+- If this makes both helpers contribute, we have a scaling path
+
+If G fails (rate-4 intrinsically bad), test **phase offsets** at N=3:
+- Two helpers both at rate=2, but on different phases (t%2==0 vs t%2==1)
+- Removes the "harder task" problem while still testing width composition
 
 ## Critical findings (carry forward)
 
@@ -54,23 +75,24 @@ The local-learning-variants question is answered (neighborhood-local is the mini
 6. **Neighborhood-local is the correct architecture.** The minimum viable locality that actually helps.
 7. **The spectator problem is solved by role differentiation.** B hurts; closed-loop gives block 1 a unique function.
 8. **Predictive coding emerges spontaneously.** Gain goes negative — model subtracts predicted, processes surprise.
+9. **Summed-prior prediction loss creates identifiability failure at N>2.** When multiple helpers' predictions are summed before computing the loss, the first-to-converge helper monopolizes the objective. Later helpers get pushed to zero gain by CE. Fix requires per-helper supervision or structural differentiation.
 
 ## Queue
 
-- N=3 semi-local star (RUNNING — see below)
+- **G_rate4_only discriminator** — NEXT (implement when current run completes)
 - Transformer matched-param baseline — **READY TO LAUNCH** (`runs/transformer_baseline.py`, 2.856M params, CPU-verified)
+- Per-helper prediction loss (if G shows rate-4 is viable)
+- Phase offsets at N=3 (if G shows rate-4 is intrinsically bad)
 - Named/typed tensor dimensions
 - Graph architecture exploration (from dictation 2026-05-24-1) — see `research/questions/graph-architecture/README.md` for N=8 scaling analysis
 - Hierarchical dynamic tokenization (from dictation 2026-05-24-3) — queued, not active
-- Loop management tooling
 
-## After N=3 star completes
+## After current run (F_star_3block) completes
 
-1. Analyze results per decision rules above
-2. Launch transformer baseline: `& .\.venv\Scripts\python.exe -m runs.transformer_baseline --no-compile`
-   - 2 seeds × 20K steps, same dataset/eval
-   - Gives a "how good SHOULD a 2.85M model be on this task?" reference
-3. Based on N=3 result, design next experiment (N=5? Phase offsets? See graph-architecture README)
+1. Commit log, write up full analysis in local-learning-variants README
+2. Implement G_rate4_only variant (configurable rate for block 1)
+3. Run G alongside transformer baseline (both are 2-seed × 20K, can run sequentially)
+4. Analyze G results per decision rules above
 
 ## Key completed findings
 
