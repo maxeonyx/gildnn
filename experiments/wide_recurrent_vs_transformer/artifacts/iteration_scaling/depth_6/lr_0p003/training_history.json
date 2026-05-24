@@ -1,0 +1,254 @@
+[
+  {
+    "epoch": 0,
+    "train_loss": 4.351922,
+    "train_accuracy": 0.021767,
+    "val_loss": 4.339074,
+    "val_accuracy": 0.023988,
+    "depth_val_losses": {
+      "depth_1": 4.380735,
+      "depth_2": 4.371592,
+      "depth_3": 4.364551,
+      "depth_4": 4.357844,
+      "depth_5": 4.349573,
+      "depth_6": 4.339074
+    },
+    "max_batch_loss": null,
+    "min_batch_loss": null,
+    "max_grad_norm": null
+  },
+  {
+    "epoch": 1,
+    "train_loss": 2.198708,
+    "train_accuracy": 0.37434,
+    "val_loss": 1.993992,
+    "val_accuracy": 0.420423,
+    "depth_val_losses": {
+      "depth_1": 2.589938,
+      "depth_2": 2.21673,
+      "depth_3": 2.060649,
+      "depth_4": 2.004133,
+      "depth_5": 1.989915,
+      "depth_6": 1.993992
+    },
+    "max_batch_loss": 4.366635,
+    "min_batch_loss": 1.731856,
+    "max_grad_norm": 2.867398
+  },
+  {
+    "epoch": 2,
+    "train_loss": 1.831639,
+    "train_accuracy": 0.458787,
+    "val_loss": 1.833141,
+    "val_accuracy": 0.467498,
+    "depth_val_losses": {
+      "depth_1": 2.405702,
+      "depth_2": 2.031845,
+      "depth_3": 1.897307,
+      "depth_4": 1.848417,
+      "depth_5": 1.833376,
+      "depth_6": 1.833141
+    },
+    "max_batch_loss": 2.100468,
+    "min_batch_loss": 1.583583,
+    "max_grad_norm": 1.410225
+  },
+  {
+    "epoch": 3,
+    "train_loss": 1.715415,
+    "train_accuracy": 0.484285,
+    "val_loss": 1.759438,
+    "val_accuracy": 0.480869,
+    "depth_val_losses": {
+      "depth_1": 2.289817,
+      "depth_2": 1.931628,
+      "depth_3": 1.814963,
+      "depth_4": 1.773646,
+      "depth_5": 1.760191,
+      "depth_6": 1.759438
+    },
+    "max_batch_loss": 1.956039,
+    "min_batch_loss": 1.489551,
+    "max_grad_norm": 1.396462
+  },
+  {
+    "epoch": 4,
+    "train_loss": 1.650577,
+    "train_accuracy": 0.501671,
+    "val_loss": 1.744724,
+    "val_accuracy": 0.488181,
+    "depth_val_losses": {
+      "depth_1": 2.263707,
+      "depth_2": 1.899364,
+      "depth_3": 1.788171,
+      "depth_4": 1.751372,
+      "depth_5": 1.742089,
+      "depth_6": 1.744724
+    },
+    "max_batch_loss": 2.020368,
+    "min_batch_loss": 1.370992,
+    "max_grad_norm": 1.337799
+  },
+  {
+    "epoch": 5,
+    "train_loss": 1.602319,
+    "train_accuracy": 0.512564,
+    "val_loss": 1.719787,
+    "val_accuracy": 0.489433,
+    "depth_val_losses": {
+      "depth_1": 2.277472,
+      "depth_2": 1.886652,
+      "depth_3": 1.763863,
+      "depth_4": 1.725162,
+      "depth_5": 1.716917,
+      "depth_6": 1.719787
+    },
+    "max_batch_loss": 1.902709,
+    "min_batch_loss": 1.354507,
+    "max_grad_norm": 1.463794
+  },
+  {
+    "epoch": 6,
+    "train_loss": 1.567635,
+    "train_accuracy": 0.520797,
+    "val_loss": 1.694466,
+    "val_accuracy": 0.492688,
+    "depth_val_losses": {
+      "depth_1": 2.230842,
+      "depth_2": 1.867421,
+      "depth_3": 1.751119,
+      "depth_4": 1.710066,
+      "depth_5": 1.696811,
+      "depth_6": 1.694466
+    },
+    "max_batch_loss": 1.815324,
+    "min_batch_loss": 1.292356,
+    "max_grad_norm": 1.318519
+  },
+  {
+    "epoch": 7,
+    "train_loss": 1.538057,
+    "train_accuracy": 0.527509,
+    "val_loss": 1.689625,
+    "val_accuracy": 0.4999,
+    "depth_val_losses": {
+      "depth_1": 2.280963,
+      "depth_2": 1.881778,
+      "depth_3": 1.748519,
+      "depth_4": 1.702994,
+      "depth_5": 1.690634,
+      "depth_6": 1.689625
+    },
+    "max_batch_loss": 1.842259,
+    "min_batch_loss": 1.281753,
+    "max_grad_norm": 1.377082
+  },
+  {
+    "epoch": 8,
+    "train_loss": 1.51246,
+    "train_accuracy": 0.53241,
+    "val_loss": 1.673968,
+    "val_accuracy": 0.4998,
+    "depth_val_losses": {
+      "depth_1": 2.287112,
+      "depth_2": 1.870611,
+      "depth_3": 1.736073,
+      "depth_4": 1.688956,
+      "depth_5": 1.675995,
+      "depth_6": 1.673968
+    },
+    "max_batch_loss": 1.733621,
+    "min_batch_loss": 1.1774,
+    "max_grad_norm": 1.251518
+  },
+  {
+    "epoch": 9,
+    "train_loss": 1.490343,
+    "train_accuracy": 0.538192,
+    "val_loss": 1.66668,
+    "val_accuracy": 0.510016,
+    "depth_val_losses": {
+      "depth_1": 2.301598,
+      "depth_2": 1.861125,
+      "depth_3": 1.721547,
+      "depth_4": 1.676791,
+      "depth_5": 1.66632,
+      "depth_6": 1.66668
+    },
+    "max_batch_loss": 1.775134,
+    "min_batch_loss": 1.213363,
+    "max_grad_norm": 1.345922
+  },
+  {
+    "epoch": 10,
+    "train_loss": 1.470645,
+    "train_accuracy": 0.543914,
+    "val_loss": 1.661015,
+    "val_accuracy": 0.507913,
+    "depth_val_losses": {
+      "depth_1": 2.348649,
+      "depth_2": 1.883736,
+      "depth_3": 1.728045,
+      "depth_4": 1.678862,
+      "depth_5": 1.663271,
+      "depth_6": 1.661015
+    },
+    "max_batch_loss": 1.725918,
+    "min_batch_loss": 1.21861,
+    "max_grad_norm": 1.303443
+  },
+  {
+    "epoch": 11,
+    "train_loss": 1.451669,
+    "train_accuracy": 0.549646,
+    "val_loss": 1.665231,
+    "val_accuracy": 0.504557,
+    "depth_val_losses": {
+      "depth_1": 2.319563,
+      "depth_2": 1.878092,
+      "depth_3": 1.731466,
+      "depth_4": 1.679843,
+      "depth_5": 1.666672,
+      "depth_6": 1.665231
+    },
+    "max_batch_loss": 1.698049,
+    "min_batch_loss": 1.20632,
+    "max_grad_norm": 1.318886
+  },
+  {
+    "epoch": 12,
+    "train_loss": 1.435092,
+    "train_accuracy": 0.552207,
+    "val_loss": 1.673211,
+    "val_accuracy": 0.510317,
+    "depth_val_losses": {
+      "depth_1": 2.388527,
+      "depth_2": 1.888084,
+      "depth_3": 1.736046,
+      "depth_4": 1.684265,
+      "depth_5": 1.674851,
+      "depth_6": 1.673211
+    },
+    "max_batch_loss": 1.676109,
+    "min_batch_loss": 1.162592,
+    "max_grad_norm": 1.163571
+  },
+  {
+    "epoch": 13,
+    "train_loss": 1.422636,
+    "train_accuracy": 0.557598,
+    "val_loss": 1.65928,
+    "val_accuracy": 0.508814,
+    "depth_val_losses": {
+      "depth_1": 2.353097,
+      "depth_2": 1.877342,
+      "depth_3": 1.726969,
+      "depth_4": 1.677586,
+      "depth_5": 1.663362,
+      "depth_6": 1.65928
+    },
+    "max_batch_loss": 1.663447,
+    "min_batch_loss": 1.088105,
+    "max_grad_norm": 1.304742
+  }
+]

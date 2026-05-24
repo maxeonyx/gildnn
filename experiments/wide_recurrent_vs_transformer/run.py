@@ -197,6 +197,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--d-model", type=int, default=None)
     parser.add_argument("--feedforward-dim", type=int, default=None)
     parser.add_argument("--num-heads", type=int, default=None)
+    parser.add_argument("--depth", type=int, default=None)
     parser.set_defaults(repo_root=repo_root)
     return parser.parse_args()
 
@@ -219,6 +220,7 @@ def resolved_config(args: argparse.Namespace) -> RunConfig:
         "d_model": args.d_model,
         "feedforward_dim": args.feedforward_dim,
         "num_heads": args.num_heads,
+        "depth": args.depth,
     }
     clean_overrides = {key: value for key, value in overrides.items() if value is not None}
     if clean_overrides:
@@ -544,6 +546,9 @@ def train_one_epoch(
     total_examples = 0
     total_loss = 0.0
     total_correct = 0
+    max_batch_loss = float("-inf")
+    min_batch_loss = float("inf")
+    max_grad_norm = 0.0
 
     for start in range(0, permutation.shape[0], batch_size):
         batch_indices = permutation[start : start + batch_size]
@@ -551,20 +556,29 @@ def train_one_epoch(
         batch_targets = train_targets[batch_indices]
         logits = model(batch_inputs)
         loss = F.cross_entropy(logits, batch_targets)
+        loss_value = loss.item()
 
         optimizer.zero_grad(set_to_none=True)
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), gradient_clip_norm)
+        grad_norm = float(
+            torch.nn.utils.clip_grad_norm_(model.parameters(), gradient_clip_norm).item()
+        )
         optimizer.step()
 
         batch_examples = batch_targets.shape[0]
         total_examples += batch_examples
-        total_loss += loss.item() * batch_examples
+        total_loss += loss_value * batch_examples
         total_correct += (logits.argmax(dim=1) == batch_targets).sum().item()
+        max_batch_loss = max(max_batch_loss, loss_value)
+        min_batch_loss = min(min_batch_loss, loss_value)
+        max_grad_norm = max(max_grad_norm, grad_norm)
 
     return {
         "loss": total_loss / total_examples,
         "accuracy": total_correct / total_examples,
+        "max_batch_loss": max_batch_loss,
+        "min_batch_loss": min_batch_loss,
+        "max_grad_norm": max_grad_norm,
     }
 
 
@@ -626,11 +640,21 @@ def train_full_run(
             "val_loss": round(val_metrics["loss"], 6),
             "val_accuracy": round(val_metrics["accuracy"], 6),
             "depth_val_losses": depth_losses,
+            "max_batch_loss": round(float(train_metrics["max_batch_loss"]), 6)
+            if "max_batch_loss" in train_metrics
+            else None,
+            "min_batch_loss": round(float(train_metrics["min_batch_loss"]), 6)
+            if "min_batch_loss" in train_metrics
+            else None,
+            "max_grad_norm": round(float(train_metrics["max_grad_norm"]), 6)
+            if "max_grad_norm" in train_metrics
+            else None,
         }
         history.append(epoch_record)
         print(
             f"lr={learning_rate:.4f} epoch={epoch} train_loss={train_metrics['loss']:.4f} "
-            f"val_loss={val_metrics['loss']:.4f} depth_losses={depth_losses}",
+            f"val_loss={val_metrics['loss']:.4f} depth_losses={depth_losses} "
+            f"max_grad_norm={epoch_record['max_grad_norm']} max_batch_loss={epoch_record['max_batch_loss']}",
             flush=True,
         )
         if epoch in sample_epochs:

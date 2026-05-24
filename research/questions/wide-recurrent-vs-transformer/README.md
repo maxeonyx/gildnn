@@ -169,6 +169,42 @@ Per-depth eval losses (tied, seed 43):
 
 **Conclusion:** At matched parameters, tied-depth and distinct-layer transformers perform identically. Mean difference is 0.0002 nats — effectively zero. The initial "win" for tied-depth was an artifact of baseline seed 42 being the baseline's worst seed.
 
+### Rung 4: Iteration scaling (depth 6, 8, 12 — seed 42, d=72)
+
+How many tied iterations can the architecture benefit from? Does instability appear?
+
+| Depth | Params | Best val_loss | Best epoch | Final val_loss |
+|---|---|---|---|---|
+| 3 | 70,189 | 1.654 | 13 | 1.654 |
+| 6 | 71,237 | 1.659 | 13 | 1.659 |
+| 8 | 71,813 | **1.634** | 12 | 1.651 |
+| 12 | 72,965 | 1.654 | 10 | 1.662 |
+
+Per-depth val losses at depth=12 (best epoch 10):
+
+| Iter | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Loss | 2.53 | 2.03 | 1.83 | 1.75 | 1.70 | 1.68 | 1.67 | 1.66 | 1.66 | 1.65 | **1.653** | 1.654 |
+
+**Key observations:**
+
+1. **No catastrophic instability through 12 iterations.** Training completes normally — no NaN, no divergence, gradient norms stay bounded (max ~3.5 at epoch 1, then ~1.2–1.5). However, gradient clipping is on (norm 1.0), which confounds the gradient stability story.
+
+2. **Best observed run is depth=8 (single seed).** But depth=12's own per-depth losses show iterations 9–11 still contributing value — the limitation isn't that 12 iterations are useless, but that the overall model quality doesn't improve beyond ~8 with this fixed training recipe.
+
+3. **Diminishing returns flatten around depth 8–11.** Each additional iteration provides less benefit. By iteration 12, the marginal gain is effectively zero or slightly negative.
+
+4. **Cannot distinguish representational limit from optimization mismatch.** The best epoch shifts with depth (13 → 13 → 12 → 10), suggesting the fixed LR/schedule interacts with depth. A deeper model may simply need a different optimization recipe rather than having hit a hard ceiling.
+
+**What this does NOT settle:**
+- Whether the depth-8 "sweet spot" is real or an artifact of the optimization recipe (single seed, fixed LR/schedule)
+- Whether Muon or orthogonal parameterization would extend useful iterations beyond 12
+- Whether results generalize beyond TinyShakespeare ctx=32
+
+**Pathway implications:**
+- Pathway 9 (Muon) is **de-prioritized but not ruled out** at this scale. Stability is not the bottleneck here; but it may become one at larger scale or higher iteration counts.
+- Pathway 5 (Dynamic Depth) is now more interesting — per-depth losses show real variation, suggesting dynamic iteration count could help.
+
 ---
 
 ## Summary of findings
@@ -177,11 +213,13 @@ Per-depth eval losses (tied, seed 43):
 
 2. **No quality advantage from sharing.** At matched parameters (wider tied model), performance is indistinguishable. Width compensates for sharing's reduced flexibility, but doesn't provide a bonus.
 
-3. **Iterative refinement works.** Per-depth losses decrease monotonically (2.0 → 1.7 → 1.6), confirming all 3 iterations are productive. The model genuinely builds up representation over depth.
+3. **Iterative refinement works and scales.** Per-depth losses decrease monotonically (2.5 → 1.7 → 1.65) with each additional iteration contributing, through at least 11 iterations. Diminishing returns flatten around depth 8–11.
 
-4. **The value of sharing is structural, not quality-based.** Equal quality with shared weights unlocks: dynamic depth (vary iterations per token), async execution (reuse enables parallel dispatch), modular training (shared weights simplify local learning).
+4. **No catastrophic instability through 12 iterations.** On this tiny rung, AdamW + gradient clipping is sufficient. Whether this holds at larger scale is an open question.
 
-**Pathway 1 status:** Alive. The architecture works — it doesn't degrade. The advantages aren't in raw quality but in what the architecture enables (Pathways 2–5). Next meaningful test: scale up (more iterations, longer context, or WikiText-103) to check whether this equivalence holds beyond the tiny rung.
+5. **The value of sharing is structural, not quality-based.** Equal quality with shared weights unlocks: dynamic depth (vary iterations per token), async execution (reuse enables parallel dispatch), modular training (shared weights simplify local learning).
+
+**Pathway 1 status:** Alive and well-grounded at tiny rung. The architecture works through at least 12 iterations without numerical failure, and quality improves with more iterations up to ~8. Next meaningful tests: WikiText-103 / longer context (external validity), or pivot to pathways that weight sharing enables (5: dynamic depth, 2: async).
 
 ---
 

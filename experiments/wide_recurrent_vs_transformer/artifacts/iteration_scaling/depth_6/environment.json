@@ -1,0 +1,17 @@
+{
+  "git_sha": "cde12fd7baacd940fc970006ace357f18a36c3c8",
+  "git_working_tree_clean": false,
+  "git_status_short": [
+    " M experiments/wide_recurrent_vs_transformer/run.py",
+    " M experiments/wikitext_103/artifacts/closed_loop_prediction/report.json",
+    " M experiments/wikitext_103/artifacts/closed_loop_prediction/run.jsonl",
+    "?? experiments/wide_recurrent_vs_transformer/artifacts/baseline_multiseed/seed_43/model_state.pt",
+    "?? experiments/wide_recurrent_vs_transformer/artifacts/baseline_multiseed/seed_44/model_state.pt",
+    "?? experiments/wikitext_103/artifacts/closed_loop_prediction/run_jstrict.jsonl"
+  ],
+  "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+  "torch_version": "2.11.0+cu128",
+  "device": "cuda",
+  "cuda_is_available": true,
+  "cuda_device_name": "NVIDIA GeForce RTX 3090"
+}

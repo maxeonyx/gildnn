@@ -1,0 +1,27 @@
+{
+  "learning_rate": 0.003,
+  "parameter_count": 71237,
+  "runtime_seconds": 142.68004049999945,
+  "final_val_loss": 1.65928,
+  "final_val_accuracy": 0.508814,
+  "final_depth_val_losses": {
+    "depth_1": 2.353097,
+    "depth_2": 1.877342,
+    "depth_3": 1.726969,
+    "depth_4": 1.677586,
+    "depth_5": 1.663362,
+    "depth_6": 1.65928
+  },
+  "best_val_loss": 1.65928,
+  "best_val_accuracy": 0.508814,
+  "best_depth_val_losses": {
+    "depth_1": 2.353097,
+    "depth_2": 1.877342,
+    "depth_3": 1.726969,
+    "depth_4": 1.677586,
+    "depth_5": 1.663362,
+    "depth_6": 1.65928
+  },
+  "best_epoch": 13,
+  "prompt": "First Citizen:\\nBefore we proceed"
+}

@@ -1,0 +1,19 @@
+{
+  "model_family": "tied_depth_transformer",
+  "parameter_count": 71813,
+  "context_size": 32,
+  "d_model": 72,
+  "feedforward_dim": 256,
+  "num_heads": 4,
+  "depth": 8,
+  "shared_modules": [
+    "attention",
+    "feedforward"
+  ],
+  "separate_modules_per_depth": [
+    "attention_norm",
+    "feedforward_norm"
+  ],
+  "vocab_size": 61,
+  "raw_corpus_vocab_size": 62
+}

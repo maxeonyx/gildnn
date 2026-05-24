@@ -1,0 +1,81 @@
+{
+  "prompt": "First Citizen:\\nBefore we proceed",
+  "sample_length": 200,
+  "checkpoints": [
+    {
+      "epoch": 0,
+      "val_loss": 4.314061,
+      "depth_val_losses": {
+        "depth_1": 4.380735,
+        "depth_2": 4.371592,
+        "depth_3": 4.364551,
+        "depth_4": 4.357844,
+        "depth_5": 4.349573,
+        "depth_6": 4.339074,
+        "depth_7": 4.326898,
+        "depth_8": 4.314061
+      },
+      "sample": "First Citizen:\nBefore we proceedDCbCbCbCbCbCbCbCb:DqDqDqDqDqDqDqDqDqDqDqDqDqDnbCbCbCbCbCbCbCbCbbb:DDDDDDDqDDDqDqDqDqDqDqDqDqVCb\n&&&&&WVCbCbCbCbCbCbCb:DCb:DBAqDqDqDqDqDqDqDqDqDqDqD?VCbCbCbCbCbCbCbCbCb:DCb:DqDDDqDqDqDqDqDqDqDqDqDqDqAq"
+    },
+    {
+      "epoch": 1,
+      "val_loss": 1.993618,
+      "depth_val_losses": {
+        "depth_1": 2.665129,
+        "depth_2": 2.28475,
+        "depth_3": 2.11595,
+        "depth_4": 2.04032,
+        "depth_5": 2.006979,
+        "depth_6": 1.993717,
+        "depth_7": 1.990769,
+        "depth_8": 1.993618
+      },
+      "sample": "First Citizen:\nBefore we proceed the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the"
+    },
+    {
+      "epoch": 3,
+      "val_loss": 1.767516,
+      "depth_val_losses": {
+        "depth_1": 2.391015,
+        "depth_2": 2.027637,
+        "depth_3": 1.870637,
+        "depth_4": 1.80878,
+        "depth_5": 1.780201,
+        "depth_6": 1.769477,
+        "depth_7": 1.766414,
+        "depth_8": 1.767516
+      },
+      "sample": "First Citizen:\nBefore we proceed the prouse the prouse the prous the prous the prous the prous the prous the prous the prous the prous the prous the prous the prous the prous the prous the prous the prous the prous the prous the pro"
+    },
+    {
+      "epoch": 7,
+      "val_loss": 1.673267,
+      "depth_val_losses": {
+        "depth_1": 2.303899,
+        "depth_2": 1.930428,
+        "depth_3": 1.767149,
+        "depth_4": 1.714165,
+        "depth_5": 1.689285,
+        "depth_6": 1.680094,
+        "depth_7": 1.674804,
+        "depth_8": 1.673267
+      },
+      "sample": "First Citizen:\nBefore we proceed of the people.\n\nMENENIUS:\nHe have you the people.\n\nMENENIUS:\nHe have you the people.\n\nMENENIUS:\nHe have you the people.\n\nMENENIUS:\nHe have you the people.\n\nMENENIUS:\nHe have you the people.\n\nMENENIUS"
+    },
+    {
+      "epoch": 13,
+      "val_loss": 1.650661,
+      "depth_val_losses": {
+        "depth_1": 2.374962,
+        "depth_2": 1.949814,
+        "depth_3": 1.759512,
+        "depth_4": 1.702616,
+        "depth_5": 1.675957,
+        "depth_6": 1.666676,
+        "depth_7": 1.657973,
+        "depth_8": 1.650661
+      },
+      "sample": "First Citizen:\nBefore we proceed the people and the people,\nAnd the people the people and the people,\nAnd the people the people and the people,\nAnd the people the people and the people,\nAnd the people the people and the people,\nAnd "
+    }
+  ]
+}

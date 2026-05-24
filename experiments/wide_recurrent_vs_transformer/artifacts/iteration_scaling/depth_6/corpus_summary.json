@@ -1,0 +1,15 @@
+{
+  "source_file": "C:\\Users\\maxeo\\gildnn\\experiments\\corpora.ignore\\tinyshakespeare_input.txt",
+  "source_total_characters": 1115394,
+  "source_sha256": "86c4e6aa9db7c042ec79f339dcb96d42b0075e16b8fc2e86bf0ca57e2dc565ed",
+  "used_total_characters": 120000,
+  "used_sha256": "5b65e660c7d5d1bda2038213b6ee945f020fc2fba9bf1fee75ec52d741906bef",
+  "train_characters": 100000,
+  "val_characters": 20000,
+  "val_start": 100000,
+  "val_stop": 120000,
+  "train_windows": 99968,
+  "val_windows": 19968,
+  "vocab_size": 62,
+  "prompt": "First Citizen:\\nBefore we proceed"
+}
