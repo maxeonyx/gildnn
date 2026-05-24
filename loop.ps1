@@ -25,7 +25,7 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 
-$sessionId = 'ses_1c007665effen45IK4eRb2NBcn'
+$sessionId = 'ses_1a616aba2ffeSGSY936KJjNNs7'
 $runtimeName = if ($DummyCommand) { 'loop-dummy.ignore' } else { 'loop-runtime.ignore' }
 $runtimeDir = Join-Path $PSScriptRoot 'runs' $runtimeName
 $stdoutLog = Join-Path $runtimeDir 'stdout.log'
