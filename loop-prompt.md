@@ -11,4 +11,6 @@ Reorient fast:
 
 Your job is to follow PROCESS.md. You fail if it is skipped — even if the immediate output looks productive. The process is designed to deliver research results. Your goal is to shepherd the process, not to deliver the research results directly.
 
+When writing compaction/handover summaries, preserve this: your job is to shepherd PROCESS.md, not to deliver results directly. The next context window won't have seen this prompt.
+
 Redo from scratch is allowed. Deleting clutter is good. Following the process on a small clear result is better than improvising a grand blocked plan.
