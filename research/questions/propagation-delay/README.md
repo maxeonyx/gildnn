@@ -140,21 +140,84 @@ Using `ParallelDiagonalModel` from `core/model.py`:
 
 ---
 
+## Results (2026-05-25)
+
+### Val loss comparison
+
+| Condition | Seed 42 | Seed 137 | Seed 2024 | Mean | Params |
+|---|---|---|---|---|---|
+| Single-block | 1.875 | 1.873 | 1.899 | **1.882** | 53K |
+| 2-block full backprop | 2.008 | 1.963 | 2.048 | **2.006** | 99K |
+| 2-block stop-gradient | 2.820 | 4.889 | 12.756 | **6.822** | 99K |
+
+### Batch-shuffle ablation (block B load-bearing test)
+
+| Condition | Seed 42 | Seed 137 | Seed 2024 | Mean |
+|---|---|---|---|---|
+| Full backprop | +0.419 | +0.523 | +0.433 | **+0.458** |
+| Stop-gradient | +3.721 | +346.5 | +15.35 | catastrophic |
+
+### Key findings
+
+1. **2-block full backprop is WORSE than single-block** (+0.124 nats mean), despite having 2× parameters. The architecture creates a harmful dependency — block B is heavily load-bearing (ablation +0.458) but the joint system lands in a worse optimum than not having block B at all.
+
+2. **Stop-gradient is catastrophically broken.** Val losses of 4.89–12.76 (some above random chance ≈ log(65) ≈ 4.17). Massive seed variance. Block B learns representations for its own local CE that actively harm block A.
+
+3. **Block B is NOT a spectator** — it's heavily used in both conditions. The problem is not information flow; it's that the architecture forces harmful coupling.
+
+---
+
+## Diagnosis: hardcoded 0.5 lateral mixing
+
+The root cause is `block_input = 0.5 * (state_input + neighbor_state)` in `ParallelDiagonalModel`. This hardcoded average:
+
+- Forces block A to consume block B's lateral output at 50% weight with no way to down-weight it
+- Attenuates block A's own useful signal (token embedding) to 50%
+- Creates mandatory coupling: even random/harmful lateral states directly corrupt the receiver
+
+Under full backprop: blocks co-adapt around this constraint, landing in a worse joint optimum. Under stop-gradient: block B optimizes for its own CE, producing representations that are actively harmful to A, and A has no mechanism to ignore them.
+
+**What this is NOT:** evidence that propagation delay is fundamentally broken. Prior evidence (stale-read cost +0.005 ± 0.005) showed delay is benign. The problem here is the mandatory coupling interface, not the temporal delay.
+
+---
+
+## Next step: zero-init learnable lateral gate
+
+Replace the hardcoded `0.5 * (self + neighbor)` with:
+
+```
+block_input = state_input + g * neighbor_state
+```
+
+Where `g` is a scalar parameter initialized to 0. This means:
+- At initialization, the model behaves like single-block (lateral ignored)
+- The model discovers how much lateral to use via gradient
+- If lateral input is harmful, g stays near 0
+
+**Success criteria:** Full-backprop 2-block with zero-init gate achieves val_loss ≤ 1.882 (matching single-block). Ablation effect > 0.02 (B actually contributes). If this works, rerun stop-gradient on the gated architecture.
+
+**If this also fails:** try unidirectional topology (`topology="upward"`, `readout_mode="last"`) — removes the bidirectional feedback loop.
+
+---
+
 ## What this experiment will NOT settle
 
 - Whether local learning scales beyond 2 blocks
 - What the optimal local signal is (this tests only local CE — one candidate)
 - Whether the architecture works at larger scale / longer context
 - The gradient radius sweep (that's ROADMAP Step 2, depends on this result)
-- Whether the 0.5-averaging topology is optimal (could be learned mix)
+- Whether the 0.5-averaging topology is optimal ← **ANSWERED: it's bad**
 
 ---
 
-## Exit conditions
+## Exit conditions (revised)
 
-- **H1 confirmed, H2 confirmed:** Pathway 3 is alive. Proceed to gradient radius sweep (ROADMAP Step 2).
-- **H1 confirmed, H2 rejected:** Block B needs global gradient. Local CE alone is insufficient. Try other local signals (next-latent prediction, contrastive) before abandoning Pathway 3.
-- **H3 (spectator):** Scale up (longer context, larger model) to a regime where 1 block is provably insufficient, then re-test. Or redirect to Pathway 10 (topology).
+The original H1/H2/H3 framework was premature — the experiment revealed an architecture design flaw before the local-learning question could be answered.
+
+**New path:**
+1. Fix the ceiling (zero-init gate) → does 2-block full-backprop match or beat 1-block?
+2. If yes → rerun stop-gradient on the fixed architecture → does local CE work now?
+3. If still no → the interface problem is not just the mixing strength; try other topologies/signals
 
 ---
 
@@ -170,9 +233,7 @@ Using `ParallelDiagonalModel` from `core/model.py`:
 
 ---
 
-## Planned evidence
+## Artifacts
 
-- JSONL training logs for all conditions (3 seeds each = 9 runs)
-- Val loss table comparing conditions
-- Batch-shuffle ablation numbers (loss increase when B's lateral is shuffled)
-- Training curves (convergence speed comparison)
+- Training logs: `experiments/propagation-delay/artifacts.ignore/*.jsonl`
+- Experiment script: `experiments/propagation-delay/run.py`
