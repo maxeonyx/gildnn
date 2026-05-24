@@ -39,9 +39,12 @@ All Phase 1-5 experiments ran at **ctx=128** (not ctx=32 — that was the old sp
 
 ## Queue
 
-- **J_far_window full run** — RUNNING (active.lock set)
-- J_fixed_embedding — already in code, tests external vs self-generated target
-- Wider temporal separation (offset=20 or 24) — if J_far works
+- **J_far_window full run** — RUNNING (active.lock set, ETA ~22:35)
+- J_fixed_embedding — already in code, tests external vs self-generated target. **Most discriminating next experiment regardless of J_far outcome.**
+- J_strict_local — NEW: older-window target + strict-local (no CE through interface). Tests whether a good target rescues strict-local. If yes → true parallelism possible.
+- Wider temporal separation (offset=20 or 24) — if J_far shows plateau or improvement
+- Multi-helper with different offsets (N=3, helpers at offset 5-8 and 9-12) — tests temporal band composition
+- Transformer baseline (proper full run) — partial run killed at 13K, val_loss 1.683 on track
 - Graph architecture exploration (from dictation 2026-05-24-1) — see `research/questions/graph-architecture/README.md`
 - Hierarchical dynamic tokenization (from dictation 2026-05-24-3) — queued, not active
 
