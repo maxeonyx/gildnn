@@ -16,303 +16,318 @@ Every pathway includes "smallest meaningful experiments" — these show HOW the 
 
 | # | Pathway | Core question | Connects to vision |
 |---|---|---|---|
-| 1 | Async Parallel Execution | Can many small blocks run truly in parallel on a GPU? | Wall-clock speed, all params resident |
-| 2 | Local Learning | Can blocks learn useful things without global backprop? | Modularity, parallel training, flexibility |
-| 3 | Multi-Rate Hierarchical Processing | Do blocks at different rates develop different timescale representations? | Multi-timescale, hierarchical abstraction |
-| 4 | Self-Prediction / Predictive Processing | Does predicting your own inputs create useful top-down structure? | Predictive organization, learning signal |
-| 5 | Dynamic Computation | Can a model learn when to stop thinking / how far ahead to predict? | Dynamic depth, multi-token prediction |
-| 6 | Hierarchical Dynamic Tokenization | Can stacked autoencoders with learned chunk boundaries create a natural hierarchy? | Multi-timescale, dynamic token count |
-| 7 | Norm-Preserving Architectures | Can we eliminate norms entirely via orthogonal/unitary parameterization? | No layer norm, training stability |
-| 8 | Graph Topology & Communication | What's the right graph structure? How do distant modules share information? | Many small modules, flexible topology |
-| 9 | Arbitrary-Order Prediction | Can a model learn to predict in any order and choose optimal sampling? | Stretch goal, multi-modal |
+| 1 | Wide Recurrent vs Deep Transformer | Can a wide shallow network run many times match a deep transformer? | THE fundamental comparison |
+| 2 | Async Parallel Execution | Can many small blocks run truly in parallel on a GPU? | Wall-clock speed, all params resident |
+| 3 | Local Learning | Can blocks learn useful things without global backprop? What signal do interior blocks use? | Modularity, parallel training |
+| 4 | Computation Compression (Self-Prediction) | Can a network learn to front-load its computation — think faster over training? | Dynamic depth, inference speed |
+| 5 | Dynamic Depth & Early Exit | Can a loss predictor decide when recurrent iterations are done? | Dynamic compute per token |
+| 6 | Dynamic Rollout Length | Can a model predict N tokens ahead and know how many it got right? | Dynamic token count, efficiency |
+| 7 | Hierarchical Dynamic Tokenization | Can stacked autoencoders with learned chunk boundaries create a natural hierarchy? | Multi-timescale, dynamic token count |
+| 8 | Multi-Rate Processing | Do blocks at different rates develop different timescale representations? | Multi-timescale, hierarchical abstraction |
+| 9 | Norm-Preserving Architectures | Can we eliminate norms via orthogonal parameterization? | Training stability, simplicity |
+| 10 | Graph Topology & Broadcast | What's the right module graph? Can a central bottleneck broadcast usefully? | Flexible topology, information routing |
+| 11 | Arbitrary-Order / GP Sidequest | Can a model predict in any order? GP-like properties? | Stretch goal, MSc rehash |
 
 ---
 
 ## Pathway interactions
 
 ```
-                    ┌─────────────────────────────────────────┐
-                    │         1. ASYNC EXECUTION              │
-                    │   (hardware speedup from parallelism)   │
-                    └──────┬────────────────────┬─────────────┘
-                           │                    │
-                    enables│                    │enables
-                    parallel                    parallel
-                    training                    inference
-                           │                    │
-              ┌────────────▼────────┐    ┌──────▼──────────────┐
-              │  2. LOCAL LEARNING  │    │  3. MULTI-RATE      │
-              │  (no global backprop)│    │  (different speeds)  │
-              └────────┬───────────┘    └──────┬──────────────┘
-                       │                       │
-                       │composes               │composes
-                       │                       │
-              ┌────────▼───────────────────────▼──────────────┐
-              │       4. SELF-PREDICTION                       │
-              │  (local learning signal + temporal structure)  │
-              └────────┬──────────────────────────────────────┘
-                       │
-                       │enables
-                       │
-              ┌────────▼──────────────────────────────────────┐
-              │       5/6. DYNAMIC COMPUTATION                 │
-              │  (variable depth, variable token count,        │
-              │   hierarchical autoregressive prediction)      │
-              └───────────────────────────────────────────────┘
+  ┌───────────────────────────────────────────────────────────────┐
+  │  1. WIDE RECURRENT vs DEEP TRANSFORMER                        │
+  │  The thesis: width + recurrence substitutes for depth.         │
+  │  Everything else is about making this work well and fast.      │
+  └──────┬──────────────────────────┬─────────────────────────────┘
+         │                          │
+         │ how to make it fast      │ how to make it learn
+         │                          │
+    ┌────▼─────────────┐    ┌──────▼──────────────────────────┐
+    │  2. ASYNC         │    │  3. LOCAL LEARNING              │
+    │  (parallel HW)    │    │  (what signal for interior      │
+    └────┬─────────────┘    │   blocks? core open question)   │
+         │                   └──────┬──────────────────────────┘
+         │                          │
+         │                          │ composes with
+         │                          │
+    ┌────▼─────────────────────────▼──────────────────────────┐
+    │  4/5/6. DYNAMIC COMPUTATION FAMILY                       │
+    │  4. Self-prediction: train to think faster                │
+    │  5. Early exit: stop when ready (loss prediction)         │
+    │  6. Dynamic rollout: predict N tokens (loss prediction)   │
+    └──────────────────────────────────────────────────────────┘
 
-  Orthogonal / supporting:
-    7. Norm-Preserving  ──── supports training stability across all pathways
-    8. Graph Topology   ──── shapes how 1-4 compose
-    9. Arbitrary-Order  ──── stretch goal, mostly independent
+  Related / composable:
+    7. Hierarchical Tokenization ── stacked autoencoders, dynamic chunks
+    8. Multi-Rate Processing ────── blocks at different speeds
+    9. Norm-Preserving ──────────── training stability (supports all)
+   10. Graph / Broadcast ────────── looked at, didn't cohere yet
+   11. Arbitrary-Order / GP ─────── sidequest, deprioritized
 ```
 
 **Key relationships:**
-- Async (1) and Local Learning (2) are **independently testable** but compose into the strongest story (parallel training + parallel inference)
-- Multi-Rate (3) and Self-Prediction (4) **compose naturally** — different rates create different prediction horizons
-- Local Learning (2) needs a **learning signal** — Self-Prediction (4) is the leading candidate
-- Dynamic Computation (5/6) **depends on** having a working hierarchical model to make dynamic
-- Norm-Preserving (7) is **mostly orthogonal** — a supporting technology
-- Graph Topology (8) **shapes** how everything else composes but can be explored with toy models independently
+- Wide Recurrent (1) is the thesis — most other pathways make it work better or faster
+- Async (2) and Local Learning (3) are **independently testable** but compose into the strongest story (parallel training + parallel inference)
+- Self-Prediction (4), Dynamic Depth (5), and Dynamic Rollout (6) are facets of one family — "how does the network use variable compute efficiently?" Loss prediction is the shared mechanism for 5 and 6; self-prediction is the training incentive for 4.
+- Multi-Rate (8) composes naturally with the recurrent architecture — some blocks iterate faster than others
+- Norm-Preserving (9) is enabler infrastructure, not a direction on its own
+- Graph/Broadcast (10) was examined conceptually and the formalization didn't cohere — open if someone finds a way to make it make sense
 
 ---
 
-## Pathway 1: Async Parallel Execution
+## Pathway 1: Wide Recurrent vs Deep Transformer
 
 ### Why this pathway exists
 
-The central motivation. If many small blocks can execute truly in parallel on the GPU without synchronization, you get wall-clock speedup by replacing depth with width. Every other architectural choice serves this goal or is secondary to it.
+This is the fundamental thesis of the project. A deep transformer has many layers with individual parameters, applied once per token. The alternative: a wide shallow network (same weights) applied many times per token — many "timesteps" of recurrence IS depth. If this can match transformer quality, it unlocks everything else (parallelism, dynamic depth, computation compression).
 
 ### Core hypothesis
 
-On an RTX 3090 with 10,496 CUDA cores and 328 Tensor Cores, it should be possible to run multiple small independent blocks simultaneously with meaningful utilization. Blocks communicate via stale reads from shared memory — they don't wait for each other.
+A single set of weights applied recurrently N times can develop the same representational capacity as N distinct layers — but with the advantage that N becomes dynamic, the weights can be parallelized across tokens, and the architecture is far more flexible.
 
 ### Why it might matter
 
-If true: inference and training are both dramatically faster than sequential depth. Model width scales with hardware parallelism. Adding more blocks costs minimal latency.
+If true: depth is replaced by iteration count. This unlocks dynamic depth for free (just iterate more or less). It drastically reduces parameter count (one set of weights vs N sets). And if blocks are wide enough, each iteration can be parallelized across its width.
 
 ### Main unknowns
 
-- Can custom CUDA kernels actually achieve concurrent block execution? (The agent tested PyTorch streams — too high-level. Max rejected this as insufficient.)
-- What block size saturates a single SM? What's the crossover point where parallelism helps?
-- Does stale-read communication degrade quality enough to cancel the speed gain?
-- What's the scheduling story? Fixed rates vs demand-driven?
+- At what width does a recurrent network match a transformer of equivalent compute?
+- Does the recurrent architecture hit representational limits (same weights can't learn diverse layer-specific features)?
+- How does context length interact? (Many recurrent steps × long context = very different compute profile from transformer)
+- Muon / orthogonal weights presumably critical for stability through many iterations — how many iterations before instability?
 
 ### Evidence that would increase confidence
 
-- A custom CUDA kernel that demonstrably runs two independent matmuls with >50% utilization overlap
-- Wall-clock measurement showing N blocks in parallel < N × single-block time
-- A trained model using stale reads that doesn't collapse
+- A wide recurrent model matching transformer val_loss at equal parameters/FLOPs
+- Stable training through 8, 16, 32+ iterations without gradient explosion
+- Representations at different iteration depths showing different levels of abstraction
 
 ### Evidence that would reduce confidence
 
-- Hardware architecture genuinely prevents useful concurrency at these block sizes
-- Communication staleness degrades quality so much that you need more total compute to compensate
-- The scheduling overhead eats the parallelism gains
+- Recurrent architecture can't match transformer quality at any reasonable width
+- Stability becomes impossible beyond a few iterations regardless of optimizer
+- Same-weights recurrence fundamentally limits specialization vs distinct layers
 
 ### Smallest meaningful experiments
 
-1. **Raw hardware concurrency test:** Custom CUDA kernel with 2-4 independent small matmuls, measure actual overlap vs sequential. Map the RTX 3090's SM scheduling.
-2. **Stale-read degradation:** Train a model with artificially staled communication (1-step, 2-step, 4-step delays). How much does quality degrade per step of staleness?
-3. **Concurrent training step:** Two independent blocks updating simultaneously on different data. Does the wall clock improve?
+1. **Direct comparison:** Wide recurrent (same weights, N iterations) vs transformer baseline. Same total FLOPs. Same dataset. What's the quality gap?
+2. **Width scaling:** Fix iteration count. How wide does the recurrent model need to be to match the transformer?
+3. **Iteration scaling:** Fix width. How many iterations before instability? Does Muon fix it?
+4. **Representation analysis:** What do early vs late iterations compute? Is there natural specialization?
 
 ---
 
-## Pathway 2: Local Learning
+## Pathway 2: Async Parallel Execution
 
 ### Why this pathway exists
 
-Global backprop requires sequential computation through the entire depth. If blocks can learn with only local or neighborhood-local signals, training becomes parallelizable — each block (or small group) can update independently.
+If the architecture is wide (many independent blocks), those blocks can potentially execute in parallel on the GPU. Many small blocks running concurrently, communicating via stale reads, replacing sequential depth with parallel width. The goal is raw wall-clock speedup.
 
 ### Core hypothesis
 
-Interior blocks (not connected to input/output) can develop useful abstract representations using only local prediction signals, without global gradient flow.
+On an RTX 3090 with 10,496 CUDA cores and 328 Tensor Cores, multiple small independent blocks can execute simultaneously with meaningful utilization. Blocks communicate via stale reads from shared memory — they don't wait for each other.
 
 ### Why it might matter
 
-If true: training parallelizes across depth. Modules become truly independent — you can add, remove, or modify blocks without retraining the whole network. Biological plausibility (the brain doesn't do backprop through its full depth).
+If true: inference and training are both dramatically faster than sequential depth. Model width scales with hardware parallelism.
 
 ### Main unknowns
 
-- What local signal works? Predictive coding? Target propagation? Forward-Forward? Something else?
+- Can custom CUDA kernels achieve concurrent block execution? (CUDA Graph approach showed 28% — can persistent kernels or fused dispatch do better?)
+- What block size saturates a single SM? What's the crossover point?
+- Does stale-read communication degrade quality enough to cancel the speed gain?
+
+### Prior results from this project
+
+- **CUDA Graph concurrency:** 28% speedup at 2048 tokens, d=128, 4 blocks. Hardware CAN do concurrent execution.
+- **Stale-read quality cost:** +0.0055 ± 0.0046 nats (95% CI crosses zero — negligible).
+- **PyTorch streams:** Dead. Overhead kills any benefit.
+- **Custom CUDA / persistent kernels:** Not yet tested (identified as next step).
+
+### Smallest meaningful experiments
+
+1. **Custom CUDA concurrency:** Persistent kernel or fused blockIdx dispatch with 2-4 independent small matmuls. Measure actual overlap vs CUDA Graph approach.
+2. **Block size × concurrency sweep:** Vary block width. Find where blocks become large enough to fill SMs and concurrency stops helping.
+3. **Async training step:** Two blocks updating simultaneously from different timesteps. Does wall clock improve?
+
+---
+
+## Pathway 3: Local Learning
+
+### Why this pathway exists
+
+Global backprop requires sequential computation through the full depth. If blocks can learn with local signals, training parallelizes — each block updates independently. This is the training-side analogue of async inference.
+
+### Core hypothesis
+
+Interior blocks (not connected to input/output) can develop useful abstract representations using only local or neighborhood-local learning signals.
+
+### The core open question
+
+**What signal do interior blocks train on?** Only block 0 (at the edge) gets tokens. Block 5 is 5 hops from input. What makes it learn something useful from lateral propagation alone? This is the hardest open question in the project. Neuroscience and predictive coding literature are the place to look for answers.
+
+### Why it might matter
+
+If true: training parallelizes across depth/width. Modules become truly independent. Biological plausibility (the brain doesn't do backprop through its full depth).
+
+### Main unknowns
+
+- What local signal works? Predictive coding? Target propagation? Forward-Forward? Next-latent prediction? Something else entirely?
 - What's the minimum gradient radius that produces useful learning?
 - Do interior blocks (far from input) learn anything useful, or do they become spectators?
 - Can local learning produce representations competitive with full backprop?
 
+### Prior results from this project
+
+- **Strict-local with ungrounded target:** Collapses (+1.38 nats). Dead.
+- **Strict-local with task-grounded local CE:** Stable but doesn't help (+0.026). Not dead but not useful.
+- **Neighborhood-local (CE through interface):** Helps slightly (-0.006). But tested on wrong architecture (no propagation delay, block 1 sees current block 0 output).
+- **Prediction target matters more than topology:** The "J" experiment showed target choice matters, but the architecture was incoherent.
+- **All above tested WITHOUT propagation delay.** Needs redo with correct architecture.
+
 ### Evidence that would increase confidence
 
-- An interior block that is demonstrably load-bearing (ablation hurts significantly)
-- A local learning rule that produces competitive val_loss vs full backprop at matched compute
-- Representations that show clear hierarchical structure without being taught it
+- An interior block demonstrably load-bearing (ablation hurts by >0.05 nats)
+- A local rule producing competitive val_loss vs full backprop at matched compute
+- Representations showing hierarchical structure without being explicitly taught it
 
 ### Evidence that would reduce confidence
 
-- Every local rule collapses, goes spectator, or produces degenerate representations
-- The minimum useful gradient radius is so large that "local" doesn't meaningfully reduce coupling
-- Competitive quality requires full backprop — local learning can't match at any scale
-
-### Relationships
-
-- **Enables** Async (1): if training is local, blocks can update in parallel
-- **Needs a signal from** Self-Prediction (4): prediction of own inputs is the leading candidate for the local loss
-- **Prior result (from this project):** Strict-local with ungrounded target collapses. Strict-local with task-grounded CE is stable but doesn't help. Neighborhood-local helps slightly (-0.006). Target matters more than topology.
+- Every local rule collapses or goes spectator
+- Minimum useful gradient radius is so large that "local" doesn't reduce coupling meaningfully
+- Competitive quality fundamentally requires full backprop at any scale
 
 ### Smallest meaningful experiments
 
-1. **Gradient radius sweep:** Same architecture, vary stop-gradient window from k=1 (strict local) through k=2, 4, 8, full. Measure quality at each.
-2. **Local signal comparison:** Fix architecture. Try 3-4 different local losses (prediction of neighbor, contrastive, local CE, target propagation). Which one produces load-bearing interior blocks?
-3. **Scaling test:** Does whatever works at 2-3 blocks still work at 8-16 blocks with proportionally local gradients?
+1. **Correct architecture first:** Two blocks with ACTUAL propagation delay (block 1 only sees block 0's PREVIOUS output). Full backprop as ceiling. Stop gradient as floor. What's the gap?
+2. **Gradient radius sweep:** Vary k from 1 to full. Find the knee.
+3. **Local signal comparison:** Fix architecture, try 3-4 local losses. Which produces load-bearing interior blocks?
+4. **Scale test:** Does whatever works at 2-3 blocks still work at 8-16?
 
 ---
 
-## Pathway 3: Multi-Rate Hierarchical Processing
+## Pathway 4: Computation Compression (Self-Prediction)
 
 ### Why this pathway exists
 
-Different modules running at different rates naturally develop different timescale representations. Fast modules handle token-level features; slow modules integrate over longer spans. This is an inductive bias toward hierarchical abstraction — and it's free if you're already doing async execution.
+If the architecture needs 8 recurrent iterations to produce good output, can we train it to produce equivalent output in 4? Self-prediction is the training incentive: at step 4, predict what you'd produce at step 8. Over training, the network learns to front-load computation — to think faster.
 
 ### Core hypothesis
 
-Blocks that fire less frequently are forced to represent longer-timescale patterns. A rate=8 block that only sees every 8th token must compress temporal information differently from a rate=1 block.
+Training a network to predict its own future outputs creates gradient pressure that migrates useful computation earlier in the rollout. The network distills itself from its future into its present, continuously during training.
 
 ### Why it might matter
 
-If true: the architecture naturally develops hierarchical representations without explicit hierarchy. Slower blocks = longer context windows = more abstract features. Multi-rate also means less total compute per step (slow blocks skip most steps).
+If true: inference gets faster over training without explicit pruning or distillation. The model learns to compress its own computation. Combined with early exit (Pathway 5), you get both the ability to stop early AND the incentive to actually be ready earlier.
+
+### How it works (in training)
+
+The architecture does the full rollout (all 8 steps). At each intermediate step, a prediction head outputs "what I think I'll produce at step 8." The loss on this prediction creates gradient that makes earlier steps more informative. Over time, step 4's predictions of step 8 get accurate, meaning step 4 already contains most of what step 8 would add.
 
 ### Main unknowns
 
-- At what context length does multi-rate actually help? (Rate=32 at ctx=32 is obviously useless.)
-- Does multi-rate remain useful as context gets very long? Or does attention over long sequences do the same thing better?
-- How aggressive can dilation be? Max wants rate=1024 eventually, at ctx=400K.
-- Does the rate schedule need to be fixed or can it be learned?
+- Does self-prediction actually compress computation in practice, or does it just learn to copy?
+- Is a direct MSE/cosine loss the right training signal, or something else?
+- Does this interact well with early exit (Pathway 5)? Does better self-prediction → earlier exit?
+- Is this different in practice from just having a depth penalty (simpler but blunter)?
+
+### Why it might be better than a depth penalty
+
+A depth penalty is blunt: "use fewer steps." Self-prediction is targeted: "know what you'd say if you kept going." The former might make the model worse at everything. The latter teaches it to be ready faster without sacrificing quality. "If I knew more, thought faster, what would I say?"
 
 ### Evidence that would increase confidence
 
-- Multi-rate model beats single-rate at matched compute on long-context tasks
-- Slow blocks demonstrably represent different features than fast blocks (representation analysis)
-- More aggressive dilation ratios continue helping as context grows
+- A model that demonstrably produces better output at step 4 after self-prediction training vs without
+- Measurable reduction in needed iterations at matched quality over training time
+- Self-prediction loss decreasing over training (the network getting better at predicting its future)
 
 ### Evidence that would reduce confidence
 
-- Multi-rate helps only as a regularizer (same benefit from dropout or similar)
-- All benefits vanish when context is long enough for standard attention
-- Slow blocks become spectators regardless of rate schedule
-
-### Relationships
-
-- **Composes with** Self-Prediction (4): different rates create different prediction horizons
-- **Composes with** Async (1): multi-rate is a natural fit for desynchronized execution
-- **Prior result:** Fixed multi-rate [1,2,4,8] showed better val_loss for fewer compute steps. Rate-4 and above were useless at ctx=32 (context too short).
+- Self-prediction head just learns to copy step 4's output (doesn't actually compress)
+- Depth penalty achieves the same result with no extra mechanism
+- The gradient from self-prediction destabilizes training
 
 ### Smallest meaningful experiments
 
-1. **Context scaling:** Same multi-rate architecture at ctx=128, 256, 512, 1024. Does the benefit of slower blocks grow with context?
-2. **Representation analysis:** What features does a rate-8 block learn? Probe its representations.
-3. **Aggressive dilation:** Push rates to [1, 4, 16, 64] at ctx=1024+. When does it break?
+1. **Measure the opportunity:** Train a recurrent model. Record output quality at steps 1, 2, 4, 8. How much does quality improve with more steps? If step 4 ≈ step 8, there's nothing to compress.
+2. **Self-prediction head:** Add a head at step 4 predicting step 8's output. Train with it. Does step 4's actual output improve?
+3. **Compare to depth penalty:** Same setup, but instead of self-prediction, just add a penalty for using more steps. Which produces better step-4 output?
+4. **Early exit integration:** Combine self-prediction with a loss predictor. Does the model learn to exit earlier over training?
 
 ---
 
-## Pathway 4: Self-Prediction / Predictive Processing
+## Pathway 5: Dynamic Depth & Early Exit
 
 ### Why this pathway exists
 
-Each block should predict its own next incoming residual stream — a local self-supervised objective. The first node connected to input predicts that input at the next step (and that IS the output). Deeper nodes learn by producing messages that help their neighbors produce good predictions.
+Not every token needs the same amount of thinking. A "the" needs 1 iteration; a complex clause needs 8. A loss-prediction head can estimate when additional iterations would not help, enabling the model to stop early.
 
 ### Core hypothesis
 
-Predicting your own inputs at the next timestep is a sufficient learning signal for useful representation development. Higher levels predict the *latents* that explain lower-level activity, not the raw outputs.
+A loss predictor can be trained to estimate the value of additional recurrent iterations, enabling efficient variable-depth inference.
 
-### Why it might matter
+### How it differs from standard early-exit literature
 
-If true: provides a principled local learning signal (answers the question from Pathway 2). Creates natural top-down/bottom-up information flow. Aligns with predictive coding theory from neuroscience.
+Standard early exit applies to networks with many DIFFERENT layers (each with unique parameters). Here it applies to RECURRENT iterations of the SAME weights. The decision is "how many times to apply this one set of weights" not "how many distinct layers to pass through."
 
-### Main unknowns
+### Connection to self-prediction (Pathway 4)
 
-- What exactly should block N predict? Its own next input? Block N-1's future output? Something else?
-- Does the prediction need to be of the *same* timestep or *future* timesteps?
-- How does the prediction get used? Subtracted (predictive coding)? Added (context injection)? Gated?
-- Can interior blocks (far from input) develop useful predictions when they only receive laterally propagated information?
+Early exit is PASSIVE — you can stop when you happen to be ready. Self-prediction (Pathway 4) is ACTIVE — training pressure to become ready earlier. They compose: self-prediction makes earlier steps better, early exit lets you skip the now-unnecessary later steps.
 
-### Evidence that would increase confidence
+### Loss prediction as a general mechanism
 
-- A block that predicts its own input, where that prediction demonstrably helps the overall model (ablation gap)
-- Predictive coding structure (subtract prediction, process surprise) emerging spontaneously
-- Interior blocks developing representations that encode longer-timescale or more abstract features
-
-### Evidence that would reduce confidence
-
-- Predictions always collapse to trivial (constant, or copy of current state)
-- Prediction targets must be hand-designed (model can't figure out what to predict on its own)
-- The "predict own inputs" story doesn't compose beyond 2-3 blocks
-
-### Relationships
-
-- **Provides signal for** Local Learning (2): self-prediction is the candidate local loss
-- **Composes with** Multi-Rate (3): different rates create different prediction horizons
-- **Framing correction (dictation 2026-05-24-5):** "Stop thinking in terms of RNN and start thinking in terms of feedforward blocks. They have an input at time t and an output at time t+1, and that output is available to other blocks."
+Predicting one's own loss is potentially useful beyond just early exit. A head that knows "how well am I doing right now?" enables many decisions: when to stop iterating, how many tokens to predict, where to allocate more compute. It's a meta-cognitive capability.
 
 ### Smallest meaningful experiments
 
-1. **Minimal self-prediction:** Single block, predict own input at t+1. Does the prediction capture anything useful? Measure prediction quality over training.
-2. **Two-block lateral:** Block 0 gets tokens. Block 1 gets Block 0's output (delayed by 1 step). Block 1 predicts its own next input. Is Block 1 useful?
-3. **Prediction usage:** Try subtract (predictive coding), add (context), gate. Which one makes the prediction load-bearing?
-4. **Interior block test:** 4+ blocks in a chain with propagation delay. Can block 3 develop useful predictions despite being 3 hops from input?
+1. **Fixed-depth loss curve:** Record loss at iterations 1, 2, 4, 8 per token during evaluation. How much variation across tokens? (If all tokens need all iterations, dynamic depth is pointless.)
+2. **Loss predictor accuracy:** Train a head to predict "what loss will I get if I stop here?" How accurate is it?
+3. **Dynamic inference:** Use the predictor to exit early. Measure wall-clock speedup vs quality degradation.
 
 ---
 
-## Pathway 5: Dynamic Computation
+## Pathway 6: Dynamic Rollout Length
 
 ### Why this pathway exists
 
-Not every token needs the same amount of thinking. A model that can iterate on internal state (dynamic depth) or predict multiple tokens ahead (dynamic token count) uses compute more efficiently.
+The complementary direction to dynamic depth: instead of varying how much you THINK per token, vary how many tokens you OUTPUT per think. Predict N tokens ahead, check the loss — did you get 1 right? 3? 7? Produce as many as you're confident about.
 
 ### Core hypothesis
 
-A loss-prediction head can estimate when additional computation is no longer helping, enabling the model to dynamically allocate effort.
+A model can predict multiple future tokens from a single state, and a loss predictor can tell it how many of those predictions are good enough to use.
 
 ### Why it might matter
 
-If true: inference becomes dramatically more efficient on "easy" tokens. Training can focus compute on hard cases. Naturally connects to the hierarchical vision (higher levels = more abstraction = fewer but harder predictions).
+If true: inference efficiency scales with "easiness" of text. Predictable sequences (formulaic text, common patterns) process much faster. Combined with dynamic depth: easy tokens get both fewer iterations AND more output tokens.
 
-### Main unknowns
+### Connection to hierarchical tokenization (Pathway 7)
 
-- Can a loss predictor be trained to estimate the value of additional computation?
-- Does dynamic depth compose with shared/looped weights? (Same weights applied N times)
-- What's the training regime? Exponential schedule (1, 2, 4, 8 passes)?
-- How does this interact with multi-rate blocks?
-
-### Evidence that would increase confidence
-
-- A trained loss predictor that accurately forecasts when more depth helps
-- Measurable compute savings at matched quality vs fixed depth
-- Clean composition with looped/shared weights
-
-### Evidence that would reduce confidence
-
-- Loss predictor can't calibrate (always says "more computation helps")
-- Dynamic decisions during training cause instability
-- Compute savings are marginal (most tokens need full depth anyway)
+Dynamic rollout is tokenization discovered at inference time. If you predict 5 tokens ahead and they're all good, those 5 tokens form a natural "chunk." This connects to the hierarchical autoregressive stack — higher levels predict longer sequences.
 
 ### Smallest meaningful experiments
 
-1. **Fixed-depth loss curve:** Same model at depth 1, 2, 4, 8. Record loss at each depth per token. How much variation is there?
-2. **Loss predictor:** Train a head to predict the loss curve. How accurate is it?
-3. **Dynamic inference:** Use the predictor to skip unnecessary computation. Measure speedup vs quality loss.
+1. **Multi-token prediction quality:** Train a model to predict 1, 2, 4, 8 tokens ahead simultaneously. How does accuracy decay with horizon?
+2. **Loss predictor for rollout:** Train a head to predict "how many of my next-N predictions are correct?" Is it calibrated?
+3. **Speedup measurement:** Use the predictor to dynamically choose rollout length. Measure tokens/second vs quality.
 
 ---
 
-## Pathway 6: Hierarchical Dynamic Tokenization
+## Pathway 7: Hierarchical Dynamic Tokenization
 
 ### Why this pathway exists
 
-Multiple levels of autoregressive prediction — character → token → phrase → paragraph. Each level has an autoregressive autoencoder with a bottleneck. A loss-prediction head determines chunk boundaries. Higher levels predict sequences of lower-level bottlenecks.
+Multiple levels of autoregressive prediction. Character → token → phrase → paragraph. Each level has an autoregressive autoencoder with a bottleneck. A loss-prediction head determines chunk boundaries. Higher levels predict sequences of lower-level bottlenecks. This is Max's vision for how dynamic tokenization emerges from the architecture itself.
 
 ### Core hypothesis
 
-Dynamic chunk boundaries (learned, not fixed) create a natural multi-scale hierarchy. The bottleneck at each level captures what matters for the next level, and the chunk boundary is where "something new" starts.
+Dynamic chunk boundaries (learned, not fixed) create a natural multi-scale hierarchy. The bottleneck at each level captures what matters for the next chunk and for the level above.
 
-### Why it might matter
+### Note (from dictation 2026-05-24-4)
 
-If true: the model naturally learns tokenization rather than having it imposed. Higher levels operate on meaningfully compressed units. Chunk boundaries correspond to semantic boundaries.
+The bottleneck is useful "not just as context for the level above, but also useful as context for the following chunk" at the same level.
+
+### Why autoregressive specifically
+
+Autoregressive models can sample from the joint distribution. This means each level can generate full sequences, not just predict the next item. Hierarchical autoregressive = sampling long coherent sequences by first planning at a high level, then filling in details.
 
 ### Main unknowns
 
@@ -320,10 +335,6 @@ If true: the model naturally learns tokenization rather than having it imposed. 
 - How does the autoencoder bottleneck interact with the autoregressive objective?
 - Does stacking levels (level-1 predicting level-0 bottlenecks) actually work?
 - What makes a good bottleneck? Just dimensionality reduction, or something structural?
-
-### Note (from dictation 2026-05-24-4)
-
-The bottleneck is useful "not just as context for the level above, but also useful as context for the following chunk" at the same level.
 
 ### Smallest meaningful experiments
 
@@ -333,74 +344,97 @@ The bottleneck is useful "not just as context for the level above, but also usef
 
 ---
 
-## Pathway 7: Norm-Preserving Architectures
+## Pathway 8: Multi-Rate Processing
 
 ### Why this pathway exists
 
-Max finds layer norm "personally quite disgusting." More seriously: if weight matrices can be parameterized to preserve distribution shape through layers, norms become unnecessary. Muon optimizer keeps matrices near-orthogonal (singular values ≈ 1), preventing gradient explosion through time.
+Different blocks running at different rates naturally develop different timescale representations. Fast blocks handle low-level features (every timestep); slow blocks integrate over longer spans. This is an inductive bias toward hierarchical abstraction — and it's free if you're already doing recurrent/async execution.
 
 ### Core hypothesis
 
-Orthogonal/unitary weight matrices + mix-add residual streams can maintain stable activations without any normalization layers.
+Blocks that fire less frequently are forced to represent longer-timescale patterns. Multi-rate creates natural hierarchy without explicit hierarchy.
 
-### Why it might matter
+### Prior results from this project
 
-If true: eliminates a source of incidental complexity. Simplifies the architecture. May improve gradient flow through time for recurrent/looped architectures. Connects to theoretical interest in volume-preserving transformations.
-
-### Speculative extension
-
-Volume-preserving diffeomorphisms (Hamiltonian flows) as learned nonlinearities. Element-wise nonlinearities privilege a basis (arbitrary, breaks rotational symmetry). A Hamiltonian flow operates on geometry, not individual coordinates. Max: "I don't know what the high-dimensional version of that is."
-
-### Smallest meaningful experiments
-
-1. **Muon stability test:** Replace Adam with Muon on the existing architecture. Does it fix the k=8/k=16 gradient instability?
-2. **Norm-free model:** Mix-add everywhere, Muon optimizer, no layer norm. How far can you get?
-3. **Orthogonal parameterization:** Directly parameterize weight matrices as orthogonal. Compare training dynamics to unconstrained + Muon.
-
----
-
-## Pathway 8: Graph Topology & Communication
-
-### Why this pathway exists
-
-If the architecture is many small modules, how are they connected? What information crosses between them? Is it a chain, a mesh, a star? Is there a central broadcast? How do distant modules share information without defeating the purpose of locality?
-
-### Core hypothesis
-
-The graph structure matters — and unrestricted all-to-all communication bypasses the interesting parts entirely. Communication channels need bottlenecks to preserve locality and force specialization.
+- Fixed multi-rate [1,2,4,8] showed better val_loss for fewer compute steps — confirms inductive bias.
+- Rate-4 and above were useless at ctx=32 (context too short for slow blocks to matter).
+- Aggressive dilation [1,2,4,32] at ctx=32: obviously useless (rate > context length).
 
 ### Main unknowns
 
-- Star topology? Mesh? Ring? Random?
-- Does a broadcast mechanism help? (Max is uncertain — "I don't know" if it can learn useful things with only local learning. Maybe needs RL.)
-- How narrow should communication bottlenecks be?
-- Does the graph need to be fixed or can it be learned/dynamic?
+- At what context length does multi-rate become meaningful?
+- How aggressive can dilation be?
+- Does multi-rate help beyond being a regularizer?
+- Does the rate schedule need to be fixed or can it be learned?
 
 ### Smallest meaningful experiments
 
-1. **Topology comparison:** Same blocks, different connection patterns (chain, star, mesh). Which topology produces best results at matched compute?
-2. **Bottleneck width:** Vary the bandwidth of inter-block communication. How much can you compress before quality degrades?
-3. **Broadcast vs local-only:** Add a central broadcast node. Does it help or does it just bypass local learning?
+1. **Context scaling:** Same multi-rate at ctx=128, 256, 512, 1024. Does benefit of slow blocks grow with context?
+2. **Representation probing:** What features does a rate-8 block learn vs rate-1?
+3. **Aggressive dilation:** Push rates to [1, 4, 16, 64] at long context. When does it break?
 
 ---
 
-## Pathway 9: Arbitrary-Order Prediction
+## Pathway 9: Norm-Preserving Architectures
 
 ### Why this pathway exists
 
-Train a model to predict tokens/patches in any order. Use cross-attention from sequence so far to target position. All marginals from one forward pass (GP-like properties). At inference, choose an optimal prediction order.
+Layer norm is a hack. If weight matrices can be parameterized to preserve distribution shape through layers, norms become unnecessary. Muon optimizer keeps matrices near-orthogonal (singular values ≈ 1), preventing gradient explosion through many recurrent iterations. Critical enabler for Pathway 1 (wide recurrent run many times).
+
+### Core hypothesis
+
+Orthogonal/unitary weight matrices + mix-add residual streams can maintain stable activations without normalization layers.
+
+### Speculative extension
+
+Volume-preserving diffeomorphisms (Hamiltonian flows) as learned nonlinearities. Element-wise nonlinearities privilege a basis (breaks rotational symmetry). A Hamiltonian flow operates on geometry, not individual coordinates. Max: "I don't know what the high-dimensional version of that is."
+
+### Smallest meaningful experiments
+
+1. **Muon stability test:** Replace Adam with Muon. Does it fix gradient instability through many recurrent iterations?
+2. **Norm-free model:** Mix-add everywhere, Muon, no layer norm. How far can you get?
+3. **Orthogonal parameterization:** Directly parameterize weight matrices as orthogonal. Compare training dynamics.
+
+---
+
+## Pathway 10: Graph Topology & Broadcast
+
+### Why this pathway exists
+
+If the architecture is many small modules, how are they connected? What information crosses between them? Inspiration: midbrain structures (hippocampus, thalamus) — a central bottleneck where lots of information goes in and less comes back out, broadcast to the cortex. Has a time delay. Connected to RL in the brain (which is NOT part of this project).
 
 ### Status
 
-**Deprioritized.** Max explicitly said: "I don't want to be doing the arbitrary order sampling work now. I want to go back to the original async plan." Return to this after the core architecture works.
+**Looked at conceptually and the formalization didn't cohere.** Not experimentally failed — just not yet coherent enough to implement. Open if someone finds a way to make it make sense.
 
-### Connection to master's thesis
+### Main unknowns
 
-Max implemented this for MNIST pixels. The mechanism is well-understood personally.
+- What would a broadcast mechanism even look like without RL to train it?
+- Does the graph structure matter, or is the wide-recurrent thesis sufficient without explicit topology?
+- How do you formalize "attention across latents from the blocks, not attention across sequence"?
+- Is unrestricted all-to-all communication just a transformer in disguise (bypassing everything interesting)?
+
+### Smallest meaningful experiments (when reactivated)
+
+1. **Topology comparison:** Same blocks, different connections (chain, star, mesh, random). Does it matter?
+2. **Bottleneck width:** Vary inter-block bandwidth. How narrow before quality degrades?
+3. **Central broadcast:** Add a node that reads all block latents and broadcasts back. Does anything useful happen without explicit RL training?
+
+---
+
+## Pathway 11: Arbitrary-Order / GP Sidequest
+
+### Why this pathway exists
+
+Train a model to predict tokens/patches in any order. Use cross-attention from sequence so far to target position. All marginals from one forward pass (GP-like properties). At inference, choose an optimal prediction order. Connects to Max's master's thesis (MNIST pixels).
+
+### Status
+
+**Deprioritized.** Max explicitly said: "I don't want to be doing the arbitrary order sampling work now. I want to go back to the original async plan." Return to this after the core architecture works. Potential MSc rehash on new data.
 
 ### Smallest meaningful experiment (when reactivated)
 
-Apply arbitrary-order training to the character-level task. Measure whether optimal ordering at inference helps vs left-to-right.
+Apply arbitrary-order training to the character-level task. Measure whether optimal ordering at inference helps vs left-to-right. Compare to GP regression properties.
 
 ---
 
@@ -408,21 +442,19 @@ Apply arbitrary-order training to the character-level task. Measure whether opti
 
 Before claiming any custom architecture works, ground the results against:
 
-| Baseline | Purpose | Where it lives |
+| Baseline | Purpose | Status |
 |---|---|---|
-| **Standard transformer** | The accepted state-of-the-art. Same dataset, same compute budget, achieving results consistent with published expectations. | `base-experiments/transformer/` |
-| **Simple RNN** (attention over time or mix-add residual across time) | The simplest stateful baseline. | `base-experiments/rnn/` |
-| **Ablation control** | Most similar possible network WITHOUT the modification being tested. Same everything, one thing removed. | Per-experiment |
+| **Standard transformer** | The accepted SOTA. Same dataset, matched compute, achieving published expectations. | **Done:** val_loss 1.643, 187K params, WikiText-103 char-level |
+| **Simple RNN** (attention over time or mix-add residual across time) | The simplest stateful baseline. | Done (in base-experiments/) |
+| **Ablation control** | Most similar network WITHOUT the modification being tested. | Per-experiment |
 
-Every comparison claim requires BOTH a standard baseline AND an ablation control. "Wins versus our own ablation" is interesting but insufficient. "Wins versus transformer baseline at matched compute" is a real claim.
-
-Include wall-clock time and actual GPU utilization in comparisons — not just parameter counts and theoretical FLOPs.
+Every comparison claim requires BOTH a standard baseline AND an ablation control. Include wall-clock time and GPU utilization, not just loss numbers.
 
 ---
 
 ## Worked example: turning a pathway into experiments
 
-### Local Learning (Pathway 2)
+### Local Learning (Pathway 3)
 
 This shows the general pattern for operationalizing any pathway. These steps are NOT phases — each one is a loop iteration with exit conditions. At any step you might redirect (to a different step, a different pathway, or back to theory). See PROCESS.md for the full experiment loop.
 
@@ -430,7 +462,7 @@ This shows the general pattern for operationalizing any pathway. These steps are
 
 **Step 1 — Minimal mechanism test (cheapest honest test)**
 
-Two blocks. Only block 0 gets token embeddings and has a prediction loss. Block 1 is detached (stop gradient). Give block 1 some local signal. Question: does block 1 learn anything non-degenerate?
+Two blocks WITH propagation delay (block 1 only sees block 0's previous-timestep output). Only block 0 has a prediction loss. Block 1 is detached (stop gradient). Give block 1 some local signal. Question: does block 1 learn anything non-degenerate?
 
 - Success: block 1 becomes load-bearing (ablation hurts by >0.05 nats)
 - Failure: collapse, spectator, or trivial (<0.01 nats)
@@ -447,7 +479,7 @@ Same architecture, vary gradient radius: k=1 (strict), k=2, k=4, k=full. Plot qu
 **Step 3 — Candidate signal comparison (discriminate between mechanisms)**
 
 Fix architecture. Fix gradient radius at whatever k works. Try multiple local signals:
-- Predict neighbor's next output
+- Next-latent prediction (predict neighbor's next output)
 - Contrastive (positive/negative pairs)
 - Local CE through interface
 - Target propagation
@@ -457,14 +489,14 @@ Compare: which one produces the most load-bearing interior block?
 
 - Success: one or more signals produce significantly load-bearing blocks
 - Failure: none work → maybe the problem isn't the signal but the architecture
-- Important: this step might redirect to Pathway 8 (topology) rather than staying in Pathway 2
+- Important: this step might redirect to Pathway 10 (topology) rather than staying in Pathway 3
 
 **Step 4 — Scale test (check that it doesn't break)**
 
 Take the best signal from step 3. Scale: more blocks, longer context, larger model. Does local learning still produce useful blocks, or does it work only in tiny settings?
 
 - Success: scales cleanly — quality improves with scale as expected
-- Failure: collapses at scale → mechanism is fragile, possibly not viable for the final architecture
+- Failure: collapses at scale → mechanism is fragile, possibly not viable
 
 **Step 5 — Connect back to the vision (does it serve the goal?)**
 
