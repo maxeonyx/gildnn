@@ -6,13 +6,25 @@ Serves [dictation 2026-05-23-5](../../../dictations/2026-05-23-5.md): "how can I
 
 Max's framing: "It doesn't have to be totally local. We can be using backpropagation through a local neighborhood of blocks. Then if we can do that, we can parallelize training significantly more."
 
-## Status: ANSWERED (strict-local fails, neighborhood-local works)
+## Status: ANSWERED (neighborhood-local is the minimum viable locality)
 
-**CE shaping through the feedback path is load-bearing.** Strict-local with full-state cosine prediction collapses catastrophically (D=3.05 vs A=1.67, both seeds). Semi-local (neighborhood-local) works — C < A by 0.006 averaged over 2 seeds.
+The full experiment series is complete:
 
-This means: backprop through a local neighborhood (the interface between adjacent blocks) is the minimum viable locality. Each block pair forms an independent neighborhood. Parallelism scales with N (number of neighborhoods that can be updated simultaneously), but not to the limit of one-block-per-device without cross-boundary gradient.
+| Variant | Mean val_loss | vs A | Conclusion |
+|---------|--------------|------|-----------|
+| C_closed_loop (semi-local) | 1.665 | -0.006 | CE through interface HELPS |
+| A_single | 1.670 | — | baseline |
+| E_grounded (strict-local + local CE) | 1.696 | +0.026 | stable but hurts |
+| D_strict_local | 3.047 | +1.377 | COLLAPSED |
 
-The remaining open question: does neighborhood-local work beyond N=2? (Phase 3: N=3 chain.)
+**Three findings:**
+1. D's collapse was caused by the ungrounded prediction target, not locality itself (E proves this — same locality, task-grounded, no collapse).
+2. Task-grounded strict-local IS viable but doesn't add value — predictions slightly hurt.
+3. **The CE-through-interface gradient teaches the predictor WHAT to predict.** That's specifically what makes semi-local C better than A. Local CE prevents collapse (finding a) but can't replace the feedback gradient's role in selecting useful prediction components (finding b).
+
+**Conclusion:** Neighborhood-local (CE flows through block interfaces) is the minimum viable locality. The feedback gradient does two jobs: (a) prevent collapse, (b) select which prediction dimensions help the task. Local CE can replace (a) but not (b). Only (b) actually improves performance.
+
+The remaining question: does neighborhood-local scale to N>2? Next: N=3 semi-local star topology.
 
 ## Key insight: "parallel" means three different things
 
