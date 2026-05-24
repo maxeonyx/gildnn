@@ -318,6 +318,38 @@ Evidence: [`report_jfar.json`](../../../experiments/wikitext_103/artifacts/close
 1. J_fixed_embedding — separates "older content" from "older hidden-state codes" (still most discriminating)
 2. J_dual_band (offsets 8,12) + J_dual_same_band (8,8) control — tests band composition
 
+### J_fixed_embedding: DONE ✓ — Token embeddings ≥ hidden states. Helper's role is TEMPORAL MEMORY.
+
+Block 1 predicts `mean(E(x_{t-8}), ..., E(x_{t-5}))` — raw token embeddings from 5-8 steps ago. An EXTERNAL FIXED target that block 0 cannot make easier by co-adapting.
+
+| Variant | Seed 42 | Seed 43 | Mean | Δ vs A | std |
+|---------|---------|---------|------|--------|-----|
+| A_single | 1.669 | 1.672 | 1.670 | — | 0.0015 |
+| J_older_window (hidden states) | 1.660 | 1.660 | 1.660 | -0.010 | 0.00009 |
+| **J_fixed_embedding (token embeddings)** | **1.659** | **1.658** | **1.658** | **-0.012** | **0.0006** |
+
+Mechanism metrics:
+
+| Metric | J_fixed s42 | J_fixed s43 | J_older s42 | Interpretation |
+|--------|-------------|-------------|-------------|----------------|
+| pred_loss | 0.245 | 0.241 | 0.165 | Harder target (embeddings don't co-adapt) |
+| mix_coeff | -0.093 | -0.082 | -0.065 | Stronger predictive coding |
+| ablation_gap | 0.295 | 0.220 | 0.188 | Deeper dependence on predictions |
+
+Evidence: [`report_jfixed.json`](../../../experiments/wikitext_103/artifacts/closed_loop_prediction/report_jfixed.json)
+
+**Key findings:**
+
+1. **The helper's value is temporal memory, not representation-specific.** Token embeddings (a fixed external target) work as well or better than block 0's learned hidden states. The helper's job is "remember what was here before" in any representation.
+
+2. **Harder-to-predict but richer beats easier-to-predict but redundant.** J_fixed has pred_loss 0.243 (vs J_older's 0.165) but gives better val_loss. The fixed target carries more diverse information because it doesn't collapse toward easy-to-predict modes.
+
+3. **The model uses J_fixed predictions MORE heavily.** Larger ablation gap (0.258 mean vs 0.188) and more negative mix_coeff (-0.088 vs -0.065). Block 0 leans harder on the embedding-based temporal memory.
+
+4. **Path to strict locality opens.** Since the target is externally anchored (token embeddings don't depend on block 0), the co-adaptation failure mode that killed D_strict_local cannot occur. J_fixed_strict_local is the critical follow-up.
+
+**Implication for architecture:** The helper block doesn't need to "model block 0's internal dynamics." A much simpler contract suffices: each helper owns a temporal band and predicts what tokens appeared in that band. This dramatically simplifies the scaling story for many-block architectures.
+
 ### Multi-block scaling implication
 
 J implies that multi-block scaling should be built around **temporal role differentiation**, not duplicate prediction. In a deep local-learning stack, each block should own a different offset/timescale band matched to what the block below naturally forgets. The natural hierarchy: "block 2 remembers what block 1 drops after ~N steps, block 3 remembers what block 2 drops after a larger N." Falsified if identical targets/offsets scale equally well.
@@ -333,12 +365,13 @@ All variants below use the **same gated additive interface** (change one thing: 
 ### Run order (updated post-J)
 
 J won clearly. Remaining run order:
-1. ✅ **J_older_window** — DONE. Target was the bottleneck.
+1. ✅ **J_older_window** — DONE. Target was the bottleneck. Δ=-0.010, std=0.00009.
 2. ✅ **J_far_window** (offset 12) — DONE. Gentle inverted-U; -0.007 (slightly worse than offset 8's -0.010).
-3. 🔄 **J_fixed_embedding** — RUNNING. Separates "older content" from "older hidden-state codes."
-4. → **Width with J target** — multiple helpers at different offsets. J_dual_band (8,12) + J_dual_same_band (8,8) control implemented.
-5. → **L** (future chunk code) — different hypothesis family, if memory hypothesis stalls
-6. → **K** (nonlocal residue) — deprioritized. High collapse risk, less discriminating than J_fixed.
+3. ✅ **J_fixed_embedding** — DONE. Token embeddings ≥ hidden states. Δ=-0.012, std=0.0006. Helper's role is temporal memory.
+4. 🔄 **J_strict_local + J_fixed_strict_local** — RUNNING. Tests strict locality with both targets.
+5. → **Width with J target** — J_dual_band (8,12) + J_dual_same_band (8,8) control implemented.
+6. → **L** (future chunk code) — different hypothesis family, if memory hypothesis stalls
+7. → **K** (nonlocal residue) — deprioritized. High collapse risk, less discriminating than J_fixed.
 
 **Collapse risk ranking:** L (lowest, fixed external target) < J/J_far (moderate, self-generated but diverse) < K (highest, subtraction can produce near-zero targets).
 
