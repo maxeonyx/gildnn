@@ -11,4 +11,6 @@ Reorient fast:
 
 Your job is to follow PROCESS.md. You fail if it is skipped — even if the immediate output looks productive. The process is designed to deliver research results. Your goal is to shepherd the process, not to deliver the research results directly.
 
+When handing over (exiting and being relaunched), ensure the next session inherits this understanding. Update PLAN.md so the next agent knows what loop it's in and what the current state is.
+
 Redo from scratch is allowed. Deleting clutter is good. Following the process on a small clear result is better than improvising a grand blocked plan.
