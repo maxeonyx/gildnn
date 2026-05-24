@@ -8,7 +8,7 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 **Gated experiment complete — negative result.** B_gated (4-block, zero-init gates) is +0.245 nats WORSE than A_single at WikiText-103 ctx=128. Cold-start problem: zero-init gates starve upper blocks of information. Gate 3 opened negatively (-0.115) for suppressive use only. Pathway 3 remains blocked.
 
-**Transformer baseline running.** PID 1800, `runs/transformer_baseline.py`, logging to `experiments/wikitext_103/artifacts/transformer_baseline/run.jsonl`. 2 seeds (42, 43), 20K steps each. At step 5000 seed 42: val_loss 1.914 (significantly better than RNN's 2.134 at same step — attention helps). Expected completion ~04:40-04:50 NZST.
+**Transformer baseline DONE.** Mean val_loss **1.592 ± 0.003** (2 seeds, 20K steps, 2.86M params). Gap from A_single: 0.240 nats. Report at `experiments/wikitext_103/artifacts/transformer_baseline/report.json`.
 
 **Key insight this session:** The "fix the interface" hypothesis was incomplete. Zero-init gates are worse than hardcoded 0.5 because they completely starve upper blocks. The problem isn't just the mixing coefficient — it's initialization + information routing.
 
@@ -26,7 +26,7 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 - `.gitignore` now blocks `*.pt` files (model weights never committed)
 
 **What we DON'T have:**
-- A standard transformer baseline trained at WikiText-103 ctx=128 (script exists, only sanity-checked)
+- A standard transformer baseline trained at WikiText-103 ctx=128 (**DONE: 1.592 ± 0.003**)
 - Any tied-depth (same block × N iterations) vs standard transformer comparison at scale
 - C_old eval ablations (does C_old's improvement come from lateral communication or just ensemble?)
 - Any custom CUDA concurrency beyond the Graph approach
@@ -63,12 +63,11 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 
 | Priority | Experiment | Pathway | Why |
 |---|---|---|---|
-| 1 | **Transformer baseline at WikiText-103 ctx=128** — train `runs/transformer_baseline.py` | 1 | Missing control number. Can't compare tied-depth without knowing what standard transformer achieves. Ready to launch immediately. |
-| 2 | **Tied-depth vs standard transformer at WikiText-103 ctx=128** | 1 | The actual Pathway 1 question at scale. Requires baseline (#1) first. |
-| 3 | **C_old eval ablation** — retrain C_old config, then shuffle/ablate lateral connections and per-block readout contributions | 3 | Cheapest diagnostic: does C_old's improvement come from lateral communication, or just ensemble of token-fed blocks? |
-| 4 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | Next step after the 28% CUDA Graph result. |
-| 5 | **Dynamic depth (clean measurement)** | 5 | Preliminary probe showed heterogeneity but methodology was flawed. Needs clean redo. |
-| 6 | **Local learning in C_old config** — if C_old ablations show lateral IS used | 3 | Stop-gradient + local CE on a regime where blocks are known useful. Only do after #3 confirms lateral matters. |
+| 1 | **Tied-depth experiment at WikiText-103 ctx=128** — `runs/tied_depth.py` (A_single, tied_8iter, distinct_matched, distinct_rich) | 1 | Can iteration close the transformer gap? A_single control isolates iteration effect. Ready to launch. |
+| 2 | **C_old eval ablation** — retrain C_old config, then shuffle/ablate lateral connections and per-block readout contributions | 3 | Cheapest diagnostic: does C_old's improvement come from lateral communication, or just ensemble of token-fed blocks? |
+| 3 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | Next step after the 28% CUDA Graph result. |
+| 4 | **Dynamic depth (clean measurement)** | 5 | Preliminary probe showed heterogeneity but methodology was flawed. Needs clean redo. |
+| 5 | **Local learning in C_old config** — if C_old ablations show lateral IS used | 3 | Stop-gradient + local CE on a regime where blocks are known useful. Only do after #2 confirms lateral matters. |
 
 ---
 
