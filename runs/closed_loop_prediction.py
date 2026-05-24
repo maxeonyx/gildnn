@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import atexit
+import os
 from collections.abc import Iterator
 import gc
 import json
@@ -1427,6 +1429,20 @@ def main() -> int:
         raise ValueError(f"sanity_eval_interval must be positive, got {args.sanity_eval_interval}.")
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA is required for runs/closed_loop_prediction.py.")
+
+    # Manage runs/active.lock — tied to process lifetime
+    lock_path = Path("runs/active.lock")
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    lock_content = f"PID: {os.getpid()}\nExperiment: closed_loop_prediction\nVariants: {args.variants}\nStarted: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
+    lock_path.write_text(lock_content, encoding="utf-8")
+
+    def _remove_lock() -> None:
+        try:
+            lock_path.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+    atexit.register(_remove_lock)
 
     specs = variant_specs()
     unknown_variants = [variant for variant in args.variants if variant not in specs]

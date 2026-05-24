@@ -28,7 +28,7 @@ If the last session felt wrong, fix the process first. Bad process compounds.
 
 ### How to choose what to do next
 
-Use judgment, not ceremony.
+Use judgment, not ceremony. But **always check that your chosen work connects to a pathway in ROADMAP.md.** If it doesn't, stop and ask why you're doing it. The roadmap is the map of where we want to go — work that doesn't advance any pathway needs strong justification.
 
 Priority order:
 
@@ -36,15 +36,16 @@ Priority order:
 2. Write any due reports
 3. Clean up half-finished or confusing work
 4. Integrate finished experimental code into `core/`
-5. Continue an existing experiment thread
-6. Start a new experiment
+5. Continue an existing experiment thread **that connects to a roadmap pathway**
+6. Start a new experiment **that is the cheapest honest test for a roadmap pathway**
 
 When choosing between possible next steps, prefer the one that is:
 
 - cheapest to run honestly
 - most likely to produce inspectable evidence
 - least likely to bloat the codebase
-- most useful for narrowing an open question
+- most useful for narrowing an open question **on the roadmap**
+- connected to a pathway that hasn't been tested yet (explore breadth before depth)
 
 If the work feels tangled, restart from a smaller simpler version instead of protecting the tangled version.
 
@@ -277,7 +278,7 @@ The orchestrator is responsible for deciding when to check back — not the suba
 
 **If you (the orchestrator) delegate an experiment without splitting it this way, you have failed the process.** There is always other useful work to do while the GPU runs — theory, reports, doc updates, small non-GPU experiments. Name that work before checking on the run.
 
-Use `runs/active.lock` to record the active large run. Format: one line with experiment name and PID, e.g. `bidirectional_sanity PID 20984`. Remove it when the run ends or fails. Small runs (<5 min) do not need lock files.
+Use `runs/active.lock` to record the active large run. **The experiment scripts manage this file automatically** — they create it on startup (with PID and experiment name) and remove it via `atexit` on normal exit. If the process crashes, the lock persists as a stale indicator; agents should check whether the PID is still alive before trusting it. Small runs (<5 min) do not need lock files.
 
 **Windows launch reliability:**
 

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import atexit
+import os
 from collections.abc import Iterator
 import gc
 import json
@@ -714,6 +716,20 @@ def main() -> int:
 
     device = resolve_device(args.device)
     specs = variant_specs()
+
+    # Manage runs/active.lock — tied to process lifetime
+    lock_path = Path("runs/active.lock")
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    lock_content = f"PID: {os.getpid()}\nExperiment: transformer_baseline\nVariants: {list(specs)}\nStarted: {datetime.now().strftime('%Y-%m-%d %H:%M')}\n"
+    lock_path.write_text(lock_content, encoding="utf-8")
+
+    def _remove_lock() -> None:
+        try:
+            lock_path.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+    atexit.register(_remove_lock)
 
     args.report_path.parent.mkdir(parents=True, exist_ok=True)
     args.log_path.parent.mkdir(parents=True, exist_ok=True)
