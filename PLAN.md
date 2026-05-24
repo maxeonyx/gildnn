@@ -50,12 +50,12 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 
 | Priority | Experiment | Pathway | Why |
 |---|---|---|---|
-| 1 | **Per-token loss variance** — does benefit from more iterations vary across tokens? | 5 (dynamic depth) | Pure measurement, very cheap. Determines if dynamic depth is worth pursuing. |
-| 2 | **Propagation-delay 2-block** — block 1 sees block 0's PREVIOUS output only | 1, 3 | The actual architecture vision. Genuinely new direction (breadth). |
-| 3 | **Scale to WikiText-103 ctx=128** — does tied-depth still match baseline at real scale? | 1 | Critical for external validity. TinyShakespeare results may not generalize. |
-| 4 | **Gradient radius sweep** — vary stop-gradient from k=1 to k=full | 3 (local learning) | Quantifies the locality constraint. |
-| 5 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | Next step after the 28% CUDA Graph result. |
-| 6 | **Muon optimizer swap** | 9 | De-prioritized: no instability found through 12 iterations on tiny rung. May matter at larger scale. |
+| 1 | **Propagation-delay 2-block** — block 1 sees block 0's PREVIOUS output only | 1, 3 | The actual architecture vision. Genuinely new direction (breadth). Never tested correctly. |
+| 2 | **Scale to WikiText-103 ctx=128** — does tied-depth still match baseline at real scale? | 1 | Critical for external validity. TinyShakespeare results may not generalize. |
+| 3 | **Gradient radius sweep** — vary stop-gradient from k=1 to k=full | 3 (local learning) | Quantifies the locality constraint. Depends on propagation-delay architecture. |
+| 4 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | Next step after the 28% CUDA Graph result. |
+| 5 | **Muon optimizer swap** | 9 | De-prioritized: no instability found through 12 iterations on tiny rung. |
+| 6 | **Dynamic depth (clean measurement)** | 5 | Preliminary probe showed heterogeneity but methodology was flawed. Needs clean redo. |
 
 ---
 
@@ -67,6 +67,7 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 | RNN baseline | all | val_loss 1.711, 186K params | Done, in base-experiments/ |
 | **Tied-depth vs transformer (tiny rung)** | **1** | **Identical: mean diff 0.0002 nats** | **Weight sharing is free. Viable architecture.** |
 | **Iteration scaling (6, 8, 12)** | **1** | **No instability; quality peaks ~8** | **Diminishing returns after 8. Limit is optimization/representational, not numerical.** |
+| Per-token depth heterogeneity | 5 | Inconclusive | Heterogeneity exists but methodology flawed (non-standard eval frame, ε too loose). Hint only. |
 | Multi-rate [1,2,4,8] | 8 | Spectator problem | Block 0 sees all tokens → no specialization |
 | Closed-loop variants A-J | — | Marginal (-0.006 to -0.012) | Architecturally incoherent. Not on any pathway. Done. |
 | CUDA graph training | infra | 10.8x speedup | In core/ |
