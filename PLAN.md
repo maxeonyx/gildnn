@@ -26,11 +26,17 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 - `.gitignore` now blocks `*.pt` files (model weights never committed)
 
 **What we DON'T have:**
-- Any experiment with real propagation delay (the actual architecture vision)
-- Any experiment at scale beyond TinyShakespeare ctx=32 (~70K-186K params)
+- A standard transformer baseline trained at WikiText-103 ctx=128 (script exists, only sanity-checked)
+- Any test of the **gated** (zero-init) multi-block architecture at WikiText-103 ctx=128
+- Any tied-depth (same block × N iterations) vs standard transformer comparison at scale
 - Any custom CUDA concurrency beyond the Graph approach
 - Self-prediction (computation compression)
 - Clean dynamic-depth measurement (the probe was methodologically flawed)
+
+**Critical existing evidence overlooked by prior sessions:**
+- `experiments/wikitext_103/artifacts/ctx128_corrected/`: 4-block corrected (hardcoded 0.5 mixing, token_injection=block0) is +0.014 WORSE than single-block at WikiText-103 ctx=128. Same spectator pattern as TinyShakespeare.
+- 4-block OLD (token_injection=all) is -0.021 BETTER — proving extra blocks CAN help at this scale, but only with fresh token injection.
+- The hardcoded 0.5 mixing was the interface tested. The zero-init gate (proven to fix the interface at TinyShakespeare) has never been tested at this scale.
 
 ---
 
@@ -56,11 +62,11 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 
 | Priority | Experiment | Pathway | Why |
 |---|---|---|---|
-| 1 | **Scale to WikiText-103 ctx=128** — does tied-depth match baseline at real scale? Multi-block useful? | 1, 3 | Critical for external validity AND for testing multi-block at a scale where 1 block is insufficient. |
-| 2 | **Propagation-delay at scale** — rerun 2-block gated experiment at larger scale where single-block is insufficient | 3 | Can only test local learning where B contributes under full backprop first. |
-| 3 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | Next step after the 28% CUDA Graph result. |
-| 4 | **Gradient radius sweep** — vary stop-gradient from k=1 to k=full | 3 (local learning) | Depends on propagation-delay being useful first. |
-| 5 | **Muon optimizer swap** | 9 | De-prioritized: no instability found through 12 iterations on tiny rung. |
+| 1 | **Gated corrected at WikiText-103 ctx=128** — 4-block with zero-init gate instead of hardcoded 0.5. Does fixing the interface make blocks useful? | 3 | Directly discriminates: was B's failure the bad interface, or is lateral-only fundamentally insufficient? C_old proves blocks CAN help at this scale. |
+| 2 | **Transformer baseline at WikiText-103 ctx=128** — train `runs/transformer_baseline.py` | 1 | Missing control number. Can't compare tied-depth without knowing what standard transformer achieves. |
+| 3 | **Tied-depth vs standard transformer at WikiText-103 ctx=128** | 1 | The actual Pathway 1 question at scale. Requires baseline first. |
+| 4 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | Next step after the 28% CUDA Graph result. |
+| 5 | **Gradient radius sweep** — vary stop-gradient from k=1 to k=full | 3 (local learning) | Depends on gated blocks being useful first. |
 | 6 | **Dynamic depth (clean measurement)** | 5 | Preliminary probe showed heterogeneity but methodology was flawed. Needs clean redo. |
 
 ---
@@ -75,6 +81,7 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 | **Iteration scaling (6, 8, 12)** | **1** | **No instability; quality peaks ~8** | **Diminishing returns after 8. Limit is optimization/representational, not numerical.** |
 | Per-token depth heterogeneity | 5 | Inconclusive | Heterogeneity exists but methodology flawed (non-standard eval frame, ε too loose). Hint only. |
 | **Propagation-delay 2-block (tiny)** | **3** | **Spectator** | **Block B adds nothing at TinyShakespeare ctx=32. Hardcoded 0.5 mixing harmful; zero-init gate fixes ceiling but B stays closed.** |
+| **Multi-block corrected at WikiText-103 ctx=128** | **3** | **Spectator** | **4-block corrected (hardcoded 0.5) is +0.014 worse than single-block. 4-block old (token_injection=all) is -0.021 better. Blocks help when fed fresh tokens; lateral-only with 0.5 mixing fails.** |
 | Multi-rate [1,2,4,8] | 8 | Spectator problem | Block 0 sees all tokens → no specialization |
 | Closed-loop variants A-J | — | Marginal (-0.006 to -0.012) | Architecturally incoherent. Not on any pathway. Done. |
 | CUDA graph training | infra | 10.8x speedup | In core/ |
