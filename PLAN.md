@@ -8,7 +8,11 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 **Gated experiment complete — negative result.** B_gated (4-block, zero-init gates) is +0.245 nats WORSE than A_single at WikiText-103 ctx=128. Cold-start problem: zero-init gates starve upper blocks of information. Gate 3 opened negatively (-0.115) for suppressive use only. Pathway 3 remains blocked.
 
-**Tied-depth experiment RUNNING.** PID 12984, `runs/tied_depth.py`, 4 variants (A_single, tied_8iter, distinct_matched, distinct_rich), 2 seeds, 20K steps each. Logging to `experiments/wikitext_103/artifacts/tied_depth/run.jsonl`. Launched 04:36 NZST. Expected completion ~05:30. Key question: does iterating a single block 8 times close the 0.240-nat gap to the transformer?
+**Tied-depth experiment RUNNING.** PID 12984, `runs/tied_depth.py`, 4 variants (A_single, tied_8iter, distinct_matched, distinct_rich), 2 seeds, 20K steps each. Logging to `experiments/wikitext_103/artifacts/tied_depth/run.jsonl`. Launched 04:36 NZST. Expected completion ~06:30-07:00 (tied_8iter is slow: 80K tok/s vs 330K for A_single).
+
+**Early signal (tied_8iter seed 42):** At step 6K, tied_8iter val_loss 2.029 vs A_single 2.092 at same step = **0.063 nats better**. Iteration is clearly helping. If the learning curve maintains this gap through convergence, tied_8iter should end around 1.77 (closing ~26% of the 0.24-nat gap to transformer).
+
+**C_old ablation script READY.** `runs/c_old_ablation.py` committed. Trains C_lateral (upward) vs C_isolated (no lateral, same params). Added "isolated" topology to `core/model.py`. Launch after tied-depth finishes.
 
 **Key insight this session:** The "fix the interface" hypothesis was incomplete. Zero-init gates are worse than hardcoded 0.5 because they completely starve upper blocks. The problem isn't just the mixing coefficient — it's initialization + information routing.
 
