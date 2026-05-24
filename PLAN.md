@@ -96,12 +96,15 @@ If G fails (rate-4 intrinsically bad), test **phase offsets** at N=3:
 - Graph architecture exploration (from dictation 2026-05-24-1) — see `research/questions/graph-architecture/README.md` for N=8 scaling analysis
 - Hierarchical dynamic tokenization (from dictation 2026-05-24-3) — queued, not active
 
-## After current run (F_star_3block) completes
+## Current run: G_rate4_only (launched ~2:55pm)
 
-1. Commit log, write up full analysis in local-learning-variants README
-2. Implement G_rate4_only variant (configurable rate for block 1)
-3. Run G alongside transformer baseline (both are 2-seed × 20K, can run sequentially)
-4. Analyze G results per decision rules above
+Running A_single + G_rate4_only, 2 seeds × 20K steps. Estimated completion ~3:30pm.
+
+After G completes:
+1. Analyze per decision rules above
+2. Update local-learning-variants README and daily report
+3. Run transformer baseline (`runs/transformer_baseline.py`, 2.856M params)
+4. Commit results
 
 ## Key completed findings
 
