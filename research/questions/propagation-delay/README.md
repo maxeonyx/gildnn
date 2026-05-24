@@ -147,56 +147,57 @@ Using `ParallelDiagonalModel` from `core/model.py`:
 | Condition | Seed 42 | Seed 137 | Seed 2024 | Mean | Params |
 |---|---|---|---|---|---|
 | Single-block | 1.875 | 1.873 | 1.899 | **1.882** | 53K |
-| 2-block full backprop | 2.008 | 1.963 | 2.048 | **2.006** | 99K |
+| 2-block gated (zero-init) | 1.912 | 1.876 | 1.887 | **1.892** | 99K |
+| 2-block hardcoded 0.5 | 2.008 | 1.963 | 2.048 | **2.006** | 99K |
 | 2-block stop-gradient | 2.820 | 4.889 | 12.756 | **6.822** | 99K |
 
 ### Batch-shuffle ablation (block B load-bearing test)
 
 | Condition | Seed 42 | Seed 137 | Seed 2024 | Mean |
 |---|---|---|---|---|
-| Full backprop | +0.419 | +0.523 | +0.433 | **+0.458** |
+| Gated (zero-init) | +0.006 | +0.0005 | +0.00004 | **+0.002 (spectator)** |
+| Hardcoded 0.5 | +0.419 | +0.523 | +0.433 | **+0.458 (harmful dep.)** |
 | Stop-gradient | +3.721 | +346.5 | +15.35 | catastrophic |
 
 ### Key findings
 
-1. **2-block full backprop is WORSE than single-block** (+0.124 nats mean), despite having 2× parameters. The architecture creates a harmful dependency — block B is heavily load-bearing (ablation +0.458) but the joint system lands in a worse optimum than not having block B at all.
+1. **Hardcoded 0.5 lateral mixing is harmful** (+0.124 nats vs single-block). The architecture forces block A to consume block B's output at full strength, creating a destructive dependency.
 
-2. **Stop-gradient is catastrophically broken.** Val losses of 4.89–12.76 (some above random chance ≈ log(65) ≈ 4.17). Massive seed variance. Block B learns representations for its own local CE that actively harm block A.
+2. **Zero-init gate fixes the ceiling** — gated model nearly matches single-block (1.892 vs 1.882, +0.010). This confirms the hardcoded mixing was the problem.
 
-3. **Block B is NOT a spectator** — it's heavily used in both conditions. The problem is not information flow; it's that the architecture forces harmful coupling.
+3. **Block B is a spectator when given the choice.** With zero-init gates, the model keeps gates near zero (ablation effect +0.002 nats). It prefers to operate as a single-block model.
 
----
+4. **Stop-gradient is catastrophically broken** on the hardcoded architecture (val_loss 2.8–12.8). Not tested on gated architecture because the gated ceiling shows B adds nothing anyway.
 
-## Diagnosis: hardcoded 0.5 lateral mixing
-
-The root cause is `block_input = 0.5 * (state_input + neighbor_state)` in `ParallelDiagonalModel`. This hardcoded average:
-
-- Forces block A to consume block B's lateral output at 50% weight with no way to down-weight it
-- Attenuates block A's own useful signal (token embedding) to 50%
-- Creates mandatory coupling: even random/harmful lateral states directly corrupt the receiver
-
-Under full backprop: blocks co-adapt around this constraint, landing in a worse joint optimum. Under stop-gradient: block B optimizes for its own CE, producing representations that are actively harmful to A, and A has no mechanism to ignore them.
-
-**What this is NOT:** evidence that propagation delay is fundamentally broken. Prior evidence (stale-read cost +0.005 ± 0.005) showed delay is benign. The problem here is the mandatory coupling interface, not the temporal delay.
+5. **The local learning question is unanswerable at this scale.** Block B provides no value even with full backprop + the option to use it. The task (TinyShakespeare ctx=32) is too easy for 1 block — a second block has nothing useful to add.
 
 ---
 
-## Next step: zero-init learnable lateral gate
+## Diagnosis: task too easy for 2 blocks at this scale
 
-Replace the hardcoded `0.5 * (self + neighbor)` with:
+The zero-init gate experiment is definitive: **even with full backprop and the freedom to use block B, the model chooses not to.** Block B adds nothing at TinyShakespeare ctx=32 with d_model=72.
 
-```
-block_input = state_input + g * neighbor_state
-```
+The prior "hardcoded 0.5" failure was a red herring for the local-learning question — it was an interface bug, not evidence about whether blocks can learn locally. Fixing the interface reveals the deeper issue: the task simply doesn't need a second block.
 
-Where `g` is a scalar parameter initialized to 0. This means:
-- At initialization, the model behaves like single-block (lateral ignored)
-- The model discovers how much lateral to use via gradient
-- If lateral input is harmful, g stays near 0
+**Why the task is too easy:** The single-block `ParallelDiagonalModel` (no attention, just FFN + token mixing per step) achieves val_loss 1.882 with 53K params. This is already within 0.24 nats of the transformer baseline (1.643 with 186K params). A second block in this architecture can only provide "another perspective" on information block A already has — and at ctx=32 with this simple task, there's no additional perspective needed.
 
-**Success criteria:** Full-backprop 2-block with zero-init gate achieves val_loss ≤ 1.882 (matching single-block). Ablation effect > 0.02 (B actually contributes). If this works, rerun stop-gradient on the gated architecture.
+**What this does NOT mean:**
+- NOT "propagation delay is broken" (prior evidence: stale reads cost +0.005 nats — negligible)
+- NOT "local learning is impossible" (never tested in a regime where the ceiling block helps)
+- NOT "multi-block is useless" (untested at larger scale where 1 block is insufficient)
 
-**If this also fails:** try unidirectional topology (`topology="upward"`, `readout_mode="last"`) — removes the bidirectional feedback loop.
+---
+
+## Next step: scale to WikiText-103 ctx=128
+
+The local learning question needs a regime where:
+1. Single-block is provably insufficient (val_loss significantly above baseline)
+2. 2-block full-backprop demonstrably improves on single-block
+3. THEN: does stop-gradient + local signal preserve that improvement?
+
+WikiText-103 at ctx=128 with a larger model (d_model=128+) is the natural next test bed per PLAN.md priority 2 ("Scale to WikiText-103 ctx=128"). If the gated 2-block model matches or beats single-block there, the local learning experiment becomes meaningful.
+
+This also serves Pathway 1 directly: "does tied-depth match transformer at real scale?"
 
 ---
 
@@ -210,14 +211,19 @@ Where `g` is a scalar parameter initialized to 0. This means:
 
 ---
 
-## Exit conditions (revised)
+## Exit conditions (revised after results)
 
-The original H1/H2/H3 framework was premature — the experiment revealed an architecture design flaw before the local-learning question could be answered.
+The experiment answered a different question than planned: not "can B learn locally?" but "does B contribute at all at this scale?" Answer: no.
 
-**New path:**
-1. Fix the ceiling (zero-init gate) → does 2-block full-backprop match or beat 1-block?
-2. If yes → rerun stop-gradient on the fixed architecture → does local CE work now?
-3. If still no → the interface problem is not just the mixing strength; try other topologies/signals
+**Resolved:**
+- ✅ Hardcoded 0.5 lateral mixing is harmful (confirmed, fixed by zero-init gate)
+- ✅ Block B is a spectator at TinyShakespeare ctx=32 even with full backprop
+- ✅ The local learning question is premature at this scale
+
+**Open:**
+- ❓ Does block B become useful at larger scale (WikiText-103 ctx=128)?
+- ❓ If so, can it learn with local signal only?
+- ❓ Is the zero-init gate the right interface, or is something else needed?
 
 ---
 

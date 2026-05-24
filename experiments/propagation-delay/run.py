@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Literal
 
 import torch
+from einops import rearrange
 from jaxtyping import Float, Int
 from torch import Tensor, nn
 from torch.nn import functional as F
@@ -45,7 +46,7 @@ except ModuleNotFoundError:
     fixed_step_indices = training_module.fixed_step_indices
 
 
-ConditionName = Literal["single_block", "full_backprop", "stop_gradient"]
+ConditionName = Literal["single_block", "full_backprop", "gated_backprop", "stop_gradient"]
 
 
 @dataclass(frozen=True)
@@ -104,6 +105,16 @@ CONDITIONS: dict[ConditionName, ConditionSpec] = {
         detach_lateral=False,
         local_loss_weight=0.0,
     ),
+    "gated_backprop": ConditionSpec(
+        name="gated_backprop",
+        num_blocks=2,
+        topology="top_down_to_first",
+        readout_mode="first",
+        token_injection="block0",
+        internal_steps=1,
+        detach_lateral=False,
+        local_loss_weight=0.0,
+    ),
     "stop_gradient": ConditionSpec(
         name="stop_gradient",
         num_blocks=2,
@@ -115,6 +126,160 @@ CONDITIONS: dict[ConditionName, ConditionSpec] = {
         local_loss_weight=1.0,
     ),
 }
+
+
+class GatedParallelModel(ParallelDiagonalModel):
+    def __init__(
+        self,
+        *,
+        vocab_size: int,
+        context_size: int,
+        d_model: int,
+        feedforward_dim: int,
+        num_blocks: int,
+        rates: tuple[int, ...] | list[int] | None = None,
+        internal_steps: int = 1,
+        readout_mode: str = "last",
+        token_injection: str = "block0",
+        topology: str = "upward",
+        token_mix_init: float = 0.5,
+        block_mix_init: float = 0.9,
+        detach_lateral: bool = False,
+        temporal_window: int = 0,
+    ) -> None:
+        super().__init__(
+            vocab_size=vocab_size,
+            context_size=context_size,
+            d_model=d_model,
+            feedforward_dim=feedforward_dim,
+            num_blocks=num_blocks,
+            rates=rates,
+            internal_steps=internal_steps,
+            readout_mode=readout_mode,
+            token_injection=token_injection,
+            topology=topology,
+            token_mix_init=token_mix_init,
+            block_mix_init=block_mix_init,
+            detach_lateral=detach_lateral,
+            temporal_window=temporal_window,
+        )
+        if self.num_blocks != 2:
+            raise ValueError(f"GatedParallelModel requires exactly 2 blocks, got {self.num_blocks}.")
+        if self.topology != "top_down_to_first":
+            raise ValueError(
+                "GatedParallelModel requires topology='top_down_to_first' so both blocks receive lateral input."
+            )
+        self.lateral_gates = nn.ParameterList(
+            [nn.Parameter(torch.zeros(1, dtype=torch.float32)) for _ in range(self.num_blocks)]
+        )
+
+    def mix_lateral_input(
+        self,
+        *,
+        block_index: int,
+        state_input: Float[Tensor, "batch d_model"],
+        neighbor_state: Float[Tensor, "batch d_model"],
+    ) -> Float[Tensor, "batch d_model"]:
+        gate = self.lateral_gates[block_index].to(device=state_input.device, dtype=state_input.dtype)
+        return state_input + (gate * neighbor_state)
+
+    def _forward_impl(
+        self,
+        tokens: Int[Tensor, "batch context"],
+        *,
+        return_state: bool,
+    ) -> tuple[Float[Tensor, "batch vocab"], ParallelDiagonalForwardState | None]:
+        embeddings = self.embedded_tokens(tokens)
+        batch_size = tokens.shape[0]
+        previous_states = [
+            torch.zeros(batch_size, self.d_model, device=tokens.device, dtype=embeddings.dtype)
+            for _ in range(self.num_blocks)
+        ]
+        temporal_history = (
+            [
+                torch.zeros(
+                    batch_size,
+                    self.temporal_window,
+                    self.d_model,
+                    device=tokens.device,
+                    dtype=embeddings.dtype,
+                )
+                for _ in range(self.num_blocks)
+            ]
+            if self.temporal_window > 0
+            else None
+        )
+        block_output_history = [[] for _ in range(self.num_blocks)] if return_state else None
+
+        for time_index in range(self.context_size):
+            token_state = embeddings[:, time_index, :]
+            if self.token_injection == "all":
+                seeded_states = [
+                    token_mix(previous_state, token_state)
+                    for token_mix, previous_state in zip(self.token_mixes, previous_states, strict=True)
+                ]
+            else:
+                seeded_states = list(previous_states)
+                seeded_states[0] = self.token_mixes[0](previous_states[0], token_state)
+            current_states = list(previous_states)
+            for internal_step in range(self.internal_steps):
+                next_states = list(current_states)
+                for block_index, (block, block_mix, rate) in enumerate(
+                    zip(self.blocks, self.block_mixes, self.rates, strict=True)
+                ):
+                    if time_index % rate != 0:
+                        continue
+                    state_input = seeded_states[block_index] if internal_step == 0 else current_states[block_index]
+                    if block_index == 0 and self.topology == "upward":
+                        block_input = state_input
+                    else:
+                        if block_index == 0:
+                            lateral_source = previous_states[1] if internal_step == 0 else current_states[1]
+                        else:
+                            lateral_source = (
+                                previous_states[block_index - 1]
+                                if internal_step == 0
+                                else current_states[block_index - 1]
+                            )
+                        neighbor_state = self._maybe_detach_lateral(lateral_source)
+                        if block_index > 0 and self.window_proj is not None and temporal_history is not None:
+                            lower_history = self._maybe_detach_lateral(temporal_history[block_index - 1])
+                            temporal_neighbor = self.window_proj(
+                                rearrange(
+                                    lower_history,
+                                    "batch window d_model -> batch (window d_model)",
+                                )
+                            )
+                            neighbor_state = 0.5 * (neighbor_state + temporal_neighbor)
+                        block_input = self.mix_lateral_input(
+                            block_index=block_index,
+                            state_input=state_input,
+                            neighbor_state=neighbor_state,
+                        )
+                    block_delta = block(block_input)
+                    next_states[block_index] = block_mix(block_input, block_delta)
+                current_states = next_states
+            previous_states = current_states
+            if temporal_history is not None:
+                for block_index, (state, rate) in enumerate(zip(previous_states, self.rates, strict=True)):
+                    if time_index % rate != 0:
+                        continue
+                    updated_history = torch.roll(temporal_history[block_index], shifts=-1, dims=1)
+                    updated_history[:, -1, :] = state
+                    temporal_history[block_index] = updated_history
+            if block_output_history is not None:
+                for block_index, state in enumerate(previous_states):
+                    block_output_history[block_index].append(state)
+
+        logits = self.output(self._readout_state(previous_states))
+        if block_output_history is None:
+            return logits, None
+        return logits, ParallelDiagonalForwardState(
+            block_outputs=[torch.stack(history, dim=1) for history in block_output_history]
+        )
+
+
+ModelType = ParallelDiagonalModel | GatedParallelModel
 
 
 def parse_args() -> argparse.Namespace:
@@ -169,8 +334,9 @@ def build_model_and_local_head(
     spec: ConditionSpec,
     config: ExperimentConfig,
     device: torch.device,
-) -> tuple[ParallelDiagonalModel, nn.Linear | None]:
-    model = ParallelDiagonalModel(
+) -> tuple[ModelType, nn.Linear | None]:
+    model_cls = GatedParallelModel if spec.name == "gated_backprop" else ParallelDiagonalModel
+    model = model_cls(
         vocab_size=vocab_size,
         context_size=config.context_size,
         d_model=config.d_model,
@@ -222,7 +388,7 @@ def compute_loss_snapshot(
 
 def forward_with_optional_ablation(
     *,
-    model: ParallelDiagonalModel,
+    model: ModelType,
     tokens: Int[Tensor, "batch context"],
     batch_shuffle_ablation: bool,
     shuffle_generator: torch.Generator | None,
@@ -254,12 +420,26 @@ def forward_with_optional_ablation(
         shuffled_indices = torch.randperm(batch_size, generator=shuffle_generator)
         shuffled_indices = shuffled_indices.to(device=tokens.device)
         lateral_to_block0 = model._maybe_detach_lateral(previous_states[1])[shuffled_indices]
-        block0_input = 0.5 * (seeded_states[0] + lateral_to_block0)
+        if isinstance(model, GatedParallelModel):
+            block0_input = model.mix_lateral_input(
+                block_index=0,
+                state_input=seeded_states[0],
+                neighbor_state=lateral_to_block0,
+            )
+        else:
+            block0_input = 0.5 * (seeded_states[0] + lateral_to_block0)
         block0_delta = model.blocks[0](block0_input)
         next_block0 = model.block_mixes[0](block0_input, block0_delta)
 
         lateral_to_block1 = model._maybe_detach_lateral(previous_states[0])
-        block1_input = 0.5 * (seeded_states[1] + lateral_to_block1)
+        if isinstance(model, GatedParallelModel):
+            block1_input = model.mix_lateral_input(
+                block_index=1,
+                state_input=seeded_states[1],
+                neighbor_state=lateral_to_block1,
+            )
+        else:
+            block1_input = 0.5 * (seeded_states[1] + lateral_to_block1)
         block1_delta = model.blocks[1](block1_input)
         next_block1 = model.block_mixes[1](block1_input, block1_delta)
 
@@ -276,7 +456,7 @@ def forward_with_optional_ablation(
 @torch.inference_mode()
 def evaluate_condition(
     *,
-    model: ParallelDiagonalModel,
+    model: ModelType,
     local_head: nn.Linear | None,
     inputs: Int[Tensor, "examples context"],
     targets: Int[Tensor, "examples"],
