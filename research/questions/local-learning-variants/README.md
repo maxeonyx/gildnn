@@ -279,6 +279,12 @@ Block 1's role: dedicated "older memory channel." No new inputs needed — block
 
 **Collapse risk:** Moderate. Self-generated target, but the 4-step-old window is diverse enough to avoid the degenerate constant-predictor trap that killed D.
 
+**Fixed-target alternative (J'):** If J collapses or is ambiguous, a cleaner version uses raw token embeddings instead of hidden states:
+```
+z_t = mean(E(x_{t-8}), E(x_{t-7}), E(x_{t-6}), E(x_{t-5}))   # E = token embedding
+```
+This removes the self-generated target risk entirely (block 0 can't make this easier by co-adapting). Tests: "does block 0 benefit from being reminded which characters appeared 5-8 steps back?" — relevant because this architecture processes tokens ONE AT A TIME and block 0's single state vector must compress all history. Older character identity may be genuinely overwritten.
+
 ### K: Nonlocal residue (old - recent)
 
 **Explicitly complementary: predict what block 0 likely doesn't already emphasize.**
