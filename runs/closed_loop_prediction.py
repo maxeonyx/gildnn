@@ -140,6 +140,14 @@ def variant_specs() -> dict[str, VariantSpec]:
             strict_local=True,
             local_ce=True,
         ),
+        "F_star_3block": VariantSpec(
+            key="F_star_3block",
+            label="closed_loop_prediction_F_star_3block",
+            num_blocks=3,
+            rates=(1, 2, 4),
+            readout_mode="block0",
+            closed_loop=True,
+        ),
     }
 
 
@@ -189,15 +197,15 @@ class ClosedLoopPredictionModel(nn.Module):
         spec: VariantSpec,
     ) -> None:
         super().__init__()
-        if spec.num_blocks not in {1, 2}:
-            raise ValueError(f"ClosedLoopPredictionModel supports 1 or 2 blocks, got {spec.num_blocks}.")
+        if spec.num_blocks not in {1, 2, 3}:
+            raise ValueError(f"ClosedLoopPredictionModel supports 1, 2, or 3 blocks, got {spec.num_blocks}.")
         if spec.num_blocks != len(spec.rates):
             raise ValueError(
                 "ClosedLoopPredictionModel requires one rate per block. "
                 f"Got num_blocks={spec.num_blocks} and rates={spec.rates}."
             )
-        if spec.closed_loop and spec.num_blocks != 2:
-            raise ValueError("Closed-loop prediction requires exactly two blocks.")
+        if spec.closed_loop and spec.num_blocks not in {2, 3}:
+            raise ValueError("Closed-loop prediction requires exactly two or three blocks.")
         if spec.readout_mode not in {"block0", "weighted"}:
             raise ValueError(f"Unsupported readout_mode {spec.readout_mode!r}.")
 
@@ -218,20 +226,32 @@ class ClosedLoopPredictionModel(nn.Module):
 
         self.block1_ffn: FeedForwardBlock | None = None
         self.block1_mix: MixAdd | None = None
-        self.prior_gain: nn.Parameter | None = None
-        self.prior_norm: nn.LayerNorm | None = None
-        self.prediction_head: nn.Linear | None = None
+        self.block2_ffn: FeedForwardBlock | None = None
+        self.block2_mix: MixAdd | None = None
+        self.prior_gain_1: nn.Parameter | None = None
+        self.prior_gain_2: nn.Parameter | None = None
+        self.prior_norm_1: nn.LayerNorm | None = None
+        self.prior_norm_2: nn.LayerNorm | None = None
+        self.prediction_head_1: nn.Linear | None = None
+        self.prediction_head_2: nn.Linear | None = None
         self.readout_logits: nn.Parameter | None = None
         self.block1_norm: nn.LayerNorm | None = None
         self.block1_lm_head: nn.Linear | None = None
 
-        if spec.num_blocks == 2:
+        if spec.num_blocks >= 2:
             self.block1_ffn = FeedForwardBlock(d_model=d_model, feedforward_dim=feedforward_dim)
             self.block1_mix = MixAdd(init_keep=0.9)
+        if spec.num_blocks == 3:
+            self.block2_ffn = FeedForwardBlock(d_model=d_model, feedforward_dim=feedforward_dim)
+            self.block2_mix = MixAdd(init_keep=0.9)
         if spec.closed_loop:
-            self.prior_gain = nn.Parameter(torch.tensor(0.0, dtype=torch.float32))
-            self.prior_norm = nn.LayerNorm(d_model)
-            self.prediction_head = nn.Linear(d_model, 2 * d_model)
+            self.prior_gain_1 = nn.Parameter(torch.tensor(0.0, dtype=torch.float32))
+            self.prior_norm_1 = nn.LayerNorm(d_model)
+            self.prediction_head_1 = nn.Linear(d_model, 2 * d_model)
+            if spec.num_blocks == 3:
+                self.prior_gain_2 = nn.Parameter(torch.tensor(0.0, dtype=torch.float32))
+                self.prior_norm_2 = nn.LayerNorm(d_model)
+                self.prediction_head_2 = nn.Linear(d_model, 4 * d_model)
         if spec.local_ce:
             self.block1_norm = nn.LayerNorm(d_model)
             self.block1_lm_head = nn.Linear(d_model, vocab_size)
@@ -246,14 +266,21 @@ class ClosedLoopPredictionModel(nn.Module):
         positions = torch.arange(self.context_size, device=tokens.device)
         return self.token_embedding(tokens) + self.position_embedding(positions).unsqueeze(0)
 
-    def readout_state(self, s0: Tensor, s1: Tensor) -> Tensor:
+    @staticmethod
+    def _pop_prior_buffer(prior_buffer: Tensor) -> Tensor:
+        prior_t = prior_buffer[:, 0, :].clone()
+        prior_buffer[:, :-1, :].copy_(prior_buffer[:, 1:, :])
+        prior_buffer[:, -1, :].zero_()
+        return prior_t
+
+    def readout_state(self, states: tuple[Tensor, ...]) -> Tensor:
         if self.spec.readout_mode == "block0":
-            return s0
+            return states[0]
         if self.readout_logits is None:
             raise RuntimeError("Weighted readout requested but readout_logits is missing.")
-        stacked_states = torch.stack((s0, s1), dim=1)
-        readout_weights = torch.softmax(self.readout_logits.to(device=s0.device, dtype=s0.dtype), dim=0)
-        return (stacked_states * readout_weights.view(1, 2, 1)).sum(dim=1)
+        stacked_states = torch.stack(states, dim=1)
+        readout_weights = torch.softmax(self.readout_logits.to(device=states[0].device, dtype=states[0].dtype), dim=0)
+        return (stacked_states * readout_weights.view(1, self.num_blocks, 1)).sum(dim=1)
 
     def forward(self, tokens: Tensor, *, use_priors: bool = True) -> tuple[Tensor, Tensor | None, Tensor, Tensor, Tensor, Tensor]:
         embeddings = self.embedded_tokens(tokens)
@@ -263,8 +290,12 @@ class ClosedLoopPredictionModel(nn.Module):
 
         s0 = embeddings.new_zeros((batch_size, self.d_model))
         s1 = embeddings.new_zeros((batch_size, self.d_model))
+        s2 = embeddings.new_zeros((batch_size, self.d_model))
         zero_state = embeddings.new_zeros((batch_size, self.d_model))
-        prior_buffer = embeddings.new_zeros((batch_size, 2, self.d_model))
+        prior_buffer_1 = embeddings.new_zeros((batch_size, 2, self.d_model))
+        prior_buffer_2 = None
+        if self.spec.num_blocks == 3:
+            prior_buffer_2 = embeddings.new_zeros((batch_size, 4, self.d_model))
         state0_history = embeddings.new_zeros((batch_size, self.context_size, self.d_model))
         prior_used_history = embeddings.new_zeros((batch_size, self.context_size, self.d_model))
         prior_valid_history = torch.zeros((self.context_size,), device=device, dtype=torch.bool)
@@ -275,20 +306,21 @@ class ClosedLoopPredictionModel(nn.Module):
         for time_index in range(self.context_size):
             has_prior = allow_priors and time_index > 0
             if has_prior:
-                prior_t = prior_buffer[:, 0, :].clone()
-                prior_buffer[:, 0, :].copy_(prior_buffer[:, 1, :])
-                prior_buffer[:, 1, :].zero_()
+                prior_t_1 = self._pop_prior_buffer(prior_buffer_1)
+                prior_t_2 = zero_state if prior_buffer_2 is None else self._pop_prior_buffer(prior_buffer_2)
             else:
-                prior_t = zero_state
+                prior_t_1 = zero_state
+                prior_t_2 = zero_state
 
             token_state = embeddings[:, time_index, :]
             seed0 = self.token_mix(s0, token_state)
-            if self.prior_gain is not None and self.prior_norm is not None:
-                effective_prior = prior_t.detach() if self.spec.strict_local else prior_t
-                predicted_x0 = seed0 + self.prior_gain * self.prior_norm(effective_prior)
-                x0 = predicted_x0 if has_prior else seed0
-            else:
-                x0 = seed0
+            x0 = seed0
+            if has_prior and self.prior_gain_1 is not None and self.prior_norm_1 is not None:
+                effective_prior_1 = prior_t_1.detach() if self.spec.strict_local else prior_t_1
+                x0 = x0 + self.prior_gain_1 * self.prior_norm_1(effective_prior_1)
+            if has_prior and self.prior_gain_2 is not None and self.prior_norm_2 is not None:
+                effective_prior_2 = prior_t_2.detach() if self.spec.strict_local else prior_t_2
+                x0 = x0 + self.prior_gain_2 * self.prior_norm_2(effective_prior_2)
             delta0 = self.block0_ffn(x0)
             s0 = self.block0_mix(x0, delta0)
 
@@ -296,19 +328,28 @@ class ClosedLoopPredictionModel(nn.Module):
                 x1 = 0.5 * (s1 + s0.detach())
                 delta1 = self.block1_ffn(x1)
                 s1 = self.block1_mix(x1, delta1)
-                if self.prediction_head is not None:
-                    pred_pair = self.prediction_head(s1).view(batch_size, 2, self.d_model)
-                    prior_buffer.copy_(pred_pair)
+                if self.prediction_head_1 is not None:
+                    pred_pair = self.prediction_head_1(s1).view(batch_size, 2, self.d_model)
+                    prior_buffer_1.copy_(pred_pair)
+
+            if self.block2_ffn is not None and self.block2_mix is not None and time_index % 4 == 0:
+                x2 = 0.5 * (s2 + s0.detach())
+                delta2 = self.block2_ffn(x2)
+                s2 = self.block2_mix(x2, delta2)
+                if self.prediction_head_2 is not None and prior_buffer_2 is not None:
+                    pred_quad = self.prediction_head_2(s2).view(batch_size, 4, self.d_model)
+                    prior_buffer_2.copy_(pred_quad)
 
             state0_history[:, time_index, :].copy_(s0)
-            prior_used_history[:, time_index, :].copy_(prior_t)
+            prior_used_history[:, time_index, :].copy_(prior_t_1 + prior_t_2)
 
-        readout_state = self.readout_state(s0, s1)
+        states = (s0,) if self.num_blocks == 1 else (s0, s1) if self.num_blocks == 2 else (s0, s1, s2)
+        readout_state = self.readout_state(states)
         logits = self.lm_head(self.final_norm(readout_state))
         block1_logits = None
         if self.block1_norm is not None and self.block1_lm_head is not None:
             block1_logits = self.block1_lm_head(self.block1_norm(s1))
-        final_states = torch.stack((s0, s1), dim=1)
+        final_states = torch.stack(states, dim=1)
         return logits, block1_logits, state0_history, prior_used_history, prior_valid_history, final_states
 
     @torch.no_grad()
@@ -316,14 +357,20 @@ class ClosedLoopPredictionModel(nn.Module):
         readout_weights = None
         if self.readout_logits is not None:
             readout_weights = torch.softmax(self.readout_logits, dim=0).cpu().tolist()
-        prediction_mix = None
-        if self.prior_gain is not None:
-            prediction_mix = float(self.prior_gain.item())
+        prediction_mix_1 = None
+        prediction_mix_2 = None
+        if self.prior_gain_1 is not None:
+            prediction_mix_1 = float(self.prior_gain_1.item())
+        if self.prior_gain_2 is not None:
+            prediction_mix_2 = float(self.prior_gain_2.item())
         return {
             "token_mix": self.token_mix.coefficient_value(),
             "block0_mix": self.block0_mix.coefficient_value(),
             "block1_mix": self.block1_mix.coefficient_value() if self.block1_mix is not None else None,
-            "prediction_mix": prediction_mix,
+            "block2_mix": self.block2_mix.coefficient_value() if self.block2_mix is not None else None,
+            "prediction_mix": prediction_mix_1,
+            "prediction_mix_1": prediction_mix_1,
+            "prediction_mix_2": prediction_mix_2,
             "readout_weights": readout_weights,
             "rates": list(self.spec.rates),
             "readout_mode": self.spec.readout_mode,
@@ -549,6 +596,8 @@ def evaluate_variant(
     if model_call is not model:
         model_call.eval()
 
+    mix_coefficients = model.mix_coefficients()
+
     total_examples = 0
     total_ce_loss = 0.0
     total_correct = 0
@@ -592,8 +641,9 @@ def evaluate_variant(
         "pred_loss": pred_loss,
         "block1_ce_loss": None if model.block1_lm_head is None else total_block1_ce_loss / total_examples,
         "block1_accuracy": None if model.block1_lm_head is None else total_block1_correct / total_examples,
-        "prediction_mix_coeff": model.mix_coefficients()["prediction_mix"],
-        "readout_weights": model.mix_coefficients()["readout_weights"],
+        "prediction_mix_coeff": mix_coefficients["prediction_mix_1"],
+        "prediction_mix_coeff_2": mix_coefficients["prediction_mix_2"],
+        "readout_weights": mix_coefficients["readout_weights"],
     }
 
 
@@ -645,6 +695,7 @@ def checkpoint_metrics(
         "block1_ce_loss": round_float(metrics["block1_ce_loss"]),
         "block1_accuracy": round_float(metrics["block1_accuracy"]),
         "prediction_mix_coeff": round_float(metrics["prediction_mix_coeff"]),
+        "prediction_mix_coeff_2": round_float(metrics["prediction_mix_coeff_2"]),
         "ablated_val_loss": ablated_val_loss,
         "readout_weights": rounded_list(metrics["readout_weights"]),
     }
@@ -657,50 +708,108 @@ def verify_forward_and_gradients(
     device: torch.device,
     vocab_size: int,
 ) -> dict[str, object]:
+    saved_state = {name: tensor.detach().clone() for name, tensor in model.state_dict().items()}
+
+    def collect_gradient_stats() -> tuple[float, int, int, list[str], list[str], LossBreakdown]:
+        model.train()
+        if model_call is not model:
+            model_call.train()
+        dummy_inputs = torch.randint(0, vocab_size, (4, CONTEXT_SIZE), device=device)
+        dummy_targets = torch.randint(0, vocab_size, (4,), device=device)
+        logits, block1_logits, state0_history, prior_used_history, prior_valid_history, _ = model_call(
+            dummy_inputs,
+            use_priors=True,
+        )
+        losses = compute_losses(
+            logits=logits,
+            block1_logits=block1_logits,
+            targets=dummy_targets,
+            state0_history=state0_history,
+            prior_used_history=prior_used_history,
+            prior_valid_history=prior_valid_history,
+            prediction_loss_weight=PREDICTION_LOSS_WEIGHT,
+            local_ce_weight=LOCAL_CE_WEIGHT,
+        )
+        if not torch.isfinite(losses.total_loss):
+            raise RuntimeError("Closed-loop prediction verification failed: dummy total loss is not finite.")
+        model.zero_grad(set_to_none=True)
+        losses.total_loss.backward()
+        gradient_norm_sum = 0.0
+        nonzero_gradient_parameters = 0
+        missing_gradient_parameters: list[str] = []
+        zero_gradient_parameters: list[str] = []
+        total_trainable_parameters = 0
+        for name, parameter in model.named_parameters():
+            if not parameter.requires_grad:
+                continue
+            total_trainable_parameters += 1
+            if parameter.grad is None:
+                missing_gradient_parameters.append(name)
+                continue
+            if not torch.isfinite(parameter.grad).all():
+                raise RuntimeError("Closed-loop prediction verification failed: dummy gradients contain NaN or Inf.")
+            grad_norm = parameter.grad.detach().norm().item()
+            gradient_norm_sum += grad_norm
+            if grad_norm > 0.0:
+                nonzero_gradient_parameters += 1
+            else:
+                zero_gradient_parameters.append(name)
+        return (
+            gradient_norm_sum,
+            nonzero_gradient_parameters,
+            total_trainable_parameters,
+            missing_gradient_parameters,
+            zero_gradient_parameters,
+            losses,
+        )
+
+    optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     model.train()
     if model_call is not model:
         model_call.train()
-    dummy_inputs = torch.randint(0, vocab_size, (4, CONTEXT_SIZE), device=device)
-    dummy_targets = torch.randint(0, vocab_size, (4,), device=device)
-    logits, block1_logits, state0_history, prior_used_history, prior_valid_history, _ = model_call(
-        dummy_inputs,
-        use_priors=True,
-    )
-    losses = compute_losses(
-        logits=logits,
-        block1_logits=block1_logits,
-        targets=dummy_targets,
-        state0_history=state0_history,
-        prior_used_history=prior_used_history,
-        prior_valid_history=prior_valid_history,
-        prediction_loss_weight=PREDICTION_LOSS_WEIGHT,
-        local_ce_weight=LOCAL_CE_WEIGHT,
-    )
-    if not torch.isfinite(losses.total_loss):
-        raise RuntimeError("Closed-loop prediction verification failed: dummy total loss is not finite.")
+    (
+        initial_gradient_norm_sum,
+        initial_nonzero_gradient_parameters,
+        total_trainable_parameters,
+        initial_missing_gradient_parameters,
+        initial_zero_gradient_parameters,
+        initial_losses,
+    ) = collect_gradient_stats()
+    optimizer.step()
     model.zero_grad(set_to_none=True)
-    losses.total_loss.backward()
-    gradient_norm_sum = 0.0
-    nonzero_gradient_parameters = 0
-    for parameter in model.parameters():
-        if parameter.grad is None:
-            continue
-        if not torch.isfinite(parameter.grad).all():
-            raise RuntimeError("Closed-loop prediction verification failed: dummy gradients contain NaN or Inf.")
-        grad_norm = parameter.grad.detach().norm().item()
-        gradient_norm_sum += grad_norm
-        if grad_norm > 0.0:
-            nonzero_gradient_parameters += 1
-    if nonzero_gradient_parameters == 0:
-        raise RuntimeError("Closed-loop prediction verification failed: dummy backward pass produced no non-zero gradients.")
+
+    (
+        post_step_gradient_norm_sum,
+        post_step_nonzero_gradient_parameters,
+        _,
+        missing_gradient_parameters,
+        zero_gradient_parameters,
+        post_step_losses,
+    ) = collect_gradient_stats()
+    if len(missing_gradient_parameters) > 0 or len(zero_gradient_parameters) > 0:
+        raise RuntimeError(
+            "Closed-loop prediction verification failed: some parameters did not receive gradients after a warmup step. "
+            f"missing={missing_gradient_parameters}, zero={zero_gradient_parameters}"
+        )
+
+    model.load_state_dict(saved_state)
     model.zero_grad(set_to_none=True)
+    if model_call is not model:
+        model_call.zero_grad(set_to_none=True)
+
     return {
-        "dummy_total_loss": round(losses.total_loss.item(), 6),
-        "dummy_ce_loss": round(losses.ce_loss.item(), 6),
-        "dummy_pred_loss": round(losses.pred_loss.item(), 6),
-        "dummy_local_ce_loss": round(losses.local_ce_loss.item(), 6),
-        "nonzero_gradient_parameters": nonzero_gradient_parameters,
-        "gradient_norm_sum": round(gradient_norm_sum, 6),
+        "dummy_total_loss": round(initial_losses.total_loss.item(), 6),
+        "dummy_ce_loss": round(initial_losses.ce_loss.item(), 6),
+        "dummy_pred_loss": round(initial_losses.pred_loss.item(), 6),
+        "dummy_local_ce_loss": round(initial_losses.local_ce_loss.item(), 6),
+        "post_step_total_loss": round(post_step_losses.total_loss.item(), 6),
+        "total_trainable_parameters": total_trainable_parameters,
+        "nonzero_gradient_parameters": initial_nonzero_gradient_parameters,
+        "post_step_nonzero_gradient_parameters": post_step_nonzero_gradient_parameters,
+        "gradient_norm_sum": round(initial_gradient_norm_sum, 6),
+        "post_step_gradient_norm_sum": round(post_step_gradient_norm_sum, 6),
+        "initial_missing_gradient_parameters": initial_missing_gradient_parameters,
+        "initial_zero_gradient_parameters": initial_zero_gradient_parameters,
     }
 
 
@@ -981,6 +1090,18 @@ def comparison(summary_by_variant: dict[str, object]) -> dict[str, float]:
         comparison_values["mean_final_val_loss_delta_E_minus_A"] = round(
             summary_by_variant["E_grounded"]["mean_final_val_loss"]
             - summary_by_variant["A_single"]["mean_final_val_loss"],
+            6,
+        )
+    if "A_single" in summary_by_variant and "F_star_3block" in summary_by_variant:
+        comparison_values["mean_final_val_loss_delta_F_minus_A"] = round(
+            summary_by_variant["F_star_3block"]["mean_final_val_loss"]
+            - summary_by_variant["A_single"]["mean_final_val_loss"],
+            6,
+        )
+    if "C_closed_loop" in summary_by_variant and "F_star_3block" in summary_by_variant:
+        comparison_values["mean_final_val_loss_delta_F_minus_C"] = round(
+            summary_by_variant["F_star_3block"]["mean_final_val_loss"]
+            - summary_by_variant["C_closed_loop"]["mean_final_val_loss"],
             6,
         )
     return comparison_values
