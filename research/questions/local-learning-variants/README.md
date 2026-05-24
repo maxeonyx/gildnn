@@ -39,7 +39,7 @@ See [`research/questions/local-learning-theory/README.md`](../local-learning-the
 
 Only job (2) actually improves performance. E_grounded proves this: it solves collapse (via local CE) but can't solve selection (no feedback gradient). Result: stable but slightly worse than baseline.
 
-**Now testing:** G_rate4_only — rate-4 helper in isolation to discriminate whether rate-4 is intrinsically viable or only problematic when combined with another helper under a shared loss.
+**Now testing:** I (phase offsets) — two rate-2 helpers at different temporal phases with per-helper prediction losses. Tests whether width scales when coupling and staleness are both removed. See Phase 4 section below.
 
 ## Key insight: "parallel" means three different things
 
@@ -240,9 +240,90 @@ H remains relevant only if I shows that even rate-2 helpers get pruned under CE 
 
 **Open question:** If I works, is the mechanism temporal ensembling (two different-age predictions averaged) or phase specialization (each helper learns a different function because it sees the stream at different offsets)? Would need per-helper ablation to distinguish.
 
+## Phase 5: prediction target change (planned, after I resolves mechanism questions)
+
+Per [dictation 2026-05-24-5](../../../dictations/2026-05-24-5.md): the current full-state cosine prediction target is a simplification for mechanism testing. The real goal is "predict something block 0 couldn't already know" — specifically, information from further back in time.
+
+**Caveat:** "Block 0 can't compute this" is too strong information-theoretically. With ctx=32 and a recurrent-style rollout, block 0 could in principle encode past information. The real test is operational: can a dedicated helper objective make block 1 carry a **cleaner long-range signal** than block 0 bothers to preserve in its fast single state?
+
+All variants below use the **same gated additive interface** (change one thing: the target). Same architecture, same d=256, same ctx=32, same rate-2 helper.
+
+### J: Older-window memory summary
+
+**The direct test of Max's "information from a longer time ago" framing.**
+
+Target: predict a pooled summary of block 0's older history, not its current state.
+
+```
+z_t = mean(h_{t-8}, h_{t-7}, h_{t-6}, h_{t-5})   # 4-step old window
+pred_loss = 1 - cos(LN(p_t), LN(z_t))
+```
+
+Block 1's role: dedicated "older memory channel." No new inputs needed — block 1 already has a 1-step-stale view of block 0 and accumulates context over its rate-2 schedule. It just needs to retain older information rather than tracking current state.
+
+**Why block 0 may not do this on its own:** Block 0 has no explicit pressure to preserve a clean 4–8-step-old summary while simultaneously doing immediate next-char CE. The helper gives a dedicated "remember this" role.
+
+### K: Nonlocal residue (old - recent)
+
+**Explicitly complementary: predict what block 0 likely doesn't already emphasize.**
+
+Target: the *difference* between older and recent context summaries.
+
+```
+m_old_t = mean(h_{t-8}, ..., h_{t-5})
+m_recent_t = mean(h_{t-4}, ..., h_{t-1})
+z_t = m_old_t - m_recent_t
+pred_loss = 1 - cos(LN(p_t), LN(z_t))
+```
+
+Block 1's role: carry what's different about older context vs what block 0 likely already knows (recent state). The subtraction explicitly pushes block 1 away from redundant short-range copies.
+
+**Discriminates against J:** If K > J, the raw older summary has too much overlap with what block 0 already retains. If J > K, the subtraction throws away useful overlap.
+
+### L: Future chunk code
+
+**Different hypothesis family: helper as slow predictor, not memory store.**
+
+Target: compressed representation of the next few tokens (not just next-1).
+
+```
+z_t = mean(E(x_{t+1}), E(x_{t+2}), E(x_{t+3}), E(x_{t+4}))   # E = token embedding
+pred_loss = 1 - cos(LN(p_t), LN(z_t))
+```
+
+Block 1's role: forecast a 4-token chunk code. This connects to the hierarchical dynamic prediction direction from [dictation 2026-05-24-3](../../../dictations/2026-05-24-3.md).
+
+**Why block 0 can't do this:** Block 0 is trained only on immediate next-token CE. It has no dedicated multi-step forecast objective. The helper provides a "what's coming next in aggregate" signal.
+
+**Note:** Must mask last 4 positions of context window (no future available there).
+
+### What would NOT work (and why)
+
+- **Predicting block 0's full state (current approach):** Block 0 already knows this. Useful for mechanism testing only.
+- **Predicting next-token logits:** Recreates E_grounded (a second next-token model, not a distinct channel). Already tested — stable but doesn't help.
+- **Predicting gradients/errors:** Available in training, not at inference. Block 1 learns something it can't use when generating.
+- **Very long horizons (12+ steps):** Rate-4 was already too stale. With ctx=32 and rate-2 helper, start with 4-step windows.
+- **Adding encoder/decoder before testing simple targets:** Too confounded. If it helps, you won't know if the win came from the target or the extra machinery.
+
+### Decision framework
+
+- **J helps, K doesn't:** Block 0 wants a coarse older-memory summary. Simple is best.
+- **K helps more than J:** The right signal is specifically *nonlocal complement*, not raw memory.
+- **L helps most:** Helper should be a slower predictive latent / chunk forecaster. Points toward hierarchical autoregressive direction.
+- **None beat current C:** The binding issue is interface alignment / selection pressure (the CE-through-interface gradient), not target semantics alone. Current mechanism IS the right one.
+- **All help but only marginally:** The helper channel at d=256 with ctx=32 may be too small/short for long-range context to matter. Would need to scale before concluding.
+
+### Prerequisites
+
+Phase 5 should only start AFTER:
+1. I resolves whether width (multiple helpers) works mechanistically
+2. Results are integrated and understood
+3. Prediction target change is clearly the next binding question (not architecture/coupling)
+
+---
+
 ## What this does NOT cover
 
-- **Changing the prediction target** to match Max's intent (predict something block 0 doesn't know). That's the next phase after mechanism questions resolve. See top-of-file framing note and [`local-learning-theory/README.md`](../local-learning-theory/README.md).
 - Whether any local variant matches a transformer at matched compute. That's a separate question about absolute performance, not about whether locality works.
 - Continuous-time or rate-coding variants of the update rule.
 - Discrete communication channels between blocks — relevant only if the continuous interface bottleneck limits scaling.
