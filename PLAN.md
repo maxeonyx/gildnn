@@ -12,8 +12,8 @@ The "closed loop prediction" experiment family (variants A through J, agent-coin
 
 **What we have:**
 - Working experiment infrastructure (training loop, eval, multi-seed, ablation, JSONL logs, CUDA graphs)
-- Transformer baseline: val_loss 1.643, 187K params, WikiText-103 char-level
-- RNN baseline: in base-experiments/
+- Transformer baseline: val_loss 1.643, 186K params, TinyShakespeare ctx=32 (in base-experiments/)
+- RNN baseline: val_loss 1.711, 186K params, TinyShakespeare ctx=32 (in base-experiments/)
 - Evidence: strict-local collapses, semi-local barely helps, prediction target matters more than topology
 - Evidence: multi-rate [1,2,4,8] provides inductive bias (better per-step val_loss)
 - Evidence: CUDA Graph concurrency gives 28% speedup; stale reads don't hurt quality

@@ -1,0 +1,29 @@
+{
+  "learning_rate": 0.003,
+  "baseline_val_loss": 1.6434634251472278,
+  "seeds": [
+    {
+      "seed": 42,
+      "best_val_loss": 1.654301,
+      "gap_vs_baseline": 0.010837574852772258,
+      "metrics_path": "C:\\Users\\maxeo\\gildnn\\experiments\\wide_recurrent_vs_transformer\\artifacts\\lr_0p003\\final_metrics.json"
+    },
+    {
+      "seed": 43,
+      "best_val_loss": 1.642369,
+      "gap_vs_baseline": -0.0010944251472277955,
+      "metrics_path": "C:\\Users\\maxeo\\gildnn\\experiments\\wide_recurrent_vs_transformer\\artifacts\\multiseed_lr_0p003\\seed_43\\lr_0p003\\final_metrics.json"
+    },
+    {
+      "seed": 44,
+      "best_val_loss": 1.650774,
+      "gap_vs_baseline": 0.0073105748527722,
+      "metrics_path": "C:\\Users\\maxeo\\gildnn\\experiments\\wide_recurrent_vs_transformer\\artifacts\\multiseed_lr_0p003\\seed_44\\lr_0p003\\final_metrics.json"
+    }
+  ],
+  "mean_best_val_loss": 1.649148,
+  "std_best_val_loss": 0.005005068297902322,
+  "mean_gap_vs_baseline": 0.005684574852772295,
+  "min_gap_vs_baseline": -0.0010944251472277955,
+  "max_gap_vs_baseline": 0.010837574852772258
+}
