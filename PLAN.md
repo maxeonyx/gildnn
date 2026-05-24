@@ -8,7 +8,7 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 **Gated experiment complete — negative result.** B_gated (4-block, zero-init gates) is +0.245 nats WORSE than A_single at WikiText-103 ctx=128. Cold-start problem: zero-init gates starve upper blocks of information. Gate 3 opened negatively (-0.115) for suppressive use only. Pathway 3 remains blocked.
 
-**Transformer baseline DONE.** Mean val_loss **1.592 ± 0.003** (2 seeds, 20K steps, 2.86M params). Gap from A_single: 0.240 nats. Report at `experiments/wikitext_103/artifacts/transformer_baseline/report.json`.
+**Tied-depth experiment RUNNING.** PID 12984, `runs/tied_depth.py`, 4 variants (A_single, tied_8iter, distinct_matched, distinct_rich), 2 seeds, 20K steps each. Logging to `experiments/wikitext_103/artifacts/tied_depth/run.jsonl`. Launched 04:36 NZST. Expected completion ~05:30. Key question: does iterating a single block 8 times close the 0.240-nat gap to the transformer?
 
 **Key insight this session:** The "fix the interface" hypothesis was incomplete. Zero-init gates are worse than hardcoded 0.5 because they completely starve upper blocks. The problem isn't just the mixing coefficient — it's initialization + information routing.
 
@@ -63,7 +63,7 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 
 | Priority | Experiment | Pathway | Why |
 |---|---|---|---|
-| 1 | **Tied-depth experiment at WikiText-103 ctx=128** — `runs/tied_depth.py` (A_single, tied_8iter, distinct_matched, distinct_rich) | 1 | Can iteration close the transformer gap? A_single control isolates iteration effect. Ready to launch. |
+| 1 | **Tied-depth experiment** — `runs/tied_depth.py` | 1 | **IN PROGRESS (PID 12984).** Can iteration close the transformer gap? |
 | 2 | **C_old eval ablation** — retrain C_old config, then shuffle/ablate lateral connections and per-block readout contributions | 3 | Cheapest diagnostic: does C_old's improvement come from lateral communication, or just ensemble of token-fed blocks? |
 | 3 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | Next step after the 28% CUDA Graph result. |
 | 4 | **Dynamic depth (clean measurement)** | 5 | Preliminary probe showed heterogeneity but methodology was flawed. Needs clean redo. |
@@ -89,6 +89,7 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 | CUDA Graph concurrency | 2 | 28% speedup | Hardware CAN do concurrent execution |
 | Stale-read quality cost | 2 | +0.005 ± 0.005 nats | Negligible (95% CI crosses zero) |
 | Backend choice | infra | PyTorch + torch.compile | Decided |
+| **Transformer baseline (WikiText-103 ctx=128)** | **1** | **val_loss 1.592 ± 0.003, 2.86M params, 2 seeds** | **External anchor for Pathway 1. 0.240 nats better than A_single.** |
 
 ---
 
