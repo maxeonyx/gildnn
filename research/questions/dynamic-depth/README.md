@@ -1,106 +1,63 @@
-# Dynamic Computation Depth
+# Dynamic Depth / Early Exit (Pathway 5)
+
+> **Roadmap connection:** Pathway 5 — "Can a loss predictor decide when recurrent iterations are done?"
+
+---
 
 ## Question
 
-Does a weight-shared recurrent model trained with losses at every depth learn a useful loss-prediction signal, and at inference does that signal allocate different amounts of compute to different characters?
+Do different tokens benefit differently from additional tied-depth iterations? If so, dynamic depth (early exit) could improve both speed and quality.
 
-## Setup
+## Exploratory probe (2026-05-25)
 
-- Model: single `GRUCell` applied repeatedly (weight-shared across depth), task head at every depth, loss-prediction head
-- Training: compute loss at all depths 1–8, sum task losses + loss-prediction MSE
-- Loss-prediction head: predicts what the task loss would be at the current depth
-- Halting: at inference, stop when predicted loss drops below threshold
+Trained depth=8 tied-depth transformer (d_model=72, TinyShakespeare ctx=32, seed=42). Measured per-token cross-entropy at all 8 depths across all validation window positions.
 
-> **Comparison-frame note:** This report's large-corpus runs use a smaller model budget (`72K` params) than the repo's current standardized trust anchors in [`base_experiments/README.md`](../../../base_experiments/README.md): transformer `186K` params / best val loss `1.632`, vanilla RNN `186K` params / best val loss `1.706`, both on the fixed `100K/20K`, `ctx=32`, `AdamW`, `13`-epoch frame. The compute-savings claims below are still internally valid because they compare dynamic vs fixed depth **within the same 72K model family**. But the absolute quality levels here are not directly comparable to those `186K` anchors.
+### What was measured
 
-## Results
+- Per-token marginal improvement (Δloss from depth d to d+1) across 638K position instances
+- Distribution of "earliest depth within ε of depth-8 loss"
+- Fraction of tokens with negative total improvement (depth-8 worse than depth-1)
 
-### Small corpus (7K chars, 72K params)
+### Raw numbers
 
-| Variant | Val Loss | Avg Depth |
-|---|---|---|
-| Fixed depth 1 | 4.348 | 1.0 |
-| Fixed depth 8 | 4.066 | 8.0 |
-| Dynamic (initial) | 4.385 | 1.35 |
+Mean total improvement d1→d8: 0.112 nats (std 1.413)
+Earliest-done depth mean: 3.1 (std 2.57) at ε=0.1
 
-The model allocates different depths to different characters — rare/hard tokens get more compute ("cataracts" → depth 6, "war-proof" → depth 5). But the loss-prediction head is poorly calibrated on validation (correlation 0.08, MSE 33.2). The halting threshold, calibrated on training loss, doesn't transfer well.
+Marginal improvements (mean / std):
+- d1→d2: 0.062 / 0.584
+- d2→d3: 0.009 / 0.466
+- d3→d4: -0.020 / 0.340
+- d4→d5: 0.005 / 0.273
+- d5→d6: 0.015 / 0.167
+- d6→d7: 0.023 / 0.127
+- d7→d8: 0.019 / 0.133
 
-### Large corpus (100K chars train, 20K val, context=32)
+45.5% of token instances have negative total improvement (depth-8 worse than depth-1).
 
-Scaling up dramatically improves loss-prediction calibration:
-- Correlation: 0.08 → **0.50**
-- MSE: 33.2 → **1.92**
+### Honest interpretation
 
-Pareto frontier (threshold → val_loss, avg_depth):
+**Supported:** Substantial token-level heterogeneity exists. Marginal gains are dispersed (std >> mean at every depth transition).
 
-| Val Loss | Avg Depth | Compute Savings |
-|---|---|---|
-| 1.722 | 8.0 | 0% (baseline) |
-| 1.730 | 5.7 | 29% |
-| **1.738** | **4.56** | **43%** |
-| 1.755 | 3.16 | 60% |
-| 1.786 | 1.30 | 84% |
+**Not supported:**
+- "Most tokens are done early" — ε=0.1 is nearly the size of the mean total improvement (0.112), so the "done" threshold is too loose to be meaningful
+- "Dynamic depth would improve quality" — haven't shown a halting mechanism would help, and self-attention means tokens can't be independently halted
+- "45.5% are harmed by more depth" — more likely normal probability redistribution (model improves average loss by helping some tokens more than it hurts others)
 
-**Practical operating point: 43% compute reduction for 1% quality loss.** The tradeoff is smooth and continuous — you can dial compute vs quality to any desired point.
+### Methodological concerns
 
-### What the model thinks is "hard"
+1. **Non-standard evaluation frame** — all positions × overlapping windows ≠ standard next-token val (mean depth-8 loss here is 3.37 vs standard val 1.65)
+2. **Single seed** — percentages could shift substantially across seeds
+3. **Self-attention coupling** — can't independently halt tokens in this architecture
+4. **Train/val comparison not done** — haven't ruled out overfitting as explanation for late-depth degradation
 
-Systematic feature correlation analysis (η = correlation ratio, ρ = Spearman rank):
+### Status
 
-| Rank | Feature | Effect Size | Direction |
-|---|---|---|---|
-| 1 | Position in word | η = 0.46 | Word-initial chars get max depth |
-| 2 | Character identity | η = 0.37 | Uppercase rare letters deepest |
-| 3 | After punctuation | r = −0.23 | Post-punctuation is *shallow* |
-| 4 | Bigram novelty | ρ = −0.19 | Novel bigrams are shallower |
-| 5 | Word frequency | ρ = 0.16 | Rare words slightly deeper |
-| 6 | Local entropy | ρ = −0.12 | High-entropy regions shallower |
+**Interesting hint, not evidence.** Pathway 5 remains plausible but unvalidated. Worth revisiting with cleaner methodology when dynamic depth becomes the active question.
 
-**The dominant signal is position in word.** First character after a space gets depth 8.0 uniformly. Middle/end of words get depth 3.8–4.5. The model concentrates compute at word boundaries where it must commit to a word identity, then coasts through predictable continuations.
+### What would constitute real evidence
 
-Post-punctuation tokens (`\n`, space after `.`) are among the shallowest — the opposite of the initial qualitative impression. These positions have low uncertainty (new line = likely a character name in Shakespeare).
-
-⚠️ **Reproducibility note:** The analysis ran on a retrained model (same hyperparams, different random seed). Qualitative patterns differ from the first run's depth annotations, suggesting the depth routing is not fully stable across seeds. The position-in-word effect is robust; finer-grained character-level patterns may not be.
-
-See `artifacts/improved/depth_analysis/analysis.md` for full tables.
-
-### Seed stability (5 seeds on 100K corpus)
-
-| Metric | Mean | Stdev | Range |
-|---|---|---|---|
-| Fixed-depth-8 val loss | 1.707 | 0.005 | 0.015 |
-| Recommended val loss | 1.719 | 0.006 | 0.019 |
-| Recommended mean depth | 6.11 | 0.66 | 1.72 |
-| Position-in-word η | 0.32 | 0.06 | 0.15 |
-| Recommended threshold | 0.78 | 0.30 | 0.78 |
-
-**Val loss is stable; the operating point is not.** The quality of the trained model (fixed-depth-8 baseline) is consistent across seeds (stdev 0.005). The Pareto-recommended val loss is similarly consistent (stdev 0.006). But the recommended *depth* varies substantially (5.1 to 6.8 across seeds) — the frontier shape changes, so the threshold needed to hit a given quality target is not portable across runs. Position-in-word dominance is robust (η 0.26–0.41) but its magnitude varies.
-
-Implication: the mechanism reliably learns to allocate depth non-uniformly, but the specific frontier and threshold should be calibrated per-model, not assumed from a prior run.
-
-See `artifacts/improved/seed_stability/summary.json`.
-
-## Key findings
-
-1. **Multi-exit training works stably** — the model trains at all depths simultaneously without instability
-2. **Deeper is better, up to a point** — loss improves monotonically from depth 1 to depth ~7, then plateaus
-3. **The loss-prediction head works when given enough data** — poor calibration on 7K chars, good calibration on 100K chars
-4. **Adaptive compute is practical** — 43% savings for 1% quality degradation at the recommended operating point
-5. **Depth allocation is structured but seed-dependent** — word-initial positions robustly get more depth; finer patterns vary across seeds
-
-## What this does not settle
-
-- Whether combining dynamic depth with the predictive chain adds value
-- Whether the loss-prediction head can be improved (e.g., predict improvement rather than absolute loss)
-- Whether PonderNet-style probabilistic halting is better than threshold-based
-- Whether this works for a deeper base model (e.g., transformer layers)
-- What the optimal max_depth is (we only tried 8)
-- Whether depth routing is stable across random seeds (evidence suggests it's not at fine grain)
-
-## Artifacts
-
-- First experiment: `artifacts/comparison_summary.json`, `artifacts/depth_annotation.txt`
-- Improved (Pareto + large corpus): `artifacts/improved/`
-  - Small corpus: `artifacts/improved/small_7k/`
-  - Large corpus: `artifacts/improved/large_100k/`
-- Feature analysis: `artifacts/improved/depth_analysis/`
+1. Clean evaluation (one prediction per raw validation position with maximal context)
+2. Oracle best-depth measurement (not "within ε")
+3. Train vs val comparison to rule out overfitting
+4. Multi-seed replication
+5. Test whether shallow state can predict sign/magnitude of future marginal improvement

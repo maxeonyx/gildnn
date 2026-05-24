@@ -1,0 +1,16 @@
+{
+  "best_epoch": 12,
+  "best_val_loss": 1.635929,
+  "best_depth_val_losses": {
+    "depth_1": 2.368351,
+    "depth_2": 1.928515,
+    "depth_3": 1.735007,
+    "depth_4": 1.67516,
+    "depth_5": 1.648216,
+    "depth_6": 1.642447,
+    "depth_7": 1.638313,
+    "depth_8": 1.635929
+  },
+  "runtime_seconds": 197.48505250000017,
+  "parameter_count": 71813
+}

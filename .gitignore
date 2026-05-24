@@ -6,3 +6,5 @@ __pycache__/
 runs/*.log
 runs/*.err
 runs/active.lock
+# No model weights or large tensors in git
+**/*.pt
