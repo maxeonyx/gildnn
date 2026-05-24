@@ -89,21 +89,27 @@ Many additive corrections may create unstable co-adaptation (helpers learning to
 - Learned mixing weights (lightweight attention over helper outputs)
 - Separate channels per helper (concatenate, then project down)
 
-## Recommended scaling path (updated with I results)
+## Recommended scaling path (updated post-Phase 5 J)
 
-The original decision tree was:
-- If N=3 wins → scale up
-- If N=3 ties → try phase offsets or different input views
-- If N=3 hurts → diagnose
+**Phase 5 J CONFIRMED: the target bottleneck is broken.** J_older_window (predict mean of block 0 states from 5-8 steps ago) gives -0.010 with 53× less variance than the full-state target. The prediction target was the binding constraint on width — that constraint is now removed.
 
-**What actually happened:** F was seed-sensitive (coupling). G showed rate-4 is dead. I showed two rate-2 helpers (with or without phase offsets) saturate at the same benefit as one helper. Per-helper losses fix coupling. Width doesn't help.
+**The graph scaling path is REOPENED.** The key insight from J: width should scale via **temporal role differentiation** — each helper owns a different memory band (different offset), not duplicate prediction of the same thing. This directly addresses why I_phase_offset failed (two helpers predicting the same full-state target saturate regardless of phase diversity).
 
-**The bottleneck is the prediction target, not the graph.** Adding more nodes to the star can't help when every node predicts the same redundant thing. Graph topology scaling is **blocked until the prediction target changes** (Phase 5).
+**Concrete next topology experiment (after J_far and J_fixed resolve):**
+- N=3 with J-style targets: helper 1 at offset 5-8, helper 2 at offset 9-12 (or further, depending on J_far result)
+- Each helper carries a different temporal band → tests whether bands COMPOSE (not redundant)
+- Per-helper prediction losses (proven to fix coupling from I)
+- If bands compose: scale to N=5+ with staggered offsets
 
-If Phase 5 breaks the saturation (benefit > -0.006 with a better target), the scaling path reopens:
-1. N=3 with the new target (verify width helps now)
-2. N=5 with rate/phase diversity
-3. N=8 with factorized heads (Risk 3 still applies)
+**What Phase 4 (I) proved that still applies:**
+- Per-helper losses are necessary at N≥3 (shared loss creates coupling instability)
+- Rate-4 is too stale for current-state prediction, but might work with older-window target (untested)
+- The star topology works mechanically — the failure was target redundancy, not topology
+
+**Risk assessment for width + J target:**
+- If J_far ≈ J (plateau): two helpers at different offsets carry genuinely different information → width likely helps
+- If J_far << J (steep dropoff): the useful band is narrow → multiple helpers within it may be redundant
+- Either way: J_fixed_embedding tells us whether the target needs to be self-generated or can be external (affects how we assign targets to N helpers)
 
 ## Historical context: earlier topology designs (2026-05-08 era)
 
@@ -145,10 +151,13 @@ From the earlier theory iteration, these observations remain valid:
 
 ## Epistemic note
 
-The star topology is the only graph structure tested so far. The findings tell us about width-scaling *under the current prediction target* — not about graph topology per se. Whether richer topologies (hierarchical, lateral connections between helpers) add value is completely unknown. The current evidence base:
+The star topology is the only graph structure tested so far. Phase 5 J broke the target bottleneck — width scaling is no longer theoretically blocked. But it's still **experimentally untested** with the new target.
 
-- N=2 star with full-state target: works modestly (-0.006)
-- N=3 star with full-state target: saturates at same -0.006 (width redundant)
+Current evidence base:
+- N=2 star with full-state target: works modestly (-0.006, unreliable)
+- N=2 star with older-window target (J): works better (-0.010, highly reliable)
+- N=3 star with full-state target: saturates (width redundant — target was bottleneck)
+- N=3 star with older-window targets at **different offsets**: UNTESTED — this is the next key topology experiment
 - Everything else: untested theory
 
-The interesting topology question reopens if Phase 5 breaks the target bottleneck — then multiple helpers predicting *different useful things* might compose.
+The temporal-role-differentiation hypothesis (different offsets per helper) is the strongest prediction but has zero experimental backing yet. It could fail if the gating mechanism can't integrate signals from multiple temporal bands simultaneously.
