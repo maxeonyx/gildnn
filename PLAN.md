@@ -24,47 +24,44 @@ The feedback gradient does two things: (a) prevents collapse (which local CE als
 
 ## What's next: discriminate rate-4 viability
 
-### N=3 interim result (seed 42 complete, seed 43 in progress)
+### N=3 result: SEED-SENSITIVE (both seeds complete)
 
-**F_star_3block HURTS.** Not just redundant — actively worse than both A and C:
+**F_star_3block is not robust.** Seeds disagree in direction — one hurts badly, one helps:
 
-| Variant | val_loss (seed 42) | vs A |
-|---------|-------------------|------|
-| C_closed_loop | 1.660 | **-0.009** |
-| A_single | 1.669 | — |
-| **F_star_3block** | **1.702** | **+0.033** |
+| Variant | Seed 42 | Seed 43 | Mean | Range |
+|---------|---------|---------|------|-------|
+| A_single | 1.669 | 1.672 | 1.670 | 0.003 |
+| C_closed_loop | 1.660 | 1.669 | 1.665 | 0.009 |
+| **F_star_3block** | **1.702** | **1.659** | **1.681** | **0.044** |
 
-Helper 2 (rate=4) was actively driven to zero by CE:
+F-A per seed: seed 42 = +0.034, seed 43 = -0.013. **Seeds disagree in direction.**
 
-| Step | gain_1 (rate=2) | gain_2 (rate=4) |
-|------|-----------------|-----------------|
-| 5K   | -0.057          | -0.013          |
-| 9K   | -0.058          | -0.007          |
-| 15K  | -0.068          | -0.0004         |
-| 20K  | -0.082          | -0.0002         |
+Both seeds: gain_2 → 0 (rate-4 helper always rejected). But death speed differs:
+- Seed 43: gain_2 crossed zero by step 5K (fast death → good result)
+- Seed 42: gain_2 lingered at -0.013 until step 9K (slow death → bad result)
 
-gain_2 → 0 means helper 2 doesn't affect the forward pass. Yet F is still 0.033 worse than A. **Training-time interference through the shared prediction loss** — helper 2's noise in `prior_t_1 + prior_t_2` corrupts the gradient that shapes helper 1's predictions.
+**The real finding is instability**, not consistent harm. F creates 15× more variance across seeds than A. Outcome appears to track how quickly helper 2 is pruned — consistent with a transient interference/coupling problem, but does not definitively prove the specific objective-mismatch mechanism from the interim analysis.
 
-Supporting evidence: gain_1 in F (-0.082) is larger in magnitude than in C (-0.071), suggesting block 0 became MORE dependent on predictions in F — possibly because block 0 itself learned less effectively (degraded representations = more reliance on helpers).
-
-**Provisional until seed 43 confirms.** Expected variance is ~0.005; the F-A gap (0.033) is much larger, so likely real.
+**C remains robustly helpful** — both seeds agree in direction (seed agreement: YES).
 
 ### Next discriminating experiment: G_rate4_only
 
-**Question:** Is rate-4 intrinsically harmful, or does the damage only occur when combined with rate-2 under a shared prediction objective?
+**Question:** Is rate-4 intrinsically harmful, or does the instability only manifest when combined with rate-2 under a shared prediction objective?
 
 **Test:** Run C_closed_loop but with a rate-4 helper instead of rate-2. Same everything else: 2 blocks, star topology, CE flows through interface.
 
 **Decision rules:**
-- **G_rate4_only ≈ C (both help vs A):** Rate-4 is viable in isolation! The N=3 failure was purely the shared-loss interference. Fix: per-helper prediction losses to remove the coupling.
-- **G_rate4_only ≈ A (neutral):** Rate-4 predictions are too stale to help but don't hurt when alone. The N=3 hurt was from the shared-loss corrupting helper 1.
+- **G_rate4_only ≈ C (both help vs A):** Rate-4 is viable in isolation! F's instability was purely the multi-helper coupling. Fix: per-helper prediction losses to remove the coupling.
+- **G_rate4_only ≈ A (neutral):** Rate-4 predictions are too stale to help alone. F's variance came from interaction with helper 1 during training.
 - **G_rate4_only > A (hurts):** Rate-4 is intrinsically bad — even in isolation it degrades training. Don't use high rates; try phase offsets instead.
 - **G_rate4_only collapses:** Something specific about rate-4 breaks the mechanism entirely. Investigate.
 
-**Code changes needed:**
-- Make block 1's rate configurable in VariantSpec (currently hardcoded: fires `time_index % 2 == 0`, prediction head = `Linear(d_model, 2*d_model)`)
-- New spec: `rates=(1, 4)` → block 1 fires every 4 steps, predicts 4 future states
-- Safe to implement after current run completes (Python loaded code at start; file modification won't affect running process, but avoid in case of crash/restart)
+**Implementation DONE.** Rates are now configurable (dynamic from VariantSpec). Sanity-checked: G passes, A+C still work identically.
+
+**Launch command:**
+```
+& .\.venv\Scripts\python.exe -m runs.closed_loop_prediction --no-compile --variants A_single G_rate4_only --log-path experiments/wikitext_103/artifacts/closed_loop_prediction/run_g.jsonl --report-path experiments/wikitext_103/artifacts/closed_loop_prediction/report_g.json
+```
 
 ### After G_rate4_only
 
@@ -87,11 +84,11 @@ If G fails (rate-4 intrinsically bad), test **phase offsets** at N=3:
 6. **Neighborhood-local is the correct architecture.** The minimum viable locality that actually helps.
 7. **The spectator problem is solved by role differentiation.** B hurts; closed-loop gives block 1 a unique function.
 8. **Predictive coding emerges spontaneously.** Gain goes negative — model subtracts predicted, processes surprise.
-9. **Summed-prior prediction loss creates objective mismatch at N>2.** The auxiliary loss supervises `layernorm(prior_1 + prior_2)`, but the forward path uses helpers *separately* (`gain_1*LN(prior_1) + gain_2*LN(prior_2)`). Result: pred_loss can improve while CE gets worse. F's lower pred_loss (0.174 vs C's 0.294) actually confirms this — the sum predicts well but individual signals degrade. Fix: per-helper prediction losses (each helper against its own target, independently). Note: per-helper loss also enables helper bootstrapping — at gain=0, CE can't reach helper body/head; only the auxiliary loss can train the predictor initially.
+9. **N=3 with shared prediction loss is seed-sensitive / unstable.** The auxiliary loss supervises `layernorm(prior_1 + prior_2)`, but the forward path uses helpers *separately* (`gain_1*LN(prior_1) + gain_2*LN(prior_2)`). This is a plausible coupling mechanism, but seed 43 contradicts the "F hurts" conclusion from seed 42. The established finding is: (a) rate-4 helper is always rejected (gain_2 → 0), (b) F creates 15× more variance than A, (c) outcome tracks how quickly helper 2 dies. Objective mismatch is hypothesis, not proven. Fix direction: per-helper prediction losses or remove the N>2 coupling entirely.
 
 ## Queue
 
-- **G_rate4_only discriminator** — NEXT (implement when current run completes)
+- **G_rate4_only discriminator** — READY TO LAUNCH (implemented, sanity-checked)
 - Transformer matched-param baseline — **READY TO LAUNCH** (`runs/transformer_baseline.py`, 2.856M params, CPU-verified)
 - Per-helper prediction loss (if G shows rate-4 is viable)
 - Phase offsets at N=3 (if G shows rate-4 is intrinsically bad)

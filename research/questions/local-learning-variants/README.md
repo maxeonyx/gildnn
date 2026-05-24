@@ -6,7 +6,7 @@ Serves [dictation 2026-05-23-5](../../../dictations/2026-05-23-5.md): "how can I
 
 Max's framing: "It doesn't have to be totally local. We can be using backpropagation through a local neighborhood of blocks. Then if we can do that, we can parallelize training significantly more."
 
-## Status: ANSWERED for N=2; scaling test in progress
+## Status: ANSWERED for N=2; N=3 seed-sensitive, investigating
 
 **Neighborhood-local (CE flows through block interfaces) is the minimum viable locality.** The full N=2 experiment series proved this:
 
@@ -24,7 +24,7 @@ Max's framing: "It doesn't have to be totally local. We can be using backpropaga
 
 Only job (2) actually improves performance. E_grounded proves this: it solves collapse (via local CE) but can't solve selection (no feedback gradient). Result: stable but slightly worse than baseline.
 
-**Now testing:** Does neighborhood-local scale to N=3? Running F_star_3block (two helpers, both predict block 0 via star topology).
+**Now testing:** G_rate4_only — rate-4 helper in isolation to discriminate whether rate-4 is intrinsically viable or only problematic when combined with another helper under a shared loss.
 
 ## Key insight: "parallel" means three different things
 
@@ -85,7 +85,7 @@ Key metrics (seed 42 final):
 
 Evidence: [`report_grounded.json`](../../../experiments/wikitext_103/artifacts/closed_loop_prediction/report_grounded.json)
 
-### Phase 3: N=3 semi-local star — IN PROGRESS
+### Phase 3: N=3 semi-local star — DONE ✓ (SEED-SENSITIVE)
 
 **What changed from the original Phase 3 plan:** Originally planned as a chain (0←1←2). Changed to star topology because:
 - Chain means block 2 is one hop from CE — same grounding-drift problem we've now proven matters
@@ -99,8 +99,32 @@ Evidence: [`report_grounded.json`](../../../experiments/wikitext_103/artifacts/c
 - Block 2 (rate=4): reads s0.detach(), predicts s0's next 4 states, feeds via gain_2. CE flows back through interface.
 - Both helpers have independent gradient paths to CE (star = parallel spokes, not serial chain)
 - Different rates give different time horizons — block 1 sees 2-step patterns, block 2 sees 4-step patterns
+- Shared auxiliary prediction loss supervises `layernorm(prior_1 + prior_2)` against state0 history
 
-**What this tests:** Does width (more parallel predictors) compose to give more benefit than a single predictor? If yes, the architecture scales toward Max's "many more parallel blocks."
+**Result (2 seeds):**
+
+| Variant | Seed 42 | Seed 43 | Mean | Range |
+|---------|---------|---------|------|-------|
+| A_single | 1.669 | 1.672 | 1.670 | 0.003 |
+| C_closed_loop | 1.660 | 1.669 | 1.665 | 0.009 |
+| **F_star_3block** | **1.702** | **1.659** | **1.681** | **0.044** |
+
+**Seeds disagree in direction:** F-A is +0.034 on seed 42 (hurts) but -0.013 on seed 43 (helps).
+
+**What IS established:**
+- Rate-4 helper is always rejected: gain_2 → 0 in both seeds
+- F creates 15× more variance than A across seeds
+- Outcome tracks death speed: fast pruning (seed 43, zero by step 5K) → good; slow pruning (seed 42, zero by step 15K) → bad
+- C remains robustly helpful (both seeds agree)
+
+**What is NOT established:**
+- That F consistently hurts or helps
+- The specific objective-mismatch mechanism (plausible but not proven)
+- Whether the damage is "residual" vs just "behind at eval time"
+
+**Next discriminator: G_rate4_only** — rate-4 helper in isolation (no shared loss, no second helper). Tests whether rate-4 predictions are intrinsically viable. If G ≈ C, the N=3 problem was coupling; if G ≈ A, rate-4 is just too stale; if G > A, rate-4 is bad.
+
+Evidence: [`run_star.jsonl`](../../../experiments/wikitext_103/artifacts/closed_loop_prediction/run_star.jsonl)
 
 ## How to interpret N=3 results
 
