@@ -327,7 +327,7 @@ class ClosedLoopPredictionModel(nn.Module):
         prior_buffer[:, :-1, :].copy_(prior_buffer[:, 1:, :])
         prior_buffer[:, -1, :].zero_()
         prior_valid_buffer[:-1].copy_(prior_valid_buffer[1:])
-        prior_valid_buffer[-1] = False
+        prior_valid_buffer[-1:].fill_(False)
         return prior_t, prior_valid_t
 
     def readout_state(self, states: tuple[Tensor, ...]) -> Tensor:
