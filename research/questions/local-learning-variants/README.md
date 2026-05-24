@@ -166,7 +166,11 @@ CE flows through the feedback interface. Each block pair forms a "neighborhood."
 
 ### Alternating optimization — CONTINGENCY
 
-Block coordinate descent: train block 0 for K steps with predictions frozen, then train block 1 for K steps with targets frozen. Genuinely parallel within each phase. Only interesting if semi-local instability emerges at larger N — not needed for N=2 or (so far) N=3.
+Block coordinate descent: train block 0 for K steps with predictions frozen, then train block 1 for K steps with targets frozen. Genuinely parallel within each phase.
+
+**When this becomes relevant:** If per-helper aux losses (H) remove instability but helpers STILL get pruned under CE/gate competition. The diagnosis would be: "the gates compete because they're all trained by the same CE signal — whichever helper gets a slight early advantage pulls the CE gradient toward itself, starving the others." Alternating optimization breaks this by freezing gate competition during helper-training phases.
+
+**Not yet needed** because we haven't exhausted simpler fixes (separate aux losses, phase offsets). Only escalate here if H/I show that CE competition — not aux-loss coupling — is the binding constraint on width.
 
 ### N-block topologies
 
