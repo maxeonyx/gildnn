@@ -8,7 +8,9 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 **Phase 5 J (older-window prediction target) is confirmed and Max has endorsed the direction.** Block 1 predicting `mean(h_{t-8}..h_{t-5})` gives -0.010 with 53× less seed variance than the prior full-state approach. Per [dictation 2026-05-24-5](dictations/2026-05-24-5.md): "Block one should learn to predict something about block zero that block zero couldn't already know." Per [dictation 2026-05-24-7](dictations/2026-05-24-7.md): "Interesting, it's quite a dumb idea, but I like it."
 
-**J_far_window (offset 12) running now — tracking toward "plateau" outcome.** Seed 42 finished: val_loss 1.663 (vs J's 1.660). Difference is 0.003 — essentially noise. Seed 43 in progress. If confirmed: the useful temporal offset is a broad band, which motivates multi-helper-different-offset experiments.
+**J_far_window COMPLETE — offset sensitivity is gentle inverted-U.** Offset 12 gives -0.007 (vs J's -0.010 at offset 8). Still above the old -0.006 ceiling, still seed-robust (std 0.0003). The useful temporal band is broad, not a sharp peak. Different offsets carry somewhat different information (different pred_loss values). This motivates the dual-band multi-helper experiment.
+
+**GPU is now FREE.** Next experiment: J_fixed_embedding.
 
 **What we have:**
 - A working experiment framework (multi-seed, JSONL logs, CUDA graphs, ablation metrics)
@@ -62,17 +64,15 @@ ORIENT → CHOOSE → THEORY → RUN → ANALYZE → CHECK → (loop or redirect
 
 Priority order (not a sequence — pick whichever is cheapest to do honestly right now):
 
-1. **Analyse J_far results** — when seed 43 finishes. Then update decision framework and proceed.
+1. **J_fixed_embedding** — most discriminating next experiment. Separates temporal-memory hypothesis (older content helps) from representation-specific hypothesis (older hidden-state codes specifically help). Already implemented.
 
-2. **J_fixed_embedding** — most discriminating next experiment regardless of J_far outcome. Separates temporal-memory hypothesis (older content helps) from representation-specific hypothesis (older hidden-state codes specifically help).
+2. **Dual-band width test (J_dual_band)** — two rate-2 helpers at offsets (8,12). Required control: `J_dual_same_band` with offsets (8,8). Tests whether temporal bands compose. **Implementation DONE** — sanity-checked and committed.
 
-3. **Dual-band width test (J_dual_band)** — two rate-2 helpers at offsets (8,12). Required control: `J_dual_same_band` with offsets (8,8). Tests whether temporal bands compose. Implementation needs per-helper prediction window offsets (small code change to loss plumbing).
+3. **J_strict_local** — older-window target + strict-local (fully detached feedback). Tests whether a good target rescues true parallelism. Already implemented.
 
-4. **J_strict_local** — older-window target + strict-local (fully detached feedback). Tests whether a good target rescues true parallelism. Already implemented in code.
+4. **Transformer baseline** on WikiText-103 at d=256, ctx=128. Non-negotiable for interpreting custom results. Partial run was on track (1.683 at 13K).
 
-5. **Transformer baseline** on WikiText-103 at d=256, ctx=128. Non-negotiable for interpreting custom results. Partial run was on track (1.683 at 13K).
-
-6. **Propagation-delay experiment** — the true architecture vision. Block 1 sees block 0's output from PREVIOUS timestep only. Never tested correctly.
+5. **Propagation-delay experiment** — the true architecture vision. Block 1 sees block 0's output from PREVIOUS timestep only. Never tested correctly.
 
 ---
 
@@ -81,7 +81,7 @@ Priority order (not a sequence — pick whichever is cheapest to do honestly rig
 | What | Result | Interpretation |
 |---|---|---|
 | **J_older_window** | **-0.010, std 0.00009** | Target was the bottleneck; older memory provides useful missing context |
-| J_far_window (partial, s42) | -0.006 (1.663 vs 1.669) | Offset sensitivity is shallow — plateau from 8 to 12 |
+| **J_far_window** | **-0.007, std 0.0003** | Offset sensitivity is gentle inverted-U; plateau from 8 to 12 |
 | I_phase_offset | -0.006, width saturates | Two helpers predicting same target are redundant |
 | G_rate4_only | ≈ A, ablation gap 0 | Rate-4 too stale for this architecture |
 | F_star_3block | SEED-SENSITIVE | Shared loss coupling, rate-4 auto-rejected |

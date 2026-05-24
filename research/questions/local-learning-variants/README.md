@@ -286,24 +286,37 @@ Evidence: [`report_j.json`](../../../experiments/wikitext_103/artifacts/closed_l
 
 **Decision rule triggered:** J < C → target WAS the bottleneck. Scale the target semantics.
 
-### J_far_window decision framework (pre-registered)
+### J_far_window: DONE ✓ — Offset sensitivity is SHALLOW (gentle inverted-U)
 
-**Theory:** Offset sensitivity reveals an inverted-U tradeoff. Too near (≤4): target is redundant with block 0's fast state. Too far (≥16?): target becomes both irrelevant to next-token CE and too hard for block 1 to reconstruct. The sweet spot is where information is "old enough that block 0 has started to overwrite it, but new enough that it's still useful and recoverable."
+Block 1 predicts `mean(h_{t-12}, ..., h_{t-9})` instead of J's `mean(h_{t-8}, ..., h_{t-5})`. Tests whether more temporal separation helps.
 
-Block 1 updates at rate-2, so it sees every other step. J (offset 8) asks block 1 to retain information from ~4 helper updates ago. J_far (offset 12) asks for ~6 helper updates ago — testing whether block 1's memory horizon extends that far.
+| Variant | Seed 42 | Seed 43 | Mean | Δ vs A | std |
+|---------|---------|---------|------|--------|-----|
+| A_single | 1.669 | 1.672 | 1.670 | — | 0.0015 |
+| J_older_window (offset 8) | 1.660 | 1.660 | 1.660 | -0.010 | 0.00009 |
+| **J_far_window (offset 12)** | **1.663** | **1.664** | **1.664** | **-0.007** | **0.0003** |
 
-**Prediction (to be falsified):** J_far slightly worse than J, same sign, still stable.
+Full metrics at step 20000:
 
-| J_far outcome | Interpretation | Next step |
-|---|---|---|
-| **BETTER than J** (≥0.003 better, low variance) | Sweet spot is farther back. Block 0 handles 5-8 fine; helper adds more carrying slower context. | Run wider offsets (20, 24). Map the curve before adding helpers. |
-| **SAME as J** (within ~0.002) | Useful regime is a plateau. "Slow older summary" matters, not exact offset. | Run multiple helpers at different offsets simultaneously (5-8 + 9-12). Test band composition. |
-| **WORSE than J** but still beats A | Real sweet spot near 5-8. Farther loses more from reconstruction difficulty than gained from reduced redundancy. | Run J_fixed_embedding. Separates "too old in general" from "too hard to reconstruct old hidden states specifically." |
-| **COLLAPSE** | Old self-generated targets go off-manifold. Stability limit, not just utility limit. | Run J_fixed_embedding (keep memory hypothesis, remove moving target). If that fails, switch to L. |
+| Metric | J_far s42 | J_far s43 | J_older s42 | Interpretation |
+|--------|-----------|-----------|-------------|----------------|
+| pred_loss | 0.183 | 0.174 | 0.168 | Farther target harder to predict |
+| mix_coeff | -0.067 | -0.070 | -0.065 | Slightly more aggressive predictive coding |
+| ablation_gap | 0.184 | 0.174 | 0.182 | Load-bearing at inference |
 
-**Regardless of J_far outcome, J_fixed_embedding is the most discriminating next experiment.** It separates two hypotheses J_far alone cannot:
-1. Temporal-memory hypothesis: helper helps because it carries older *content*
-2. Representation-specific hypothesis: helper helps because it carries older *block-0 latent codes* specifically
+Evidence: [`report_jfar.json`](../../../experiments/wikitext_103/artifacts/closed_loop_prediction/report_jfar.json)
+
+**Pre-registered decision framework verdict: between "SAME" and "WORSE but still beats A."**
+- J_far is slightly worse than J (-0.007 vs -0.010) — the inverted-U exists but is gentle
+- Still well above C's old -0.006 ceiling
+- Still extremely seed-robust (std 0.0003)
+- The farther target is genuinely harder (pred_loss 0.179 vs 0.165) but still very learnable
+
+**Implication for multi-helper:** Offsets 8 and 12 carry somewhat different information (different pred_loss values, different benefit magnitudes). If both can contribute simultaneously through separate gates, their bands should compose. The `J_dual_band` experiment (already implemented) tests this directly.
+
+**Next steps per decision framework:**
+1. J_fixed_embedding — separates "older content" from "older hidden-state codes" (still most discriminating)
+2. J_dual_band (offsets 8,12) + J_dual_same_band (8,8) control — tests band composition
 
 ### Multi-block scaling implication
 
