@@ -6,6 +6,21 @@ Serves [dictation 2026-05-23-5](../../../dictations/2026-05-23-5.md): "how can I
 
 Max's framing: "It doesn't have to be totally local. We can be using backpropagation through a local neighborhood of blocks. Then if we can do that, we can parallelize training significantly more."
 
+## Prediction target: current simplification vs Max's intent
+
+Per [dictation 2026-05-24-5](../../../dictations/2026-05-24-5.md): "Block one should learn to predict something about block zero that block zero couldn't already know or wouldn't need to know therefore. For example, maybe block one's output is dependent on input from a longer time ago?"
+
+**All experiments below use a simplified prediction target** — cosine similarity to block 0's full hidden state. This is adequate for testing the *mechanism* (does feedback help? does locality kill? does width compose?) but is NOT what Max ultimately wants. The current target violates Max's framing because block 0 already knows its own state.
+
+After the mechanism questions are resolved (locality, width, coupling), the next stage is changing WHAT is predicted:
+- Block 0's future state (temporal look-ahead)
+- A compression of block 0's history from further back (longer-range context)
+- A higher-level pattern spanning multiple timesteps
+
+See [`research/questions/local-learning-theory/README.md`](../local-learning-theory/README.md) for the full literature/theory analysis of prediction targets.
+
+---
+
 ## Status: ANSWERED for N=2; N=3 seed-sensitive, investigating
 
 **Neighborhood-local (CE flows through block interfaces) is the minimum viable locality.** The full N=2 experiment series proved this:
@@ -227,6 +242,7 @@ H remains relevant only if I shows that even rate-2 helpers get pruned under CE 
 
 ## What this does NOT cover
 
+- **Changing the prediction target** to match Max's intent (predict something block 0 doesn't know). That's the next phase after mechanism questions resolve. See top-of-file framing note and [`local-learning-theory/README.md`](../local-learning-theory/README.md).
 - Whether any local variant matches a transformer at matched compute. That's a separate question about absolute performance, not about whether locality works.
 - Continuous-time or rate-coding variants of the update rule.
 - Discrete communication channels between blocks — relevant only if the continuous interface bottleneck limits scaling.
