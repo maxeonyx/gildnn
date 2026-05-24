@@ -21,7 +21,7 @@ See [`research/questions/local-learning-theory/README.md`](../local-learning-the
 
 ---
 
-## Status: Phases 1-4 COMPLETE. Width saturates — target is the bottleneck. Phase 5 IMPLEMENTED.
+## Status: Phase 5 J CONFIRMED — older-window target breaks the -0.006 ceiling.
 
 **Neighborhood-local (CE flows through block interfaces) is the minimum viable locality.** The full N=2 experiment series proved this:
 
@@ -246,11 +246,49 @@ H remains relevant only if I shows that even rate-2 helpers get pruned under CE 
 
 **Phase offset does break symmetry** (I_phase_offset gains are asymmetric: -0.050, -0.033; I_control gains are symmetric: -0.039, -0.040) but this doesn't increase net benefit. Differentiation without new information is cosmetic.
 
-## Phase 5: prediction target change (IMPLEMENTED — awaiting GPU)
+## Phase 5: prediction target change — J CONFIRMED
 
 Per [dictation 2026-05-24-5](../../../dictations/2026-05-24-5.md): the current full-state cosine prediction target is a simplification for mechanism testing. The real goal is "predict something block 0 couldn't already know" — specifically, information from further back in time.
 
-**Implementation status:** `J_older_window` and `J_fixed_embedding` variants added to `runs/closed_loop_prediction.py`. Same architecture as C, only target changes. Ready for sanity check + full run.
+### J_older_window: DONE ✓ — TARGET WAS THE BOTTLENECK
+
+Block 1 predicts `mean(h_{t-8}, ..., h_{t-5})` instead of current `h_t`. Tests: "does predicting older context block 0 may not preserve actually help?"
+
+| Variant | Seed 42 | Seed 43 | Mean | Δ vs A | std |
+|---------|---------|---------|------|--------|-----|
+| A_single | 1.669 | 1.672 | 1.670 | — | 0.0015 |
+| C_closed_loop (full-state) | 1.660 | 1.669 | 1.665 | -0.006 | 0.0047 |
+| **J_older_window** | **1.660** | **1.660** | **1.660** | **-0.010** | **0.00009** |
+
+Full metrics at step 20000:
+
+| Metric | Seed 42 | Seed 43 | Interpretation |
+|--------|---------|---------|---------------|
+| pred_loss | 0.168 | 0.163 | Target is 2× more learnable than C's 0.29 |
+| mix_coeff | -0.065 | -0.064 | Predictive coding (identical mechanism to C) |
+| ablation_gap | 0.182 | 0.193 | Load-bearing at inference |
+| val_accuracy | 0.523 | 0.529 | vs A's 0.521 |
+
+Evidence: [`report_j.json`](../../../experiments/wikitext_103/artifacts/closed_loop_prediction/report_j.json)
+
+**The key finding is seed robustness, not raw improvement magnitude.**
+- C was unreliable: seed 42 hit 1.660, seed 43 fell to 1.669 (range: 0.009)
+- J is rock-solid: both seeds hit 1.660 (range: 0.0002)
+- C's reported "-0.006 mean" was depressed by seed variance; J eliminates that variance
+
+**Why this works:** Full-state prediction (C) optimizes for a target that block 0 already has — redundant. The older-window target is 2× more learnable (pred_loss 0.165 vs 0.29) because it asks for information that block 0's fast current processing may not preserve. The learning signal is cleaner and more consistent.
+
+**What it does NOT yet tell us:**
+- Whether farther-back windows (9-16, 17-32) would be better or worse (J_far_window needed)
+- Whether the older-window target composes with width (J + two helpers)
+- Whether the benefit grows with context length (should, in principle)
+- Whether an external/fixed target (J_fixed_embedding, L) would be even more robust
+
+**Decision rule triggered:** J < C → target WAS the bottleneck. Scale the target semantics.
+
+### Implementation notes (preserved)
+
+**Implementation status:** `J_older_window` and `J_fixed_embedding` variants in `runs/closed_loop_prediction.py`. Same architecture as C, only target changes.
 
 **Caveat:** "Block 0 can't compute this" is too strong information-theoretically. With ctx=32 and a recurrent-style rollout, block 0 could in principle encode past information. The real test is operational: can a dedicated helper objective make block 1 carry a **cleaner long-range signal** than block 0 bothers to preserve in its fast single state?
 

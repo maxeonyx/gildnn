@@ -4,49 +4,38 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## What just happened
 
-**G_rate4_only: rate-4 is intrinsically too stale.**
+**Phase 5 J: TARGET WAS THE BOTTLENECK. Older-window prediction works.**
 
-| Variant | Seed 42 | Seed 43 | Mean | Δ vs A |
-|---------|---------|---------|------|--------|
-| A_single | 1.669 | 1.672 | 1.670 | — |
-| G_rate4_only | 1.662 | 1.666 | 1.664 | -0.006 |
+| Variant | Seed 42 | Seed 43 | Mean | Δ vs A | std |
+|---------|---------|---------|------|--------|-----|
+| A_single | 1.669 | 1.672 | 1.670 | — | 0.0015 |
+| C_closed_loop | 1.660 | 1.669 | 1.665 | -0.006 | 0.0047 |
+| **J_older_window** | **1.660** | **1.660** | **1.660** | **-0.010** | **0.00009** |
 
-Ablation gap = 0 at both seeds. Helper predictions are not contributing at inference. The -0.006 advantage over A is from the auxiliary loss acting as a mild regularizer during training. pred_loss *rises* over training (0.23 → 0.49) — the staleness signature. Rate-2 (C) can track its target; rate-4 cannot.
+Key metrics at 20K steps (both seeds):
+- **pred_loss**: 0.165 (vs C's 0.29 — target is 2× more learnable)
+- **mix_coeff**: -0.065 (predictive coding — same mechanism as C)
+- **ablation_gap**: 0.182/0.193 (load-bearing at inference)
+- **std across seeds**: 0.00009 (vs C's 0.005 — 53× more reliable)
 
-**This settles the G decision rules:** G ≈ A (neutral). Rate-4 predictions are too stale. F's instability was the multi-helper interaction under shared loss, not rate-4 being harmful per se.
+**What this means:** Predicting "something block 0 couldn't already know" (mean of older states) IS genuinely more useful than predicting block 0's current state. The improvement is modest in absolute terms (-0.010 vs -0.006) but the mechanism is dramatically more reliable. C's apparent -0.006 mean was depressed by seed variance; J eliminates that variance entirely.
 
-## Current: Phase 5 J run (RUNNING — launched 18:00, ETA ~19:07+)
+**Decision rule triggered:** J < C → Scale further.
 
-**I result (seed 42 complete, seed 43 interrupted at step 13K by GPU use):**
-- I_phase_offset ≈ I_control ≈ A - 0.006. Width saturates. Target is the bottleneck.
-- Seed 43 A_single confirmed (1.672). I_phase_offset seed 43 was tracking identically before interruption.
-- Pattern matches ALL prior experiments (C, G, I all give -0.006). Effectively resolved.
+## Current: Next experiment planning
 
-**Phase 5 code: IMPLEMENTED.** `J_older_window` and `J_fixed_embedding` variants in `runs/closed_loop_prediction.py`.
+The older-window target (positions 5-8) works. Now: what scales it?
 
-**When GPU becomes available:**
+**Natural scaling axes** (from think agent analysis):
+1. **Temporal separation** — try farther-back windows (9-16, 17-32). Find where target becomes stale vs remains useful.
+2. **Context length** — older-memory should matter more at longer context (128, 256). Currently ctx=32.
+3. **Helper diversity** — multiple helpers with different windows (e.g. one at 5-8, one at 17-32)
+4. **Model size** — only after the above are explored
 
-1. Sanity check (~2-3 min):
-   ```
-   & .\.venv\Scripts\python.exe -m runs.closed_loop_prediction --sanity-check --variants J_older_window --no-compile
-   ```
-
-2. Full run (~68 min, background):
-   ```
-   $cmd = "cd /d C:\Users\maxeo\gildnn && .venv\Scripts\python.exe -u -m runs.closed_loop_prediction --no-compile --variants A_single J_older_window --log-path experiments/wikitext_103/artifacts/closed_loop_prediction/run_j.jsonl --report-path experiments/wikitext_103/artifacts/closed_loop_prediction/report_j.json > NUL 2>&1"
-   $proc = Start-Process -FilePath "cmd.exe" -ArgumentList "/c", $cmd -WindowStyle Hidden -PassThru
-   ```
-
-3. Write active.lock with PIDs and ETA.
-
-**Phase 5 J:** Change the prediction target from "full block-0 state" (which block 0 already knows) to "mean of block-0 states from 5-8 steps ago" (older context block 0 may not preserve). This directly tests Max's framing: "predict something block 0 couldn't already know — information from a longer time ago."
-
-**Implementation:** Add `prediction_target` field to VariantSpec. Compute `target_history` from older window of `state0_history`. Pass to same `prediction_loss_terms`. Adjust valid mask (first 8 positions invalid).
-
-**Decision rules:**
-- **J < C (beats -0.006):** Target WAS the bottleneck. Older memory is genuinely useful. Scale further (K, L, then width + good target).
-- **J ≈ C:** Older-window target at 5-8 char lag is too short to help at ctx=32→128. Try L (future chunk, different hypothesis family).
-- **J > A (hurts) or collapses:** Self-generated target creates co-adaptation. Try J' (fixed embedding target).
+**Immediate next steps:**
+1. Run transformer matched-param baseline (2.856M params) — independent comparison point
+2. Implement + run J_far_window variant (positions 17-32 instead of 5-8) — tests temporal separation
+3. After that: context length scaling with the winning target
 
 ## Critical findings (carry forward)
 
@@ -59,21 +48,24 @@ Ablation gap = 0 at both seeds. Helper predictions are not contributing at infer
 7. **The spectator problem is solved by role differentiation.** B hurts; closed-loop gives block 1 a unique function.
 8. **Predictive coding emerges spontaneously.** Gain goes negative — model subtracts predicted, processes surprise.
 9. **N=3 with shared prediction loss is seed-sensitive / unstable.** Coupling between helpers under shared aux loss. Rate-4 helper always dies; instability comes from how quickly.
-10. **Rate-4 is intrinsically too stale (G ≈ A).** pred_loss rises over training. Ablation gap = 0. The staleness limit is somewhere between rate-2 (works) and rate-4 (too slow to track).
+10. **Rate-4 is intrinsically too stale (G ≈ A).** pred_loss rises over training. Ablation gap = 0.
+11. **Target matters more than width.** I (two helpers, full-state) = -0.006. J (one helper, older-window) = -0.010. Better target > more helpers.
+12. **Older-window target is dramatically seed-robust.** J std=0.00009 vs C std=0.005. The less-redundant target creates a more reliable learning signal.
 
 ## Queue
 
-- **Phase 5 J run** — RUNNING (PID 8244, log: run_j.jsonl, active.lock written)
-- Transformer matched-param baseline — `runs/transformer_baseline.py`, 2.856M params, launch when GPU free
-- I seed 43 completion — low priority, pattern already clear
-- Named/typed tensor dimensions
-- Graph architecture exploration (from dictation 2026-05-24-1) — blocked on Phase 5 results. See `research/questions/graph-architecture/README.md`
+- Transformer matched-param baseline — `runs/transformer_baseline.py`, 2.856M params, GPU free now
+- J_far_window (positions 17-32) — implement and run
+- Context length scaling with older-window target
+- Graph architecture exploration (from dictation 2026-05-24-1) — see `research/questions/graph-architecture/README.md`
 - Hierarchical dynamic tokenization (from dictation 2026-05-24-3) — queued, not active
 
 ## Key completed findings
 
 | Experiment | Result | Notes |
 |---|---|---|
+| **J_older_window** | **J < A by 0.010, std 0.00009** | Target was the bottleneck; older memory works |
+| **I_phase_offset** | **I ≈ A - 0.006** | Width saturates at same target |
 | **G_rate4_only** | **G ≈ A, ablation gap 0** | Rate-4 too stale; auxiliary loss regularizes slightly |
 | **F_star_3block** | **SEED-SENSITIVE** (range 0.044) | Shared loss coupling, not rate-4 per se |
 | **E_grounded** | **STABLE, +0.026 vs A** | Task-grounded strict-local doesn't collapse but doesn't help |
