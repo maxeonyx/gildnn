@@ -126,6 +126,25 @@ Evidence: [`report_grounded.json`](../../../experiments/wikitext_103/artifacts/c
 
 Evidence: [`run_star.jsonl`](../../../experiments/wikitext_103/artifacts/closed_loop_prediction/run_star.jsonl)
 
+### Phase 3b: G_rate4_only — DONE ✓ (G ≈ A, rate-4 too stale)
+
+Rate-4 helper in isolation. Same architecture as C, but rate-4 instead of rate-2.
+
+| Variant | Seed 42 | Seed 43 | Mean | Δ vs A |
+|---------|---------|---------|------|--------|
+| A_single | 1.669 | 1.672 | 1.670 | — |
+| G_rate4_only | 1.662 | 1.666 | 1.664 | -0.006 |
+
+**Ablation gap = 0** at both seeds. Predictions not contributing at inference. The -0.006 is a training regularization effect from the auxiliary loss, not prediction value.
+
+The staleness signature: pred_loss *rises* over training (0.23 → 0.49 for seed 42). Rate-2 (C) converges at ~0.29; rate-4 can't track the evolving target.
+
+**Conclusion:** Rate-4 predictions are intrinsically too stale. The staleness limit is between rate-2 (works) and rate-4 (doesn't). This is NOT a coupling problem — it's fundamental.
+
+**Implication for F:** F_star's instability was the multi-helper *interaction* (shared loss coupling + slow dying), not rate-4 being harmful per se.
+
+Evidence: [`report_g.json`](../../../experiments/wikitext_103/artifacts/closed_loop_prediction/report_g.json)
+
 ## How to interpret N=3 results
 
 When the run finishes, look at these diagnostics in this order:
@@ -180,37 +199,31 @@ Block coordinate descent: train block 0 for K steps with predictions frozen, the
 
 **Hybrid:** Some blocks in a star around block 0, others forming short chains. Might be needed at large N if the interface bottleneck limits how many signals block 0 can use simultaneously. Not explored yet.
 
-## Phase 4: planned post-G experiments
+## Phase 4: post-G experiments
 
-G_rate4_only (running now) tests whether rate-4 is intrinsically viable. The answer determines which of these runs next.
+G confirmed rate-4 is intrinsically too stale (G ≈ A). The question shifts: can we get width without staleness?
 
-### H: per-helper prediction losses (if G shows rate-4 viable)
+### H: per-helper prediction losses — DEPRIORITIZED
 
-**Hypothesis:** F_star's instability came from the **summed auxiliary loss** — with `pred_loss = cosine(LN(prior_1 + prior_2), state0)`, helper 2 can hide behind helper 1 (or interfere with it) because the objective doesn't distinguish their individual contributions.
+H was designed for the "G ≈ C" outcome (rate-4 viable alone, coupling was the problem). Since G ≈ A instead, fixing the coupling won't help — even with perfect per-helper losses, rate-4 predictions are simply too stale to add value.
 
-**Fix:** Separate prediction losses. `pred_loss_1 = cosine(LN(prior_1), state0)`, `pred_loss_2 = cosine(LN(prior_2), state0)`. Total loss = `CE + λ * pred_loss_1 + λ * pred_loss_2`.
+H remains relevant only if I shows that even rate-2 helpers get pruned under CE competition. Then per-helper losses might help by removing the last coupling mechanism. But it's no longer the primary path.
 
-**What this tests:** Is the **aux-loss identifiability** the binding constraint? Each helper is now penalized for its OWN predictions being useful, not their sum.
+### I: phase offsets — RUNNING NOW
 
-**What this does NOT fix:** CE/gate competition. Both gates are still trained by the same CE loss on block 0's output. Even with separate aux losses, the gates compete under CE — one helper can still get pruned if the CE gradient favors the other. This is a weaker coupling than the summed aux loss, but it's still real.
+**Hypothesis:** Width can help if both helpers operate at rate-2 (proven to work) with different temporal phases. Phase offset gives temporal diversity without staleness.
 
-**Success:** Rate-4 helper stays alive (gate > 0 through training), seed variance drops to C-like levels, val loss ≤ C.
-**Partial success:** Instability gone but helper 2 still prunes → aux loss was causing instability, but rate-4 remains redundant under CE competition.
-**Failure:** Same pattern as F → coupling was at the CE/gate level, not aux loss. Would need alternating optimization or frozen-gate phases.
+**Architecture (I_phase_offset):** Two rate-2 helpers, one at phase 0 (updates on steps 0,2,4,...) and one at phase 1 (updates on steps 1,3,5,...). Per-helper prediction losses (removes known coupling confound). On any given step, one helper is maximally fresh and one is 1-step stale.
 
-### I: phase offsets (if G shows rate-4 bad)
+**Control (I_control):** Two rate-2 helpers, both at phase 0. Same per-helper losses. Isolates whether phase diversity is the key factor or whether two rate-2 helpers compose regardless.
 
-**Hypothesis:** Rate-4 staleness is intrinsically harmful (4 steps without updating creates predictions too far from block 0's current state). But **width** could still help if both helpers operate at the same temporal granularity with different **phases**.
+**Decision rules:**
+- **I_phase_offset < I_control < A:** Phase offset creates genuine role differentiation. Width + temporal diversity = scaling path.
+- **I_phase_offset ≈ I_control < A:** Both help, offset doesn't matter. Width alone scales.
+- **I_phase_offset ≈ I_control ≈ A:** Helpers get pruned under CE competition even with separate losses. Would need alternating optimization.
+- **One helps, one ≈ A:** Interesting asymmetry. Investigate which configuration survives and why.
 
-**Architecture:** Two rate-2 helpers, one at phase 0 (updates on steps 0,2,4,...) and one at phase 1 (updates on steps 1,3,5,...). On any given step, one helper is maximally fresh and one is 1-step stale.
-
-**Critical:** Must use per-helper prediction losses (not summed). Otherwise reintroduces the known F confound.
-
-**Also needs:** A same-rate same-phase control (two rate-2 helpers, both phase 0) to isolate whether the phase offset is doing the work or whether "two rate-2 helpers" is sufficient on its own.
-
-**What it tests:** Whether temporal offset within the same timescale creates useful role differentiation — vs just having one rate-2 helper (C) or two rate-2 same-phase helpers (redundant, likely one prunes).
-
-**Open question:** If I works, is the mechanism temporal ensembling (two different-age predictions averaged) or phase specialization (each helper learns a different function because it sees the stream at different offsets)? Would need ablation studies to distinguish.
+**Open question:** If I works, is the mechanism temporal ensembling (two different-age predictions averaged) or phase specialization (each helper learns a different function because it sees the stream at different offsets)? Would need per-helper ablation to distinguish.
 
 ## What this does NOT cover
 

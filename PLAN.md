@@ -4,75 +4,33 @@ Immediate checklist. What's next, what I'll do based on each outcome. For the bi
 
 ## What just happened
 
-**E_grounded: stable but no benefit.** The full locality experiment series is now complete:
+**G_rate4_only: rate-4 is intrinsically too stale.**
 
-| Variant | Mean val_loss | vs A | Conclusion |
-|---------|--------------|------|-----------|
-| C_closed_loop (semi-local) | 1.665 | **-0.006** | CE through interface HELPS |
-| A_single | 1.670 | — | baseline |
-| B_spectator | 1.677 | +0.006 | extra params alone hurt |
-| **E_grounded (strict-local + local CE)** | **1.696** | **+0.026** | stable but hurts |
-| D_strict_local | 3.047 | +1.377 | COLLAPSED |
+| Variant | Seed 42 | Seed 43 | Mean | Δ vs A |
+|---------|---------|---------|------|--------|
+| A_single | 1.669 | 1.672 | 1.670 | — |
+| G_rate4_only | 1.662 | 1.666 | 1.664 | -0.006 |
 
-**What this settles:**
-1. D's collapse was caused by the ungrounded prediction target, NOT by locality itself (E proves this).
-2. Task-grounded strict-local IS viable (no collapse) but doesn't add value — predictions slightly hurt.
-3. The CE-through-interface gradient specifically teaches the predictor WHAT to predict. That's the mechanism that makes semi-local C beat A.
-4. **Neighborhood-local is the correct architecture.** Not because strict-local is impossible, but because the feedback gradient IS the value.
+Ablation gap = 0 at both seeds. Helper predictions are not contributing at inference. The -0.006 advantage over A is from the auxiliary loss acting as a mild regularizer during training. pred_loss *rises* over training (0.23 → 0.49) — the staleness signature. Rate-2 (C) can track its target; rate-4 cannot.
 
-The feedback gradient does two things: (a) prevents collapse (which local CE also does ✓), and (b) teaches which prediction dimensions are useful (which local CE does NOT do ✗). Only (b) actually helps performance.
+**This settles the G decision rules:** G ≈ A (neutral). Rate-4 predictions are too stale. F's instability was the multi-helper interaction under shared loss, not rate-4 being harmful per se.
 
-## What's next: discriminate rate-4 viability
+## Current experiment: I (phase offsets) — RUNNING
 
-### N=3 result: SEED-SENSITIVE (both seeds complete)
+**Question:** Can width help if both helpers operate at rate-2 but at different phases?
 
-**F_star_3block is not robust.** Seeds disagree in direction — one hurts badly, one helps:
+**Architecture:** 3 blocks. Block 0 at rate 1. Block 1 at rate 2, phase 0 (updates on even steps). Block 2 at rate 2, phase 1 (updates on odd steps). Per-helper prediction losses (no shared objective — the known coupling fix).
 
-| Variant | Seed 42 | Seed 43 | Mean | Range |
-|---------|---------|---------|------|-------|
-| A_single | 1.669 | 1.672 | 1.670 | 0.003 |
-| C_closed_loop | 1.660 | 1.669 | 1.665 | 0.009 |
-| **F_star_3block** | **1.702** | **1.659** | **1.681** | **0.044** |
-
-F-A per seed: seed 42 = +0.034, seed 43 = -0.013. **Seeds disagree in direction.**
-
-Both seeds: gain_2 → 0 (rate-4 helper always rejected). But death speed differs:
-- Seed 43: gain_2 crossed zero by step 5K (fast death → good result)
-- Seed 42: gain_2 lingered at -0.013 until step 9K (slow death → bad result)
-
-**The real finding is instability**, not consistent harm. F creates 15× more variance across seeds than A. Outcome appears to track how quickly helper 2 is pruned — consistent with a transient interference/coupling problem, but does not definitively prove the specific objective-mismatch mechanism from the interim analysis.
-
-**C remains robustly helpful** — both seeds agree in direction (seed agreement: YES).
-
-### Next discriminating experiment: G_rate4_only
-
-**Question:** Is rate-4 intrinsically harmful, or does the instability only manifest when combined with rate-2 under a shared prediction objective?
-
-**Test:** Run C_closed_loop but with a rate-4 helper instead of rate-2. Same everything else: 2 blocks, star topology, CE flows through interface.
+**Control:** I_control — same as I_phase_offset but both helpers at phase 0. Isolates whether phase diversity matters or whether "two rate-2 helpers" is sufficient.
 
 **Decision rules:**
-- **G_rate4_only ≈ C (both help vs A):** Rate-4 is viable in isolation! F's instability was purely the multi-helper coupling. Fix: per-helper prediction losses to remove the coupling.
-- **G_rate4_only ≈ A (neutral):** Rate-4 predictions are too stale to help alone. F's variance came from interaction with helper 1 during training.
-- **G_rate4_only > A (hurts):** Rate-4 is intrinsically bad — even in isolation it degrades training. Don't use high rates; try phase offsets instead.
-- **G_rate4_only collapses:** Something specific about rate-4 breaks the mechanism entirely. Investigate.
+- **I_phase_offset < A (helps) AND < I_control:** Phase offset creates useful role differentiation. Width + temporal diversity = the scaling path.
+- **I_phase_offset ≈ I_control < A:** Both help, offset doesn't matter. Width alone scales (just add more rate-2 helpers).
+- **I_phase_offset ≈ I_control ≈ A:** Per-helper losses removed the instability but helpers still get pruned under CE/gate competition. Would need alternating optimization.
+- **I_phase_offset > A (hurts):** Something about per-helper losses + multi-helper is intrinsically bad. Investigate.
 
-**Implementation DONE.** Rates are now configurable (dynamic from VariantSpec). Sanity-checked: G passes, A+C still work identically.
-
-**Launch command:**
-```
-& .\.venv\Scripts\python.exe -m runs.closed_loop_prediction --no-compile --variants A_single G_rate4_only --log-path experiments/wikitext_103/artifacts/closed_loop_prediction/run_g.jsonl --report-path experiments/wikitext_103/artifacts/closed_loop_prediction/report_g.json
-```
-
-### After G_rate4_only
-
-If G works (rate-4 viable in isolation), test **per-helper prediction loss** at N=3:
-- Each helper gets its own cosine loss against its own target segment
-- Removes the identifiability problem
-- If this makes both helpers contribute, we have a scaling path
-
-If G fails (rate-4 intrinsically bad), test **phase offsets** at N=3:
-- Two helpers both at rate=2, but on different phases (t%2==0 vs t%2==1)
-- Removes the "harder task" problem while still testing width composition
+**Running:** A_single + I_phase_offset + I_control, 2 seeds × 20K steps each. Started ~3:49pm. Expected ~60 min (~4:50pm).
+Log: `experiments/wikitext_103/artifacts/closed_loop_prediction/run_i.jsonl`
 
 ## Critical findings (carry forward)
 
@@ -84,32 +42,23 @@ If G fails (rate-4 intrinsically bad), test **phase offsets** at N=3:
 6. **Neighborhood-local is the correct architecture.** The minimum viable locality that actually helps.
 7. **The spectator problem is solved by role differentiation.** B hurts; closed-loop gives block 1 a unique function.
 8. **Predictive coding emerges spontaneously.** Gain goes negative — model subtracts predicted, processes surprise.
-9. **N=3 with shared prediction loss is seed-sensitive / unstable.** The auxiliary loss supervises `layernorm(prior_1 + prior_2)`, but the forward path uses helpers *separately* (`gain_1*LN(prior_1) + gain_2*LN(prior_2)`). This is a plausible coupling mechanism, but seed 43 contradicts the "F hurts" conclusion from seed 42. The established finding is: (a) rate-4 helper is always rejected (gain_2 → 0), (b) F creates 15× more variance than A, (c) outcome tracks how quickly helper 2 dies. Objective mismatch is hypothesis, not proven. Fix direction: per-helper prediction losses or remove the N>2 coupling entirely.
+9. **N=3 with shared prediction loss is seed-sensitive / unstable.** Coupling between helpers under shared aux loss. Rate-4 helper always dies; instability comes from how quickly.
+10. **Rate-4 is intrinsically too stale (G ≈ A).** pred_loss rises over training. Ablation gap = 0. The staleness limit is somewhere between rate-2 (works) and rate-4 (too slow to track).
 
 ## Queue
 
-- **G_rate4_only discriminator** — READY TO LAUNCH (implemented, sanity-checked)
-- Transformer matched-param baseline — **READY TO LAUNCH** (`runs/transformer_baseline.py`, 2.856M params, CPU-verified)
-- Per-helper prediction loss (if G shows rate-4 is viable)
-- Phase offsets at N=3 (if G shows rate-4 is intrinsically bad)
+- **I (phase offsets)** — RUNNING NOW
+- Transformer matched-param baseline — `runs/transformer_baseline.py`, 2.856M params, ready to launch after I
 - Named/typed tensor dimensions
-- Graph architecture exploration (from dictation 2026-05-24-1) — see `research/questions/graph-architecture/README.md` for N=8 scaling analysis
+- Graph architecture exploration (from dictation 2026-05-24-1) — see `research/questions/graph-architecture/README.md`
 - Hierarchical dynamic tokenization (from dictation 2026-05-24-3) — queued, not active
-
-## Current run: G_rate4_only (launched ~2:55pm)
-
-Running A_single + G_rate4_only, 2 seeds × 20K steps. Estimated completion ~3:30pm.
-
-After G completes:
-1. Analyze per decision rules above
-2. Update local-learning-variants README and daily report
-3. Run transformer baseline (`runs/transformer_baseline.py`, 2.856M params)
-4. Commit results
 
 ## Key completed findings
 
 | Experiment | Result | Notes |
 |---|---|---|
+| **G_rate4_only** | **G ≈ A, ablation gap 0** | Rate-4 too stale; auxiliary loss regularizes slightly |
+| **F_star_3block** | **SEED-SENSITIVE** (range 0.044) | Shared loss coupling, not rate-4 per se |
 | **E_grounded** | **STABLE, +0.026 vs A** | Task-grounded strict-local doesn't collapse but doesn't help |
 | **D_strict_local** | **COLLAPSE** (+1.38) | Full-state local prediction fails |
 | **C_closed_loop (v3)** | **C < A by 0.006** (2 seeds) | Semi-local mechanism works |
