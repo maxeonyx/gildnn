@@ -146,17 +146,24 @@ This is predictive coding applied laterally. The prediction error is the local s
 - A compression of block 0's *history* (which block 0 can't store in one vector)
 - A higher-level pattern that explains multiple timesteps of block 0's output
 
-### What the agent should investigate next
+### Immediate next step: Phase 5 prediction targets
+
+Concrete experiments are designed in [`research/questions/local-learning-variants/README.md`](../local-learning-variants/README.md) — see Phase 5 (J/K/L variants). These test Max's framing directly:
+- J: predict a 4-step-old window summary of block 0's history
+- K: predict the nonlocal residue (older context minus recent context)
+- L: predict a future 4-token chunk code
+
+All three keep the semi-local architecture (CE through interface) while changing the prediction target. This tests whether the -0.006 benefit ceiling is a target problem (full-state is redundant info block 0 already has) or an interface problem (the gate can only carry ~0.006 nats regardless).
+
+### Longer-term investigations
 
 1. **Literature deep-dive on predictive coding implementations** — specifically Whittington & Bogacz 2017, Millidge et al. 2021, and any 2023-2025 work on scaling predictive coding to language models or sequential tasks.
 
 2. **Target propagation feasibility** — can the task-adjacent block compute useful targets for the lateral signal it receives? What does the inverse mapping look like for this architecture?
 
-3. **What "information from longer ago" means concretely** — if block 1's value is temporal context, what representation of history is both compressible into a fixed-size output AND useful for next-token prediction? This is basically the bottleneck question from dictation 2026-05-24-3.
+3. **The connection to dynamic hierarchical prediction** — if each block operates at a different timescale (per the autoregressive autoencoder vision in dictation 2026-05-24-3), then each level's "local learning" is just next-chunk prediction at its own level. The hierarchy provides the alignment signal naturally: level K's prediction errors are level K+1's input.
 
-4. **The connection to dynamic hierarchical prediction** — if each block operates at a different timescale (per the autoregressive autoencoder vision in dictation 2026-05-24-3), then each level's "local learning" is just next-chunk prediction at its own level. The hierarchy provides the alignment signal naturally: level K's prediction errors are level K+1's input.
-
-5. **Simple experiments:** Can a 2-block system beat a 1-block system when block 1 is trained with LOCAL prediction error only (not CE-through-interface), BUT its prediction target is specifically "something block 0 doesn't already know" (e.g. predict token at t+5 given only block 0's states at t-3, t-2, t-1)?
+4. **Good target + strict-local:** If Phase 5 shows that a better target significantly helps under semi-local, follow-up: does the same target also work under strict-local (prediction error only, no CE through interface)? This would test whether a *well-chosen target* removes the need for task-gradient shaping entirely. The earlier E_grounded failure was with a bad target (full-state); a good target might change the outcome.
 
 ---
 
