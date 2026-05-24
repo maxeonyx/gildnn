@@ -19,7 +19,7 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 **Seed 43 IN PROGRESS:**
 - A_single: **1.845** (consistent with seed 42) ✅
 - tied_8iter: **2.549** ⚠️ **CATASTROPHIC FAILURE** — 0.751 nats worse than seed 42 (1.798)
-- distinct_matched: RUNNING (just started)
+- distinct_matched: RUNNING (step 3K, val_loss 2.342 — healthy decline, tracking seed 42)
 - distinct_rich: pending
 
 **⚠️ CRITICAL FINDING: tied_8iter is training-unstable across seeds.**
