@@ -1,72 +1,94 @@
 # Plan
 
-Immediate checklist. What's next, what I'll do based on each outcome. For the bigger picture, read VISION.md.
+Working notes. Current state, what's been done, what's next. Updated every session.
 
-## What just happened
+---
 
-**Phase 5 J: TARGET WAS THE BOTTLENECK. Older-window prediction works.**
+## Current state (2026-05-24)
 
-| Variant | Seed 42 | Seed 43 | Mean | Δ vs A | std |
-|---------|---------|---------|------|--------|-----|
-| A_single | 1.669 | 1.672 | 1.670 | — | 0.0015 |
-| C_closed_loop | 1.660 | 1.669 | 1.665 | -0.006 | 0.0047 |
-| **J_older_window** | **1.660** | **1.660** | **1.660** | **-0.010** | **0.00009** |
+The loop agent has been running "closed loop prediction" experiments (variants A through J) for several days. These tested whether a 2-block architecture with a prediction mechanism could outperform a single block.
 
-Key metrics at 20K steps (both seeds):
-- **pred_loss**: 0.165 (vs C's 0.29 — target is 2× more learnable)
-- **mix_coeff**: -0.065 (predictive coding — same mechanism as C)
-- **ablation_gap**: 0.182/0.193 (load-bearing at inference)
-- **std across seeds**: 0.00009 (vs C's 0.005 — 53× more reliable)
+**The honest assessment:** These experiments were a local optimization loop that lost connection to the project vision. The agent found a small signal (C: -0.006 nats) and spent many GPU-hours trying to amplify it (D, E, F, G, H, I, J) without asking whether the direction leads anywhere. Experiment J ("J_older_window") achieved -0.010 nats — statistically reliable but practically meaningless. The mechanism is architecturally incoherent (predicts past states, uses current input with zero propagation delay, negative gain emerged ad-hoc). It doesn't connect to any pathway in the roadmap in a principled way.
 
-**What this means:** Predicting "something block 0 couldn't already know" (mean of older states) IS genuinely more useful than predicting block 0's current state. The improvement is modest in absolute terms (-0.010 vs -0.006) but the mechanism is dramatically more reliable. C's apparent -0.006 mean was depressed by seed variance; J eliminates that variance entirely.
+**What we DO have from this work:**
+- A working experiment framework (training loop, evaluation, multi-seed, ablation, JSONL logging, CUDA graphs)
+- Evidence that strict-local learning collapses with ungrounded targets
+- Evidence that neighborhood-local (semi-local) helps slightly
+- Evidence that the prediction TARGET matters more than the topology
+- Evidence that multi-rate [1,2,4,8] provides an inductive bias (better val_loss per compute step)
+- Evidence of ~28% block concurrency on RTX 3090 with simple CUDA stream API
+- A 10.8x training speedup from CUDA graph compilation
 
-**Decision rule triggered:** J < C → Scale further.
+**What we DON'T have:**
+- A transformer baseline achieving expected published results on our dataset
+- Any experiment with principled local learning (predictive coding, target propagation, etc.)
+- Any experiment with real propagation delay (block N only sees block N-1's PREVIOUS output)
+- Any custom CUDA work testing true async concurrency
+- Any experiment at context lengths >128
+- Any experiment where interior blocks DON'T see block 0's current output
 
-## Current: Next experiment — J_far_window (offset 9-12)
+---
 
-All Phase 1-5 experiments ran at **ctx=128** (not ctx=32 — that was the old spectator architecture). The older-window target (positions 5-8 back) works. Now: what scales it?
+## The agent's working loop
 
-**Natural scaling axes:**
-1. **Temporal separation** — try farther-back windows (9-12, then 17-24). At ctx=128, plenty of room. Find where target becomes stale vs remains useful.
-2. **Context length** — already at 128. Scaling to 256/512 is the next tier but changes many things. Later.
-3. **Helper diversity** — multiple helpers with different windows (e.g. one at 5-8, one at 17-24)
-4. **Model size** — only after the above are explored
+This is the loop the agent should follow. Not a phase plan — a loop with exit conditions and redirect paths.
 
-**Immediate next steps:**
-1. ✅ Transformer matched-param baseline — partial (13K steps, killed). val_loss=1.683 at step 13K. Rerun later.
-2. ✅ J_far_window implemented (offset=12, size=4) — sanity check passes
-3. ✅ **J_far_window full run LAUNCHED** — A_single + J_far_window, 2 seeds, 20K steps (PID 4516, ETA ~00:30)
+```
+ORIENT → CHOOSE → THEORY → RUN → ANALYZE → CHECK → (loop or redirect)
+```
 
-## Queue
+**Orient:** Read PLAN.md, check time/reports, check active runs. Understand where we are.
 
-- **J_far_window full run** — RUNNING (active.lock set, ETA ~22:35)
-- J_fixed_embedding — already in code, tests external vs self-generated target. **Most discriminating next experiment regardless of J_far outcome.**
-- J_strict_local — NEW: older-window target + strict-local (no CE through interface). Tests whether a good target rescues strict-local. If yes → true parallelism possible.
-- Wider temporal separation (offset=20 or 24) — if J_far shows plateau or improvement
-- Multi-helper with different offsets (N=3, helpers at offset 5-8 and 9-12) — tests temporal band composition
-- Transformer baseline (proper full run) — partial run killed at 13K, val_loss 1.683 on track
-- Graph architecture exploration (from dictation 2026-05-24-1) — see `research/questions/graph-architecture/README.md`
-- Hierarchical dynamic tokenization (from dictation 2026-05-24-3) — queued, not active
+**Choose:** Pick the cheapest useful next step that advances a ROADMAP pathway. If unsure, prefer:
+- Pathways that haven't been tested at all (breadth > depth on marginal signals)
+- Missing baselines (we need grounding before more custom work)
+- Theory work over another experiment if the question isn't clear yet
 
-## Key completed findings
+**Theory:** Before running, write the hypothesis. What do we expect? What would increase/decrease confidence? Is this actually the cheapest test?
 
-| Experiment | Result | Notes |
-|---|---|---|
-| **J_older_window** | **J < A by 0.010, std 0.00009** | Target was the bottleneck; older memory works |
-| **I_phase_offset** | **I ≈ A - 0.006** | Width saturates at same target |
-| **G_rate4_only** | **G ≈ A, ablation gap 0** | Rate-4 too stale; auxiliary loss regularizes slightly |
-| **F_star_3block** | **SEED-SENSITIVE** (range 0.044) | Shared loss coupling, not rate-4 per se |
-| **E_grounded** | **STABLE, +0.026 vs A** | Task-grounded strict-local doesn't collapse but doesn't help |
-| **D_strict_local** | **COLLAPSE** (+1.38) | Full-state local prediction fails |
-| **C_closed_loop (v3)** | **C < A by 0.006** (2 seeds) | Semi-local mechanism works |
-| **Closed-loop v1** | **COLLAPSE** (+1.47) | pred_loss trained block 0 to be constant |
-| **Closed-loop v2** | **COLLAPSE → NaN** | MixAdd 31.6% prior = stable collapsed fixed point |
-| ctx=128 corrected | **HURTS** (+0.014) | Spectator worse at longer context |
-| ctx=128 ensemble | Tiny benefit (-0.020) | Was -0.101 at ctx=32; collapses |
-| ctx=32 baseline | B wins (-0.101), C≈A | Spectator on corrected arch |
-| ctx=32 local aux loss | **NULL** (+0.003) | Gradient isn't the problem |
-| ctx=32 equal readout | **HURTS** (+0.024) | Information poverty confirmed |
-| ctx=32 temporal window | **NULL** (+0.003) | Learned projection of history doesn't help |
-| Bidirectional top-down | **HURTS** | TinyShakespeare |
-| CUDA Graph training | 10.86× speedup | GraphTrainer in core/ |
-| Self-prediction | NULL | Zero effect |
+**Run:** Execute. Follow visibility and background-execution rules.
+
+**Analyze:** What happened? What does it teach about the pathway?
+
+**CHECK (exit conditions):**
+- Is the result meaningful (>0.05 nats, or qualitatively informative)?
+  - YES → record, continue on this pathway
+  - NO → record what we learned, REDIRECT to a different pathway or a different approach
+- Is the next experiment on this pathway still the cheapest useful thing?
+  - YES → iterate
+  - NO → redirect to whatever IS cheapest
+- Am I amplifying a marginal signal?
+  - YES → STOP. This is the primary failure mode. Record and redirect.
+
+---
+
+## What should happen next
+
+Priority order (not a sequence — pick whichever is cheapest to do honestly right now):
+
+1. **Transformer baseline** on WikiText-103 at d=256, ctx=128+. Non-negotiable — we can't interpret custom results without it. (Supports all pathways.)
+
+2. **Propagation-delay experiment** — the actual architecture vision, never tested correctly. Block 0 gets tokens. Block 1 sees block 0's output from PREVIOUS timestep only. Block 1's local loss: predict own next input. (Pathway 4: Self-Prediction + Pathway 2: Local Learning.)
+
+3. **Gradient radius sweep** — same architecture, vary stop-gradient window from k=1 through k=full. Find the knee. (Pathway 2: Local Learning, Step 2 from worked example.)
+
+4. **Muon optimizer swap** — may fix the k=8/k=16 instability that was previously observed. Quick to test. (Pathway 7: Norm-Preserving.)
+
+5. **Context length scaling** — ctx=256, 512. Needed for multi-rate to be meaningful. (Pathway 3: Multi-Rate.)
+
+6. **Custom CUDA concurrency test** — can two independent matmuls actually overlap on the 3090? (Pathway 1: Async Execution.)
+
+---
+
+## Completed work (reference)
+
+| What | Pathway | Result | Interpretation |
+|---|---|---|---|
+| Multi-rate [1,2,4,8] (corrected arch) | 3 | Spectator problem | Block 0 sees all tokens → no specialization pressure |
+| Closed-loop C (semi-local) | 2, 4 | -0.006 nats, no ablation gap | Regularization only — not a real mechanism |
+| Closed-loop D (strict local) | 2 | Collapsed (+1.38) | Strict local with ungrounded target is dead |
+| Closed-loop E (grounded local CE) | 2 | Stable, +0.026 | Doesn't collapse but doesn't help |
+| Closed-loop J (older window) | — | -0.010, ablation gap 0.18 | Load-bearing but architecturally incoherent. Not on any pathway. |
+| CUDA graph training | infrastructure | 10.8x speedup | Working, in core/ |
+| Async hardware measurement | 1 | 28% block concurrency | CUDA streams — too high-level, needs custom CUDA |
+| Backend choice | infrastructure | PyTorch + torch.compile | Decided |

@@ -84,9 +84,10 @@ Evidence in question READMEs must be **embedded inline** in the markdown (tables
 
 | File/Dir | Purpose | Read when |
 |---|---|---|
-| `VISION.md` | Overall research architecture — what pieces, what experiments, what order | Starting fresh, orienting on goals |
+| `VISION.md` | What the final model should DO and BE — stakeholder requirements. **Do not edit without Max asking.** | Starting fresh, orienting on goals |
+| `ROADMAP.md` | Research pathways toward the vision — directions to explore, hypotheses, connections. **Do not edit without Max asking.** | Choosing what to work on, understanding the bigger picture |
 | `PROCESS.md` | How work is done — experiment discipline, loop, reporting | Deciding how to proceed |
-| `PLAN.md` | Immediate checklist — what's next, what to do based on each outcome | Picking up after a handover |
+| `PLAN.md` | Working notes — current state, what's been done, what's next. Edit freely, keep up to date. | Picking up after a handover |
 | `loop.ps1` | Outer restart loop — uses Task Scheduler (NOT terminal child). Do not revert to terminal-based loop. **To stop: `.\loop.ps1 stop` — this is the ONLY way to stop the loop. NEVER manually kill opencode processes by PID; you will kill unrelated sessions. To restart: `.\loop.ps1`** | Understanding how the loop works |
 | `research/daily/` | Daily output narratives for Max | Reviewing recent progress |
 | `research/weekly/` | Weekly synthesis narratives for Max | Weekly review |
@@ -99,6 +100,8 @@ Evidence in question READMEs must be **embedded inline** in the markdown (tables
 | `runs/` | Training run logs and lock file | Checking on active/recent runs |
 
 ## Core rules
+
+**Every experiment must connect to a ROADMAP pathway.** Before running any experiment, name which pathway it advances and what the exit condition is. If you can't, stop and redirect. Do NOT amplify marginal signals — the correct response to a 0.01 nat improvement is "interesting, what does this teach us?" not "how do I make this bigger?" See PROCESS.md for the full experiment loop with exit conditions.
 
 **Check the time on every session start.** If it's after 4pm and no daily report exists for today in `research/daily/`, write it before starting new work. If it's after 4pm Thursday and no weekly report exists for this week in `research/weekly/`, write that too. See `research/AGENTS.md` for the report process.
 

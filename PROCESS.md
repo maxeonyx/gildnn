@@ -119,13 +119,13 @@ Fill in results, next steps, and reasons for deferral as the experiment proceeds
 
 ### Before starting a new experiment
 
-Do not do a formal selection ritual.
+Before committing to an experiment, answer these questions:
 
-Just make sure you can answer, briefly:
-
+- **Which ROADMAP pathway does this advance?** If you can't name one, stop.
 - What question am I trying to answer?
 - What is the cheapest experiment that could teach me something about it?
-- What evidence do I need to save?
+- What result would INCREASE confidence in this pathway?
+- What result would DECREASE confidence — and what would I do then?
 - What will this experiment **not** settle?
 
 If those answers are obvious from context, just proceed. If they are not obvious, write 3–6 bullets in the relevant question folder, task file, or commit message and move on.
@@ -142,6 +142,42 @@ Good outcomes:
 - discovering that the current framing was wrong and replacing it with a simpler one
 
 Ambiguity is allowed. Failure is allowed. Needing to restart from a simpler version is allowed.
+
+### The experiment loop (not a linear plan)
+
+An experiment thread is a **loop with exit conditions**, not a sequence of phases. The agent must be able to redirect at every iteration.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ EXPERIMENT LOOP                                             │
+│                                                             │
+│  1. Choose: which roadmap pathway? What's cheapest honest   │
+│     test for the next unknown?                              │
+│                                                             │
+│  2. Theory: what do we expect? What would confirm/deny?     │
+│     Write the hypothesis before running.                    │
+│                                                             │
+│  3. Run: smallest experiment that discriminates.            │
+│                                                             │
+│  4. Analyze: what actually happened? Does it match          │
+│     expectations?                                           │
+│                                                             │
+│  5. CHECK (exit conditions):                                │
+│     - Did we learn something meaningful? → Record it.       │
+│     - Is the pathway still viable? → Continue or demote.    │
+│     - Is the NEXT experiment on this pathway the cheapest   │
+│       useful thing? Or has another pathway become cheaper?  │
+│     - Are we amplifying a marginal signal instead of        │
+│       testing something new? → REDIRECT.                    │
+│                                                             │
+│  6. If check fails → go back to step 1 with new info.      │
+│     If check passes → iterate (step 2 with next question).  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**The critical exit condition:** If an experiment produces a marginal result (<0.05 nats improvement over baseline on a task where the baseline is 1.5+), do NOT iterate on the same mechanism hoping to amplify it. Instead: record the result, ask what it teaches about the pathway, and choose the next cheapest test — which may be on a DIFFERENT pathway.
+
+Spending multiple sessions amplifying a small signal is the primary failure mode of this project's loop agent. The correct response to a marginal result is "interesting, what does this tell us? what's next?" not "how do I make this number bigger?"
 
 ### Starting point for any new capability
 
