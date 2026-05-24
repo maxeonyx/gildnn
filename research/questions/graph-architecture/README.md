@@ -25,14 +25,16 @@ Block 0 ←── predictions via additive gain
 - Predictions feed back through additive zero-init gain (CE flows backward through this interface)
 - This is a **star topology** with block 0 at the center
 
-## The N=3 result (pending)
+## The N=3 result (HURTS — seed 42 complete, seed 43 in progress)
 
 First topology test: does adding a second helper (2-spoke star vs 1-spoke) improve on N=2?
 
-- N=2 (variant C): val_loss 1.665, beats A_single (1.670) by 0.006
-- N=3 (variant F_star_3block): running now
+- N=2 (variant C): val_loss 1.660, beats A_single (1.669) by 0.009
+- **N=3 (variant F_star_3block): val_loss 1.702, WORSE than A by 0.033**
 
-See `local-learning-variants/README.md` for decision rules.
+Helper 2 (rate=4) was actively rejected: gain_2 went from -0.013 at step 5K to +0.0002 at step 20K (crossed zero — completely dead). Meanwhile gain_1 grew to -0.082 (larger than C's -0.071).
+
+Root cause: objective mismatch in the prediction loss. See PLAN.md finding #9 and the decision rules below.
 
 ## Scaling to N=8+: design analysis
 
@@ -86,9 +88,12 @@ Many additive corrections may create unstable co-adaptation (helpers learning to
 1. Phase offsets at same N=3
 2. Or different input views (helper reads different temporal window of s0 history)
 
-**If N=3 hurts:** Suspect interface interference. Try:
-1. Normalized aggregation instead of raw sum
-2. Or reduce to understanding why 2 helpers is worse than 1
+**If N=3 hurts:** ← **THIS HAPPENED.** Mechanism identified: the auxiliary prediction loss supervises `layernorm(prior_1 + prior_2)` (the sum), but the forward path uses helpers separately (`gain_1*LN(prior_1) + gain_2*LN(prior_2)`). This objective mismatch means the pred_loss can improve while CE gets worse. Helper 2's noise in the sum corrupts the gradient for helper 1's predictions, even after gain_2 → 0.
+
+Discriminating next steps:
+1. **G_rate4_only** — run rate-4 helper in isolation to test whether rate-4 predictions are intrinsically viable
+2. If rate-4 is viable: **per-helper prediction loss** — each helper gets its own cosine loss against state0, computed independently. Removes the sum-based identifiability problem and the gradient contamination.
+3. If rate-4 is not viable: **phase offsets** — two helpers both at rate=2 but on different phases (t%2==0 vs t%2==1)
 
 ## Historical context: earlier topology designs (2026-05-08 era)
 
