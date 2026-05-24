@@ -6,12 +6,14 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ## Current state (2026-05-25)
 
-**Pathway 3 tested at tiny rung — spectator result.** The propagation-delay 2-block architecture was tested at TinyShakespeare ctx=32. Key findings:
-- Hardcoded 0.5 lateral mixing is destructive (2-block worse than 1-block by +0.124 nats)
-- Zero-init learnable gate fixes the interface, but block B is a spectator regardless (+0.002 nats ablation)
-- The task is too easy for 1 block to benefit from a second block
-- Local learning cannot be tested until a regime exists where B helps under full backprop
-- **Next: scale to WikiText-103 ctx=128** where 1 block should be insufficient
+**Gated multi-block experiment running.** Testing whether zero-init learnable gates fix the lateral spectator problem at WikiText-103 ctx=128. Prior session discovered existing ctx128_corrected data showing spectator persists with hardcoded 0.5 mixing at this scale. C_old (token_injection=all) proves blocks CAN help (+0.02 nats). The gated experiment discriminates: is the problem the interface or is lateral-only fundamentally weak?
+
+**Background run active:** `experiments/gated_wikitext/run.py`, PID 23572, logging to `experiments/gated_wikitext/artifacts.ignore/run.jsonl`. A_single tracking existing results perfectly. Expected completion: ~04:20-04:30 NZST.
+
+Key findings so far this session:
+- PLAN.md priorities were wrong: the "scale to WikiText-103 ctx=128" experiment had ALREADY been partially done (ctx128_corrected results)
+- Corrected priorities: gated multi-block is the discriminating test, not raw scaling
+- Propagation-delay README updated with existing evidence
 
 **What we have:**
 - Working experiment infrastructure (training loop, eval, multi-seed, ablation, JSONL logs, CUDA graphs)
