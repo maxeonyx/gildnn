@@ -15,13 +15,29 @@ Ablation gap = 0 at both seeds. Helper predictions are not contributing at infer
 
 **This settles the G decision rules:** G ≈ A (neutral). Rate-4 predictions are too stale. F's instability was the multi-helper interaction under shared loss, not rate-4 being harmful per se.
 
-## Current: Phase 5 implementation (J — older-window target)
+## Current: Phase 5 J run (BLOCKED ON GPU — game running)
 
 **I result (seed 42 complete, seed 43 interrupted at step 13K by GPU use):**
 - I_phase_offset ≈ I_control ≈ A - 0.006. Width saturates. Target is the bottleneck.
 - Seed 43 A_single confirmed (1.672). I_phase_offset seed 43 was tracking identically before interruption.
 - Pattern matches ALL prior experiments (C, G, I all give -0.006). Effectively resolved.
-- Formal seed 43 completion deferred to next available GPU window.
+
+**Phase 5 code: IMPLEMENTED.** `J_older_window` and `J_fixed_embedding` variants in `runs/closed_loop_prediction.py`.
+
+**When GPU becomes available:**
+
+1. Sanity check (~2-3 min):
+   ```
+   & .\.venv\Scripts\python.exe -m runs.closed_loop_prediction --sanity-check --variants J_older_window --no-compile
+   ```
+
+2. Full run (~68 min, background):
+   ```
+   $cmd = "cd /d C:\Users\maxeo\gildnn && .venv\Scripts\python.exe -u -m runs.closed_loop_prediction --no-compile --variants A_single J_older_window --log-path experiments/wikitext_103/artifacts/closed_loop_prediction/run_j.jsonl --report-path experiments/wikitext_103/artifacts/closed_loop_prediction/report_j.json > NUL 2>&1"
+   $proc = Start-Process -FilePath "cmd.exe" -ArgumentList "/c", $cmd -WindowStyle Hidden -PassThru
+   ```
+
+3. Write active.lock with PIDs and ETA.
 
 **Phase 5 J:** Change the prediction target from "full block-0 state" (which block 0 already knows) to "mean of block-0 states from 5-8 steps ago" (older context block 0 may not preserve). This directly tests Max's framing: "predict something block 0 couldn't already know — information from a longer time ago."
 
@@ -47,11 +63,12 @@ Ablation gap = 0 at both seeds. Helper predictions are not contributing at infer
 
 ## Queue
 
-- **I (phase offsets)** — DONE (seed 42 complete; seed 43 interrupted at step 13K by GPU use, deferred)
-- ~~Transformer matched-param baseline~~ — blocked on GPU (Max gaming)
-- **Phase 5: prediction target change** (J first) — IMPLEMENTING NOW (code changes, no GPU needed)
+- **Phase 5 J run** — BLOCKED ON GPU (sanity check + full run ready, commands in section above)
 - Transformer matched-param baseline — `runs/transformer_baseline.py`, 2.856M params, launch when GPU free
-- I seed 43 completion — rerun when GPU free (low priority, pattern already clear)
+- I seed 43 completion — low priority, pattern already clear
+- Named/typed tensor dimensions
+- Graph architecture exploration (from dictation 2026-05-24-1) — blocked on Phase 5 results
+- Hierarchical dynamic tokenization (from dictation 2026-05-24-3) — queued, not active
 - Named/typed tensor dimensions
 - Graph architecture exploration (from dictation 2026-05-24-1) — see `research/questions/graph-architecture/README.md`
 - Hierarchical dynamic tokenization (from dictation 2026-05-24-3) — queued, not active
