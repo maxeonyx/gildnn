@@ -293,6 +293,17 @@ def variant_specs() -> dict[str, VariantSpec]:
             prediction_target="older_window",
             strict_local=True,
         ),
+        "J_fixed_strict_local": VariantSpec(
+            key="J_fixed_strict_local",
+            label="closed_loop_prediction_J_fixed_strict_local",
+            num_blocks=2,
+            rates=(1, 2),
+            phases=(0, 0),
+            readout_mode="block0",
+            closed_loop=True,
+            prediction_target="fixed_embedding",
+            strict_local=True,
+        ),
     }
 
 

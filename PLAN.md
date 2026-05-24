@@ -4,26 +4,31 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current state (2026-05-24 evening)
+## Current state (2026-05-25 midnight)
 
-**Phase 5 J (older-window prediction target) is confirmed and Max has endorsed the direction.** Block 1 predicting `mean(h_{t-8}..h_{t-5})` gives -0.010 with 53× less seed variance than the prior full-state approach. Per [dictation 2026-05-24-5](dictations/2026-05-24-5.md): "Block one should learn to predict something about block zero that block zero couldn't already know." Per [dictation 2026-05-24-7](dictations/2026-05-24-7.md): "Interesting, it's quite a dumb idea, but I like it."
+**J_fixed_embedding COMPLETE — token embeddings work as well as hidden states.** Δ=-0.012, std=0.0006. This is slightly BETTER than J_older_window's -0.010. The helper's value is temporal memory — "what tokens were here before" — not block 0's learned representations specifically. The target is external and doesn't depend on block 0's hidden state.
 
-**J_far_window COMPLETE — offset sensitivity is gentle inverted-U.** Offset 12 gives -0.007 (vs J's -0.010 at offset 8). Still above the old -0.006 ceiling, still seed-robust (std 0.0003). The useful temporal band is broad, not a sharp peak. Different offsets carry somewhat different information (different pred_loss values). This motivates the dual-band multi-helper experiment.
+**Key implication:** Since the target is externally anchored (doesn't depend on block 0), it might work with strict-local training — removing the co-adaptation failure mode that killed D_strict_local.
 
-**GPU is now FREE.** Next experiment: J_fixed_embedding.
+**J_strict_local + J_fixed_strict_local running now** (ETA ~01:20 NZST). Tests both strict-local variants:
+- J_strict_local: older-window target + no CE through interface
+- J_fixed_strict_local: fixed-embedding target + no CE through interface
+
+If J_fixed_strict_local works where J_strict_local fails, that confirms the external anchor is what makes strict-local viable → path to true parallelism.
 
 **What we have:**
 - A working experiment framework (multi-seed, JSONL logs, CUDA graphs, ablation metrics)
 - A confirmed mechanism: older-window prediction provides block 0 with useful missing context
+- Evidence that the helper's role is TEMPORAL MEMORY, not representation-specific
 - Evidence that strict-local collapses, semi-local works, and the target matters more than topology
 - The graph scaling path reopened: multiple helpers with different temporal bands
 - A 10.8x training speedup from CUDA graph compilation
 
 **What we still need:**
-- A full transformer baseline (partial run: 1.683 at 13K steps, on track but killed for GPU use)
-- J_fixed_embedding: separates "older content" from "older hidden-state codes specifically"
-- Multi-helper with different offsets: tests whether temporal bands compose
-- J_strict_local: tests whether the good target rescues true locality (no CE through interface)
+- J_strict_local + J_fixed_strict_local results (RUNNING NOW)
+- J_dual_band: do temporal bands compose? (implemented, ready)
+- Transformer baseline (partial run: 1.683 at 13K, on track but killed)
+- Propagation-delay experiment (true architecture vision)
 
 ---
 
@@ -64,15 +69,13 @@ ORIENT → CHOOSE → THEORY → RUN → ANALYZE → CHECK → (loop or redirect
 
 Priority order (not a sequence — pick whichever is cheapest to do honestly right now):
 
-1. **J_fixed_embedding** — most discriminating next experiment. Separates temporal-memory hypothesis (older content helps) from representation-specific hypothesis (older hidden-state codes specifically help). Already implemented.
+1. **Analyse J_strict_local + J_fixed_strict_local** — RUNNING (ETA ~01:20). This is the most important result pending. If J_fixed_strict_local works → path to true parallelism opens.
 
 2. **Dual-band width test (J_dual_band)** — two rate-2 helpers at offsets (8,12). Required control: `J_dual_same_band` with offsets (8,8). Tests whether temporal bands compose. **Implementation DONE** — sanity-checked and committed.
 
-3. **J_strict_local** — older-window target + strict-local (fully detached feedback). Tests whether a good target rescues true parallelism. Already implemented.
+3. **Transformer baseline** on WikiText-103 at d=256, ctx=128. Non-negotiable for interpreting custom results. Partial run was on track (1.683 at 13K).
 
-4. **Transformer baseline** on WikiText-103 at d=256, ctx=128. Non-negotiable for interpreting custom results. Partial run was on track (1.683 at 13K).
-
-5. **Propagation-delay experiment** — the true architecture vision. Block 1 sees block 0's output from PREVIOUS timestep only. Never tested correctly.
+4. **Propagation-delay experiment** — the true architecture vision. Block 1 sees block 0's output from PREVIOUS timestep only. Never tested correctly.
 
 ---
 
@@ -82,6 +85,7 @@ Priority order (not a sequence — pick whichever is cheapest to do honestly rig
 |---|---|---|
 | **J_older_window** | **-0.010, std 0.00009** | Target was the bottleneck; older memory provides useful missing context |
 | **J_far_window** | **-0.007, std 0.0003** | Offset sensitivity is gentle inverted-U; plateau from 8 to 12 |
+| **J_fixed_embedding** | **-0.012, std 0.0006** | Token embeddings ≥ hidden states; helper's role is temporal memory |
 | I_phase_offset | -0.006, width saturates | Two helpers predicting same target are redundant |
 | G_rate4_only | ≈ A, ablation gap 0 | Rate-4 too stale for this architecture |
 | F_star_3block | SEED-SENSITIVE | Shared loss coupling, rate-4 auto-rejected |
