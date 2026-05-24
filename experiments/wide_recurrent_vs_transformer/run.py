@@ -138,12 +138,18 @@ class TiedDepthTransformer(nn.Module):
         self,
         tokens: Int[Tensor, "batch context"],
     ) -> list[Float[Tensor, "batch vocab"]]:
+        return [logits[:, -1, :] for logits in self.depth_logits_all_positions(tokens)]
+
+    def depth_logits_all_positions(
+        self,
+        tokens: Int[Tensor, "batch context"],
+    ) -> list[Float[Tensor, "batch context vocab"]]:
         stream = self.embedded_tokens(tokens)
         logits_by_depth: list[Tensor] = []
         for depth_index in range(self.config.depth):
             stream = stream + self.attention(self.attention_norms[depth_index](stream))
             stream = stream + self.feedforward(self.feedforward_norms[depth_index](stream))
-            final_state = self.final_norm(stream[:, -1, :])
+            final_state = self.final_norm(stream)
             logits_by_depth.append(self.lm_head(final_state))
         return logits_by_depth
 
@@ -594,6 +600,7 @@ def train_full_run(
     device: torch.device,
     config: RunConfig,
     vocab_size: int,
+    checkpoint_path: Path | None = None,
 ) -> dict[str, object]:
     set_seed(config.seed)
     model = TiedDepthTransformer(vocab_size=vocab_size, config=config).to(device)
@@ -682,6 +689,9 @@ def train_full_run(
         length=config.sample_length,
         device=device,
     )
+    if checkpoint_path is not None:
+        checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+        torch.save(model.state_dict(), checkpoint_path)
     return {
         "learning_rate": learning_rate,
         "parameter_count": parameter_count,
