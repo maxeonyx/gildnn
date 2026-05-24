@@ -6,7 +6,12 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ## Current state (2026-05-25)
 
-**Pathway 1 validated at tiny rung.** The tied-depth transformer (same MHA+FFN weights applied N times) matches a distinct-layer transformer exactly — no quality cost for weight sharing. Iteration scaling tested through 12 depths with no catastrophic instability; quality peaks around 8 iterations. Pathway 5 (dynamic depth) probe was inconclusive — heterogeneity in per-token marginal gains exists but the measurement methodology was flawed.
+**Pathway 3 tested at tiny rung — spectator result.** The propagation-delay 2-block architecture was tested at TinyShakespeare ctx=32. Key findings:
+- Hardcoded 0.5 lateral mixing is destructive (2-block worse than 1-block by +0.124 nats)
+- Zero-init learnable gate fixes the interface, but block B is a spectator regardless (+0.002 nats ablation)
+- The task is too easy for 1 block to benefit from a second block
+- Local learning cannot be tested until a regime exists where B helps under full backprop
+- **Next: scale to WikiText-103 ctx=128** where 1 block should be insufficient
 
 **What we have:**
 - Working experiment infrastructure (training loop, eval, multi-seed, ablation, JSONL logs, CUDA graphs)
