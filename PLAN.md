@@ -8,6 +8,8 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 **Gated experiment complete — negative result.** B_gated (4-block, zero-init gates) is +0.245 nats WORSE than A_single at WikiText-103 ctx=128. Cold-start problem: zero-init gates starve upper blocks of information. Gate 3 opened negatively (-0.115) for suppressive use only. Pathway 3 remains blocked.
 
+**Transformer baseline running.** PID 1800, `runs/transformer_baseline.py`, logging to `experiments/wikitext_103/artifacts/transformer_baseline/run.jsonl`. 2 seeds (42, 43), 20K steps each. At step 5000 seed 42: val_loss 1.914 (significantly better than RNN's 2.134 at same step — attention helps). Expected completion ~04:40-04:50 NZST.
+
 **Key insight this session:** The "fix the interface" hypothesis was incomplete. Zero-init gates are worse than hardcoded 0.5 because they completely starve upper blocks. The problem isn't just the mixing coefficient — it's initialization + information routing.
 
 **What we have:**

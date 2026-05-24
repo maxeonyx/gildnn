@@ -196,6 +196,9 @@ Work is structured as **nested loops with adversarial review gates**, not a sequ
 │  │  │  │    results?                                   │  │  │  │
 │  │  │  │  - Is the comparison fair (matched compute,   │  │  │  │
 │  │  │  │    same data, proper ablation)?               │  │  │  │
+│  │  │  │  - Does every component receive learning      │  │  │  │
+│  │  │  │    signal at initialization? Are there         │  │  │  │
+│  │  │  │    cold-start / chicken-and-egg traps?        │  │  │  │
 │  │  │  │  If review finds problems → fix and re-check. │  │  │  │
 │  │  │  │                                               │  │  │  │
 │  │  │  │  ┌─────────────────────────────────────────┐  │  │  │  │
