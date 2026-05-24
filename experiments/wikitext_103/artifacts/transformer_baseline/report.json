@@ -1,0 +1,190 @@
+{
+  "config": {
+    "training_steps": 20000,
+    "eval_interval": 1000,
+    "batch_size": 64,
+    "eval_batch_size": 512,
+    "learning_rate": 0.0003,
+    "eval_samples": 4096,
+    "seeds": [
+      42,
+      43
+    ],
+    "context_size": 128,
+    "compile_model": false,
+    "sanity_check_only": true,
+    "dataset": "wikitext-103-raw",
+    "train_path": "C:\\Users\\maxeo\\gildnn\\data\\wikitext-103-raw\\wiki.train.raw",
+    "val_path": "C:\\Users\\maxeo\\gildnn\\data\\wikitext-103-raw\\wiki.valid.raw"
+  },
+  "environment": {
+    "git_sha": "2f011e8800e55b7ac375e123eb692b337faad871",
+    "git_working_tree_clean": false,
+    "git_status_short": [
+      "?? experiments/wikitext_103/artifacts/closed_loop_prediction/run_star.jsonl",
+      "?? experiments/wikitext_103/artifacts/transformer_baseline/",
+      "?? runs/transformer_baseline.py"
+    ],
+    "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+    "torch_version": "2.11.0+cu128",
+    "device": "cpu",
+    "cuda_device_name": null
+  },
+  "dataset": {
+    "train_examples": 538294205,
+    "val_examples": 4096,
+    "vocab_size": 4980
+  },
+  "timing": {
+    "overall_wall_seconds": 25.957698
+  },
+  "variants": {
+    "transformer": {
+      "key": "transformer",
+      "label": "transformer_baseline",
+      "config": {
+        "d_model": 160,
+        "n_layers": 4,
+        "n_heads": 8,
+        "ffn_dim": 640,
+        "context_size": 128
+      }
+    }
+  },
+  "per_seed_results": [
+    {
+      "seed": 42,
+      "variant": "transformer",
+      "label": "transformer_baseline",
+      "class_name": "DecoderOnlyTransformer",
+      "config": {
+        "d_model": 160,
+        "n_layers": 4,
+        "n_heads": 8,
+        "ffn_dim": 640,
+        "context_size": 128
+      },
+      "parameter_count": 2856500,
+      "parameter_match": {
+        "target_parameter_count": 2851446,
+        "parameter_count_difference": 5054,
+        "parameter_count_difference_ratio": 0.001772,
+        "within_5_percent": true
+      },
+      "compiled": false,
+      "verification": {
+        "output_shape": [
+          2,
+          4980
+        ],
+        "dummy_loss": 8.425651,
+        "total_trainable_parameters": 70,
+        "nonzero_gradient_parameters": 70,
+        "gradient_norm_sum": 33.371598,
+        "missing_gradient_parameters": [],
+        "zero_gradient_parameters": [],
+        "forward_pass_ok": true,
+        "backward_pass_ok": true
+      },
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 8.461776,
+          "val_accuracy": 0.0
+        }
+      ],
+      "best_checkpoint": {
+        "step": 0,
+        "val_loss": 8.461776,
+        "val_accuracy": 0.0
+      },
+      "final_checkpoint": {
+        "step": 0,
+        "val_loss": 8.461776,
+        "val_accuracy": 0.0
+      },
+      "final_training_loss": null,
+      "wall_seconds": 0.0
+    },
+    {
+      "seed": 43,
+      "variant": "transformer",
+      "label": "transformer_baseline",
+      "class_name": "DecoderOnlyTransformer",
+      "config": {
+        "d_model": 160,
+        "n_layers": 4,
+        "n_heads": 8,
+        "ffn_dim": 640,
+        "context_size": 128
+      },
+      "parameter_count": 2856500,
+      "parameter_match": {
+        "target_parameter_count": 2851446,
+        "parameter_count_difference": 5054,
+        "parameter_count_difference_ratio": 0.001772,
+        "within_5_percent": true
+      },
+      "compiled": false,
+      "verification": {
+        "output_shape": [
+          2,
+          4980
+        ],
+        "dummy_loss": 8.45225,
+        "total_trainable_parameters": 70,
+        "nonzero_gradient_parameters": 70,
+        "gradient_norm_sum": 32.477209,
+        "missing_gradient_parameters": [],
+        "zero_gradient_parameters": [],
+        "forward_pass_ok": true,
+        "backward_pass_ok": true
+      },
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 8.696725,
+          "val_accuracy": 0.0
+        }
+      ],
+      "best_checkpoint": {
+        "step": 0,
+        "val_loss": 8.696725,
+        "val_accuracy": 0.0
+      },
+      "final_checkpoint": {
+        "step": 0,
+        "val_loss": 8.696725,
+        "val_accuracy": 0.0
+      },
+      "final_training_loss": null,
+      "wall_seconds": 0.0
+    }
+  ],
+  "summary_by_variant": {
+    "transformer": {
+      "num_runs": 2,
+      "parameter_count": 2856500,
+      "parameter_match": {
+        "target_parameter_count": 2851446,
+        "parameter_count_difference": 5054,
+        "parameter_count_difference_ratio": 0.001772,
+        "within_5_percent": true
+      },
+      "verification": {
+        "output_shape": [
+          2,
+          4980
+        ],
+        "dummy_loss": 8.425651,
+        "total_trainable_parameters": 70,
+        "nonzero_gradient_parameters": 70,
+        "gradient_norm_sum": 33.371598,
+        "missing_gradient_parameters": [],
+        "zero_gradient_parameters": [],
+        "forward_pass_ok": true,
+        "backward_pass_ok": true
+      }
+    }
+  }
+}
