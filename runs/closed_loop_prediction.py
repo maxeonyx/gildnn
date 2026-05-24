@@ -51,6 +51,8 @@ class VariantSpec:
     phases: tuple[int, ...] = ()
     per_helper_prediction_loss: bool = False
     prediction_target: str = "full_state"
+    prediction_window_offset: int = 8
+    prediction_window_size: int = 4
 
     def __post_init__(self) -> None:
         if len(self.rates) != self.num_blocks:
@@ -217,6 +219,18 @@ def variant_specs() -> dict[str, VariantSpec]:
             readout_mode="block0",
             closed_loop=True,
             prediction_target="older_window",
+        ),
+        "J_far_window": VariantSpec(
+            key="J_far_window",
+            label="closed_loop_prediction_J_far_window",
+            num_blocks=2,
+            rates=(1, 2),
+            phases=(0, 0),
+            readout_mode="block0",
+            closed_loop=True,
+            prediction_target="older_window",
+            prediction_window_offset=12,
+            prediction_window_size=4,
         ),
         "J_fixed_embedding": VariantSpec(
             key="J_fixed_embedding",
@@ -519,6 +533,8 @@ def prediction_loss_terms(
 def prediction_target_history_and_mask(
     *,
     prediction_target: str,
+    prediction_window_offset: int,
+    prediction_window_size: int,
     state0_history: Tensor,
     embeddings: Tensor,
 ) -> tuple[Tensor, Tensor]:
@@ -528,16 +544,20 @@ def prediction_target_history_and_mask(
 
     if prediction_target == "older_window":
         target_source = state0_history
+        offset = prediction_window_offset
+        window_size = prediction_window_size
     elif prediction_target == "fixed_embedding":
         target_source = embeddings
+        offset = 8
+        window_size = 4
     else:
         raise ValueError(f"Unsupported prediction_target {prediction_target!r}.")
 
-    rolling_means = target_source.unfold(1, 4, 1).mean(dim=-1)
+    rolling_means = target_source.unfold(1, window_size, 1).mean(dim=-1)
     target_history = target_source.new_zeros(target_source.shape)
-    target_history[:, 8:, :].copy_(rolling_means[:, : target_source.shape[1] - 8, :])
+    target_history[:, offset:, :].copy_(rolling_means[:, : target_source.shape[1] - offset, :])
     target_valid = torch.zeros((target_source.shape[1],), device=target_source.device, dtype=torch.bool)
-    target_valid[8:] = True
+    target_valid[offset:] = True
     return target_history, target_valid
 
 
@@ -571,6 +591,8 @@ def compute_losses(
     local_ce_weight: float,
     per_helper_prediction_loss: bool,
     prediction_target: str,
+    prediction_window_offset: int,
+    prediction_window_size: int,
 ) -> LossBreakdown:
     ce_loss = F.cross_entropy(logits, targets)
     if len(prior_histories) != len(prior_valid_histories):
@@ -580,6 +602,8 @@ def compute_losses(
         )
     target_history, target_valid = prediction_target_history_and_mask(
         prediction_target=prediction_target,
+        prediction_window_offset=prediction_window_offset,
+        prediction_window_size=prediction_window_size,
         state0_history=state0_history,
         embeddings=embeddings,
     )
@@ -691,6 +715,8 @@ class ClosedLoopPredictionGraphTrainer:
             local_ce_weight=LOCAL_CE_WEIGHT,
             per_helper_prediction_loss=self.model.spec.per_helper_prediction_loss,
             prediction_target=self.model.spec.prediction_target,
+            prediction_window_offset=self.model.spec.prediction_window_offset,
+            prediction_window_size=self.model.spec.prediction_window_size,
         )
         losses.total_loss.backward()
         self.optimizer.step()
@@ -818,6 +844,8 @@ def evaluate_variant(
             total_block1_correct += (block1_logits.argmax(dim=1) == batch_targets).sum().item()
         target_history, target_valid = prediction_target_history_and_mask(
             prediction_target=model.spec.prediction_target,
+            prediction_window_offset=model.spec.prediction_window_offset,
+            prediction_window_size=model.spec.prediction_window_size,
             state0_history=state0_history,
             embeddings=embeddings,
         )
@@ -963,6 +991,8 @@ def verify_forward_and_gradients(
             local_ce_weight=LOCAL_CE_WEIGHT,
             per_helper_prediction_loss=model.spec.per_helper_prediction_loss,
             prediction_target=model.spec.prediction_target,
+            prediction_window_offset=model.spec.prediction_window_offset,
+            prediction_window_size=model.spec.prediction_window_size,
         )
         if not torch.isfinite(losses.total_loss):
             raise RuntimeError("Closed-loop prediction verification failed: dummy total loss is not finite.")
@@ -1161,6 +1191,8 @@ def train_single_variant(
                 local_ce_weight=LOCAL_CE_WEIGHT,
                 per_helper_prediction_loss=spec.per_helper_prediction_loss,
                 prediction_target=spec.prediction_target,
+                prediction_window_offset=spec.prediction_window_offset,
+                prediction_window_size=spec.prediction_window_size,
             )
             if not torch.isfinite(losses.total_loss):
                 raise RuntimeError(

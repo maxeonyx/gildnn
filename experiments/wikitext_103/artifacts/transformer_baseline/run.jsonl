@@ -8,3 +8,20 @@
 {"stage": "variant_finished", "seed": 43, "variant": "transformer", "final_val_loss": 8.696725, "final_val_accuracy": 0.0, "wall_seconds": 0.0}
 {"stage": "seed_finished", "seed": 43}
 {"stage": "experiment_finished", "report_path": "C:\\Users\\maxeo\\gildnn\\experiments\\wikitext_103\\artifacts\\transformer_baseline\\report.json", "summary_by_variant": {"transformer": {"num_runs": 2, "parameter_count": 2856500, "parameter_match": {"target_parameter_count": 2851446, "parameter_count_difference": 5054, "parameter_count_difference_ratio": 0.001772, "within_5_percent": true}, "verification": {"output_shape": [2, 4980], "dummy_loss": 8.425651, "total_trainable_parameters": 70, "nonzero_gradient_parameters": 70, "gradient_norm_sum": 33.371598, "missing_gradient_parameters": [], "zero_gradient_parameters": [], "forward_pass_ok": true, "backward_pass_ok": true}}}}
+{"stage": "run_restarted", "timestamp": "2026-05-24T08:07:38.587197Z", "previous_lines": 10}
+{"stage": "experiment_started", "sanity_check_only": false, "seeds": [42, 43], "variants": ["transformer"], "training_steps": 20000, "eval_interval": 1000, "batch_size": 64, "eval_batch_size": 512, "learning_rate": 0.0003, "context_size": 128, "compile_model": false, "device": "cuda", "train_path": "C:\\Users\\maxeo\\gildnn\\data\\wikitext-103-raw\\wiki.train.raw", "val_path": "C:\\Users\\maxeo\\gildnn\\data\\wikitext-103-raw\\wiki.valid.raw", "vocab_size": 4980, "train_dataset_size": 538294205, "val_examples": 4096}
+{"stage": "seed_started", "seed": 42}
+{"stage": "variant_started", "seed": 42, "variant": "transformer", "label": "transformer_baseline", "parameter_count": 2856500, "parameter_match": {"target_parameter_count": 2851446, "parameter_count_difference": 5054, "parameter_count_difference_ratio": 0.001772, "within_5_percent": true}, "compiled": false, "verification": {"output_shape": [2, 4980], "dummy_loss": 8.921703, "total_trainable_parameters": 70, "nonzero_gradient_parameters": 70, "gradient_norm_sum": 33.139798, "missing_gradient_parameters": [], "zero_gradient_parameters": [], "forward_pass_ok": true, "backward_pass_ok": true}, "initial_checkpoint": {"step": 0, "val_loss": 8.461776, "val_accuracy": 0.0}}
+{"stage": "checkpoint", "seed": 42, "variant": "transformer", "step": 1000, "val_loss": 2.280076, "val_accuracy": 0.356689}
+{"stage": "checkpoint", "seed": 42, "variant": "transformer", "step": 2000, "val_loss": 2.126884, "val_accuracy": 0.395752}
+{"stage": "checkpoint", "seed": 42, "variant": "transformer", "step": 3000, "val_loss": 2.027985, "val_accuracy": 0.418945}
+{"stage": "checkpoint", "seed": 42, "variant": "transformer", "step": 4000, "val_loss": 1.971039, "val_accuracy": 0.433838}
+{"stage": "checkpoint", "seed": 42, "variant": "transformer", "step": 5000, "val_loss": 1.913596, "val_accuracy": 0.447754}
+{"stage": "checkpoint", "seed": 42, "variant": "transformer", "step": 6000, "val_loss": 1.866348, "val_accuracy": 0.463623}
+{"stage": "checkpoint", "seed": 42, "variant": "transformer", "step": 7000, "val_loss": 1.821483, "val_accuracy": 0.47583}
+{"stage": "checkpoint", "seed": 42, "variant": "transformer", "step": 8000, "val_loss": 1.788276, "val_accuracy": 0.480713}
+{"stage": "checkpoint", "seed": 42, "variant": "transformer", "step": 9000, "val_loss": 1.762018, "val_accuracy": 0.495605}
+{"stage": "checkpoint", "seed": 42, "variant": "transformer", "step": 10000, "val_loss": 1.740135, "val_accuracy": 0.499512}
+{"stage": "checkpoint", "seed": 42, "variant": "transformer", "step": 11000, "val_loss": 1.729953, "val_accuracy": 0.503662}
+{"stage": "checkpoint", "seed": 42, "variant": "transformer", "step": 12000, "val_loss": 1.700737, "val_accuracy": 0.519775}
+{"stage": "checkpoint", "seed": 42, "variant": "transformer", "step": 13000, "val_loss": 1.683066, "val_accuracy": 0.518066}
