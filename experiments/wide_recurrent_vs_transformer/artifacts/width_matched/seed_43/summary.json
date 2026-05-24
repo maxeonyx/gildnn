@@ -1,0 +1,18 @@
+{
+  "best_learning_rate": 0.003,
+  "best_val_loss": 1.62379,
+  "runs": [
+    {
+      "learning_rate": 0.003,
+      "best_val_loss": 1.62379,
+      "best_epoch": 11,
+      "runtime_seconds": 86.76443660000223,
+      "parameter_count": 182065,
+      "best_depth_val_losses": {
+        "depth_1": 1.997686,
+        "depth_2": 1.654963,
+        "depth_3": 1.62379
+      }
+    }
+  ]
+}

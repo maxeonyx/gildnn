@@ -194,6 +194,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--eval-batch-size", type=int, default=None)
     parser.add_argument("--sample-length", type=int, default=None)
     parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument("--d-model", type=int, default=None)
+    parser.add_argument("--feedforward-dim", type=int, default=None)
+    parser.add_argument("--num-heads", type=int, default=None)
     parser.set_defaults(repo_root=repo_root)
     return parser.parse_args()
 
@@ -213,6 +216,9 @@ def resolved_config(args: argparse.Namespace) -> RunConfig:
         "eval_batch_size": args.eval_batch_size,
         "sample_length": args.sample_length,
         "seed": args.seed,
+        "d_model": args.d_model,
+        "feedforward_dim": args.feedforward_dim,
+        "num_heads": args.num_heads,
     }
     clean_overrides = {key: value for key, value in overrides.items() if value is not None}
     if clean_overrides:

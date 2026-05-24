@@ -1,0 +1,67 @@
+{
+  "shape_check": {
+    "name": "forward_shape",
+    "ok": true,
+    "expected_shape": [
+      8,
+      61
+    ],
+    "actual_shapes": [
+      [
+        8,
+        61
+      ],
+      [
+        8,
+        61
+      ],
+      [
+        8,
+        61
+      ]
+    ]
+  },
+  "memorization_check": {
+    "name": "one_batch_memorization",
+    "ok": true,
+    "final_loss": 0.0005214653210714459,
+    "final_accuracy": 1.0,
+    "trace": [
+      {
+        "step": 0,
+        "loss": 4.207884,
+        "accuracy": 0.0
+      },
+      {
+        "step": 20,
+        "loss": 0.112754,
+        "accuracy": 1.0
+      },
+      {
+        "step": 40,
+        "loss": 0.10172,
+        "accuracy": 1.0
+      },
+      {
+        "step": 60,
+        "loss": 0.012654,
+        "accuracy": 1.0
+      },
+      {
+        "step": 80,
+        "loss": 0.001725,
+        "accuracy": 1.0
+      },
+      {
+        "step": 100,
+        "loss": 0.000717,
+        "accuracy": 1.0
+      },
+      {
+        "step": 120,
+        "loss": 0.000521,
+        "accuracy": 1.0
+      }
+    ]
+  }
+}

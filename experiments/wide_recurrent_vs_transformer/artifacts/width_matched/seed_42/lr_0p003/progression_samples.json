@@ -1,0 +1,56 @@
+{
+  "prompt": "First Citizen:\\nBefore we proceed",
+  "sample_length": 200,
+  "checkpoints": [
+    {
+      "epoch": 0,
+      "val_loss": 4.380297,
+      "depth_val_losses": {
+        "depth_1": 4.371256,
+        "depth_2": 4.37414,
+        "depth_3": 4.380297
+      },
+      "sample": "First Citizen:\nBefore we proceedAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    },
+    {
+      "epoch": 1,
+      "val_loss": 1.925526,
+      "depth_val_losses": {
+        "depth_1": 2.094314,
+        "depth_2": 1.936121,
+        "depth_3": 1.925526
+      },
+      "sample": "First Citizen:\nBefore we proceed to the the them them them them them them them them them them them them them them them them them them them them them them them them them them them them them them them them them them them them them the"
+    },
+    {
+      "epoch": 3,
+      "val_loss": 1.738114,
+      "depth_val_losses": {
+        "depth_1": 1.95179,
+        "depth_2": 1.76591,
+        "depth_3": 1.738114
+      },
+      "sample": "First Citizen:\nBefore we proceed the proused the proused\nThat have the have the hander have the hander have the have the have the hander have the hander have the have the have the hander have the hander have the have the have the ha"
+    },
+    {
+      "epoch": 7,
+      "val_loss": 1.655825,
+      "depth_val_losses": {
+        "depth_1": 1.89292,
+        "depth_2": 1.669302,
+        "depth_3": 1.655825
+      },
+      "sample": "First Citizen:\nBefore we proceed the people.\n\nMENENIUS:\nHe the people the be the people.\n\nMENENIUS:\nHe the people the be the people.\n\nMENENIUS:\nHe the people the be the people.\n\nMENENIUS:\nHe the people the be the people.\n\nMENENIUS:\n"
+    },
+    {
+      "epoch": 13,
+      "val_loss": 1.643721,
+      "depth_val_losses": {
+        "depth_1": 1.959496,
+        "depth_2": 1.667731,
+        "depth_3": 1.643721
+      },
+      "sample": "First Citizen:\nBefore we proceed the consul, and the people\nThe people the people, and the people\nOnly the people and the consul, and the people\nThe people the people, and the people\nOnly the people and the consul, and the people\nTh"
+    }
+  ]
+}

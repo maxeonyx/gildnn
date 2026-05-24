@@ -1,0 +1,56 @@
+{
+  "prompt": "First Citizen:\\nBefore we proceed",
+  "sample_length": 200,
+  "checkpoints": [
+    {
+      "epoch": 0,
+      "val_loss": 4.186504,
+      "depth_val_losses": {
+        "depth_1": 4.187417,
+        "depth_2": 4.188982,
+        "depth_3": 4.186504
+      },
+      "sample": "First Citizen:\nBefore we proceedtttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt"
+    },
+    {
+      "epoch": 1,
+      "val_loss": 1.949302,
+      "depth_val_losses": {
+        "depth_1": 2.136747,
+        "depth_2": 1.962998,
+        "depth_3": 1.949302
+      },
+      "sample": "First Citizen:\nBefore we proceed the the the the the the the pears the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the the t"
+    },
+    {
+      "epoch": 3,
+      "val_loss": 1.732755,
+      "depth_val_losses": {
+        "depth_1": 1.969219,
+        "depth_2": 1.759053,
+        "depth_3": 1.732755
+      },
+      "sample": "First Citizen:\nBefore we proceed to the commone,\nWhat the commone the commone the commone,\nWhat the come to the commone the commone,\nWhat the come to the commone the commone,\nWhat the come to the commone the commone,\nWhat the come t"
+    },
+    {
+      "epoch": 7,
+      "val_loss": 1.641112,
+      "depth_val_losses": {
+        "depth_1": 1.965689,
+        "depth_2": 1.681707,
+        "depth_3": 1.641112
+      },
+      "sample": "First Citizen:\nBefore we proceed the contempt them\nThat is the contempt the contempt\nThat you have the contempt the contempt\nThat you have the contempt the contempt\nThat you have the contempt the contempt\nThat you have the contempt "
+    },
+    {
+      "epoch": 13,
+      "val_loss": 1.634775,
+      "depth_val_losses": {
+        "depth_1": 2.043245,
+        "depth_2": 1.682532,
+        "depth_3": 1.634775
+      },
+      "sample": "First Citizen:\nBefore we proceed so all and the common the people, and\nThe people and the common the people, and\nThe people and the common the people, and\nThe people and the common the people, and\nThe people and the common the peopl"
+    }
+  ]
+}
