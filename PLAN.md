@@ -15,7 +15,7 @@ Ablation gap = 0 at both seeds. Helper predictions are not contributing at infer
 
 **This settles the G decision rules:** G ≈ A (neutral). Rate-4 predictions are too stale. F's instability was the multi-helper interaction under shared loss, not rate-4 being harmful per se.
 
-## Current: Phase 5 J run (BLOCKED ON GPU — game running)
+## Current: Phase 5 J run (RUNNING — launched 18:00, ETA ~19:07+)
 
 **I result (seed 42 complete, seed 43 interrupted at step 13K by GPU use):**
 - I_phase_offset ≈ I_control ≈ A - 0.006. Width saturates. Target is the bottleneck.
@@ -63,7 +63,7 @@ Ablation gap = 0 at both seeds. Helper predictions are not contributing at infer
 
 ## Queue
 
-- **Phase 5 J run** — BLOCKED ON GPU (sanity check + full run ready, commands in section above)
+- **Phase 5 J run** — RUNNING (PID 8244, log: run_j.jsonl, active.lock written)
 - Transformer matched-param baseline — `runs/transformer_baseline.py`, 2.856M params, launch when GPU free
 - I seed 43 completion — low priority, pattern already clear
 - Named/typed tensor dimensions
