@@ -6,14 +6,9 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ## Current state (2026-05-25)
 
-**Gated multi-block experiment running.** Testing whether zero-init learnable gates fix the lateral spectator problem at WikiText-103 ctx=128. Prior session discovered existing ctx128_corrected data showing spectator persists with hardcoded 0.5 mixing at this scale. C_old (token_injection=all) proves blocks CAN help (+0.02 nats). The gated experiment discriminates: is the problem the interface or is lateral-only fundamentally weak?
+**Gated experiment complete — negative result.** B_gated (4-block, zero-init gates) is +0.245 nats WORSE than A_single at WikiText-103 ctx=128. Cold-start problem: zero-init gates starve upper blocks of information. Gate 3 opened negatively (-0.115) for suppressive use only. Pathway 3 remains blocked.
 
-**Background run active:** `experiments/gated_wikitext/run.py`, PID 23572, logging to `experiments/gated_wikitext/artifacts.ignore/run.jsonl`. A_single tracking existing results perfectly. Expected completion: ~04:20-04:30 NZST.
-
-Key findings so far this session:
-- PLAN.md priorities were wrong: the "scale to WikiText-103 ctx=128" experiment had ALREADY been partially done (ctx128_corrected results)
-- Corrected priorities: gated multi-block is the discriminating test, not raw scaling
-- Propagation-delay README updated with existing evidence
+**Key insight this session:** The "fix the interface" hypothesis was incomplete. Zero-init gates are worse than hardcoded 0.5 because they completely starve upper blocks. The problem isn't just the mixing coefficient — it's initialization + information routing.
 
 **What we have:**
 - Working experiment infrastructure (training loop, eval, multi-seed, ablation, JSONL logs, CUDA graphs)
@@ -25,20 +20,22 @@ Key findings so far this session:
 - Evidence: multi-rate [1,2,4,8] provides inductive bias (better per-step val_loss)
 - Evidence: CUDA Graph concurrency gives 28% speedup; stale reads don't hurt quality
 - 10.8x CUDA graph training speedup in core/
+- **NEW: Gated WikiText-103 result** — cold-start problem with zero-init gates, blocks useless
 - `.gitignore` now blocks `*.pt` files (model weights never committed)
 
 **What we DON'T have:**
 - A standard transformer baseline trained at WikiText-103 ctx=128 (script exists, only sanity-checked)
-- Any test of the **gated** (zero-init) multi-block architecture at WikiText-103 ctx=128
 - Any tied-depth (same block × N iterations) vs standard transformer comparison at scale
+- C_old eval ablations (does C_old's improvement come from lateral communication or just ensemble?)
 - Any custom CUDA concurrency beyond the Graph approach
 - Self-prediction (computation compression)
 - Clean dynamic-depth measurement (the probe was methodologically flawed)
 
-**Critical existing evidence overlooked by prior sessions:**
-- `experiments/wikitext_103/artifacts/ctx128_corrected/`: 4-block corrected (hardcoded 0.5 mixing, token_injection=block0) is +0.014 WORSE than single-block at WikiText-103 ctx=128. Same spectator pattern as TinyShakespeare.
-- 4-block OLD (token_injection=all) is -0.021 BETTER — proving extra blocks CAN help at this scale, but only with fresh token injection.
-- The hardcoded 0.5 mixing was the interface tested. The zero-init gate (proven to fix the interface at TinyShakespeare) has never been tested at this scale.
+**Pathway 3 status:**
+- Only token_injection=all (C_old) makes multi-block useful at this scale
+- Lateral-only (token_injection=block0) fails with hardcoded 0.5 (+0.014 worse) AND with zero-init gates (+0.245 worse)
+- Local learning is untestable until we have a regime where blocks help under full backprop
+- Key open question: does C_old actually USE lateral connections, or is it just an ensemble?
 
 ---
 
@@ -64,12 +61,12 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 
 | Priority | Experiment | Pathway | Why |
 |---|---|---|---|
-| 1 | **Gated corrected at WikiText-103 ctx=128** — 4-block with zero-init gate instead of hardcoded 0.5. Does fixing the interface make blocks useful? | 3 | Directly discriminates: was B's failure the bad interface, or is lateral-only fundamentally insufficient? C_old proves blocks CAN help at this scale. |
-| 2 | **Transformer baseline at WikiText-103 ctx=128** — train `runs/transformer_baseline.py` | 1 | Missing control number. Can't compare tied-depth without knowing what standard transformer achieves. |
-| 3 | **Tied-depth vs standard transformer at WikiText-103 ctx=128** | 1 | The actual Pathway 1 question at scale. Requires baseline first. |
+| 1 | **Transformer baseline at WikiText-103 ctx=128** — train `runs/transformer_baseline.py` | 1 | Missing control number. Can't compare tied-depth without knowing what standard transformer achieves. Ready to launch immediately. |
+| 2 | **Tied-depth vs standard transformer at WikiText-103 ctx=128** | 1 | The actual Pathway 1 question at scale. Requires baseline (#1) first. |
+| 3 | **C_old eval ablation** — retrain C_old config, then shuffle/ablate lateral connections and per-block readout contributions | 3 | Cheapest diagnostic: does C_old's improvement come from lateral communication, or just ensemble of token-fed blocks? |
 | 4 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | Next step after the 28% CUDA Graph result. |
-| 5 | **Gradient radius sweep** — vary stop-gradient from k=1 to k=full | 3 (local learning) | Depends on gated blocks being useful first. |
-| 6 | **Dynamic depth (clean measurement)** | 5 | Preliminary probe showed heterogeneity but methodology was flawed. Needs clean redo. |
+| 5 | **Dynamic depth (clean measurement)** | 5 | Preliminary probe showed heterogeneity but methodology was flawed. Needs clean redo. |
+| 6 | **Local learning in C_old config** — if C_old ablations show lateral IS used | 3 | Stop-gradient + local CE on a regime where blocks are known useful. Only do after #3 confirms lateral matters. |
 
 ---
 
@@ -84,6 +81,7 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 | Per-token depth heterogeneity | 5 | Inconclusive | Heterogeneity exists but methodology flawed (non-standard eval frame, ε too loose). Hint only. |
 | **Propagation-delay 2-block (tiny)** | **3** | **Spectator** | **Block B adds nothing at TinyShakespeare ctx=32. Hardcoded 0.5 mixing harmful; zero-init gate fixes ceiling but B stays closed.** |
 | **Multi-block corrected at WikiText-103 ctx=128** | **3** | **Spectator** | **4-block corrected (hardcoded 0.5) is +0.014 worse than single-block. 4-block old (token_injection=all) is -0.021 better. Blocks help when fed fresh tokens; lateral-only with 0.5 mixing fails.** |
+| **Gated multi-block at WikiText-103 ctx=128** | **3** | **Cold-start failure** | **4-block with zero-init gates is +0.245 worse than single-block. Gates starve upper blocks of signal — worse than hardcoded 0.5. Gate 3 opened negatively (suppressive). Experiment uninformative about original question due to cold-start confound.** |
 | Multi-rate [1,2,4,8] | 8 | Spectator problem | Block 0 sees all tokens → no specialization |
 | Closed-loop variants A-J | — | Marginal (-0.006 to -0.012) | Architecturally incoherent. Not on any pathway. Done. |
 | CUDA graph training | infra | 10.8x speedup | In core/ |
@@ -99,7 +97,7 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 
 - **Pathway 1 (Wide Recurrent):** Weight sharing is free (3-iteration tied = 3-layer distinct). Iteration scaling shows no instability through 12, quality peaks around 8 on single seed. Diminishing returns flatten around depth 8–11. Pathway is alive and well-grounded at tiny rung.
 - **Pathway 2 (Async):** Prior positive — 28% concurrency via CUDA Graphs, stale reads don't hurt. Next: custom CUDA.
-- **Pathway 3 (Local Learning):** Prior negative — strict-local collapses. Propagation-delay 2-block tested at TinyShakespeare ctx=32: block B is a spectator even with full backprop — task too easy for 1 block. Hardcoded 0.5 lateral mixing is actively harmful (creates destructive coupling); zero-init learnable gate fixes the interface but B still adds nothing at this scale. **Local learning cannot be tested until we find a regime where B helps under full backprop.** WikiText-103 ctx=128 is the next test bed.
+- **Pathway 3 (Local Learning):** Confidence **decreased**. Every attempt at lateral-only multi-block has failed: hardcoded 0.5 (+0.014 worse), zero-init gates (+0.245 worse, cold-start trap). Only token_injection=all (C_old, -0.021 better) makes blocks useful — but that may not involve lateral communication at all (might just be an ensemble). **Local learning remains untestable until we confirm lateral communication is actually used in a working multi-block config.** Suggest roadmap update: note that Pathway 3 is blocked pending C_old ablation study; the original "propagation-delay → local learning" progression has not reached the point where local learning can be tested.
 - **Pathway 5 (Dynamic Depth):** Now enabled by Pathway 1 iteration scaling. Per-depth losses show clear variation — some tokens probably benefit more from extra iterations than others. First measurement (per-token variance) not yet done.
 - **Pathway 8 (Multi-Rate):** Prior weak-positive — inductive bias confirmed at ctx=32. Needs longer context to be meaningful.
 - **Pathway 9 (Norm-Preserving):** De-prioritized after iteration scaling showed no instability through 12 on tiny rung. May still matter at larger scale or higher iteration counts.

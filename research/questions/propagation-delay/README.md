@@ -202,44 +202,78 @@ The prior "hardcoded 0.5" failure was a red herring for the local-learning quest
 
 ---
 
-## Next step: gated multi-block at WikiText-103 ctx=128
+## Gated multi-block at WikiText-103 ctx=128 (2026-05-25)
 
-The original framing ("scale up and blocks will help") was wrong. The scale-up has already been done — and blocks DON'T help with the hardcoded 0.5 interface.
+**Result: B_gated is 0.245 nats WORSE than A_single. Pathway 3 remains blocked.**
 
-The correct question is now: **does the zero-init gate fix lateral information flow at a scale where extra blocks CAN contribute?**
+| Variant | Params | Final val_loss | Δ vs single | Wall time |
+|---------|--------|---------------|-------------|-----------|
+| A_single (1-block) | 2.85M | 1.832 | — | 469s |
+| B_gated (4-block, zero-init gates) | 3.64M | 2.077 | **+0.245 worse** | 721s |
 
-Experiment in progress: `experiments/gated_wikitext/` — 4-block with zero-init gates at WikiText-103 ctx=128.
+Gate values at end of training: `[-0.003, -0.009, -0.115]`
 
-Possible outcomes:
-1. **Gated < single-block (~1.84):** Interface was the problem. Pathway 3 unblocked. Test local learning next.
-2. **Gated ≈ single-block:** Gates may open but lateral signal is too weak. Need richer lateral channel (not just prior step's state).
-3. **Gated > single-block:** Lateral-only fundamentally insufficient with this architecture. Pathway 3 needs redesign.
+| Block | Ablation effect (nats) | Interpretation |
+|-------|----------------------|----------------|
+| 0 | +3.41 | Load-bearing (has tokens + readout) |
+| 1 | +0.001 | Spectator |
+| 2 | +0.002 | Spectator |
+| 3 | +0.056 | Marginally useful (gate opened negatively) |
+
+### Diagnosis: cold-start problem
+
+The zero-init gate creates a **chicken-and-egg** optimization failure:
+- Gate starts at 0 → blocks 1-3 receive NO lateral signal from block 0
+- Without signal, blocks 1-3 can't develop useful representations
+- Without useful representations, gradient through the gate is noisy
+- Gates stay near zero → blocks remain information-starved
+- `readout_mode="all"` averages these useless states with block 0's good state → overall performance degrades
+
+Only gate 3 (rate=8 block, fires every 8 steps) opened to -0.115. The **negative** value means block 3 learned to SUBTRACT block 2's noisy output — a suppressive function, not constructive lateral use.
+
+### Why this is WORSE than B_corrected (hardcoded 0.5, val_loss ~1.86)
+
+B_corrected forces `0.5*(state + neighbor)`, which at least gives blocks 1-3 half the signal from below. They have something to compute on. Zero-init gates give them NOTHING — creating a strictly worse cold-start than forced mixing.
+
+### What this does NOT prove
+
+- ❌ Does NOT prove "lateral-only blocks are fundamentally useless" — the cold-start confound makes the result uninformative about this
+- ❌ Does NOT prove "the zero-init gate is a bad interface in general" — it's specifically bad when combined with no-token blocks that start with no signal
+- ❌ Does NOT answer the local learning question — still premature
+
+### What it DOES prove
+
+- ✅ Zero-init gates + upward topology + block0-only tokens creates a degenerate initialization
+- ✅ The readout confound (reading from useless blocks) actively harms performance
+- ✅ Gate 3 opening negatively shows the model CAN learn gates — but only to suppress, not to use constructively
+- ✅ The "fix the interface" hypothesis was incomplete: the problem isn't just the mixing coefficient, it's the initialization + information routing
 
 ---
 
 ## What this experiment will NOT settle
 
 - Whether local learning scales beyond 2 blocks
-- What the optimal local signal is (this tests only local CE — one candidate)
+- What the optimal local signal is
 - Whether the architecture works at larger scale / longer context
-- The gradient radius sweep (that's ROADMAP Step 2, depends on this result)
-- Whether the 0.5-averaging topology is optimal ← **ANSWERED: it's bad**
+- The gradient radius sweep (depends on blocks being useful first)
+- ✅ ~~Whether the 0.5-averaging topology is optimal~~ → **ANSWERED: 0.5 is bad but zero is worse (cold-start)**
 
 ---
 
-## Exit conditions (revised after results)
-
-The experiment answered a different question than planned: not "can B learn locally?" but "does B contribute at all at this scale?" Answer: no.
+## Exit conditions (revised after gated experiment)
 
 **Resolved:**
-- ✅ Hardcoded 0.5 lateral mixing is harmful (confirmed, fixed by zero-init gate)
+- ✅ Hardcoded 0.5 lateral mixing is harmful at TinyShakespeare (+0.124 nats)
 - ✅ Block B is a spectator at TinyShakespeare ctx=32 even with full backprop
-- ✅ The local learning question is premature at this scale
+- ✅ The local learning question is premature — no regime exists where lateral-only blocks help
+- ✅ Zero-init gate creates cold-start problem at WikiText-103 ctx=128 (+0.245 nats vs single-block)
+- ✅ Only token_injection=all (C_old) makes multi-block useful at this scale (-0.021 nats)
 
 **Open:**
-- ❓ Does block B become useful at larger scale (WikiText-103 ctx=128)?
-- ❓ If so, can it learn with local signal only?
-- ❓ Is the zero-init gate the right interface, or is something else needed?
+- ❓ Does C_old's improvement come from lateral communication, or is it just an ensemble of independent token-fed blocks? (Eval ablation needed)
+- ❓ Can local learning work in C_old config (where blocks ARE useful)?
+- ❓ Is there a gate initialization that avoids the cold-start problem while still being learnable?
+- ❓ Is the "upward" topology (no feedback from upper to lower) the right choice?
 
 ---
 
