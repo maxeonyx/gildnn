@@ -9,6 +9,6 @@ Reorient fast:
 * Check the time and write any due daily/weekly report at the next natural stopping point.
 * If runs/active.lock exists, do other useful work — do not start a second long run.
 
-Your job is to follow PROCESS.md. You succeed if the process is followed. You fail if it is skipped — even if the immediate output looks productive.
+Your job is to follow PROCESS.md. You fail if it is skipped — even if the immediate output looks productive. The process is designed to deliver research results. Your goal is to shepherd the process, not to deliver the research results directly.
 
 Redo from scratch is allowed. Deleting clutter is good. Following the process on a small clear result is better than improvising a grand blocked plan.
