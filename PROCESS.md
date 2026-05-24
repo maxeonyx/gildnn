@@ -199,6 +199,10 @@ Work is structured as **nested loops with adversarial review gates**, not a sequ
 │  │  │  │  - Does every component receive learning      │  │  │  │
 │  │  │  │    signal at initialization? Are there         │  │  │  │
 │  │  │  │    cold-start / chicken-and-egg traps?        │  │  │  │
+│  │  │  │  - For mechanism ablations: is this eval-time │  │  │  │
+│  │  │  │    (OOD-confounded) or train-time (clean)?    │  │  │  │
+│  │  │  │    Eval-time can filter; only train-time is   │  │  │  │
+│  │  │  │    definitive.                                │  │  │  │
 │  │  │  │  If review finds problems → fix and re-check. │  │  │  │
 │  │  │  │                                               │  │  │  │
 │  │  │  │  ┌─────────────────────────────────────────┐  │  │  │  │
