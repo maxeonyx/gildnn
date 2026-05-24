@@ -87,7 +87,7 @@ If G fails (rate-4 intrinsically bad), test **phase offsets** at N=3:
 6. **Neighborhood-local is the correct architecture.** The minimum viable locality that actually helps.
 7. **The spectator problem is solved by role differentiation.** B hurts; closed-loop gives block 1 a unique function.
 8. **Predictive coding emerges spontaneously.** Gain goes negative — model subtracts predicted, processes surprise.
-9. **Summed-prior prediction loss creates interference at N>2.** When multiple helpers' predictions are summed before computing the loss, the secondary helper's noise corrupts the gradient for the primary helper — even after the secondary helper's gain goes to zero. F_star is 0.033 WORSE than A despite gain_2 ≈ 0. Fix requires per-helper supervision or removing the shared prediction sum.
+9. **Summed-prior prediction loss creates objective mismatch at N>2.** The auxiliary loss supervises `layernorm(prior_1 + prior_2)`, but the forward path uses helpers *separately* (`gain_1*LN(prior_1) + gain_2*LN(prior_2)`). Result: pred_loss can improve while CE gets worse. F's lower pred_loss (0.174 vs C's 0.294) actually confirms this — the sum predicts well but individual signals degrade. Fix: per-helper prediction losses (each helper against its own target, independently). Note: per-helper loss also enables helper bootstrapping — at gain=0, CE can't reach helper body/head; only the auxiliary loss can train the predictor initially.
 
 ## Queue
 
