@@ -248,6 +248,20 @@ Per [dictation 2026-05-24-5](../../../dictations/2026-05-24-5.md): the current f
 
 All variants below use the **same gated additive interface** (change one thing: the target). Same architecture, same d=256, same ctx=32, same rate-2 helper.
 
+### Recommended run order
+
+**J first** — minimal change from current setup, most interpretable. Success = older memory target beats current full-state. Failure = older memory isn't the key differentiator.
+
+Decision tree:
+1. **J first** (always)
+2. If **J wins clearly** → **K next** (test: is the win from "older" or specifically "non-redundant older"?)
+3. If **J is null/near C** → **L next** (different hypothesis family — forecasting, not memory)
+4. Run remaining variant only if needed
+
+**Collapse risk ranking:** L (lowest, fixed external target) < J (moderate, self-generated but diverse) < K (highest, subtraction can produce near-zero targets if representations are temporally smooth).
+
+**ctx=32 concern for J/K:** 5-8 characters ago is very local on char-level text. Valid positions = 24/32 = 75% (sufficient for screening). But if J/K are null, this doesn't prove older-memory targets don't work — only that they don't clearly help at 5-8 char lag.
+
 ### J: Older-window memory summary
 
 **The direct test of Max's "information from a longer time ago" framing.**
@@ -262,6 +276,8 @@ pred_loss = 1 - cos(LN(p_t), LN(z_t))
 Block 1's role: dedicated "older memory channel." No new inputs needed — block 1 already has a 1-step-stale view of block 0 and accumulates context over its rate-2 schedule. It just needs to retain older information rather than tracking current state.
 
 **Why block 0 may not do this on its own:** Block 0 has no explicit pressure to preserve a clean 4–8-step-old summary while simultaneously doing immediate next-char CE. The helper gives a dedicated "remember this" role.
+
+**Collapse risk:** Moderate. Self-generated target, but the 4-step-old window is diverse enough to avoid the degenerate constant-predictor trap that killed D.
 
 ### K: Nonlocal residue (old - recent)
 
@@ -280,6 +296,8 @@ Block 1's role: carry what's different about older context vs what block 0 likel
 
 **Discriminates against J:** If K > J, the raw older summary has too much overlap with what block 0 already retains. If J > K, the subtraction throws away useful overlap.
 
+**Collapse/washout risk:** Highest of the three. If representations are temporally smooth, `m_old - m_recent` can become low-variance/near-zero, making the cosine objective noisy or uninformative. Run only after J establishes whether older memory helps at all.
+
 ### L: Future chunk code
 
 **Different hypothesis family: helper as slow predictor, not memory store.**
@@ -295,7 +313,9 @@ Block 1's role: forecast a 4-token chunk code. This connects to the hierarchical
 
 **Why block 0 can't do this:** Block 0 is trained only on immediate next-token CE. It has no dedicated multi-step forecast objective. The helper provides a "what's coming next in aggregate" signal.
 
-**Note:** Must mask last 4 positions of context window (no future available there).
+**Note:** Must mask last 4 positions of context window (no future available there). Valid positions: 28/32 = 87.5%.
+
+**Collapse risk:** Lowest. Target is tied to token embeddings (external signal), not self-generated hidden states. Block 0 cannot make this target easier by co-adapting.
 
 ### What would NOT work (and why)
 
@@ -310,8 +330,14 @@ Block 1's role: forecast a 4-token chunk code. This connects to the hierarchical
 - **J helps, K doesn't:** Block 0 wants a coarse older-memory summary. Simple is best.
 - **K helps more than J:** The right signal is specifically *nonlocal complement*, not raw memory.
 - **L helps most:** Helper should be a slower predictive latent / chunk forecaster. Points toward hierarchical autoregressive direction.
-- **None beat current C:** The binding issue is interface alignment / selection pressure (the CE-through-interface gradient), not target semantics alone. Current mechanism IS the right one.
+- **None beat current C:** The binding issue is interface alignment / selection pressure (the CE-through-interface gradient), not target semantics alone. Current mechanism IS the right one. But also: 5-8 char lag at ctx=32 may simply be too short for the "older memory" idea to have room to help.
 - **All help but only marginally:** The helper channel at d=256 with ctx=32 may be too small/short for long-range context to matter. Would need to scale before concluding.
+
+### Implementation notes
+
+The change is **localized to the loss computation.** The rate/phase/buffer mechanism stays identical. After the time loop produces `state0_history` (shape: `[batch, ctx, d_model]`), derive a different `target_history` tensor and pass it to `prediction_loss_terms`. The prior valid mask must reflect where the new target is computable (e.g., invalid for first 8 positions for J/K).
+
+For L, the target comes from `embeddings` (token embedding matrix), not from `state0_history`. This means `embeddings` must be accessible at loss computation time.
 
 ### Prerequisites
 
