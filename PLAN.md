@@ -57,12 +57,20 @@ The local-learning-variants question is answered (neighborhood-local is the mini
 
 ## Queue
 
-- N=3 semi-local star (NEXT)
-- Transformer matched-compute baseline
+- N=3 semi-local star (RUNNING — see below)
+- Transformer matched-param baseline — **READY TO LAUNCH** (`runs/transformer_baseline.py`, 2.856M params, CPU-verified)
 - Named/typed tensor dimensions
-- Graph architecture exploration (from dictation 2026-05-24-1)
+- Graph architecture exploration (from dictation 2026-05-24-1) — see `research/questions/graph-architecture/README.md` for N=8 scaling analysis
 - Hierarchical dynamic tokenization (from dictation 2026-05-24-3) — queued, not active
 - Loop management tooling
+
+## After N=3 star completes
+
+1. Analyze results per decision rules above
+2. Launch transformer baseline: `& .\.venv\Scripts\python.exe -m runs.transformer_baseline --no-compile`
+   - 2 seeds × 20K steps, same dataset/eval
+   - Gives a "how good SHOULD a 2.85M model be on this task?" reference
+3. Based on N=3 result, design next experiment (N=5? Phase offsets? See graph-architecture README)
 
 ## Key completed findings
 
