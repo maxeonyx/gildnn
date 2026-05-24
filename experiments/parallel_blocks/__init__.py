@@ -1,1 +1,0 @@
-"""Parallel blocks experiment."""

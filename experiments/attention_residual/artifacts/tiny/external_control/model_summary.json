@@ -1,9 +1,0 @@
-{
-  "variant": "external_control",
-  "parameter_count": 185500,
-  "context_size": 32,
-  "d_model": 72,
-  "num_layers": 3,
-  "num_heads": 4,
-  "feedforward_dim": 256
-}
