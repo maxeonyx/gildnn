@@ -29,7 +29,16 @@ Ablation gap = 0 at both seeds. Helper predictions are not contributing at infer
 - **I_phase_offset ≈ I_control ≈ A:** Per-helper losses removed the instability but helpers still get pruned under CE/gate competition. Would need alternating optimization.
 - **I_phase_offset > A (hurts):** Something about per-helper losses + multi-helper is intrinsically bad. Investigate.
 
-**Running:** A_single + I_phase_offset + I_control, 2 seeds × 20K steps each. Started ~3:49pm. Expected ~60 min (~4:50pm).
+**Interim result (seed 42 only — PROVISIONAL):**
+- I_phase_offset final: val_loss = 1.663, ablation gap = 0.351, both helpers active (gains -0.050, -0.033)
+- A_single final: val_loss = 1.669
+- **I_phase_offset ≈ C (-0.006 vs A)**. Two helpers achieve the same benefit as one. Width doesn't add.
+- Ablation gap is MUCH larger (0.351 vs C's 0.22) — both helpers deeply integrated — but net benefit saturates.
+- I_control running (step 3K of 20K). Still needs seed 43 for both variants. ETA: ~6:30pm.
+
+**Emerging hypothesis:** The benefit saturates at ≈ -0.006 regardless of helper count because the prediction TARGET is the bottleneck, not architecture/coupling. Full-state prediction provides redundant info (block 0 already knows its own state). This strongly motivates Phase 5 (prediction target change). If Phase 5's "predict something block 0 doesn't know" gives > -0.006, it confirms the target was the binding constraint.
+
+**Running:** A_single + I_phase_offset + I_control, 2 seeds × 20K steps each. Started ~3:49pm.
 Log: `experiments/wikitext_103/artifacts/closed_loop_prediction/run_i.jsonl`
 
 ## Critical findings (carry forward)
@@ -47,8 +56,9 @@ Log: `experiments/wikitext_103/artifacts/closed_loop_prediction/run_i.jsonl`
 
 ## Queue
 
-- **I (phase offsets)** — RUNNING NOW
+- **I (phase offsets)** — RUNNING (I_control seed 42 at step 3K)
 - Transformer matched-param baseline — `runs/transformer_baseline.py`, 2.856M params, ready to launch after I
+- **Phase 5: prediction target change** (J/K/L variants) — designed in `research/questions/local-learning-variants/README.md`. Directly motivated by I's saturation result.
 - Named/typed tensor dimensions
 - Graph architecture exploration (from dictation 2026-05-24-1) — see `research/questions/graph-architecture/README.md`
 - Hierarchical dynamic tokenization (from dictation 2026-05-24-3) — queued, not active
