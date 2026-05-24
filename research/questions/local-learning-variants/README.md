@@ -290,9 +290,9 @@ Evidence: [`report_j.json`](../../../experiments/wikitext_103/artifacts/closed_l
 
 **Implementation status:** `J_older_window` and `J_fixed_embedding` variants in `runs/closed_loop_prediction.py`. Same architecture as C, only target changes.
 
-**Caveat:** "Block 0 can't compute this" is too strong information-theoretically. With ctx=32 and a recurrent-style rollout, block 0 could in principle encode past information. The real test is operational: can a dedicated helper objective make block 1 carry a **cleaner long-range signal** than block 0 bothers to preserve in its fast single state?
+**Caveat:** "Block 0 can't compute this" is too strong information-theoretically. With ctx=128 and a recurrent-style rollout, block 0 could in principle encode past information. The real test is operational: can a dedicated helper objective make block 1 carry a **cleaner long-range signal** than block 0 bothers to preserve in its fast single state?
 
-All variants below use the **same gated additive interface** (change one thing: the target). Same architecture, same d=256, same ctx=32, same rate-2 helper.
+All variants below use the **same gated additive interface** (change one thing: the target). Same architecture, same d=256, same ctx=128, same rate-2 helper.
 
 ### Recommended run order
 
@@ -306,7 +306,7 @@ Decision tree:
 
 **Collapse risk ranking:** L (lowest, fixed external target) < J (moderate, self-generated but diverse) < K (highest, subtraction can produce near-zero targets if representations are temporally smooth).
 
-**ctx=32 concern for J/K:** 5-8 characters ago is very local on char-level text. Valid positions = 24/32 = 75% (sufficient for screening). But if J/K are null, this doesn't prove older-memory targets don't work — only that they don't clearly help at 5-8 char lag.
+**ctx=128 note for J/K:** 5-8 positions ago is relatively local at ctx=128. Valid positions = 120/128 = 94%. J already confirmed this target works — now testing farther-back windows (J_far_window, offset=12).
 
 ### J: Older-window memory summary
 
@@ -365,7 +365,7 @@ Block 1's role: forecast a 4-token chunk code. This connects to the hierarchical
 
 **Why block 0 can't do this:** Block 0 is trained only on immediate next-token CE. It has no dedicated multi-step forecast objective. The helper provides a "what's coming next in aggregate" signal.
 
-**Note:** Must mask last 4 positions of context window (no future available there). Valid positions: 28/32 = 87.5%.
+**Note:** Must mask last 4 positions of context window (no future available there). Valid positions: 124/128 = 97%.
 
 **Collapse risk:** Lowest. Target is tied to token embeddings (external signal), not self-generated hidden states. Block 0 cannot make this target easier by co-adapting.
 
@@ -374,7 +374,7 @@ Block 1's role: forecast a 4-token chunk code. This connects to the hierarchical
 - **Predicting block 0's full state (current approach):** Block 0 already knows this. Useful for mechanism testing only.
 - **Predicting next-token logits:** Recreates E_grounded (a second next-token model, not a distinct channel). Already tested — stable but doesn't help.
 - **Predicting gradients/errors:** Available in training, not at inference. Block 1 learns something it can't use when generating.
-- **Very long horizons (12+ steps):** Rate-4 was already too stale. With ctx=32 and rate-2 helper, start with 4-step windows.
+- **Very long horizons (50+ steps):** Rate-4 was already too stale. With ctx=128 and rate-2 helper, start with 4-position windows and scale offset gradually.
 - **Adding encoder/decoder before testing simple targets:** Too confounded. If it helps, you won't know if the win came from the target or the extra machinery.
 
 ### Decision framework
@@ -382,8 +382,8 @@ Block 1's role: forecast a 4-token chunk code. This connects to the hierarchical
 - **J helps, K doesn't:** Block 0 wants a coarse older-memory summary. Simple is best.
 - **K helps more than J:** The right signal is specifically *nonlocal complement*, not raw memory.
 - **L helps most:** Helper should be a slower predictive latent / chunk forecaster. Points toward hierarchical autoregressive direction.
-- **None beat current C:** The binding issue is interface alignment / selection pressure (the CE-through-interface gradient), not target semantics alone. Current mechanism IS the right one. But also: 5-8 char lag at ctx=32 may simply be too short for the "older memory" idea to have room to help.
-- **All help but only marginally:** The helper channel at d=256 with ctx=32 may be too small/short for long-range context to matter. Would need to scale before concluding.
+- **None beat current C:** The binding issue is interface alignment / selection pressure (the CE-through-interface gradient), not target semantics alone. Current mechanism IS the right one. ~~But also: 5-8 char lag at ctx=32 may simply be too short.~~ (RESOLVED: J at ctx=128 confirmed the target works.)
+- **All help but only marginally:** The helper channel at d=256 with ctx=128 may not have enough capacity to carry long-range information at its full potential. Would need to scale model size before concluding.
 
 ### Implementation notes
 

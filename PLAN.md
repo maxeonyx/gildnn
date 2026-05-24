@@ -22,41 +22,26 @@ Key metrics at 20K steps (both seeds):
 
 **Decision rule triggered:** J < C → Scale further.
 
-## Current: Next experiment planning
+## Current: Next experiment — J_far_window (offset 9-12)
 
-The older-window target (positions 5-8) works. Now: what scales it?
+All Phase 1-5 experiments ran at **ctx=128** (not ctx=32 — that was the old spectator architecture). The older-window target (positions 5-8 back) works. Now: what scales it?
 
-**Natural scaling axes** (from think agent analysis):
-1. **Temporal separation** — try farther-back windows (9-16, 17-32). Find where target becomes stale vs remains useful.
-2. **Context length** — older-memory should matter more at longer context (128, 256). Currently ctx=32.
-3. **Helper diversity** — multiple helpers with different windows (e.g. one at 5-8, one at 17-32)
+**Natural scaling axes:**
+1. **Temporal separation** — try farther-back windows (9-12, then 17-24). At ctx=128, plenty of room. Find where target becomes stale vs remains useful.
+2. **Context length** — already at 128. Scaling to 256/512 is the next tier but changes many things. Later.
+3. **Helper diversity** — multiple helpers with different windows (e.g. one at 5-8, one at 17-24)
 4. **Model size** — only after the above are explored
 
 **Immediate next steps:**
-1. Run transformer matched-param baseline (2.856M params) — independent comparison point
-2. Implement + run J_far_window variant (positions 17-32 instead of 5-8) — tests temporal separation
-3. After that: context length scaling with the winning target
-
-## Critical findings (carry forward)
-
-1. **MixAdd sqrt formula at init=0.9 gives 31.6% coefficient, not 10%.** Root cause of v1/v2 collapse.
-2. **Additive zero-init gate works.** No collapse. Model learns gain automatically. Negative gain = predictive coding.
-3. **Semi-local IS neighborhood-local.** CE flows through feedback interface. Each block pair is a "neighborhood."
-4. **Full-state cosine prediction is a bad LOCAL objective.** Ungrounded by task. Collapses under strict-local. Under semi-local, CE shapes it to be useful.
-5. **Task-grounded strict-local is stable but neutral.** Local CE prevents collapse but doesn't make predictions useful. The feedback gradient teaches WHAT to predict — that's the value.
-6. **Neighborhood-local is the correct architecture.** The minimum viable locality that actually helps.
-7. **The spectator problem is solved by role differentiation.** B hurts; closed-loop gives block 1 a unique function.
-8. **Predictive coding emerges spontaneously.** Gain goes negative — model subtracts predicted, processes surprise.
-9. **N=3 with shared prediction loss is seed-sensitive / unstable.** Coupling between helpers under shared aux loss. Rate-4 helper always dies; instability comes from how quickly.
-10. **Rate-4 is intrinsically too stale (G ≈ A).** pred_loss rises over training. Ablation gap = 0.
-11. **Target matters more than width.** I (two helpers, full-state) = -0.006. J (one helper, older-window) = -0.010. Better target > more helpers.
-12. **Older-window target is dramatically seed-robust.** J std=0.00009 vs C std=0.005. The less-redundant target creates a more reliable learning signal.
+1. ✅ Transformer matched-param baseline — partial (13K steps, killed). val_loss=1.683 at step 13K. Rerun later.
+2. ✅ J_far_window implemented (offset=12, size=4) — sanity check passes
+3. ✅ **J_far_window full run LAUNCHED** — A_single + J_far_window, 2 seeds, 20K steps (PID 4516, ETA ~00:30)
 
 ## Queue
 
-- Transformer matched-param baseline — `runs/transformer_baseline.py`, 2.856M params, GPU free now
-- J_far_window (positions 17-32) — implement and run
-- Context length scaling with older-window target
+- **J_far_window full run** — RUNNING (active.lock set)
+- J_fixed_embedding — already in code, tests external vs self-generated target
+- Wider temporal separation (offset=20 or 24) — if J_far works
 - Graph architecture exploration (from dictation 2026-05-24-1) — see `research/questions/graph-architecture/README.md`
 - Hierarchical dynamic tokenization (from dictation 2026-05-24-3) — queued, not active
 
