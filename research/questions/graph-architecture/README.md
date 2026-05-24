@@ -4,7 +4,15 @@ Serves [dictation 2026-05-23-5](../../../dictations/2026-05-23-5.md): "Originall
 
 ## Status
 
-**Active — first topology test running.** N=3 star topology (2 helpers predicting block 0) is the first real graph structure being tested. Results pending. See [`local-learning-variants`](../local-learning-variants/README.md) for the experiment details.
+**Partially answered — width saturates at current target.** The N=3 star topology series (F, G, I) is complete through Phase 4. Key findings:
+
+- F (shared loss, rates 2+4): **seed-sensitive** — coupling instability between helpers
+- G (rate-4 only): **intrinsically too stale** — ablation gap = 0, pred_loss rises over training
+- I (two rate-2 helpers, per-helper losses, ±phase offset): **width doesn't add benefit** — saturates at same -0.006 as one helper
+
+Per-helper losses fix the coupling instability (both helpers survive in I). But the prediction TARGET is the bottleneck: predicting full block-0 state that block 0 already knows gives redundant information regardless of helper count. This is a target problem, not a topology problem.
+
+**Next:** Phase 5 changes the prediction target (predict something block 0 doesn't know). If that breaks the saturation, graph scaling becomes worth revisiting. See [`local-learning-variants`](../local-learning-variants/README.md) for full details.
 
 ## Current architecture (as of 2026-05-24)
 
@@ -81,22 +89,21 @@ Many additive corrections may create unstable co-adaptation (helpers learning to
 - Learned mixing weights (lightweight attention over helper outputs)
 - Separate channels per helper (concatenate, then project down)
 
-## Recommended scaling path
+## Recommended scaling path (updated with I results)
 
-**If N=3 wins (F < C):** Don't jump straight to N=8 with current design. Intermediate step:
-1. N=5 with rate/phase design (test phase offsets)
-2. Then N=8 with factorized heads
+The original decision tree was:
+- If N=3 wins → scale up
+- If N=3 ties → try phase offsets or different input views
+- If N=3 hurts → diagnose
 
-**If N=3 ties (F ≈ C):** Interpret as redundancy problem (both helpers doing the same thing). Try:
-1. Phase offsets at same N=3
-2. Or different input views (helper reads different temporal window of s0 history)
+**What actually happened:** F was seed-sensitive (coupling). G showed rate-4 is dead. I showed two rate-2 helpers (with or without phase offsets) saturate at the same benefit as one helper. Per-helper losses fix coupling. Width doesn't help.
 
-**If N=3 hurts:** ← **PARTIALLY THIS — but seeds disagree.** F is seed-sensitive, not consistently harmful. In both seeds, helper 2 was rejected (gain_2 → 0). The instability is real; the consistent harm is not confirmed.
+**The bottleneck is the prediction target, not the graph.** Adding more nodes to the star can't help when every node predicts the same redundant thing. Graph topology scaling is **blocked until the prediction target changes** (Phase 5).
 
-Discriminating next steps:
-1. **G_rate4_only** — run rate-4 helper in isolation to test whether rate-4 predictions are intrinsically viable (implemented, ready to launch)
-2. If rate-4 is viable: **per-helper prediction loss** — each helper gets its own cosine loss against state0, computed independently. Removes the sum-based coupling entirely.
-3. If rate-4 is not viable: **phase offsets** — two helpers both at rate=2 but on different phases (t%2==0 vs t%2==1)
+If Phase 5 breaks the saturation (benefit > -0.006 with a better target), the scaling path reopens:
+1. N=3 with the new target (verify width helps now)
+2. N=5 with rate/phase diversity
+3. N=8 with factorized heads (Risk 3 still applies)
 
 ## Historical context: earlier topology designs (2026-05-08 era)
 
@@ -138,4 +145,10 @@ From the earlier theory iteration, these observations remain valid:
 
 ## Epistemic note
 
-The star topology is being tested first because it preserves the one mechanism we've verified (direct CE grounding for every helper). Whether richer topologies (hierarchical, lateral connections between helpers) add value is completely unknown. The current evidence base is: N=2 star works (modestly). Everything else is theory.
+The star topology is the only graph structure tested so far. The findings tell us about width-scaling *under the current prediction target* — not about graph topology per se. Whether richer topologies (hierarchical, lateral connections between helpers) add value is completely unknown. The current evidence base:
+
+- N=2 star with full-state target: works modestly (-0.006)
+- N=3 star with full-state target: saturates at same -0.006 (width redundant)
+- Everything else: untested theory
+
+The interesting topology question reopens if Phase 5 breaks the target bottleneck — then multiple helpers predicting *different useful things* might compose.

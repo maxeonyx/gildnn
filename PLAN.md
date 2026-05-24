@@ -58,7 +58,7 @@ Log: `experiments/wikitext_103/artifacts/closed_loop_prediction/run_i.jsonl`
 
 ## Queue
 
-- **I (phase offsets)** — RUNNING (I_control seed 42 finishing, 3 runs remaining ~50 min)
+- **I (phase offsets)** — RUNNING (seed 42 complete, seed 43 A_single done, I_phase_offset + I_control remaining ~48 min)
 - Transformer matched-param baseline — `runs/transformer_baseline.py`, 2.856M params, ready to launch after I
 - **Phase 5: prediction target change** (J/K/L variants) — designed in `research/questions/local-learning-variants/README.md`. Directly motivated by I's saturation result.
 - Named/typed tensor dimensions
