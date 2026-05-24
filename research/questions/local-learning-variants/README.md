@@ -176,6 +176,38 @@ Block coordinate descent: train block 0 for K steps with predictions frozen, the
 
 **Hybrid:** Some blocks in a star around block 0, others forming short chains. Might be needed at large N if the interface bottleneck limits how many signals block 0 can use simultaneously. Not explored yet.
 
+## Phase 4: planned post-G experiments
+
+G_rate4_only (running now) tests whether rate-4 is intrinsically viable. The answer determines which of these runs next.
+
+### H: per-helper prediction losses (if G shows rate-4 viable)
+
+**Hypothesis:** F_star's instability came from the **summed auxiliary loss** — with `pred_loss = cosine(LN(prior_1 + prior_2), state0)`, helper 2 can hide behind helper 1 (or interfere with it) because the objective doesn't distinguish their individual contributions.
+
+**Fix:** Separate prediction losses. `pred_loss_1 = cosine(LN(prior_1), state0)`, `pred_loss_2 = cosine(LN(prior_2), state0)`. Total loss = `CE + λ * pred_loss_1 + λ * pred_loss_2`.
+
+**What this tests:** Is the **aux-loss identifiability** the binding constraint? Each helper is now penalized for its OWN predictions being useful, not their sum.
+
+**What this does NOT fix:** CE/gate competition. Both gates are still trained by the same CE loss on block 0's output. Even with separate aux losses, the gates compete under CE — one helper can still get pruned if the CE gradient favors the other. This is a weaker coupling than the summed aux loss, but it's still real.
+
+**Success:** Rate-4 helper stays alive (gate > 0 through training), seed variance drops to C-like levels, val loss ≤ C.
+**Partial success:** Instability gone but helper 2 still prunes → aux loss was causing instability, but rate-4 remains redundant under CE competition.
+**Failure:** Same pattern as F → coupling was at the CE/gate level, not aux loss. Would need alternating optimization or frozen-gate phases.
+
+### I: phase offsets (if G shows rate-4 bad)
+
+**Hypothesis:** Rate-4 staleness is intrinsically harmful (4 steps without updating creates predictions too far from block 0's current state). But **width** could still help if both helpers operate at the same temporal granularity with different **phases**.
+
+**Architecture:** Two rate-2 helpers, one at phase 0 (updates on steps 0,2,4,...) and one at phase 1 (updates on steps 1,3,5,...). On any given step, one helper is maximally fresh and one is 1-step stale.
+
+**Critical:** Must use per-helper prediction losses (not summed). Otherwise reintroduces the known F confound.
+
+**Also needs:** A same-rate same-phase control (two rate-2 helpers, both phase 0) to isolate whether the phase offset is doing the work or whether "two rate-2 helpers" is sufficient on its own.
+
+**What it tests:** Whether temporal offset within the same timescale creates useful role differentiation — vs just having one rate-2 helper (C) or two rate-2 same-phase helpers (redundant, likely one prunes).
+
+**Open question:** If I works, is the mechanism temporal ensembling (two different-age predictions averaged) or phase specialization (each helper learns a different function because it sees the stream at different offsets)? Would need ablation studies to distinguish.
+
 ## What this does NOT cover
 
 - Whether any local variant matches a transformer at matched compute. That's a separate question about absolute performance, not about whether locality works.
