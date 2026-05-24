@@ -8,7 +8,7 @@ Serves [dictation 2026-05-23-5](../../../dictations/2026-05-23-5.md): "Block one
 
 **Strict-local COLLAPSED.** Phase 2 tested whether the mechanism survives without CE flowing through the feedback path. It does not — both seeds collapse catastrophically (D=3.05 vs A=1.67). Full-state cosine prediction without task gradient is a bad local objective. See `research/questions/local-learning-variants/README.md` for the detailed analysis.
 
-**Currently testing: E_grounded** — strict-local with a local CE loss for block 1 (task-grounded representations). Tests whether the collapse was caused by the target or by locality itself.
+**E_grounded resolved: stable but no benefit.** Strict-local with local CE for block 1 prevents collapse (confirms the target caused collapse, not locality itself) but doesn't improve task performance (+0.026 vs A). The feedback gradient through the interface is what teaches the predictor WHAT to predict — that's the real value. See `research/questions/local-learning-variants/README.md` for the complete analysis. **Currently testing: N=3 star topology** (width scaling).
 
 ## Phase 1: aux-only (NULL)
 
