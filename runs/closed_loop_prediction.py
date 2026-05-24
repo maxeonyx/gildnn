@@ -148,6 +148,14 @@ def variant_specs() -> dict[str, VariantSpec]:
             readout_mode="block0",
             closed_loop=True,
         ),
+        "G_rate4_only": VariantSpec(
+            key="G_rate4_only",
+            label="closed_loop_prediction_G_rate4_only",
+            num_blocks=2,
+            rates=(1, 4),
+            readout_mode="block0",
+            closed_loop=True,
+        ),
     }
 
 
@@ -247,11 +255,11 @@ class ClosedLoopPredictionModel(nn.Module):
         if spec.closed_loop:
             self.prior_gain_1 = nn.Parameter(torch.tensor(0.0, dtype=torch.float32))
             self.prior_norm_1 = nn.LayerNorm(d_model)
-            self.prediction_head_1 = nn.Linear(d_model, 2 * d_model)
+            self.prediction_head_1 = nn.Linear(d_model, spec.rates[1] * d_model)
             if spec.num_blocks == 3:
                 self.prior_gain_2 = nn.Parameter(torch.tensor(0.0, dtype=torch.float32))
                 self.prior_norm_2 = nn.LayerNorm(d_model)
-                self.prediction_head_2 = nn.Linear(d_model, 4 * d_model)
+                self.prediction_head_2 = nn.Linear(d_model, spec.rates[2] * d_model)
         if spec.local_ce:
             self.block1_norm = nn.LayerNorm(d_model)
             self.block1_lm_head = nn.Linear(d_model, vocab_size)
@@ -292,10 +300,11 @@ class ClosedLoopPredictionModel(nn.Module):
         s1 = embeddings.new_zeros((batch_size, self.d_model))
         s2 = embeddings.new_zeros((batch_size, self.d_model))
         zero_state = embeddings.new_zeros((batch_size, self.d_model))
-        prior_buffer_1 = embeddings.new_zeros((batch_size, 2, self.d_model))
+        block1_rate = self.spec.rates[1] if self.spec.num_blocks >= 2 else 1
+        prior_buffer_1 = embeddings.new_zeros((batch_size, block1_rate, self.d_model))
         prior_buffer_2 = None
         if self.spec.num_blocks == 3:
-            prior_buffer_2 = embeddings.new_zeros((batch_size, 4, self.d_model))
+            prior_buffer_2 = embeddings.new_zeros((batch_size, self.spec.rates[2], self.d_model))
         state0_history = embeddings.new_zeros((batch_size, self.context_size, self.d_model))
         prior_used_history = embeddings.new_zeros((batch_size, self.context_size, self.d_model))
         prior_valid_history = torch.zeros((self.context_size,), device=device, dtype=torch.bool)
@@ -324,20 +333,20 @@ class ClosedLoopPredictionModel(nn.Module):
             delta0 = self.block0_ffn(x0)
             s0 = self.block0_mix(x0, delta0)
 
-            if self.block1_ffn is not None and self.block1_mix is not None and time_index % 2 == 0:
+            if self.block1_ffn is not None and self.block1_mix is not None and time_index % self.spec.rates[1] == 0:
                 x1 = 0.5 * (s1 + s0.detach())
                 delta1 = self.block1_ffn(x1)
                 s1 = self.block1_mix(x1, delta1)
                 if self.prediction_head_1 is not None:
-                    pred_pair = self.prediction_head_1(s1).view(batch_size, 2, self.d_model)
+                    pred_pair = self.prediction_head_1(s1).view(batch_size, self.spec.rates[1], self.d_model)
                     prior_buffer_1.copy_(pred_pair)
 
-            if self.block2_ffn is not None and self.block2_mix is not None and time_index % 4 == 0:
+            if self.block2_ffn is not None and self.block2_mix is not None and time_index % self.spec.rates[2] == 0:
                 x2 = 0.5 * (s2 + s0.detach())
                 delta2 = self.block2_ffn(x2)
                 s2 = self.block2_mix(x2, delta2)
                 if self.prediction_head_2 is not None and prior_buffer_2 is not None:
-                    pred_quad = self.prediction_head_2(s2).view(batch_size, 4, self.d_model)
+                    pred_quad = self.prediction_head_2(s2).view(batch_size, self.spec.rates[2], self.d_model)
                     prior_buffer_2.copy_(pred_quad)
 
             state0_history[:, time_index, :].copy_(s0)
