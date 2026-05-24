@@ -10,7 +10,7 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 **Tied-depth experiment RUNNING.** PID 12984, `runs/tied_depth.py`, 4 variants (A_single, tied_8iter, distinct_matched, distinct_rich), 2 seeds, 20K steps each. Logging to `experiments/wikitext_103/artifacts/tied_depth/run.jsonl`. Launched 04:36 NZST. Expected completion ~06:30-07:00 (tied_8iter is slow: 80K tok/s vs 330K for A_single).
 
-**Progress (tied_8iter seed 42):** At step 13K, tied_8iter val_loss 1.889 vs A_single 1.943 at step 12K = **~0.04 nats better**. Gap has held steady 0.035–0.063 across all steps. Projected tied_8iter final: ~1.77-1.79 (closing ~20-25% of the 0.24-nat gap to transformer). ETA for full experiment: ~07:00-07:30 NZST.
+**Progress (tied_8iter seed 42):** At step 17K, tied_8iter val_loss **1.827** — now BELOW A_single's final (1.832). Tied depth has overtaken the shallow model with 3K steps remaining. Gap has been consistent: 0.035–0.063 nats across all steps. Projected tied_8iter final: ~1.77-1.80. ETA for full experiment: ~07:00-07:30 NZST.
 
 **C_old ablation script READY.** `runs/c_old_ablation.py` committed. Trains C_lateral (upward) vs C_isolated (no lateral, same params). Added "isolated" topology to `core/model.py`. Launch after tied-depth finishes.
 
