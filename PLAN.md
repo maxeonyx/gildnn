@@ -34,8 +34,9 @@ Ablation gap = 0 at both seeds. Helper predictions are not contributing at infer
 - A_single final: val_loss = 1.669
 - **I_phase_offset ≈ C (-0.006 vs A)**. Two helpers achieve the same benefit as one. Width doesn't add.
 - Ablation gap is MUCH larger (0.351 vs C's 0.22) — both helpers deeply integrated — but net benefit saturates.
-- I_control seed 42 at step 19K (val_loss 1.673, gains -0.039/-0.039 — perfectly symmetric). Converging to ~1.66 ≈ I_phase_offset. Phase offset doesn't matter.
-- Still needs: A_single seed 43, I_phase_offset seed 43, I_control seed 43. ETA: ~6:00pm.
+- I_control seed 42 FINAL: val_loss = 1.663, ablated = 1.938, gains -0.039/-0.040 (symmetric). Identical to I_phase_offset. Phase offset doesn't matter.
+- **Seed 42 verdict: decision rule #3 applies.** I_phase_offset ≈ I_control ≈ A - 0.006. Width adds no benefit beyond one helper. Target is the bottleneck.
+- Still needs: seed 43 confirmation (A_single at step 3K, then I_phase_offset + I_control). ETA: ~5:50pm.
 
 **Emerging hypothesis:** The benefit saturates at ≈ -0.006 regardless of helper count because the prediction TARGET is the bottleneck, not architecture/coupling. Full-state prediction provides redundant info (block 0 already knows its own state). This strongly motivates Phase 5 (prediction target change). If Phase 5's "predict something block 0 doesn't know" gives > -0.006, it confirms the target was the binding constraint.
 
