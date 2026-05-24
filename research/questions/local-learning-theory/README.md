@@ -146,14 +146,17 @@ This is predictive coding applied laterally. The prediction error is the local s
 - A compression of block 0's *history* (which block 0 can't store in one vector)
 - A higher-level pattern that explains multiple timesteps of block 0's output
 
-### Immediate next step: Phase 5 prediction targets
+### Immediate status: Phase 5 J CONFIRMED — target hypothesis proven
 
-Concrete experiments are designed in [`research/questions/local-learning-variants/README.md`](../local-learning-variants/README.md) — see Phase 5 (J/K/L variants). These test Max's framing directly:
-- J: predict a 4-step-old window summary of block 0's history
-- K: predict the nonlocal residue (older context minus recent context)
-- L: predict a future 4-token chunk code
+Phase 5 J experiments are in [`research/questions/local-learning-variants/README.md`](../local-learning-variants/README.md). Key result:
 
-All three keep the semi-local architecture (CE through interface) while changing the prediction target. This tests whether the -0.006 benefit ceiling is a target problem (full-state is redundant info block 0 already has) or an interface problem (the gate can only carry ~0.006 nats regardless).
+- **J_older_window (predict mean of h_{t-8}..h_{t-5}) confirmed:** Δ = -0.010, std across seeds 0.00009 (53× less than C). The target was the bottleneck.
+- **K (nonlocal residue):** deprioritized — high collapse risk, less discriminating
+- **L (future chunk code):** queued as alternative hypothesis family (slow predictor, not memory store)
+
+The -0.006 ceiling was NOT an interface problem. It was a target problem: predicting block 0's current full state is redundant (block 0 already has it). Predicting older history that block 0 may have partially overwritten is genuinely useful.
+
+**Open question from point (4) below:** Does J's good target also rescue strict-local? E_grounded failed with a bad target (full-state); J's target might make strict-local viable. This would be a significant finding for true parallelism.
 
 ### Longer-term investigations
 
