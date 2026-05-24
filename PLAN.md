@@ -24,30 +24,42 @@ The feedback gradient does two things: (a) prevents collapse (which local CE als
 
 ## What's next: discriminate rate-4 viability
 
-### N=3 interim result (seed 42 still running, but trajectory is decisive)
+### N=3 interim result (seed 42 complete, seed 43 in progress)
 
-**F_star_3block ≈ C.** Helper 2 (rate=4) was actively driven to zero by CE:
+**F_star_3block HURTS.** Not just redundant — actively worse than both A and C:
+
+| Variant | val_loss (seed 42) | vs A |
+|---------|-------------------|------|
+| C_closed_loop | 1.660 | **-0.009** |
+| A_single | 1.669 | — |
+| **F_star_3block** | **1.702** | **+0.033** |
+
+Helper 2 (rate=4) was actively driven to zero by CE:
 
 | Step | gain_1 (rate=2) | gain_2 (rate=4) |
 |------|-----------------|-----------------|
 | 5K   | -0.057          | -0.013          |
 | 9K   | -0.058          | -0.007          |
 | 15K  | -0.068          | -0.0004         |
+| 20K  | -0.082          | -0.0002         |
 
-gain_1 approaches C's final value (-0.071). gain_2 is effectively dead. The model self-pruned the redundant helper.
+gain_2 → 0 means helper 2 doesn't affect the forward pass. Yet F is still 0.033 worse than A. **Training-time interference through the shared prediction loss** — helper 2's noise in `prior_t_1 + prior_t_2` corrupts the gradient that shapes helper 1's predictions.
 
-**Why this happened (analysis):** The prediction loss is computed on the SUM of both helpers' priors (`prior_t_1 + prior_t_2`). Helper 1 satisfies the prediction objective; helper 2 becomes underdetermined. Meanwhile, CE actively pushes gain_2 toward zero because helper 2's signal doesn't improve block 0's output beyond what helper 1 already provides. This is an **identifiability failure** in the current training objective, not necessarily proof that rate-4 predictions are useless.
+Supporting evidence: gain_1 in F (-0.082) is larger in magnitude than in C (-0.071), suggesting block 0 became MORE dependent on predictions in F — possibly because block 0 itself learned less effectively (degraded representations = more reliance on helpers).
+
+**Provisional until seed 43 confirms.** Expected variance is ~0.005; the F-A gap (0.033) is much larger, so likely real.
 
 ### Next discriminating experiment: G_rate4_only
 
-**Question:** Is rate-4 intrinsically bad (4-step predictions too noisy to be useful), or just unable to compete with rate-2 under the shared objective?
+**Question:** Is rate-4 intrinsically harmful, or does the damage only occur when combined with rate-2 under a shared prediction objective?
 
 **Test:** Run C_closed_loop but with a rate-4 helper instead of rate-2. Same everything else: 2 blocks, star topology, CE flows through interface.
 
 **Decision rules:**
-- **G_rate4_only ≈ C:** Rate-4 is viable in isolation! The N=3 failure was identifiability, not task difficulty. Fix: per-helper prediction losses.
-- **G_rate4_only << C (but doesn't collapse):** Rate-4 is intrinsically weaker. Fix: don't use very different rates; instead try phase offsets (two helpers at rate=2, different phases).
-- **G_rate4_only collapses:** Something specific about rate-4 breaks. Investigate.
+- **G_rate4_only ≈ C (both help vs A):** Rate-4 is viable in isolation! The N=3 failure was purely the shared-loss interference. Fix: per-helper prediction losses to remove the coupling.
+- **G_rate4_only ≈ A (neutral):** Rate-4 predictions are too stale to help but don't hurt when alone. The N=3 hurt was from the shared-loss corrupting helper 1.
+- **G_rate4_only > A (hurts):** Rate-4 is intrinsically bad — even in isolation it degrades training. Don't use high rates; try phase offsets instead.
+- **G_rate4_only collapses:** Something specific about rate-4 breaks the mechanism entirely. Investigate.
 
 **Code changes needed:**
 - Make block 1's rate configurable in VariantSpec (currently hardcoded: fires `time_index % 2 == 0`, prediction head = `Linear(d_model, 2*d_model)`)
@@ -75,7 +87,7 @@ If G fails (rate-4 intrinsically bad), test **phase offsets** at N=3:
 6. **Neighborhood-local is the correct architecture.** The minimum viable locality that actually helps.
 7. **The spectator problem is solved by role differentiation.** B hurts; closed-loop gives block 1 a unique function.
 8. **Predictive coding emerges spontaneously.** Gain goes negative — model subtracts predicted, processes surprise.
-9. **Summed-prior prediction loss creates identifiability failure at N>2.** When multiple helpers' predictions are summed before computing the loss, the first-to-converge helper monopolizes the objective. Later helpers get pushed to zero gain by CE. Fix requires per-helper supervision or structural differentiation.
+9. **Summed-prior prediction loss creates interference at N>2.** When multiple helpers' predictions are summed before computing the loss, the secondary helper's noise corrupts the gradient for the primary helper — even after the secondary helper's gain goes to zero. F_star is 0.033 WORSE than A despite gain_2 ≈ 0. Fix requires per-helper supervision or removing the shared prediction sum.
 
 ## Queue
 
