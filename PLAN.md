@@ -4,94 +4,81 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current state (2026-05-25 midnight)
+## Current state (2026-05-25)
 
-**J_fixed_embedding COMPLETE — token embeddings work as well as hidden states.** Δ=-0.012, std=0.0006. This is slightly BETTER than J_older_window's -0.010. The helper's value is temporal memory — "what tokens were here before" — not block 0's learned representations specifically. The target is external and doesn't depend on block 0's hidden state.
+**Process overhaul complete.** Max reviewed the project direction and found the loop agent was stuck amplifying marginal signals (the "closed loop prediction" / J experiment series) with no connection to the actual project thesis. Three documents restructured: VISION.md (requirements), ROADMAP.md (11 research pathways), PROCESS.md (nested loops with adversarial review gates).
 
-**Key implication:** Since the target is externally anchored (doesn't depend on block 0), it might work with strict-local training — removing the co-adaptation failure mode that killed D_strict_local.
-
-**J_strict_local + J_fixed_strict_local running now** (ETA ~01:20 NZST). Tests both strict-local variants:
-- J_strict_local: older-window target + no CE through interface
-- J_fixed_strict_local: fixed-embedding target + no CE through interface
-
-If J_fixed_strict_local works where J_strict_local fails, that confirms the external anchor is what makes strict-local viable → path to true parallelism.
+The "closed loop prediction" experiment family (variants A through J, agent-coined name) is **done**. It produced some useful evidence about local learning failure modes but the mechanism itself is architecturally incoherent and the results are marginal. Do not continue it.
 
 **What we have:**
-- A working experiment framework (multi-seed, JSONL logs, CUDA graphs, ablation metrics)
-- A confirmed mechanism: older-window prediction provides block 0 with useful missing context
-- Evidence that the helper's role is TEMPORAL MEMORY, not representation-specific
-- Evidence that strict-local collapses, semi-local works, and the target matters more than topology
-- The graph scaling path reopened: multiple helpers with different temporal bands
-- A 10.8x training speedup from CUDA graph compilation
+- Working experiment infrastructure (training loop, eval, multi-seed, ablation, JSONL logs, CUDA graphs)
+- Transformer baseline: val_loss 1.643, 187K params, WikiText-103 char-level
+- RNN baseline: in base-experiments/
+- Evidence: strict-local collapses, semi-local barely helps, prediction target matters more than topology
+- Evidence: multi-rate [1,2,4,8] provides inductive bias (better per-step val_loss)
+- Evidence: CUDA Graph concurrency gives 28% speedup; stale reads don't hurt quality
+- 10.8x CUDA graph training speedup in core/
 
-**What we still need:**
-- J_strict_local + J_fixed_strict_local results (RUNNING NOW)
-- J_dual_band: do temporal bands compose? (implemented, ready)
-- Transformer baseline (partial run: 1.683 at 13K, on track but killed)
-- Propagation-delay experiment (true architecture vision)
+**What we DON'T have:**
+- The fundamental comparison (Pathway 1): wide recurrent vs transformer at matched compute
+- Any experiment with real propagation delay
+- Any experiment with self-prediction (computation compression)
+- Any custom CUDA concurrency beyond the Graph approach
+- Any experiment at ctx > 128
 
 ---
 
 ## The agent's working loop
 
-This is the loop the agent should follow. Not a phase plan — a loop with exit conditions and redirect paths.
+Follow PROCESS.md. The short version:
 
 ```
-ORIENT → CHOOSE → THEORY → RUN → ANALYZE → CHECK → (loop or redirect)
+PROCESS CHECK → PATHWAY SELECTION → [adversarial gate] →
+CONCEPTUAL CLARIFICATION → [adversarial gate] →
+EXPERIMENT DESIGN → [adversarial gate] →
+RUN & ANALYZE → [adversarial gate] →
+INTEGRATE / REPORT / UPDATE PLAN → back to PATHWAY SELECTION
 ```
 
-**Orient:** Read PLAN.md, check time/reports, check active runs. Understand where we are.
-
-**Choose:** Pick the cheapest useful next step that advances a ROADMAP pathway. If unsure, prefer:
-- Pathways that haven't been tested at all (breadth > depth on marginal signals)
-- Missing baselines (we need grounding before more custom work)
-- Theory work over another experiment if the question isn't clear yet
-
-**Theory:** Before running, write the hypothesis. What do we expect? What would increase/decrease confidence? Is this actually the cheapest test?
-
-**Run:** Execute. Follow visibility and background-execution rules.
-
-**Analyze:** What happened? What does it teach about the pathway?
-
-**CHECK (exit conditions):**
-- Is the result meaningful (>0.05 nats, or qualitatively informative)?
-  - YES → record, continue on this pathway
-  - NO → record what we learned, REDIRECT to a different pathway or a different approach
-- Is the next experiment on this pathway still the cheapest useful thing?
-  - YES → iterate
-  - NO → redirect to whatever IS cheapest
-- Am I amplifying a marginal signal?
-  - YES → STOP. This is the primary failure mode. Record and redirect.
+Every gate is a separate subagent review that can send you back. See PROCESS.md for full details.
 
 ---
 
 ## What should happen next
 
-Priority order (not a sequence — pick whichever is cheapest to do honestly right now):
+Pick from this list based on cheapest honest test. These connect to specific roadmap pathways:
 
-1. **Analyse J_strict_local + J_fixed_strict_local** — RUNNING (ETA ~01:20). This is the most important result pending. If J_fixed_strict_local works → path to true parallelism opens.
-
-2. **Dual-band width test (J_dual_band)** — two rate-2 helpers at offsets (8,12). Required control: `J_dual_same_band` with offsets (8,8). Tests whether temporal bands compose. **Implementation DONE** — sanity-checked and committed.
-
-3. **Transformer baseline** on WikiText-103 at d=256, ctx=128. Non-negotiable for interpreting custom results. Partial run was on track (1.683 at 13K).
-
-4. **Propagation-delay experiment** — the true architecture vision. Block 1 sees block 0's output from PREVIOUS timestep only. Never tested correctly.
+| Priority | Experiment | Pathway | Why |
+|---|---|---|---|
+| 1 | **Wide recurrent vs transformer** — same weights applied N times, compare to baseline | 1 (the thesis) | THE fundamental comparison. Never run. Everything else depends on this. |
+| 2 | **Propagation-delay 2-block** — block 1 sees block 0's PREVIOUS output only | 1, 3 | The actual architecture vision. Never tested correctly. |
+| 3 | **Muon optimizer swap** — does it fix gradient instability through many iterations? | 9 (norm-preserving) | Quick to test. Enabler for pathway 1. |
+| 4 | **Gradient radius sweep** — vary stop-gradient from k=1 to k=full | 3 (local learning) | Quantifies the locality constraint. |
+| 5 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | Next step after the 28% CUDA Graph result. |
+| 6 | **Context length scaling** — ctx=256, 512 | 8 (multi-rate) | Needed for multi-rate to be meaningful. |
 
 ---
 
 ## Completed work (reference)
 
-| What | Result | Interpretation |
-|---|---|---|
-| **J_older_window** | **-0.010, std 0.00009** | Target was the bottleneck; older memory provides useful missing context |
-| **J_far_window** | **-0.007, std 0.0003** | Offset sensitivity is gentle inverted-U; plateau from 8 to 12 |
-| **J_fixed_embedding** | **-0.012, std 0.0006** | Token embeddings ≥ hidden states; helper's role is temporal memory |
-| I_phase_offset | -0.006, width saturates | Two helpers predicting same target are redundant |
-| G_rate4_only | ≈ A, ablation gap 0 | Rate-4 too stale for this architecture |
-| F_star_3block | SEED-SENSITIVE | Shared loss coupling, rate-4 auto-rejected |
-| E_grounded | Stable, +0.026 | Task-grounded strict-local: no collapse but no help |
-| D_strict_local | COLLAPSE (+1.38) | Full-state local prediction fails without CE shaping |
-| C_closed_loop (v3) | -0.006 (unreliable) | Semi-local mechanism works but target is redundant |
-| CUDA graph training | 10.8x speedup | Working, in core/ |
-| Async hardware measurement | 28% block concurrency | CUDA streams too high-level; needs custom CUDA |
-| Backend choice | PyTorch + torch.compile | Decided |
+| What | Pathway | Result | Interpretation |
+|---|---|---|---|
+| Transformer baseline | all | val_loss 1.643, 187K params | Done, in base-experiments/ |
+| RNN baseline | all | Done | In base-experiments/ |
+| Multi-rate [1,2,4,8] | 8 | Spectator problem | Block 0 sees all tokens → no specialization |
+| Closed-loop variants A-J | — | Marginal (-0.006 to -0.012) | Architecturally incoherent. Not on any pathway. Done. |
+| CUDA graph training | infra | 10.8x speedup | In core/ |
+| CUDA Graph concurrency | 2 | 28% speedup | Hardware CAN do concurrent execution |
+| Stale-read quality cost | 2 | +0.005 ± 0.005 nats | Negligible (95% CI crosses zero) |
+| Backend choice | infra | PyTorch + torch.compile | Decided |
+
+---
+
+## Roadmap evidence to suggest to Max
+
+(Agent records evidence here; Max decides whether to update ROADMAP.md)
+
+- **Pathway 2 (Async):** Prior positive — 28% concurrency via CUDA Graphs, stale reads don't hurt. Next: custom CUDA.
+- **Pathway 3 (Local Learning):** Prior negative — strict-local collapses. Prior weak-positive — neighborhood-local helps slightly BUT tested on wrong architecture. Needs redo with propagation delay.
+- **Pathway 8 (Multi-Rate):** Prior weak-positive — inductive bias confirmed at ctx=32. Needs longer context to be meaningful.
+- **Pathway 9 (Norm-Preserving):** Untested. Muon swap is cheapest first step.

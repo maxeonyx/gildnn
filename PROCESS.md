@@ -145,37 +145,173 @@ Ambiguity is allowed. Failure is allowed. Needing to restart from a simpler vers
 
 ### The experiment loop (not a linear plan)
 
-An experiment thread is a **loop with exit conditions**, not a sequence of phases. The agent must be able to redirect at every iteration.
+Work is structured as **nested loops with adversarial review gates**, not a sequence of phases. Each loop has an explicit exit condition. Failing the exit condition sends you BACK (to an earlier loop or to redesign), never forward with a patch. An adversarial review means delegating to a separate subagent whose job is to find problems — if it can't find significant problems, you pass.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│ EXPERIMENT LOOP                                             │
-│                                                             │
-│  1. Choose: which roadmap pathway? What's cheapest honest   │
-│     test for the next unknown?                              │
-│                                                             │
-│  2. Theory: what do we expect? What would confirm/deny?     │
-│     Write the hypothesis before running.                    │
-│                                                             │
-│  3. Run: smallest experiment that discriminates.            │
-│                                                             │
-│  4. Analyze: what actually happened? Does it match          │
-│     expectations?                                           │
-│                                                             │
-│  5. CHECK (exit conditions):                                │
-│     - Did we learn something meaningful? → Record it.       │
-│     - Is the pathway still viable? → Continue or demote.    │
-│     - Is the NEXT experiment on this pathway the cheapest   │
-│       useful thing? Or has another pathway become cheaper?  │
-│     - Are we amplifying a marginal signal instead of        │
-│       testing something new? → REDIRECT.                    │
-│                                                             │
-│  6. If check fails → go back to step 1 with new info.      │
-│     If check passes → iterate (step 2 with next question).  │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│ PROCESS IMPROVEMENT LOOP (outermost — always active)            │
+│                                                                 │
+│  Check: is the process working? Did last session feel wrong?    │
+│  If yes → fix process/docs BEFORE doing research.              │
+│  If no → enter research loop.                                  │
+│                                                                 │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │ PATHWAY SELECTION LOOP                                    │  │
+│  │                                                           │  │
+│  │  1. Which roadmap pathway to advance?                     │  │
+│  │  2. What's the cheapest honest test for it?               │  │
+│  │                                                           │  │
+│  │  GATE: Adversarial review (subagent).                     │  │
+│  │  - Does this actually connect to the roadmap?             │  │
+│  │  - Is this really the cheapest test?                      │  │
+│  │  - Are we amplifying a marginal signal?                   │  │
+│  │  - Has this been tried before (check prior results)?      │  │
+│  │  If review finds problems → go back to step 1.           │  │
+│  │                                                           │  │
+│  │  ┌─────────────────────────────────────────────────────┐  │  │
+│  │  │ CONCEPTUAL CLARIFICATION LOOP                       │  │  │
+│  │  │                                                     │  │  │
+│  │  │  1. What exactly is being tested?                   │  │  │
+│  │  │  2. What do we expect and why?                      │  │  │
+│  │  │  3. What alternatives were considered?              │  │  │
+│  │  │  4. Write hypotheses and planned evidence.          │  │  │
+│  │  │                                                     │  │  │
+│  │  │  GATE: Adversarial review (subagent).               │  │  │
+│  │  │  - Are the hypotheses falsifiable?                  │  │  │
+│  │  │  - Is the expected outcome clearly stated?          │  │  │
+│  │  │  - Could a simpler experiment answer the same       │  │  │
+│  │  │    question?                                        │  │  │
+│  │  │  - Are there hidden assumptions?                    │  │  │
+│  │  │  If review finds problems → iterate on clarity.    │  │  │
+│  │  │                                                     │  │  │
+│  │  │  ┌───────────────────────────────────────────────┐  │  │  │
+│  │  │  │ EXPERIMENT DESIGN LOOP                        │  │  │  │
+│  │  │  │                                               │  │  │  │
+│  │  │  │  1. Design the experiment (code, config).     │  │  │  │
+│  │  │  │  2. Sanity check (overfit one batch, etc).    │  │  │  │
+│  │  │  │                                               │  │  │  │
+│  │  │  │  GATE: Adversarial review (subagent).         │  │  │  │
+│  │  │  │  - Does the code match the hypothesis?        │  │  │  │
+│  │  │  │  - Are there bugs that would invalidate       │  │  │  │
+│  │  │  │    results?                                   │  │  │  │
+│  │  │  │  - Is the comparison fair (matched compute,   │  │  │  │
+│  │  │  │    same data, proper ablation)?               │  │  │  │
+│  │  │  │  If review finds problems → fix and re-check. │  │  │  │
+│  │  │  │                                               │  │  │  │
+│  │  │  │  ┌─────────────────────────────────────────┐  │  │  │  │
+│  │  │  │  │ RUN & ANALYZE LOOP                      │  │  │  │  │
+│  │  │  │  │                                         │  │  │  │  │
+│  │  │  │  │  1. Run experiment.                     │  │  │  │  │
+│  │  │  │  │  2. Analyze results.                    │  │  │  │  │
+│  │  │  │  │  3. Does result match expectations?     │  │  │  │  │
+│  │  │  │  │     - If unexpected → investigate why   │  │  │  │  │
+│  │  │  │  │       before concluding.                │  │  │  │  │
+│  │  │  │  │                                         │  │  │  │  │
+│  │  │  │  │  GATE: Adversarial review (subagent).   │  │  │  │  │
+│  │  │  │  │  - Is the interpretation honest?        │  │  │  │  │
+│  │  │  │  │  - Are we overclaiming?                 │  │  │  │  │
+│  │  │  │  │  - Is the pathway still viable?         │  │  │  │  │
+│  │  │  │  │  - Should we continue on this pathway   │  │  │  │  │
+│  │  │  │  │    or redirect?                         │  │  │  │  │
+│  │  │  │  │                                         │  │  │  │  │
+│  │  │  │  │  EXIT CONDITIONS:                       │  │  │  │  │
+│  │  │  │  │  - Meaningful result → integrate code   │  │  │  │  │
+│  │  │  │  │    if applicable, report if due, update  │  │  │  │  │
+│  │  │  │  │    PLAN.md, suggest roadmap updates,     │  │  │  │  │
+│  │  │  │  │    then pathway selection.               │  │  │  │  │
+│  │  │  │  │  - Marginal result → REDIRECT. Record   │  │  │  │  │
+│  │  │  │  │    what it teaches, suggest roadmap      │  │  │  │  │
+│  │  │  │  │    update in PLAN.md. Do NOT iterate.    │  │  │  │  │
+│  │  │  │  │  - Unexpected failure → go back to       │  │  │  │  │
+│  │  │  │  │    conceptual clarification.             │  │  │  │  │
+│  │  │  │  │  - Design flaw found → go back to        │  │  │  │  │
+│  │  │  │  │    experiment design.                    │  │  │  │  │
+│  │  │  │  └─────────────────────────────────────────┘  │  │  │  │
+│  │  │  └───────────────────────────────────────────────┘  │  │  │
+│  │  └─────────────────────────────────────────────────────┘  │  │
+│  └───────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-**The critical exit condition:** If an experiment produces a marginal result (<0.05 nats improvement over baseline on a task where the baseline is 1.5+), do NOT iterate on the same mechanism hoping to amplify it. Instead: record the result, ask what it teaches about the pathway, and choose the next cheapest test — which may be on a DIFFERENT pathway.
+### Adversarial review gates
+
+**Every transition between loops requires an adversarial review.** This is not optional ceremony — it is the mechanism that prevents drift. The reviewing subagent's job is to find problems. If it cannot find significant problems, the gate passes. If it finds problems, you go BACK, not forward.
+
+The reviewer is a DIFFERENT subagent from the one doing the work. It receives the work product and asks:
+
+1. **Does this connect to the roadmap?** Name the pathway. If the connection is vague or requires a stretch, the work doesn't pass.
+2. **Is this the cheapest honest test?** Could something simpler answer the same question? If yes, go back and simplify.
+3. **Are we amplifying a marginal signal?** If the improvement is small relative to the gap between baseline and target, AND repeating the same class of intervention is unlikely to compound, it's marginal. The reviewer decides — not the experimenter.
+4. **Are there hidden assumptions?** Things stated as settled that aren't experimentally confirmed. Things assumed about the architecture that haven't been tested.
+5. **Is the interpretation honest?** No overclaiming. No "this proves X" when it merely suggests X. Open things stay open.
+6. **Is the result actually meaningful enough to count as evidence?** Would this change what you'd try next on a different pathway? If not, it's not meaningful — it's noise.
+
+### The reviewer cannot be overridden
+
+**If the reviewer identifies ANY problem, the orchestrator must either:**
+- (a) Address the problem and re-submit for review, or
+- (b) Escalate to Max.
+
+**The orchestrator may NOT:**
+- Dismiss review findings as minor
+- Rephrase problems as non-significant
+- Commission a second review with different framing hoping for a pass
+- Interpret "no significant problems" liberally to skip issues
+
+The adversarial reviewer has veto power. This is deliberate — the cost of one blocked experiment is low; the cost of weeks of drift is high.
+
+**Enforcement note:** This rule cannot be mechanically enforced in a single autonomous agent — the orchestrator is ultimately its own judge of compliance. It exists as a strong norm. When Max reviews session transcripts, violation of reviewer findings is a process failure worth calling out. The loop is designed so that violating this rule leaves visible traces (no review record, or review findings that were never addressed).
+
+### Going back to earlier loops
+
+The loop structure is explicitly non-linear. Problems discovered in ANY inner loop can send you back to ANY outer loop:
+
+- **Experiment results reveal the concept was wrong** → go back to conceptual clarification loop (not "try a different hyperparameter")
+- **Review finds the pathway selection was wrong** → go back to pathway selection (not "reinterpret the result to fit")
+- **Process feels wrong** → go back to process improvement loop (fix the process before continuing)
+- **Design review finds the experiment can't answer the question** → go back to conceptual clarification (not "run it anyway and see what happens")
+
+The agent must never move forward through a gate that has identified a problem. Patching forward is the primary failure mode.
+
+### Process re-entry triggers
+
+The Process Improvement Loop is not just a one-shot check on session start. Re-enter it when:
+
+- **Any adversarial gate fails** — after fixing the problem, ask: "should the process itself be updated to prevent this class of problem?"
+- **After every daily report** — ask: "was today's work shaped well by the process, or did I work around it?"
+- **After any result (meaningful or not)** — update PLAN.md with what was learned. If the result changes pathway viability, note that too.
+- **After any unexpected outcome** — if reality surprised you, either your model of the system was wrong or the process let a bad experiment through. Figure out which.
+
+### Updating the roadmap from results
+
+When an experiment produces evidence for or against a pathway, the agent must note this in PLAN.md (which it CAN edit). It must NOT edit ROADMAP.md (which is Max-only), but it must record in PLAN.md: "Pathway X: new evidence [description]. Confidence [increased/decreased/unchanged]. Suggest roadmap update: [specific change]." Max reviews and applies roadmap changes.
+
+### Skill loading at point of use
+
+Load the relevant skills at the point in the loop where they matter, not as general aspirations:
+
+- **Entering Experiment Design Loop** → load `code-principles` and `verifying-work`
+- **Before writing any experiment code** → load `code-principles`
+- **Before running any experiment** → load `verifying-work` (plan verification BEFORE implementation)
+- **Before writing any report or doc update** → load `information-architecture`
+- **Before any shell command** → load `tools`
+
+### Code health loop
+
+Part of the Process Improvement Loop (outermost). On every session start, also check:
+
+- Has `core/` grown since last review? Is anything there that shouldn't be?
+- Are there dead experiments (taught nothing, just clutter)? Delete them.
+- Are there experiment scripts that share logic? Move shared logic to `core/`.
+- Is the codebase still small? If not, refactor before adding more.
+
+Code health is not a separate phase — it's a check that can trigger a refactoring sub-loop at any time. If the codebase is unhealthy, fix it BEFORE running more experiments.
+
+### The critical exit condition
+
+A marginal result is one where the improvement is small relative to the gap between current and target, AND where repeating the same class of intervention is unlikely to compound. The 0.05 nats threshold on a 1.5+ baseline is one example, not the only case. The adversarial reviewer decides whether a result is marginal — not the experimenter.
+
+When a result is marginal: record it, ask what it teaches about the pathway, and choose the next cheapest test — which may be on a DIFFERENT pathway. Do NOT iterate on the same mechanism.
 
 Spending multiple sessions amplifying a small signal is the primary failure mode of this project's loop agent. The correct response to a marginal result is "interesting, what does this tell us? what's next?" not "how do I make this number bigger?"
 
