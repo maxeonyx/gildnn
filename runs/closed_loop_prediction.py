@@ -386,12 +386,14 @@ class ClosedLoopPredictionModel(nn.Module):
             token_state = embeddings[:, time_index, :]
             seed0 = self.token_mix(s0, token_state)
             x0 = seed0
-            if has_prior and bool(prior_valid_t_1.item()) and self.prior_gain_1 is not None and self.prior_norm_1 is not None:
+            if has_prior and self.prior_gain_1 is not None and self.prior_norm_1 is not None:
                 effective_prior_1 = prior_t_1.detach() if self.spec.strict_local else prior_t_1
-                x0 = x0 + self.prior_gain_1 * self.prior_norm_1(effective_prior_1)
-            if has_prior and bool(prior_valid_t_2.item()) and self.prior_gain_2 is not None and self.prior_norm_2 is not None:
+                valid_mask_1 = prior_valid_t_1.float()
+                x0 = x0 + valid_mask_1 * self.prior_gain_1 * self.prior_norm_1(effective_prior_1)
+            if has_prior and self.prior_gain_2 is not None and self.prior_norm_2 is not None:
                 effective_prior_2 = prior_t_2.detach() if self.spec.strict_local else prior_t_2
-                x0 = x0 + self.prior_gain_2 * self.prior_norm_2(effective_prior_2)
+                valid_mask_2 = prior_valid_t_2.float()
+                x0 = x0 + valid_mask_2 * self.prior_gain_2 * self.prior_norm_2(effective_prior_2)
             delta0 = self.block0_ffn(x0)
             s0 = self.block0_mix(x0, delta0)
 
