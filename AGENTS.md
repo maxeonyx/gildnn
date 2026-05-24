@@ -87,7 +87,7 @@ Evidence in question READMEs must be **embedded inline** in the markdown (tables
 | `VISION.md` | Overall research architecture — what pieces, what experiments, what order | Starting fresh, orienting on goals |
 | `PROCESS.md` | How work is done — experiment discipline, loop, reporting | Deciding how to proceed |
 | `PLAN.md` | Immediate checklist — what's next, what to do based on each outcome | Picking up after a handover |
-| `loop.ps1` | Outer restart loop — uses Task Scheduler (NOT terminal child). Do not revert to terminal-based loop. | Understanding how the loop works |
+| `loop.ps1` | Outer restart loop — uses Task Scheduler (NOT terminal child). Do not revert to terminal-based loop. **To stop: `.\loop.ps1 stop` (kills loop + child processes). To restart: `.\loop.ps1`** | Understanding how the loop works |
 | `research/daily/` | Daily output narratives for Max | Reviewing recent progress |
 | `research/weekly/` | Weekly synthesis narratives for Max | Weekly review |
 | `research/questions/` | Per-question reports — Max-readable, inline evidence only | Investigating a specific open question |
