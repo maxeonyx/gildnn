@@ -279,12 +279,35 @@ Evidence: [`report_j.json`](../../../experiments/wikitext_103/artifacts/closed_l
 **Why this works:** Full-state prediction (C) optimizes for a target that block 0 already has — redundant. The older-window target is 2× more learnable (pred_loss 0.165 vs 0.29) because it asks for information that block 0's fast current processing may not preserve. The learning signal is cleaner and more consistent.
 
 **What it does NOT yet tell us:**
-- Whether farther-back windows (9-16, 17-32) would be better or worse (J_far_window needed)
+- Whether farther-back windows (9-16, 17-32) would be better or worse (J_far_window running)
 - Whether the older-window target composes with width (J + two helpers)
 - Whether the benefit grows with context length (should, in principle)
 - Whether an external/fixed target (J_fixed_embedding, L) would be even more robust
 
 **Decision rule triggered:** J < C → target WAS the bottleneck. Scale the target semantics.
+
+### J_far_window decision framework (pre-registered)
+
+**Theory:** Offset sensitivity reveals an inverted-U tradeoff. Too near (≤4): target is redundant with block 0's fast state. Too far (≥16?): target becomes both irrelevant to next-token CE and too hard for block 1 to reconstruct. The sweet spot is where information is "old enough that block 0 has started to overwrite it, but new enough that it's still useful and recoverable."
+
+Block 1 updates at rate-2, so it sees every other step. J (offset 8) asks block 1 to retain information from ~4 helper updates ago. J_far (offset 12) asks for ~6 helper updates ago — testing whether block 1's memory horizon extends that far.
+
+**Prediction (to be falsified):** J_far slightly worse than J, same sign, still stable.
+
+| J_far outcome | Interpretation | Next step |
+|---|---|---|
+| **BETTER than J** (≥0.003 better, low variance) | Sweet spot is farther back. Block 0 handles 5-8 fine; helper adds more carrying slower context. | Run wider offsets (20, 24). Map the curve before adding helpers. |
+| **SAME as J** (within ~0.002) | Useful regime is a plateau. "Slow older summary" matters, not exact offset. | Run multiple helpers at different offsets simultaneously (5-8 + 9-12). Test band composition. |
+| **WORSE than J** but still beats A | Real sweet spot near 5-8. Farther loses more from reconstruction difficulty than gained from reduced redundancy. | Run J_fixed_embedding. Separates "too old in general" from "too hard to reconstruct old hidden states specifically." |
+| **COLLAPSE** | Old self-generated targets go off-manifold. Stability limit, not just utility limit. | Run J_fixed_embedding (keep memory hypothesis, remove moving target). If that fails, switch to L. |
+
+**Regardless of J_far outcome, J_fixed_embedding is the most discriminating next experiment.** It separates two hypotheses J_far alone cannot:
+1. Temporal-memory hypothesis: helper helps because it carries older *content*
+2. Representation-specific hypothesis: helper helps because it carries older *block-0 latent codes* specifically
+
+### Multi-block scaling implication
+
+J implies that multi-block scaling should be built around **temporal role differentiation**, not duplicate prediction. In a deep local-learning stack, each block should own a different offset/timescale band matched to what the block below naturally forgets. The natural hierarchy: "block 2 remembers what block 1 drops after ~N steps, block 3 remembers what block 2 drops after a larger N." Falsified if identical targets/offsets scale equally well.
 
 ### Implementation notes (preserved)
 
@@ -294,19 +317,19 @@ Evidence: [`report_j.json`](../../../experiments/wikitext_103/artifacts/closed_l
 
 All variants below use the **same gated additive interface** (change one thing: the target). Same architecture, same d=256, same ctx=128, same rate-2 helper.
 
-### Recommended run order
+### Run order (updated post-J)
 
-**J first** — minimal change from current setup, most interpretable. Success = older memory target beats current full-state. Failure = older memory isn't the key differentiator.
+J won clearly. Remaining run order:
+1. ✅ **J_older_window** — DONE. Target was the bottleneck.
+2. 🔄 **J_far_window** (offset 12) — RUNNING. Tests offset sensitivity.
+3. → **J_fixed_embedding** — next regardless of J_far outcome. Separates "older content" from "older hidden-state codes."
+4. → **Width with J target** — multiple helpers at different offsets (only if J_fixed ≈ J or worse)
+5. → **L** (future chunk code) — different hypothesis family, if memory hypothesis stalls
+6. → **K** (nonlocal residue) — deprioritized. High collapse risk, less discriminating than J_fixed.
 
-Decision tree:
-1. **J first** (always)
-2. If **J wins clearly** → **K next** (test: is the win from "older" or specifically "non-redundant older"?)
-3. If **J is null/near C** → **L next** (different hypothesis family — forecasting, not memory)
-4. Run remaining variant only if needed
+**Collapse risk ranking:** L (lowest, fixed external target) < J/J_far (moderate, self-generated but diverse) < K (highest, subtraction can produce near-zero targets).
 
-**Collapse risk ranking:** L (lowest, fixed external target) < J (moderate, self-generated but diverse) < K (highest, subtraction can produce near-zero targets if representations are temporally smooth).
-
-**ctx=128 note for J/K:** 5-8 positions ago is relatively local at ctx=128. Valid positions = 120/128 = 94%. J already confirmed this target works — now testing farther-back windows (J_far_window, offset=12).
+**ctx=128 note:** offset 12 → valid positions = 116/128 = 91%. Offset 24 → valid = 104/128 = 81%. Still plenty of room.
 
 ### J: Older-window memory summary
 
