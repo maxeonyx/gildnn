@@ -4,28 +4,24 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current state (2026-05-24)
+## Current state (2026-05-24 evening)
 
-The loop agent has been running "closed loop prediction" experiments (variants A through J) for several days. These tested whether a 2-block architecture with a prediction mechanism could outperform a single block.
+**Phase 5 J (older-window prediction target) is confirmed and Max has endorsed the direction.** Block 1 predicting `mean(h_{t-8}..h_{t-5})` gives -0.010 with 53× less seed variance than the prior full-state approach. Per [dictation 2026-05-24-5](dictations/2026-05-24-5.md): "Block one should learn to predict something about block zero that block zero couldn't already know." Per [dictation 2026-05-24-7](dictations/2026-05-24-7.md): "Interesting, it's quite a dumb idea, but I like it."
 
-**The honest assessment:** These experiments were a local optimization loop that lost connection to the project vision. The agent found a small signal (C: -0.006 nats) and spent many GPU-hours trying to amplify it (D, E, F, G, H, I, J) without asking whether the direction leads anywhere. Experiment J ("J_older_window") achieved -0.010 nats — statistically reliable but practically meaningless. The mechanism is architecturally incoherent (predicts past states, uses current input with zero propagation delay, negative gain emerged ad-hoc). It doesn't connect to any pathway in the roadmap in a principled way.
+**J_far_window (offset 12) running now — tracking toward "plateau" outcome.** Seed 42 finished: val_loss 1.663 (vs J's 1.660). Difference is 0.003 — essentially noise. Seed 43 in progress. If confirmed: the useful temporal offset is a broad band, which motivates multi-helper-different-offset experiments.
 
-**What we DO have from this work:**
-- A working experiment framework (training loop, evaluation, multi-seed, ablation, JSONL logging, CUDA graphs)
-- Evidence that strict-local learning collapses with ungrounded targets
-- Evidence that neighborhood-local (semi-local) helps slightly
-- Evidence that the prediction TARGET matters more than the topology
-- Evidence that multi-rate [1,2,4,8] provides an inductive bias (better val_loss per compute step)
-- Evidence of ~28% block concurrency on RTX 3090 with simple CUDA stream API
+**What we have:**
+- A working experiment framework (multi-seed, JSONL logs, CUDA graphs, ablation metrics)
+- A confirmed mechanism: older-window prediction provides block 0 with useful missing context
+- Evidence that strict-local collapses, semi-local works, and the target matters more than topology
+- The graph scaling path reopened: multiple helpers with different temporal bands
 - A 10.8x training speedup from CUDA graph compilation
 
-**What we DON'T have:**
-- A transformer baseline achieving expected published results on our dataset
-- Any experiment with principled local learning (predictive coding, target propagation, etc.)
-- Any experiment with real propagation delay (block N only sees block N-1's PREVIOUS output)
-- Any custom CUDA work testing true async concurrency
-- Any experiment at context lengths >128
-- Any experiment where interior blocks DON'T see block 0's current output
+**What we still need:**
+- A full transformer baseline (partial run: 1.683 at 13K steps, on track but killed for GPU use)
+- J_fixed_embedding: separates "older content" from "older hidden-state codes specifically"
+- Multi-helper with different offsets: tests whether temporal bands compose
+- J_strict_local: tests whether the good target rescues true locality (no CE through interface)
 
 ---
 
@@ -66,29 +62,32 @@ ORIENT → CHOOSE → THEORY → RUN → ANALYZE → CHECK → (loop or redirect
 
 Priority order (not a sequence — pick whichever is cheapest to do honestly right now):
 
-1. **Transformer baseline** on WikiText-103 at d=256, ctx=128+. Non-negotiable — we can't interpret custom results without it. (Supports all pathways.)
+1. **Analyse J_far results** — when seed 43 finishes. Then update decision framework and proceed.
 
-2. **Propagation-delay experiment** — the actual architecture vision, never tested correctly. Block 0 gets tokens. Block 1 sees block 0's output from PREVIOUS timestep only. Block 1's local loss: predict own next input. (Pathway 4: Self-Prediction + Pathway 2: Local Learning.)
+2. **J_fixed_embedding** — most discriminating next experiment regardless of J_far outcome. Separates temporal-memory hypothesis (older content helps) from representation-specific hypothesis (older hidden-state codes specifically help).
 
-3. **Gradient radius sweep** — same architecture, vary stop-gradient window from k=1 through k=full. Find the knee. (Pathway 2: Local Learning, Step 2 from worked example.)
+3. **Dual-band width test (J_dual_band)** — two rate-2 helpers at offsets (8,12). Required control: `J_dual_same_band` with offsets (8,8). Tests whether temporal bands compose. Implementation needs per-helper prediction window offsets (small code change to loss plumbing).
 
-4. **Muon optimizer swap** — may fix the k=8/k=16 instability that was previously observed. Quick to test. (Pathway 7: Norm-Preserving.)
+4. **J_strict_local** — older-window target + strict-local (fully detached feedback). Tests whether a good target rescues true parallelism. Already implemented in code.
 
-5. **Context length scaling** — ctx=256, 512. Needed for multi-rate to be meaningful. (Pathway 3: Multi-Rate.)
+5. **Transformer baseline** on WikiText-103 at d=256, ctx=128. Non-negotiable for interpreting custom results. Partial run was on track (1.683 at 13K).
 
-6. **Custom CUDA concurrency test** — can two independent matmuls actually overlap on the 3090? (Pathway 1: Async Execution.)
+6. **Propagation-delay experiment** — the true architecture vision. Block 1 sees block 0's output from PREVIOUS timestep only. Never tested correctly.
 
 ---
 
 ## Completed work (reference)
 
-| What | Pathway | Result | Interpretation |
-|---|---|---|---|
-| Multi-rate [1,2,4,8] (corrected arch) | 3 | Spectator problem | Block 0 sees all tokens → no specialization pressure |
-| Closed-loop C (semi-local) | 2, 4 | -0.006 nats, no ablation gap | Regularization only — not a real mechanism |
-| Closed-loop D (strict local) | 2 | Collapsed (+1.38) | Strict local with ungrounded target is dead |
-| Closed-loop E (grounded local CE) | 2 | Stable, +0.026 | Doesn't collapse but doesn't help |
-| Closed-loop J (older window) | — | -0.010, ablation gap 0.18 | Load-bearing but architecturally incoherent. Not on any pathway. |
-| CUDA graph training | infrastructure | 10.8x speedup | Working, in core/ |
-| Async hardware measurement | 1 | 28% block concurrency | CUDA streams — too high-level, needs custom CUDA |
-| Backend choice | infrastructure | PyTorch + torch.compile | Decided |
+| What | Result | Interpretation |
+|---|---|---|
+| **J_older_window** | **-0.010, std 0.00009** | Target was the bottleneck; older memory provides useful missing context |
+| J_far_window (partial, s42) | -0.006 (1.663 vs 1.669) | Offset sensitivity is shallow — plateau from 8 to 12 |
+| I_phase_offset | -0.006, width saturates | Two helpers predicting same target are redundant |
+| G_rate4_only | ≈ A, ablation gap 0 | Rate-4 too stale for this architecture |
+| F_star_3block | SEED-SENSITIVE | Shared loss coupling, rate-4 auto-rejected |
+| E_grounded | Stable, +0.026 | Task-grounded strict-local: no collapse but no help |
+| D_strict_local | COLLAPSE (+1.38) | Full-state local prediction fails without CE shaping |
+| C_closed_loop (v3) | -0.006 (unreliable) | Semi-local mechanism works but target is redundant |
+| CUDA graph training | 10.8x speedup | Working, in core/ |
+| Async hardware measurement | 28% block concurrency | CUDA streams too high-level; needs custom CUDA |
+| Backend choice | PyTorch + torch.compile | Decided |
