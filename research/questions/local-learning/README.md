@@ -4,11 +4,11 @@ Serves [dictation 2026-05-23-5](../../../dictations/2026-05-23-5.md): "How can I
 
 ## Status
 
-**INVALIDATED — tested on wrong architecture.** The experiment below was run with `token_injection="all"` (every block sees tokens directly). Per [dictation 2026-05-23-7](../../../dictations/2026-05-23-7.md): only block 0 should receive the token embedding. Higher blocks depend on lateral propagation for their input.
+**Bridge experiment PRE-REGISTERED (surrogate architecture).** Script ready: `runs/bridge_detach.py` (commit 93854b6). Launches after temporal_window + 4-block follow-up.
 
-Max's exact words: "of course they don't matter if every block already has direct access to the tokens. In my intended architecture, deeper blocks *depend* on lateral propagation for their input."
+The original local learning experiment (TinyShakespeare, token_injection="all") is factually correct but tested the wrong architecture per [dictation 2026-05-23-7](../../../dictations/2026-05-23-7.md). Results kept for reference below.
 
-The results below are factually correct for the old (wrong) architecture but do not answer the local learning question for Max's intended design. Must re-test after architecture correction (`token_injection="block0"`, committed in `93147c1`).
+**C_old lateral ablation (2026-05-25): CLEARLY LATERAL HELPS** — prerequisite for bridge experiment is met. See detailed results below.
 
 ### Old result (wrong architecture, kept for reference)
 
