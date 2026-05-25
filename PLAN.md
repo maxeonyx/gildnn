@@ -47,7 +47,9 @@ All 3 seeds concordant. Mean Δ_trajectory (+0.042) is nearly 3× the pre-regist
 
 **Bridge_detach experiment COMPLETE ✅** (2026-05-26). 3 seeds concordant "clearly worse" (mean gap +0.027 nats). Readout pattern perfectly reproduced: full_backprop U-shaped (block 3 cost +0.35-0.42); detached front-loaded (block 3 cost +0.07 all seeds).
 
-**Warmup→detach RUNNING** (PID 20952, launched 10:13 NZST 2026-05-26). ~2.5 hours GPU time (6 runs × 20K steps). Reads bridge_detach baselines from report.json. ETA ~12:35 NZST.
+**Warmup→detach RUNNING** (PID 20952, launched 10:13 NZST 2026-05-26). ~2.5 hours GPU time (6 runs × 20K steps). Reads bridge_detach baselines from report.json. ETA ~12:45 NZST.
+
+**Early data (seed 42 warm12_detach COMPLETE at 10:39):** final val_loss = 1.7977. R = -0.14 (NEGATIVE — slightly worse than pure detached 1.7936). No recovery at all from the 12K warm-start. Strongly suggestive of Scenario A (gradient needed continuously). Waiting for warm15_detach (the critical condition — switches AFTER gap opens).
 
 **Results (3 seeds COMPLETE):**
 
