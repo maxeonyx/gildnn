@@ -1,5 +1,17 @@
 # Project Synthesis
 
+> **⚠️ STALE — DO NOT TRUST (written ~2026-05-21, project has since moved to a different architecture and scale)**
+>
+> This document is from the GRU-based recurrent phase. The project now uses `ParallelDiagonalModel` (feedforward blocks, not GRU), WikiText-103 at ctx=128 with ~3M params, and has new results that contradict several claims below:
+> - "Local learning is catastrophic" → was tested on wrong architecture (no propagation delay); Pathway 3 is still alive
+> - "Single-GPU async cannot produce speedup" → CUDA Graphs produced 28% speedup (not streams)
+> - "Drop local learning" → Pathway 3 blocked pending C_old ablation, not abandoned
+> - "Backend: JAX" → settled on PyTorch + torch.compile
+>
+> For current state, read **PLAN.md**. For current results, read **research/daily/** and **research/weekly/**. This file will be rewritten or deleted when the next weekly synthesis is written.
+
+---
+
 A two-week exploration of recurrent-over-depth architectures for language modeling — specifically whether GRU blocks iterated across time with various enhancements (local learning, attention, async execution, dynamic gating) could match transformer baselines. The core recurrent-over-depth architecture underperforms transformers by +0.071 nats at matched parameters, and CUDA-stream async execution cannot produce wall-clock speedup on single GPU.
 
 **However:** a subsequent experiment found that **fixed multi-rate execution** (blocks on predetermined schedules, skipping computation entirely on inactive steps) produces 12-15% wall-clock speedup with BETTER quality than all-blocks-every-step. This changes the picture — the speedup path is not parallelism but computation skipping.
