@@ -76,6 +76,7 @@ Next step per pre-registration: **bridge experiment** (detach_lateral, priority 
 - Self-prediction (computation compression)
 - Clean dynamic-depth measurement (the probe was methodologically flawed)
 - ~~Shared experiment runner~~ — DONE (f8579d5). Extracted to `core/run_utils.py`, net -1089 lines.
+- **Sanity-check safety** — DONE (e3e0620). Sanity checks now write to temp dirs, preventing interference with live runs.
 
 **Pathway 3 status:**
 - **In surrogate architecture (token_injection=all):**
