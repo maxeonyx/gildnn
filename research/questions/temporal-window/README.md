@@ -235,6 +235,31 @@ The primary comparison is H8 vs C8 — does trajectory specifically help? Absolu
 
 ## Artifacts
 
-- Training logs: `experiments/wikitext_103/artifacts/temporal_window/run.jsonl` (created at runtime)
-- Experiment script: `runs/temporal_window.py` ✅ (sanity-checked on CPU, commit 95efdc8)
+- Training logs: `experiments/temporal-window/artifacts/run.jsonl` (created at runtime)
+- Analysis script: `experiments/temporal-window/analyze.py`
+- Experiment script: `runs/temporal_window.py` (sanity-checked on CPU, commit 95efdc8)
+
+---
+
+## In-flight observations (seed 42 only, 2026-05-26 01:20 NZST)
+
+**Partial results (2/9 runs complete):**
+- B0 seed 42 final: val_loss = 2.501
+- H8 seed 42 final: val_loss = 2.370
+- C8 seed 42 in progress (step ~11K)
+
+**Learning-curve divergence (C8-H8 gap over time):**
+
+| Step | C8 val_loss | H8 val_loss | Gap (C8-H8) |
+|------|------------|------------|-------------|
+| 1000 | 2.883 | 2.905 | -0.022 |
+| 3000 | 2.734 | 2.734 | -0.001 |
+| 5000 | 2.668 | 2.658 | +0.010 |
+| 7000 | 2.614 | 2.601 | +0.012 |
+| 9000 | 2.565 | 2.542 | +0.023 |
+| 11000 | 2.535 | 2.514 | +0.021 |
+
+**Prediction (pre-registered before final results):** C8 will finish around 2.39-2.44, giving Δ_trajectory = 0.02-0.07. Based on theory: early equivalence is expected (both exploit current-state shortcuts); divergence emerges when H8 starts using genuine temporal information that C8's diagonal subspace cannot represent.
+
+**Theoretical explanation for early C8 ≈ H8:** C8 has a "shared shortcut" advantage — all 8 submatrices receive the same gradient direction, converging faster on easy current-state patterns. H8's gradient must sort out which lags matter, which takes longer. Once easy patterns saturate, H8 can leave the diagonal subspace to exploit lag-specific features; C8 cannot.
 - Code changes: `core/model.py` — `bias=False` on `window_proj`, additive aux branch, `temporal_window_mode` parameter ✅ (commit 95efdc8)
