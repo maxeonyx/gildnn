@@ -247,3 +247,24 @@ Max's original vision (dictation 2026-05-24-1) has two mechanisms that are curre
 2. **Loss prediction as decision mechanism** — "a prediction head that is designed to predict the loss of another prediction head." Central to Pathways 4/5/6, not yet active. Correctly deprioritized (needs working architecture first) but should not be forgotten.
 
 Neither is actionable now, but they represent significant chunks of the vision that need to become active once temporal_window (or equivalent) validates the intended architecture.
+
+---
+
+## Multi-timestep architecture — future theoretical direction (dictation 2026-05-25-1)
+
+Max's LATEST design thinking (from a 2026-05-25 conversation) significantly evolves the architecture beyond the current ParallelDiagonalModel. Full write-up: `research/questions/multi-timestep-architecture/README.md`.
+
+Key departures from current implementation:
+- **Stream carries distributions** (diagonal Gaussians: μ, σ per dimension), not point vectors
+- **Local loss = Wasserstein distance** (block predicts left neighbor's next distribution)
+- **No cross-block gradients needed** by design (each block trains on its own prediction error)
+- **Blocks are temporal edges** on a 2D grid (lateral positions × timesteps)
+- **Combining function is shared/tied** across all positions (evolved wiring, not per-block learning)
+
+**Relationship to current experiments:** The dictation says "This doesn't invalidate current work. It provides the theoretical direction for what comes AFTER the current experiments confirm the basics." Current experiments confirm:
+- ✅ Lateral connections carry useful information (C_old: Δ=+0.030)
+- ✅ Temporal trajectory is uniquely useful information (temporal_window: Δ=+0.042)
+- ⏳ Whether blocks can be voluntarily useful with trajectory (4-block: running)
+- ⏳ Whether blocks can learn without cross-block gradient (bridge_detach: queued)
+
+**If bridge_detach (shared-adjoint) fails:** The Wasserstein distributional local loss is the natural escalation — it provides a RICHER local training signal (predict left neighbor) rather than relying on the weak shared adjoint alone. This is the most important connection between current work and the multi-timestep direction.
