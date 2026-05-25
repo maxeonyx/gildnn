@@ -206,7 +206,7 @@ Rationale: The surrogate architecture already has load-bearing laterals (Δ=+0.0
 | Mean effects positive but non-concordant (seeds disagree) | With n=3, non-concordance = insufficient stability evidence. | Partial/unstable. Surrogate bridge_detach. |
 | Everything between thresholds (all |Δ| in 0.005-0.015 range) | Ambiguous. Below preregistered bar. Exactly where self-serving interpretation risk is highest. | Treat as null. Surrogate bridge_detach. |
 
-**Default action when stop-loss fires:** Surrogate bridge_detach → locality sweep → remaining budget on other pathways.
+**Default action when stop-loss fires:** Surrogate bridge_detach → bootstrap-vs-signal discriminator (warmup→detach) → remaining budget on other pathways.
 
 **Recommended remaining-budget split (after 4-block):**
 - 0–1: intended follow-up (ONLY if full criterion met)
