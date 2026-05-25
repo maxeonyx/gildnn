@@ -170,6 +170,132 @@ The -0.006 ceiling was NOT an interface problem. It was a target problem: predic
 
 ---
 
+## Concrete operationalization: predictive coding at interfaces (2026-05-26)
+
+Pre-analysis for the escalation path after bridge_detach. If shared adjoint alone is insufficient (bridge_detach "detached clearly worse" or "detached collapses to ensemble"), the next rung is adding a local predictive loss at each interface.
+
+### Architecture context
+
+In the current `ParallelDiagonalModel` with `readout_mode="all"`, readout uses a learned softmax-weighted sum:
+
+```
+S = Σ r_i * h_{i,T}    where r = softmax(readout_logits)
+```
+
+So the shared adjoint is `r_i * dL/dS` — same direction per block, scaled by readout weight. Blocks with low readout weight get weak CE signal.
+
+With `detach_lateral=True`, upper blocks still SEE lateral/temporal inputs (forward path unchanged) but cannot train the sender to emit better features. The local predictive loss provides gradient that:
+1. Is specific to each interface (not broadcast)
+2. Is temporally grounded (depends on actual future trajectory)
+3. Operates in the **decomposition nullspace** where shared adjoint is blind
+
+### Why local objectives help: the nullspace argument
+
+For the additive/weighted readout `S = Σ r_i h_i`, any perturbation `(δh_0, ..., δh_N)` with `Σ r_i δh_i = 0` leaves S unchanged to first order — so CE provides no first-order preference among those redistributions. The local interface objectives DO respond to such perturbations (they depend on individual `h_i` and their temporal relation to `h_{i-1}`), so they add information exactly where shared adjoint is underdetermined.
+
+This is the mathematical sense in which predictive interface losses can strictly dominate shared adjoint — on the nullspace directions.
+
+### Notation
+
+- `h_{i,t} ∈ R^{B×D}` = block i output at step t
+- `H_{i-1,t}^{(W)} = [h_{i-1,t-W+1}, ..., h_{i-1,t}]` = temporal window available to block i
+- `sg(·)` = stop-gradient
+- D=256, W=8, N=4 for current config
+
+All local losses use stop-gradient on the target; gradient flows into the predicting block and its local head only.
+
+### Variant A — One-step interface prediction (cheapest)
+
+**Head:** For each upper block i∈{1,2,3}, add a linear head `P_i: R^D → R^D`.
+
+**Prediction:** `ĥ_{i→i-1,t+1} = P_i(h_{i,t})`
+
+**Local loss:**
+```
+L_next^(i) = (1/BD(T-1)) Σ_t ||P_i(h_{i,t}) - sg(h_{i-1,t+1})||²
+```
+
+**Total:** `L = L_CE + λ_next * Σ_i L_next^(i)`
+
+**Architecture changes:** 3 linear heads (D→D), ~197K extra params. No changes to model topology.
+
+**What it provides:** Each block gets gradient that says "encode what predicts the lower block's NEXT state" — breaks symmetry of broadcast shared adjoint, gives each block an interface-specific temporal role.
+
+**Phase 5 J validation:** This predicts the NEXT state (temporal, not currently available), not the current state (which would be useless per Phase 5 J).
+
+### Variant B — Wasserstein distributional prediction
+
+Targets the future lower-block DISTRIBUTION (mean + uncertainty) over a short window.
+
+**Target construction** from future trajectory (K=4 or 8 steps):
+```
+μ*_{i,t} = (1/K_t) Σ_{k=1}^{K_t} sg(h_{i-1,t+k})
+σ*_{i,t} = sqrt((1/K_t) Σ_{k=1}^{K_t} (sg(h_{i-1,t+k}) - μ*_{i,t})² + ε)
+```
+
+**Head:** `G_i: R^D → R^{2D}` outputting (μ̂, ρ̂), with `σ̂ = softplus(ρ̂) + ε`.
+
+**Local loss (squared W2 for diagonal Gaussians):**
+```
+L_W2^(i) = (1/BDΣt) Σ_t (||μ̂_{i,t} - μ*_{i,t}||² + ||σ̂_{i,t} - σ*_{i,t}||²)
+```
+
+**Total:** `L = L_CE + λ_W2 * Σ_i L_W2^(i)`
+
+**Architecture changes:** 3 heads (D→2D), ~395K extra params. Main forward path stays point-valued.
+
+**What it provides beyond Variant A:** Uncertainty calibration — the block learns WHICH dimensions of the lower block are predictable vs inherently variable. Aligned with Max's distributional direction (dictation 2026-05-25-1).
+
+### Variant C — Contrastive temporal prediction (optional)
+
+**Heads:** Two projections per interface: `A_i, B_i: R^D → R^P` (P=64).
+
+**Representations:** `z_{i,t} = norm(A_i h_{i,t})`, `q_{i,t+1} = norm(B_i sg(h_{i-1,t+1}))`
+
+**InfoNCE loss:** Positive = true next state, negatives = other timesteps:
+```
+L_NCE^(i,t) = -log(exp(z·q_pos/τ) / Σ_s exp(z·q_s/τ))
+```
+
+**What it provides:** Forces temporally discriminative information to survive in the interface code. Weaker geometric grounding than regression but more robust to distribution shift.
+
+### Comparison table
+
+| Condition | Signal to upper block | Blind spots |
+|---|---|---|
+| Shared adjoint only | "Move your contribution so summed readout helps CE." | Cannot distinguish block roles; silent on interface quality |
+| + Variant A (next-state) | "Encode what predicts lower block's next state." | Cannot train sender; no uncertainty model |
+| + Variant B (Wasserstein) | "Encode lower block's future distribution including uncertainty." | Cannot train sender; more machinery |
+| + Variant C (contrastive) | "Encode enough to identify correct future lower state." | Weaker geometric grounding than regression |
+
+### Discriminating experiment
+
+**Recommended:** Add a third condition to the intended-architecture bridge comparison:
+
+- `W8_full`: full gradients across bridges
+- `W8_detached`: detached bridges, CE only (shared adjoint)
+- `W8_detached_pred`: detached bridges + Variant A local next-state loss
+
+This directly tests: does grounded local prediction rescue detached bridges?
+
+**Why Variant A first:** Cheapest, closest to current architecture, directly tests the core claim. If positive → Variant B is the principled extension.
+
+**Interpretation:**
+
+| Outcome | Meaning | Next step |
+|---|---|---|
+| `detached_pred ≈ full`, blocks load-bearing | Interface grounding makes detach viable | Variant B (distributional) for richer signal |
+| `detached_pred > detached` but still < full | Predictive grounding helps but co-adaptation still needed | 1-hop truncation + prediction hybrid |
+| `detached_pred ≈ detached` | Receiver-side prediction insufficient | Need sender-side shaping: target propagation or bidirectional predictive coding |
+
+**NOTE:** This should run on the **intended architecture** (`token_injection="block0"`, `temporal_window=8`), not the surrogate. Phase 5 J already proved: targets the block already knows are useless. In the surrogate (all blocks have tokens), the local prediction target is partially redundant. The intended architecture is where the hypothesis is strongest.
+
+### Not full predictive coding
+
+Important caveat: this is NOT Whittington/Bogacz iterative predictive coding (no error neurons, no equilibrium iterations, no top-down generative loop). This is a **current-architecture auxiliary local loss** that makes the interface predictive. Full predictive coding is a larger architectural change for later.
+
+---
+
 ## What this does NOT cover
 
 - The async/parallelism execution question (separate from learning rule)
