@@ -139,14 +139,14 @@ This is the cleanest test because:
 - `token_injection="block0"` (only block 0 gets tokens)
 - `internal_steps=1`
 - WikiText-103 ctx=128
-- d_model and feedforward_dim chosen to make B0 match ~2.85M params (same as A_single). d_model ≈ 212, ff ≈ 848.
+- d_model and feedforward_dim chosen to make B0 match ~2.85M params (same as A_single). d_model=211, ff=848.
 - **3 seeds** (42, 43, 44), 20K steps, batch 64, AdamW lr=3e-4, weight_decay=0.01
 - Same training infrastructure as C_old ablation
 
 ### Parameter accounting
 
-- B0: ~2.85M params
-- H8/C8: ~2.85M + `8 * d_model * d_model` ≈ 2.85M + 360K ≈ 3.21M (12% more)
+- B0: 2,851,382 params
+- H8/C8: 3,207,550 params (identical — one `window_proj` of size Linear(8×211, 211, bias=False) = 356,168 extra params, 12.5% more)
 - This is the POINT — H8 and C8 have identical parameter counts. The comparison H8 vs C8 is parameter-matched. The comparison vs B0 is not, but that's a secondary question.
 
 ---
