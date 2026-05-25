@@ -21,7 +21,7 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 All 3 seeds concordant. Mean Δ_trajectory (+0.042) is nearly 3× the pre-registered threshold (0.015).
 
-**4-block follow-up RUNNING** (PID 20388, launched 02:55 NZST 2026-05-26). Expected runtime ~3.6 hours. Log: `experiments/temporal-window/artifacts/4block_run.jsonl`.
+**4-block follow-up RUNNING** (PID 20388, launched 02:55 NZST 2026-05-26). Expected runtime ~3.6 hours. Log: `experiments/temporal-window/artifacts/4block_run.jsonl`. Early data: A_all seed 42 = 1.836 (matches A_single 1.832, confirming spectator baseline).
 
 **Bridge_detach experiment READY** (`runs/bridge_detach.py`, commit 93854b6). Runs on surrogate architecture (token_injection=all) after the 4-block follow-up REGARDLESS of 4-block outcome — it's the next Pathway 3 surrogate test. If 4-block is strongly positive, an INTENDED-architecture bridge_detach is also needed (different learning problem, different experiment).
 
