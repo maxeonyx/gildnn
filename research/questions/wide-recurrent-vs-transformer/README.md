@@ -223,6 +223,68 @@ Per-depth val losses at depth=12 (best epoch 10):
 
 ---
 
+## Rung 5: WikiText-103, ParallelDiagonalModel, 2 seeds (2026-05-25)
+
+> **Note:** This rung uses a **different model class** from rungs 1–4. Rungs 1–4 used a tied-depth transformer (shared MHA+FFN). This rung uses `ParallelDiagonalModel` with `ResidualFeedForwardBlock` — a diagonal recurrent model, not a transformer.
+
+### Setup
+
+WikiText-103 raw, char-level (vocab 4980), context 128, 20K steps, batch 64, LR 3e-4, 2 seeds (42, 43).
+
+| Variant | Architecture | Params | token_injection |
+|---------|-------------|--------|-----------------|
+| A_single | 1 block, 1 internal step, d=256, ff=512 | 2,850,422 | block0 |
+| tied_8iter | 1 block, 8 internal steps (same weights ×8), d=256, ff=512 | 2,850,422 | block0 |
+| distinct_matched | 8 distinct blocks, d=146, ff=584 | 2,847,908 | **all** |
+| distinct_rich | 8 distinct full-size blocks, d=256, ff=512 | 4,690,820 | **all** |
+
+External anchor: transformer baseline = 1.592 ± 0.003 (2.86M params, 4 layers).
+
+### Results
+
+| Variant | Seed 42 | Seed 43 | Mean | Std |
+|---------|---------|---------|------|-----|
+| A_single | 1.832 | 1.845 | 1.838 | 0.007 |
+| tied_8iter | 1.798 | **2.549** | 2.173 | **0.375** |
+| distinct_matched | 1.818 | 1.817 | 1.817 | 0.001 |
+| distinct_rich | 1.750 | 1.744 | 1.747 | 0.003 |
+
+Seed 43 tied_8iter: plateaued at ~2.55 from step 5K onward and never recovered. Seed 42 converged normally.
+
+### Interpretation (post adversarial review)
+
+**What this shows:**
+
+1. **tied_8iter is not robust under this recipe.** One seed converges (1.798), one fails badly (2.549). Other variants show no such sensitivity (A_single std=0.007, distinct_matched std=0.001, distinct_rich std=0.003).
+
+2. **distinct_matched works well and is stable.** 8 smaller blocks with token_injection=all reliably beat a single block (1.817 vs 1.838).
+
+3. **On the successful seed, tied actually beats distinct_matched.** 1.798 vs 1.818 — the shared-weight architecture has a genuine advantage when it converges. This suggests weight sharing CAN provide useful inductive bias.
+
+**What this does NOT show (confounds):**
+
+The comparison between tied_8iter and distinct_matched is **not a clean weight-sharing ablation**. It conflates:
+- Weight sharing (tied vs distinct) — the thing we want to test
+- Token injection routing (block0 vs all) — a major architectural difference
+- Block shape (one d=256 block vs eight d=146 blocks) — different capacity distribution
+- Topology (internal steps vs separate blocks) — different computation graphs
+
+**Cannot conclude:** "weight sharing causes instability." The failure could be due to lack of token re-injection (the model processes hidden state 8 times with no new input), optimization mismatch, or their interaction.
+
+### What this teaches Pathway 1
+
+The core Pathway 1 hypothesis ("same weights applied recurrently can substitute for distinct layers") is **not cleanly tested here**. The experiment compared one specific recurrent configuration against a fundamentally different architecture.
+
+To isolate weight sharing, the clean test would be: 8 blocks with **shared** weights + token_injection=all vs 8 blocks with distinct weights + token_injection=all (= distinct_matched). That test has NOT been run.
+
+### Status
+
+**Pathway 1 remains alive but under-tested at WikiText-103 scale.** The tiny-rung result (weight sharing is free) used a different architecture and cannot be directly extrapolated. The WikiText-103 result found a robustness problem but could not attribute it to weight sharing specifically.
+
+**Next required experiment for Pathway 1:** Clean weight-sharing isolation — shared blocks with token_injection=all vs distinct blocks with token_injection=all.
+
+---
+
 ## Non-goals for this experiment
 
 - Hyperparameter sweeps beyond the 2 LRs

@@ -6,51 +6,63 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ## Current state (2026-05-25)
 
-**Gated experiment complete — negative result.** B_gated (4-block, zero-init gates) is +0.245 nats WORSE than A_single at WikiText-103 ctx=128. Cold-start problem: zero-init gates starve upper blocks of information. Gate 3 opened negatively (-0.115) for suppressive use only. Pathway 3 remains blocked.
+**Tied-depth experiment COMPLETE.** All 4 variants × 2 seeds finished. Full results:
 
-**Tied-depth experiment RUNNING.** PID 12984, `runs/tied_depth.py`, 4 variants (A_single, tied_8iter, distinct_matched, distinct_rich), 2 seeds, 20K steps each. Logging to `experiments/wikitext_103/artifacts/tied_depth/run.jsonl`. Launched 04:36 NZST. Expected completion ~06:30-07:00 (tied_8iter is slow: 80K tok/s vs 330K for A_single).
+| Variant | Seed 42 | Seed 43 | Mean | Std | Params |
+|---------|---------|---------|------|-----|--------|
+| A_single | 1.832 | 1.845 | 1.838 | 0.007 | 2,850,422 |
+| tied_8iter | 1.798 | 2.549 | 2.173 | 0.375 | 2,850,422 |
+| distinct_matched | 1.818 | 1.817 | 1.817 | 0.001 | 2,847,908 |
+| distinct_rich | 1.750 | 1.744 | 1.747 | 0.003 | 4,690,820 |
 
-**Seed 42 COMPLETE:**
-- A_single: **1.832** (6 min) ✅
-- tied_8iter: **1.798** (35 min) ✅ — 0.034 below A_single, closes 14% of transformer gap
-- distinct_matched: **1.818** (41 min) ✅ — weight tying is genuine inductive bias (+0.020 nats at matched params)
-- distinct_rich: **1.750** (45 min) ✅ — beats tied_8iter by 0.048 nats with 65% more params. **Not a ceiling.**
+Transformer baseline: 1.592 ± 0.003 (2.86M params, 4 layers)
 
-**Seed 43 IN PROGRESS:**
-- A_single: **1.845** (consistent with seed 42) ✅
-- tied_8iter: **2.549** ⚠️ **CATASTROPHIC FAILURE** — 0.751 nats worse than seed 42 (1.798)
-- distinct_matched: RUNNING (step 3K, val_loss 2.342 — healthy decline, tracking seed 42)
-- distinct_rich: pending
+**⚠️ Honest interpretation (post adversarial review):**
 
-**⚠️ CRITICAL FINDING: tied_8iter is training-unstable across seeds.**
-- Seed 42: 1.798 (good — beats A_single by 0.034)
-- Seed 43: 2.549 (catastrophic — 0.704 nats WORSE than A_single 1.845)
-- A_single varies only 0.013 nats between seeds (normal)
-- tied_8iter varies 0.751 nats between seeds (architecture-specific instability)
-- The "no instability through 12 iterations" finding was single-seed and **did not catch this**
-- Conclusion: tied depth has a severe initialization sensitivity. Some seeds converge normally, others get trapped at high loss plateaus. This is a fundamental problem for the architecture.
+The comparison between tied_8iter and distinct_matched is **confounded** by multiple differences:
+1. Token injection: tied_8iter=block0 (tokens enter once), distinct_matched=all (fresh tokens every block)
+2. Topology: 1 block × 8 internal steps vs 8 blocks × 1 step
+3. Block shape: one d=256 block vs eight d=146 blocks
 
-**C_old ablation script READY.** `runs/c_old_ablation.py` committed. Trains C_lateral (upward) vs C_isolated (no lateral, same params). Added "isolated" topology to `core/model.py`. Launch after tied-depth finishes.
+**What we CAN say:**
+- tied_8iter shows severe seed sensitivity under this recipe (1 of 2 seeds failed badly — plateaued at 2.55 from step 5K)
+- distinct_matched is extremely stable (std 0.001) and beats A_single
+- distinct_rich is the best overall (1.747) — more params help, expected
+- On seed 42 where tied_8iter DOES converge, it actually beats distinct_matched (1.798 vs 1.818)
+- The gap to transformer remains large: best variant (distinct_rich) is still 0.155 nats behind
 
-**Key insight this session:** The "fix the interface" hypothesis was incomplete. Zero-init gates are worse than hardcoded 0.5 because they completely starve upper blocks. The problem isn't just the mixing coefficient — it's initialization + information routing.
+**What we CANNOT say:**
+- "Weight sharing causes instability" — not isolated (token routing confound)
+- "Tied depth has a fundamental stability problem" — 2 seeds is not enough, and the tiny-rung result used a different architecture (actual tied-depth transformer, not ParallelDiagonalModel)
+- "This contradicts the tiny-scale finding" — different model class, different dataset, can't compare directly
+
+**What this teaches:**
+- The specific configuration "single block, 8 internal iterations, token_injection=block0" is NOT robust
+- The failure may be about lack of anchoring signal (no fresh tokens after iteration 1) rather than weight sharing per se
+- A clean weight-sharing isolation test would need: shared weights WITH token_injection=all (8 blocks with tied weights, each getting tokens)
+
+**C_old ablation RUNNING.** PID 12096, launched 20:12 NZST. Trains C_lateral (upward topology) vs C_isolated (no lateral connections, same params). Tests whether lateral communication is actually used in the multi-block-with-token-injection architecture.
+
+**Gated experiment — prior negative result.** B_gated (4-block, zero-init gates) was +0.245 nats WORSE than A_single at WikiText-103 ctx=128. Cold-start problem: zero-init gates starve upper blocks of information.
 
 **What we have:**
 - Working experiment infrastructure (training loop, eval, multi-seed, ablation, JSONL logs, CUDA graphs)
 - Transformer baseline: val_loss 1.643, 186K params, TinyShakespeare ctx=32 (in base-experiments/)
 - RNN baseline: val_loss 1.711, 186K params, TinyShakespeare ctx=32 (in base-experiments/)
-- **Pathway 1 confirmed:** tied-depth = distinct-layer at matched params (mean diff 0.0002 nats, 3 seeds) — BUT this was tiny-rung only
-- **Iteration scaling:** no instability through 12 on single seed — **CONTRADICTED by seed 43 failure at WikiText-103 scale**
+- Transformer baseline: val_loss 1.592 ± 0.003, 2.86M params, WikiText-103 ctx=128
+- **Pathway 1 (tiny rung):** tied-depth = distinct-layer at matched params (mean diff 0.0002 nats, 3 seeds) — confirmed for tied-depth transformer at TinyShakespeare
+- **Pathway 1 (WikiText-103):** ParallelDiagonalModel tied_8iter shows seed sensitivity (1/2 seeds failed). Comparison confounded by token injection routing. See honest interpretation above.
+- **distinct_matched (8 blocks, token_injection=all):** stable and effective, 1.817 ± 0.001
 - Evidence: strict-local collapses, semi-local barely helps, prediction target matters more than topology
 - Evidence: multi-rate [1,2,4,8] provides inductive bias (better per-step val_loss)
 - Evidence: CUDA Graph concurrency gives 28% speedup; stale reads don't hurt quality
 - 10.8x CUDA graph training speedup in core/
-- **NEW: Gated WikiText-103 result** — cold-start problem with zero-init gates, blocks useless
+- **Gated WikiText-103 result** — cold-start problem with zero-init gates, blocks useless
 - `.gitignore` now blocks `*.pt` files (model weights never committed)
 
 **What we DON'T have:**
-- A standard transformer baseline trained at WikiText-103 ctx=128 (**DONE: 1.592 ± 0.003**)
-- Any tied-depth (same block × N iterations) vs standard transformer comparison at scale
-- C_old eval ablations (does C_old's improvement come from lateral communication or just ensemble?)
+- **Clean weight-sharing isolation test** — need tied weights WITH token_injection=all to separate sharing from routing
+- C_old lateral ablation (IN PROGRESS — C_old ablation running now)
 - Any custom CUDA concurrency beyond the Graph approach
 - Self-prediction (computation compression)
 - Clean dynamic-depth measurement (the probe was methodologically flawed)
@@ -60,6 +72,7 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 - Lateral-only (token_injection=block0) fails with hardcoded 0.5 (+0.014 worse) AND with zero-init gates (+0.245 worse)
 - Local learning is untestable until we have a regime where blocks help under full backprop
 - Key open question: does C_old actually USE lateral connections, or is it just an ensemble?
+- **C_old ablation running now** — will answer this
 
 ---
 
@@ -85,11 +98,11 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 
 | Priority | Experiment | Pathway | Why |
 |---|---|---|---|
-| 1 | **Tied-depth experiment** — `runs/tied_depth.py` | 1 | **IN PROGRESS (PID 12984).** Can iteration close the transformer gap? |
-| 2 | **C_old eval ablation** — retrain C_old config, then shuffle/ablate lateral connections and per-block readout contributions | 3 | Cheapest diagnostic: does C_old's improvement come from lateral communication, or just ensemble of token-fed blocks? |
+| 1 | **C_old ablation** — C_lateral vs C_isolated, train-time structural comparison | 3 | **IN PROGRESS (PID 12096).** Does the multi-block architecture USE lateral connections, or is it just an ensemble? |
+| 2 | **Clean weight-sharing isolation** — 8 blocks with SHARED weights + token_injection=all vs distinct_matched | 1 | The tied_8iter comparison was confounded. Need same routing, only sharing differs. |
 | 3 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | Next step after the 28% CUDA Graph result. |
 | 4 | **Dynamic depth (clean measurement)** | 5 | Preliminary probe showed heterogeneity but methodology was flawed. Needs clean redo. |
-| 5 | **Local learning in C_old config** — if C_old ablations show lateral IS used | 3 | Stop-gradient + local CE on a regime where blocks are known useful. Only do after #2 confirms lateral matters. |
+| 5 | **Local learning in working config** — if C_old ablation shows lateral IS used | 3 | Stop-gradient + local CE on a regime where blocks are known useful. Only do after #1 confirms lateral matters. |
 
 ---
 
@@ -100,7 +113,8 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 | Transformer baseline | all | val_loss 1.643, 186K params, TinyShakespeare ctx=32 | Done, in base-experiments/ |
 | RNN baseline | all | val_loss 1.711, 186K params | Done, in base-experiments/ |
 | **Tied-depth vs transformer (tiny rung)** | **1** | **Identical: mean diff 0.0002 nats** | **Weight sharing is free. Viable architecture.** |
-| **Iteration scaling (6, 8, 12)** | **1** | **No instability on single seed; quality peaks ~8** | **⚠️ Contradicted at WikiText-103 scale: seed 43 shows catastrophic training failure for tied_8iter.** |
+| **Iteration scaling (6, 8, 12)** | **1** | **No instability on single seed; quality peaks ~8** | **Tiny-rung only (TinyShakespeare, tied-depth transformer). Does NOT directly transfer to ParallelDiagonalModel at WikiText-103 scale.** |
+| **Tied-depth WikiText-103 (4 variants × 2 seeds)** | **1** | **tied_8iter seed-sensitive (1/2 failed); distinct_matched stable (1.817 ± 0.001)** | **Confounded comparison: token_injection differs. Cannot isolate weight sharing as cause. On successful seed, tied beats distinct (1.798 vs 1.818). Clean isolation test needed.** |
 | Per-token depth heterogeneity | 5 | Inconclusive | Heterogeneity exists but methodology flawed (non-standard eval frame, ε too loose). Hint only. |
 | **Propagation-delay 2-block (tiny)** | **3** | **Spectator** | **Block B adds nothing at TinyShakespeare ctx=32. Hardcoded 0.5 mixing harmful; zero-init gate fixes ceiling but B stays closed.** |
 | **Multi-block corrected at WikiText-103 ctx=128** | **3** | **Spectator** | **4-block corrected (hardcoded 0.5) is +0.014 worse than single-block. 4-block old (token_injection=all) is -0.021 better. Blocks help when fed fresh tokens; lateral-only with 0.5 mixing fails.** |
@@ -119,9 +133,9 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 
 (Agent records evidence here; Max decides whether to update ROADMAP.md)
 
-- **Pathway 1 (Wide Recurrent):** Weight sharing is free (3-iteration tied = 3-layer distinct). Iteration scaling shows no instability through 12 on single seed at tiny scale — **but WikiText-103 2-seed experiment reveals catastrophic seed-sensitivity: seed 42 tied_8iter=1.798 vs seed 43 tied_8iter=2.549 (0.751 nat gap).** This is a fundamental training stability problem. Diminishing returns flatten around depth 8–11. Pathway is alive but the stability issue is a first-order concern.
+- **Pathway 1 (Wide Recurrent):** Weight sharing is free at tiny scale (tied-depth transformer, TinyShakespeare, 3 seeds). At WikiText-103 scale, tested a DIFFERENT architecture (ParallelDiagonalModel with tied_8iter): 1 of 2 seeds failed badly. However, the comparison is confounded — tied_8iter uses token_injection=block0 while the comparator (distinct_matched) uses token_injection=all. **Cannot attribute the failure to weight sharing specifically.** A clean isolation test is needed: shared weights with token_injection=all. On the successful seed, tied_8iter actually beat distinct_matched (1.798 vs 1.818), suggesting the inductive bias of weight sharing CAN help — it's the robustness that's the problem. Pathway remains alive but needs a cleaner test.
 - **Pathway 2 (Async):** Prior positive — 28% concurrency via CUDA Graphs, stale reads don't hurt. Next: custom CUDA.
-- **Pathway 3 (Local Learning):** Confidence **decreased**. Every attempt at lateral-only multi-block has failed: hardcoded 0.5 (+0.014 worse), zero-init gates (+0.245 worse, cold-start trap). Only token_injection=all (C_old, -0.021 better) makes blocks useful — but that may not involve lateral communication at all (might just be an ensemble). **Local learning remains untestable until we confirm lateral communication is actually used in a working multi-block config.** Suggest roadmap update: note that Pathway 3 is blocked pending C_old ablation study; the original "propagation-delay → local learning" progression has not reached the point where local learning can be tested.
+- **Pathway 3 (Local Learning):** Confidence **decreased**. Every attempt at lateral-only multi-block has failed: hardcoded 0.5 (+0.014 worse), zero-init gates (+0.245 worse, cold-start trap). Only token_injection=all (C_old, -0.021 better) makes blocks useful — but that may not involve lateral communication at all (might just be an ensemble). **C_old ablation now running** to determine this. Pathway is blocked pending that result.
 - **Pathway 5 (Dynamic Depth):** Now enabled by Pathway 1 iteration scaling. Per-depth losses show clear variation — some tokens probably benefit more from extra iterations than others. First measurement (per-token variance) not yet done.
 - **Pathway 8 (Multi-Rate):** Prior weak-positive — inductive bias confirmed at ctx=32. Needs longer context to be meaningful.
-- **Pathway 9 (Norm-Preserving):** De-prioritized after iteration scaling showed no instability through 12 on tiny rung. May still matter at larger scale or higher iteration counts.
+- **Pathway 9 (Norm-Preserving):** May be relevant if the tied_8iter seed failure turns out to be a gradient stability issue through many iterations. Muon or orthogonal parameterization might fix it. But first need to isolate whether it's actually a stability issue vs a routing issue.
