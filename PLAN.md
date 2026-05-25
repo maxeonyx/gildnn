@@ -125,6 +125,8 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 
 **Tied_sharing caveat:** The clean test shares only feedforward block weights — per-block `token_mixes` and `block_mixes` remain distinct. A positive result proves "shared feedforward processing is viable with position-specific routing," NOT "same weights applied N times with identical routing" (the full Pathway 1 hypothesis). It is a reasonable first step, not a final answer.
 
+**After tied_sharing finishes:** Temporal_window is next REGARDLESS of tied_sharing outcome. Tied_sharing is a Pathway 1 test; temporal_window is a Pathway 3 test of the intended architecture. They answer different questions. Record tied_sharing results in `research/questions/wide-recurrent-vs-transformer/README.md`, update this file, then proceed to temporal_window implementation.
+
 ### Why token_injection="block0" fails (theory, 2026-05-25)
 
 Upper blocks are downstream of a stale bottleneck controlled by block 0, while block 0 already solves the task directly. They're **redundant delayed decoders**, not complementary experts. This is a forward-architecture problem, not a training/gradient problem.
