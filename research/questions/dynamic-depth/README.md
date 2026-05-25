@@ -165,13 +165,62 @@ At δ=0.01 (nearly lossless threshold), 25.3% of val tokens can safely stop at d
 
 ### What this does NOT show
 
-1. **Predictability** — whether shallow state can identify which tokens need more depth. This is the key question for an actual early-exit mechanism. Not yet measured (metric 6 from the design).
+1. ~~**Predictability**~~ — NOW MEASURED (see below). Shallow state is weakly predictive.
 2. **Multi-seed replication** — single seed only. The magnitude could shift.
 3. **Causal mechanism** — we don't know WHY some tokens are harmed by more depth. Possible explanations: attention pattern interference at higher depths, or the model learns depth-8-optimal representations that sacrifice shallower accuracy.
 4. **Architecture-specific** — this is a TinyShakespeare ctx=32 tied-depth transformer. Larger/different models may behave differently.
 
-### Next steps (Pathway 5)
+---
 
-1. **Predictability test** — extract depth-1 or depth-2 hidden state, train a small probe to predict d*_t. If achievable (>70% accuracy), a learned halting mechanism is feasible.
+## Predictability probe (2026-05-26)
+
+**Script:** `runs/depth_predictability_probe.py` | **Artifacts:** `experiments/wide_recurrent_vs_transformer/artifacts/depth_predictability_probe/`
+
+Can shallow hidden state (after 1 or 2 tied iterations) predict which tokens benefit from more depth?
+
+### Method
+
+Extract hidden state at depth 1 and depth 2 for all 19968 val positions. Train linear probe and 1-hidden-layer MLP (72→32→output) on 80% of positions, evaluate on 20%. Three prediction targets:
+- Binary: "harmed by depth-8" (oracle d* < 8)
+- Binary: "done by depth 3" (no-regret depth ≤ 3 at δ=0.01)
+- Multiclass: predict exact oracle depth d*
+
+### Results
+
+| Feature | Target | Baseline | Linear | MLP |
+|---|---|---|---|---|
+| Depth-1 hidden | Harmed by d8 | 71.6% | 73.5% | 75.0% |
+| Depth-2 hidden | Harmed by d8 | 71.6% | 73.6% | 74.8% |
+| Depth-1 hidden | Done by d3 | 52.5% | 59.7% | — |
+| Depth-2 hidden | Done by d3 | 52.5% | 60.3% | — |
+| Depth-1 hidden | Oracle d* | 28.4% | 33.0% | 34.4% |
+| Depth-2 hidden | Oracle d* | 28.4% | 32.8% | 35.6% |
+
+### Interpretation
+
+**Shallow state is weakly predictive — not enough for easy halting.**
+
+- "Harmed by depth-8" (majority class 71.6%): best probe 75.0% — only 3.4% above baseline
+- "Done by depth 3" (more balanced, 52.5% baseline): best probe 60.3% — 7.8% above baseline, moderate
+- Exact oracle depth (chance 28.4% = always predict d8): best probe 35.6% — 7.2% above baseline
+
+Depth-2 is slightly better than depth-1 (especially for multiclass with MLP), but the difference is small.
+
+### What this means for Pathway 5
+
+Per pre-registered decision criteria: **"Oracle-best substantially better but not predictable from shallow state → Headroom exists but halting is hard to learn."**
+
+The headroom is real (1.96× speedup if you could halt optimally). But a post-hoc probe on a model trained without halting objectives can barely identify which tokens need more depth. This means:
+
+1. A simple "add a halt head to an existing model" approach likely won't work
+2. The model would need to be **trained with** a halting/depth-allocation objective to develop depth-predictive features
+3. Or a more sophisticated halting mechanism is needed (e.g., predict marginal improvement at each depth, not binary stop/go from shallow state alone)
+
+This doesn't kill Pathway 5 — it calibrates expectations. "Dynamic depth" is an architectural training objective, not a cheap inference trick on existing models.
+
+### Next steps (Pathway 5, revised)
+
+1. ~~**Predictability test**~~ — DONE. Result: weakly predictive.
 2. **Multi-seed** — retrain 2 more tied-depth models (seeds 43/44) and confirm the 1.96× speedup is reproducible.
-3. **Learned halting** — add a small confidence head that predicts "stop" at each depth. Train with the oracle signal.
+3. **Halting-aware training** — train a model WITH a small confidence head from the start (predicting "how much will the next iteration help?"). The model may learn to encode depth-useful features in its hidden state when incentivized to do so.
+4. **Per-depth marginal prediction** — instead of predicting from depth-1 state only, predict at EACH depth whether the next iteration will help. This matches the architecture better (you make the stop decision incrementally, not from shallow state alone).
