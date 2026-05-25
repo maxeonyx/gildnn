@@ -42,3 +42,5 @@ Experiments expected to take more than ~5 minutes use a **two-phase delegation**
 2. **Phase 2 (check):** The orchestrator resumes you later to analyse results. The orchestrator decides when; you don't.
 
 Set `PYTHONUNBUFFERED=1` before launching. The experiment scripts manage `runs/active.lock` automatically (create on startup, remove on exit via `atexit`). Failing to split the two-phase delegation is a process failure.
+
+**⚠️ NEVER run experiment scripts against real artifact directories while a long experiment is active.** See root `AGENTS.md` for the full rule. Short version: always use `--sanity-check-only` (routes to temp dir) for testing code changes. The lock file now refuses acquisition when a live PID holds it, but `--no-lock` bypasses this — if you use `--no-lock`, you MUST also redirect `--report-path` and `--log-path` to a separate temp directory. Violating this corrupts checkpoints.
