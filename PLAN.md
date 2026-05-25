@@ -21,7 +21,7 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 All 3 seeds concordant. Mean Δ_trajectory (+0.042) is nearly 3× the pre-registered threshold (0.015).
 
-**4-block follow-up RUNNING** (PID 20388, launched 02:55 NZST 2026-05-26). Expected runtime ~3.6 hours. Log: `experiments/temporal-window/artifacts/4block_run.jsonl`. Early data: A_all seed 42 = 1.836 (matches A_single 1.832, confirming spectator baseline).
+**4-block follow-up RUNNING** (PID 20388, launched 02:55 NZST 2026-05-26). Expected runtime ~3.6 hours. Log: `experiments/temporal-window/artifacts/4block_run.jsonl`. Early data: A_all seed 42 = 1.836 (consistent with spectator baseline — matches A_single 1.832 from tied-depth — but not confirmed until ablation across all 3 seeds).
 
 **Bridge_detach experiment READY** (`runs/bridge_detach.py`, commit 93854b6). Runs on surrogate architecture (token_injection=all) after the 4-block follow-up REGARDLESS of 4-block outcome — it's the next Pathway 3 surrogate test. If 4-block is strongly positive, an INTENDED-architecture bridge_detach is also needed (different learning problem, different experiment).
 
@@ -158,29 +158,53 @@ When results arrive, use pre-registered thresholds from `research/questions/temp
 
 ### ⚠️ Stop-loss rule (timebox discipline)
 
-**Intended-architecture rescue gets at most temporal_window + 1 follow-up experiment.** That's 2 experiments total. If temporal_window is not decisively positive (branch 1 above), pivot immediately to surrogate-architecture pathways where foundations are proven.
+**The intended-architecture rescue budget is fixed at two experiments total:**
+1. `temporal_window` forced-readout test ✅ (complete, positive)
+2. `4-block` voluntary-readout scaling test (running)
 
-**Clarification:** The stop-loss limits RESCUE experiments. If 4-block is strongly positive, the intended architecture is no longer being rescued — it's validated. Subsequent experiments (e.g., intended-architecture bridge_detach) are "learning-rule tests on validated substrate," not rescue. The stop-loss doesn't fire on those.
+**No further intended-architecture rescue-mechanism experiments after the 4-block test, regardless of outcome.**
 
-Rationale (from adversarial review, 2026-05-26): The surrogate architecture already has load-bearing laterals (Δ=+0.030), all blocks contribute, and multiple high-information experiments are immediately available (bridge/detach_lateral, gradient radius sweep, iteration-benefit). With ~10–12 experiments remaining in the timebox, spending more than 2 on a branch that has failed every prior test is not justified unless evidence is strong.
+**Exception — predeclared and narrowly scoped:** A single intended-architecture `bridge_detach` follow-up is allowed **only** if the 4-block test meets the full "trajectory-specific voluntary rescue" criterion (all 5 conditions below). This is allowed because it's not another rescue-mechanism search — it's a test of a different hypothesis (learning rule) on a predeclared-positive substrate. If the criterion is not met, stop-loss fires immediately.
 
-### Post-4-block decision tree
+Rationale: The surrogate architecture already has load-bearing laterals (Δ=+0.030), all blocks contribute, and multiple high-information experiments are immediately available (bridge/detach_lateral, gradient radius sweep, iteration-benefit). With ~10–12 experiments remaining in the timebox, spending more than 2 on intended-architecture rescue is not justified unless evidence is strong.
 
-**If 4-block STRONG POSITIVE** (W8_all > A_all ≥ 0.015, W8_all > C8_all ≥ 0.015, concordant, blocks load-bearing):
-1. **Intended-architecture bridge_detach** — can blocks learn useful laterals without cross-block gradient ON THE VALIDATED INTENDED ARCHITECTURE? This is the core project question.
-2. Eval-only dynamic-depth opportunity measurement on the trained W8_all model (cheap, no new training)
-3. Surrogate bridge_detach (still useful as lower-risk benchmark)
+### Post-4-block decision tree (revised after adversarial review, 2026-05-26)
 
-**If 4-block PARTIAL** (some blocks useful, not all):
-- Stop-loss fires for intended rescue. Record as "trajectory creates some niche but doesn't fully overcome spectator problem."
-- Next: surrogate bridge_detach → clean weight-sharing isolation → composition experiments
+**Threshold note:** The 0.015 val_loss threshold was calibrated in a 2-block forced-readout setting. In this 4-block voluntary-readout setting, it is used as a **discipline threshold** (stop/go), not as a precise scientific validation boundary. It may be too strict for detecting a real voluntary-usefulness effect AND too lenient for claiming full architecture validation. Use it as a coarse guard.
 
-**If 4-block NULL** (blocks still spectators):
-- Stop-loss fires. 2-block forced-readout benefit didn't generalize.
-- Next: surrogate bridge_detach → if positive, combine bridge × multi-rate → weight-sharing isolation
+**Ablation limitation:** Per-block zeroing at eval proves "the trained model depends on this block's contribution." It does NOT prove the block learned trajectory-specific information (vs capacity/copy/noise). To prove trajectory learning specifically, would need history-order shuffle or temporal-branch zeroing — not available in this experiment. Interpret ablation as "used," not "learned from history."
 
-**Recommended remaining-budget split (after temporal_window):**
-- 1–2: intended follow-up ONLY if temporal_window is branch 1
+#### Advance to intended `bridge_detach` ONLY IF ALL are true:
+
+1. `mean(W8_all) - mean(A_all) <= -0.015` (W8 clearly beats spectator baseline)
+2. `mean(W8_all) - mean(C8_all) <= -0.015` (W8 clearly beats capacity control)
+3. Both comparisons concordant across all 3 seeds (same sign)
+4. All upper blocks in W8_all are load-bearing (`abl_k >= 0.02` for blocks 1, 2, 3)
+5. A_all remains spectator-like (upper blocks NOT load-bearing in A_all)
+
+**If all 5 met → STRONG POSITIVE:**
+- Intended-architecture bridge_detach (one experiment, predeclared)
+- Eval-only dynamic-depth measurement on trained W8_all (cheap, no new training)
+- Report as "strong provisional positive" — note threshold was ported from different regime
+
+#### If ANY of those 5 conditions fails → stop-loss fires:
+
+**Specific interpretations for common failure modes:**
+
+| Outcome | Interpretation | Action |
+|---------|---------------|--------|
+| W8 > A_all, W8 ≈ C8_all | Capacity/interface helps, NOT trajectory specifically. Causal claim unsupported. | Pivot to surrogate bridge_detach. Future intended work must test interface design, not temporal info. |
+| C8_all > W8_all | Trajectory actively worse than capacity control. Hypothesis directly disfavored. | Hard stop. Surrogate bridge_detach. |
+| W8 blocks load-bearing but W8 ≈ A_all or W8 worse | Blocks learned something they depend on, but it doesn't help the task. "Used but not useful." | Negative for rescue. Surrogate bridge_detach. |
+| W8 > both controls but only 1-2 blocks load-bearing | One block found a niche, not broad architectural escape from spectator collapse. | Partial. Surrogate bridge_detach. |
+| W8 > both controls, concordant, blocks useful, BUT A_all also not spectator | Control validity broken — experiment can't test "rescue from spectator." | Reframe. Investigate why A_all escaped spectators before running mechanism work. |
+| Mean effects positive but non-concordant (seeds disagree) | With n=3, non-concordance = insufficient stability evidence. | Partial/unstable. Surrogate bridge_detach. |
+| Everything between thresholds (all |Δ| in 0.005-0.015 range) | Ambiguous. Below preregistered bar. Exactly where self-serving interpretation risk is highest. | Treat as null. Surrogate bridge_detach. |
+
+**Default action when stop-loss fires:** Surrogate bridge_detach → locality sweep → remaining budget on other pathways.
+
+**Recommended remaining-budget split (after 4-block):**
+- 0–1: intended follow-up (ONLY if full criterion met)
 - 3–4: surrogate local-learning ladder (bridge/detach → locality sweep → local-rule comparison)
 - 1–2: dynamic depth / iteration-benefit measurement
 - 1–2: tied_sharing rerun OR custom CUDA, depending on which teaches more
