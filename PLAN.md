@@ -125,7 +125,7 @@ Next step per pre-registration: **bridge experiment** (detach_lateral, priority 
 - **Clean weight-sharing isolation test** — DATA LOST. Experiment ran but artifacts disappeared during refactoring sanity-check. Provisional 1-seed result: tied_shared=1.910 vs distinct_matched≈1.85 (~0.06 nats gap, above 0.05 "struggles" threshold). Needs 3-seed rerun to confirm — queued as follow-up after temporal_window.
 - Any custom CUDA concurrency beyond the Graph approach
 - Self-prediction (computation compression)
-- Clean dynamic-depth measurement (the probe was methodologically flawed)
+- ~~Clean dynamic-depth measurement~~ — DONE (f51db7c). Oracle speedup 1.96×, 71.5% tokens harmed by depth-8. Pathway 5 worth pursuing.
 - ~~Shared experiment runner~~ — DONE (f8579d5). Extracted to `core/run_utils.py`, net -1089 lines.
 - **Sanity-check safety** — DONE (e3e0620). Sanity checks now write to temp dirs, preventing interference with live runs.
 
@@ -172,7 +172,7 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 | 4 | **Iteration-benefit measurement** — eval shared model at 1,2,4,8 iterations | 1/5 | surrogate | Only if tied_sharing positive. Tests dynamic depth in simplified regime. |
 | 5 | **Bridge experiment (detach_lateral)** — full-backprop vs detached-lateral | 3 | surrogate | **RUNNING** (PID 20396, ETA ~10:10 NZST). Pre-registered in local-learning README. |
 | 6 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | infra | Next step after the 28% CUDA Graph result. |
-| 7 | **Dynamic depth (clean measurement)** | 5 | TBD | Preliminary probe methodology was flawed. Needs clean redo. |
+| 7 | **Dynamic depth (clean measurement)** | 5 | TBD | **COMPLETE.** Oracle speedup 1.96×, oracle-best beats depth-8 by 0.285 nats. Pathway 5 worth pursuing. Next: predictability test. |
 
 **Priority rationale:** Temporal_window (priority 3) is ranked ABOVE iteration-benefit (priority 4) because it directly tests the corrected intended architecture — block0-only with propagation delay. Making this work is upstream of everything else: if upper blocks have no forward role in the intended architecture, local learning and dynamic depth in that architecture are moot. Iteration-benefit is still valuable but tests only the surrogate regime.
 
@@ -245,7 +245,6 @@ Rationale: The surrogate architecture already has load-bearing laterals (Δ=+0.0
 **Recommended remaining-budget split (after bridge_detach, ~5 days left):**
 - 3–4: surrogate local-learning ladder (warmup→detach → predictive coding → scale/Wasserstein)
 - 1: weight-sharing rerun (independent core question, data lost, cheap)
-- 1: clean dynamic-depth measurement (opens/closes Pathway 5)
 - 1: concurrency sweep (strengthens Pathway 2 story beyond single data point)
 - 1: buffer for reruns/surprises
 
@@ -281,6 +280,7 @@ Upper blocks are downstream of a stale bottleneck controlled by block 0, while b
 | **Iteration scaling (6, 8, 12)** | **1** | **No instability on single seed; quality peaks ~8** | **Tiny-rung only (TinyShakespeare, tied-depth transformer). Does NOT directly transfer to ParallelDiagonalModel at WikiText-103 scale.** |
 | **Tied-depth WikiText-103 (4 variants × 2 seeds)** | **1** | **tied_8iter seed-sensitive (1/2 failed); distinct_matched stable (1.817 ± 0.001)** | **Confounded comparison: token_injection differs. Cannot isolate weight sharing as cause. On successful seed, tied beats distinct (1.798 vs 1.818). Clean isolation test needed.** |
 | Per-token depth heterogeneity | 5 | Inconclusive | Heterogeneity exists but methodology flawed (non-standard eval frame, ε too loose). Hint only. |
+| **Dynamic-depth clean measurement** | **5** | **Oracle speedup 1.96×, oracle-best 0.285 nats better than depth-8** | **Worth pursuing. 71.5% of tokens harmed by forcing depth-8. Val speedup > train → not overfitting. Surprisingly flat oracle histogram. Single seed (42).** |
 | **Propagation-delay 2-block (tiny)** | **3** | **Spectator** | **Block B adds nothing at TinyShakespeare ctx=32. Hardcoded 0.5 mixing harmful; zero-init gate fixes ceiling but B stays closed.** |
 | **Multi-block corrected at WikiText-103 ctx=128** | **3** | **Spectator** | **4-block corrected (hardcoded 0.5) is +0.014 worse than single-block. 4-block old (token_injection=all) is -0.021 better. Blocks help when fed fresh tokens; lateral-only with 0.5 mixing fails.** |
 | **Gated multi-block at WikiText-103 ctx=128** | **3** | **Cold-start failure** | **4-block with zero-init gates is +0.245 worse than single-block. Gates starve upper blocks of signal — worse than hardcoded 0.5. Gate 3 opened negatively (suppressive). Experiment uninformative about original question due to cold-start confound.** |
@@ -303,7 +303,7 @@ Upper blocks are downstream of a stale bottleneck controlled by block 0, while b
 - **Pathway 1 (Wide Recurrent):** Weight sharing is free at tiny scale (tied-depth transformer, TinyShakespeare, 3 seeds). At WikiText-103 scale, tested a DIFFERENT architecture (ParallelDiagonalModel with tied_8iter): 1 of 2 seeds failed badly. However, the comparison is confounded — tied_8iter uses token_injection=block0 while the comparator (distinct_matched) uses token_injection=all. **Cannot attribute the failure to weight sharing specifically.** A clean isolation test is needed: shared weights with token_injection=all. On the successful seed, tied_8iter actually beat distinct_matched (1.798 vs 1.818), suggesting the inductive bias of weight sharing CAN help — it's the robustness that's the problem. Pathway remains alive but needs a cleaner test.
 - **Pathway 2 (Async):** Prior positive — 28% concurrency via CUDA Graphs, stale reads don't hurt. Next: custom CUDA.
 - **Pathway 3 (Local Learning):** The forward architecture problem (spectator blocks) is now explained: lateral-only multi-block fails because upper blocks are redundant delayed decoders. However, **C_old ablation (token_injection=all) proves laterals are genuinely load-bearing (Δ=+0.030, 2 seeds concordant, all 4 blocks contribute to readout).** And **temporal_window proves trajectory info uniquely rescues the intended architecture (Δ=+0.042, 3 seeds concordant)** — upper blocks become useful when given exclusive temporal information. Pathway is alive and advancing. Next: bridge experiment (detach_lateral) — can blocks learn useful communication without cross-block gradient? 4-block follow-up (running) tests voluntary usefulness at scale.
-- **Pathway 5 (Dynamic Depth):** Now enabled by Pathway 1 iteration scaling. Per-depth losses show clear variation — some tokens probably benefit more from extra iterations than others. First measurement (per-token variance) not yet done.
+- **Pathway 5 (Dynamic Depth):** **WORTH PURSUING.** Clean measurement (2026-05-26): oracle speedup 1.96× at δ=0.01, oracle-best beats depth-8 by 0.285 nats (17.3%), 71.5% of tokens harmed by forcing depth-8. Val speedup > train speedup → NOT overfitting. Oracle histogram surprisingly flat (not dominated by any single depth — 15.2% best at d1, 28.5% best at d8). Next: predictability test (can shallow state predict optimal depth?).
 - **Pathway 8 (Multi-Rate):** Prior weak-positive — inductive bias confirmed at ctx=32. Needs longer context to be meaningful.
 - **Pathway 9 (Norm-Preserving):** May be relevant if the tied_8iter seed failure turns out to be a gradient stability issue through many iterations. Muon or orthogonal parameterization might fix it. But first need to isolate whether it's actually a stability issue vs a routing issue.
 
