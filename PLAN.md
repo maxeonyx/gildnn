@@ -75,7 +75,7 @@ Next step per pre-registration: **bridge experiment** (detach_lateral, priority 
 - Any custom CUDA concurrency beyond the Graph approach
 - Self-prediction (computation compression)
 - Clean dynamic-depth measurement (the probe was methodologically flawed)
-- **Shared experiment runner** — `runs/*.py` scripts share ~70-80% identical infrastructure (training loop, eval, logging, optimizer setup, checkpoint, batching). Should be extracted to `core/experiment_runner.py` at the next natural break. Not blocking anything but is significant tech debt (~30K × 5 scripts = 150K lines, mostly duplicated).
+- ~~Shared experiment runner~~ — DONE (f8579d5). Extracted to `core/run_utils.py`, net -1089 lines.
 
 **Pathway 3 status:**
 - **In surrogate architecture (token_injection=all):**
