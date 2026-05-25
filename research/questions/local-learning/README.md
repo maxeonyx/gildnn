@@ -198,6 +198,27 @@ Per [dictation 2026-05-23-7](../../../dictations/2026-05-23-7.md): "More promisi
 
 The attention-based "usefulness" signal is explicitly **disfavored** by Max (salience learning, grounding decay with depth, chicken-and-egg problems).
 
+## C_old lateral ablation — pre-registered interpretation (2026-05-25)
+
+**Experiment:** `runs/c_old_ablation.py`. C_lateral (topology="upward") vs C_isolated (topology="isolated"), 4 blocks, d=256, ff=512, token_injection="all", 2 seeds (42, 43), 20K steps, WikiText-103 ctx=128.
+
+**Scope:** Tests whether lateral connections are load-bearing in the only current multi-block regime that helps (token_injection="all"). Does NOT directly validate Pathway 3 in its intended form — every block still sees tokens directly.
+
+**Quantity:** Paired difference per seed: d_s = val_loss(C_isolated, s) − val_loss(C_lateral, s). Positive means lateral is better.
+
+**Calibration:** distinct_matched std across seeds = 0.001. Stale-read cost = +0.005 ± 0.005 (treated as negligible). A_single→distinct_matched gap = 0.021 (known meaningful architecture effect).
+
+| Outcome | Criterion | Pathway 3 implication | Next step |
+|---|---|---|---|
+| **Clearly lateral helps** | Δ ≥ 0.015 AND both seeds > 0.005 | Prerequisite met: cross-block communication is genuinely load-bearing in this regime. Does NOT prove local learning works. | Bridge experiment: full-backprop vs detached-lateral training in same regime. |
+| **Modest lateral use** | 0.005 ≤ Δ < 0.015 AND both seeds positive | Weak increase. Lateral probably matters some. | Add 3rd seed, or test corrected-architecture version. |
+| **Clearly an ensemble** | |Δ| < 0.005 AND both seeds individually < 0.005 | Decrease. Gain from multi-block is compatible with independent token-fed blocks + shared readout. | Do NOT test local learning on C_old. Redirect to architectures where upper blocks depend on laterals. |
+| **Ambiguous / unstable** | Discordant seed signs or one seed large and one near zero | No update from this experiment alone. | Add more seeds or run cleaner experiment. |
+
+**Statistical note:** With 2 seeds, require concordance (both seeds agree directionally) for any "clear" claim. The mean alone is insufficient when one seed carries the effect.
+
+---
+
 ## Next steps
 
 1. **Confirm spectator result** across seeds — done (3-seed result: corrected = single block on TinyShakespeare at d=256). See `experiments/fixed_multi_rate/artifacts/token_injection_sanity/`.
