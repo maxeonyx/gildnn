@@ -529,16 +529,22 @@ The divergence-timing observation (identical curves for 12K, gap at 15K) ALREADY
 
 ### Structural persistence despite loss regression (seeds 42-43)
 
-Readout ablation on warm12→detach final models reveals a dissociation: val_loss regresses to detached (R≈0.03), but the **internal structure** partially retains the full_backprop pattern.
+Readout ablation on warm→detach final models reveals a dissociation: val_loss regresses to detached (R≈0), but the **internal structure** partially retains the full_backprop pattern — and the retention is proportional to warmup length.
 
-| Block | Full_backprop | Warm12→detach | Pure detached | Pattern |
+**Decay rate of block 3 contribution (seed 42):**
+
+| Condition | Detached steps | Block 3 cost | % full-BP retained | R (val_loss) |
 |---|---|---|---|---|
-| 3 | +0.35 to +0.42 | **+0.24 to +0.30** | +0.07 | Block 3 retains ~70% of full-BP contribution |
-| 1 | +0.10 to +0.20 | +0.12 to +0.24 | **+0.44 to +0.68** | Block 1 does NOT develop compensatory role |
+| Full_backprop | 0 | +0.419 | 100% | 1.00 |
+| Warm15→detach | 5K | +0.373 | 87% | 0.26 |
+| Warm12→detach | 8K | +0.295 | 64% | -0.14 |
+| Pure detached | 20K | +0.072 | 0% | 0.00 |
 
-The warm12→detach model finds a **different local minimum** than pure detached — same overall loss, but reached through a more distributed organization rather than front-loaded compensation. Block 3's specialization persists structurally even as its quality degrades without maintenance gradient.
+Block 1 compensation (the "front-loaded" pattern of pure detached, where block 1 swells to +0.44-0.68) does NOT develop at 5K or 8K detached steps — it requires the full 20K.
 
-**Implication for predictive-residual:** A successful local loss should recover BOTH val_loss (R≥0.5) AND the U-shaped readout structure (block 3 contribution at +0.35+ rather than +0.07). If local loss recovers val_loss but block 3 stays low, the mechanism works differently from cross-block gradient (possibly just regularization).
+**Key dissociation:** Val_loss regresses faster than structure. At 8K detached steps (warm12), R≈0 (loss fully regressed) but block 3 still retains 64% of its structural contribution. This means block 3 is still USED by readout but produces lower-quality output — like a degraded but still-wired module.
+
+**Implication for predictive-residual:** A successful local loss should recover BOTH val_loss (R≥0.5) AND the U-shaped readout structure (block 3 contribution at +0.35+ rather than +0.07). The local loss doesn't need to prevent structural collapse (that's slow) — it needs to maintain output QUALITY in block 3 during the period when the block would otherwise degrade.
 
 ---
 
