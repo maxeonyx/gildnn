@@ -466,3 +466,175 @@ This means **learning curves matter**, not just final val_loss. If detached show
 2. **WikiText-103 baseline** — test whether multi-block helps on a dataset where single-block hasn't saturated. Running or queued.
 3. **Re-evaluate local learning AFTER upper blocks have value** — detached-lateral only matters once upper blocks contribute. Don't test local learning on a broken architecture.
 4. **Predictive coding** — once upper blocks have exclusive temporal info (e.g. windowed input), predict lower-block future states. This becomes meaningful because they can extrapolate from the trajectory.
+
+---
+
+## Theory note (2026-05-26): why A_all block 1 survives, and what that predicts for bridge_detach
+
+This section is a pre-analysis written **without reading the running `bridge_detach` results**.
+
+### First: one framing correction
+
+The simplified math `S = x + h_0 + h_1 + h_2 + h_3` is not the exact repo implementation. In code, `readout_mode="all"` uses a learned softmax-weighted sum:
+
+```
+S = Σ_i r_i h_i,    r = softmax(readout_logits)
+```
+
+So the shared adjoint is not literally identical in magnitude across blocks. The exact direct readout term is:
+
+```
+∂L/∂h_i = r_i g,    g = ∂L/∂S
+```
+
+The direction is shared; the scale is block-specific. Everything below uses the exact weighted form when that distinction matters.
+
+### Setup and notation
+
+- `Y` = next-token target
+- `H_i^T` = final output of block `i`
+- `H_i^{1:T-1}` = trajectory of block `i` outputs over the preceding timesteps
+
+Per-block readout ablation is **not** literally a mutual information measurement, but it is a usable proxy for whether block `i` carries predictive information that the remaining readout cannot cheaply replace.
+
+Define the trajectory residue available at depth `i+1` as:
+
+```
+R_1 = I(Y; H_0^{1:T-1} | H_0^T)
+R_2 = I(Y; H_1^{1:T-1} | H_0^T, H_1^T)
+R_3 = I(Y; H_2^{1:T-1} | H_0^T, H_1^T, H_2^T)
+```
+
+These are the "still-predictive bits that are in the sender's trajectory but not already present in the lower blocks' final snapshots."
+
+### 1) Why block 1 is load-bearing in A_all
+
+`A_all` (`token_injection="block0"`, no temporal window) is **not** a pure snapshot architecture. Block 1 does not get an explicit window, but over the sequence it repeatedly receives `H_0^{t-1}` and has its own state. That means block 1 can compute a recurrent summary of the **trajectory** of block 0, not just its final state.
+
+So block 1 has a specific information advantage over blocks 2/3:
+
+1. **It is the first receiver of the strongly task-grounded source.** Block 0 is the only block that sees tokens, and it is also massively load-bearing itself. Its emitted states therefore contain substantial task-correlated structure even before any special shaping for upper blocks.
+2. **It can store first-order trajectory residue.** If two recent contexts produce similar `H_0^T` but different trajectories `H_0^{1:T-1}`, block 1 can in principle preserve the difference. The observed `+0.07` ablation is evidence that `R_1 > 0` at this scale.
+3. **It only has to beat block 0 on the residual.** Because readout is additive, block 1 is useful only to the extent that it carries information about `Y` not already recoverable from block 0's contribution. `+0.07` means there is a small but real first-order residue.
+
+That same argument weakens sharply for blocks 2 and 3.
+
+### 2) Why the advantage decays with depth
+
+The decay is **not** just generic "information gets noisier." There is a stronger structural reason.
+
+Block 2 does **not** get direct access to block 0's trajectory residue. It only gets block 1's outputs, which are already a lossy transform of that residue and are trained under weaker grounding. Formally, by data processing:
+
+```
+I(Y; H_1^{1:T-1} | H_0^T) ≤ I(Y; H_0^{1:T-1} | H_0^T)
+```
+
+But the relevant quantity for block 2 is smaller still:
+
+```
+R_2 = I(Y; H_1^{1:T-1} | H_0^T, H_1^T)
+```
+
+This is a **second-order residue**: information in block 1's trajectory that is not already captured by the final snapshots of blocks 0 and 1. Block 3 chases a third-order residue. So each extra hop does two bad things at once:
+
+1. **Compression:** the sender trajectory is itself already a lossy summary of the level below.
+2. **Conditioning penalty:** the new block must carry information unique relative to all lower blocks already in the additive readout.
+3. **Weaker grounding:** block 1 is directly downstream of the token-grounded block; block 2 is downstream of a block whose own useful residue is already small; block 3 is worse again.
+
+That predicts a hierarchy `R_1 >> R_2 >= R_3`, which matches the empirical pattern much better than the old "all upper blocks should be spectators" hypothesis.
+
+This also explains why `W8_all` amplifies block 1 much more than blocks 2/3. The temporal window gives block 1 direct access to a larger chunk of the **best possible sender trajectory** (block 0's). It does not solve the deeper problem that block 2 and block 3 still depend on already-weak upper-block trajectories.
+
+### 3) What detach removes and what it leaves intact
+
+For block 1 parameters, the exact weighted-readout gradient under full backprop has the form:
+
+```
+∇_{θ1} L = r_1 J_1^T g + downstream cross-block terms
+```
+
+With `detach_lateral=True`, the cross-block terms disappear but the direct readout term remains:
+
+```
+∇_{θ1}^{detach} L = r_1 J_1^T g
+```
+
+So detach does **not** remove block 1's task signal. It removes block 1's ability to train block 0 to emit block-1-friendly features.
+
+For block 0, the contrast is:
+
+```
+∇_{θ0}^{full} L = r_0 J_0^T g + "make your output useful to upper blocks" terms
+∇_{θ0}^{detach} L = r_0 J_0^T g
+```
+
+Therefore the detached regime still allows:
+
+- **receiver learning** (`block 1 learns to use whatever arrives`)
+- **shared task grounding** (`block 1 still sees CE-aligned gradient through its own readout contribution`)
+
+But it no longer allows:
+
+- **sender shaping** (`block 0` being optimized specifically for block 1's later use)
+- **joint protocol formation** across the bridge
+
+### 4) Prediction: should block 1 remain load-bearing under detach?
+
+**Yes, probably for block 1; probably not much for blocks 2/3.**
+
+Reason:
+
+- The `A_all` result already says the one-hop bridge carries genuinely useful first-order residue.
+- That residue originates in the trajectory of a strongly task-grounded sender (block 0), so a substantial fraction of it should exist even without sender shaping.
+- Block 1 still has enough gradient to become a better **decoder** of that natural trajectory.
+- Blocks 2/3 are different: their senders are much less grounded, and their useful residue is already tiny. Those are exactly the blocks most likely to collapse when co-adaptation is removed.
+
+So the most likely detached pattern is:
+
+- block 0 still dominant
+- block 1 still clearly non-spectator, but weaker than full backprop
+- blocks 2/3 near-spectator or fully spectator
+
+### 5) Registered falsifiable predictions
+
+#### Hard prediction for an A_all-style detached run
+
+If we trained the **same architecture as `A_all`** with detached bridges, the block-1 per-block readout ablation should remain **positive and clearly above noise**.
+
+Registered range:
+
+```
+block 1 ablation cost: +0.025 to +0.055 nats
+block 2 ablation cost: 0 to +0.010 nats
+block 3 ablation cost: 0 to +0.010 nats
+```
+
+Interpretation:
+
+- `< +0.010` for block 1 would falsify the claim that shared-adjoint receiver learning is sufficient even for the first bridge.
+- `+0.025 to +0.055` would support the view that most of block 1's benefit is opportunistic decoding of naturally useful block-0 emissions, with some loss from missing co-adaptation.
+- `>= +0.070` would imply lateral gradient terms were unnecessary or even harmful for block 1 in this regime.
+
+#### Lower-confidence prediction for the currently running surrogate `bridge_detach`
+
+The running experiment is **not** `A_all`; it is the easier surrogate with `token_injection="all"`. That architecture gives block 1 more independent grounding than `A_all`, so block 1 should be at least as robust to detach.
+
+I therefore predict that detached block 1 in the surrogate run will remain **clearly load-bearing**, with per-block readout ablation most plausibly in:
+
+```
++0.10 to +0.35 nats
+```
+
+This number is lower-confidence than the `A_all` prediction because the repo does not yet contain a matching per-block full-backprop ablation baseline for the surrogate run; the cleaner claim is directional: **detach should shrink block 1, not zero it.**
+
+### 6) What would falsify this analysis cleanly?
+
+The strongest falsifiers are:
+
+1. **Detached block 1 collapses to noise** (`< +0.010`) while full-backprop block 1 is clearly positive. That would mean sender shaping is not a small correction; it is the main thing making the bridge useful.
+2. **Detached block 2 stays clearly positive** (`> +0.020`). That would mean the rapid residue-decay argument is too pessimistic, and higher-order residues survive better than expected.
+3. **Detached block 1 matches or beats full-backprop block 1.** That would imply cross-block gradients are causing harmful co-adaptation rather than helpful protocol formation.
+
+The cleanest conceptual summary is:
+
+> Block 1 is special because it is the first module that can cache predictive residue from the trajectory of the only strongly grounded sender. Detach should hurt its magnitude, but not its existence. The deeper blocks are not just farther away; they are chasing higher-order residues that are structurally much smaller.
