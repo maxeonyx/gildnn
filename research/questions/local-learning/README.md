@@ -394,11 +394,10 @@ Both variants track identically for 12K steps. Gap opens at step 15K (not the pr
 |---|---|---|
 | `full_20k` | existing bridge_detach baseline | reference best trajectory |
 | `detached_20k` | existing bridge_detach baseline | reference no-gradient endpoint |
-| `warm12_detach` | resume full checkpoint at 12K, switch to detach, continue to 20K | pre-divergence warmup (before gap opens) |
-| `warm15_detach` | resume full checkpoint at 15K, switch to detach, continue to 20K | post-divergence warmup (after entering refinement regime) |
-| `resume_full_ctrl` | resume full checkpoints at 12K and 15K, continue full (1 seed) | control for checkpoint/resume artifacts |
+| `warm12_detach` | train full_backprop, switch `model.detach_lateral=True` at step 12K, continue to 20K | pre-divergence warmup (before gap opens) |
+| `warm15_detach` | train full_backprop, switch `model.detach_lateral=True` at step 15K, continue to 20K | post-divergence warmup (after entering refinement regime) |
 
-**Implementation:** Checkpoint branching from bridge_detach saved states (model + optimizer + global step). NOT fresh runs. Much cheaper and directly implements the intended intervention.
+**Implementation:** Fresh 20K-step runs with mid-training switch. At step N, flip `model.detach_lateral = True` and continue. No checkpoint branching needed — `detach_lateral` is a runtime attribute checked during forward pass (`_maybe_detach_lateral()`), not an architectural change. Optimizer state, model weights, and dataloader RNG all continue uninterrupted. This is the cleanest implementation: no resume artifacts, no checkpoint format issues.
 
 ### Hypotheses and predictions
 
@@ -422,12 +421,11 @@ Both variants track identically for 12K steps. Gap opens at step 15K (not the pr
 
 ### Seeds and budget
 
-3 seeds × 2 warmup conditions + 1-seed resume controls = **~85-95 min** GPU time (continuations are short: 8K and 5K steps respectively at ~1.7 min/1K).
+3 seeds × 2 warmup conditions = **6 full 20K-step runs** ≈ **~120 min** GPU time (each 20K steps at ~1.7 min/1K = ~34 min; or ~20 min at actual 1000 steps/min observed speed). No resume controls needed — mid-training switch has no artifacts.
 
 ### Confounds
 
-- **Optimizer state:** tests a training procedure, not pure representation. Success may depend on Adam moments carried from full phase.
-- **Resume artifact:** if batch ordering changes, `resume_full_ctrl` catches it.
+- **Optimizer state:** Adam moments from the full phase carry through. The warmup condition has "richer" moments at the switch point. This is inherent to the question being asked (it IS a training-procedure test).
 - **What this does NOT show:** true local learning. Only shows whether detach can inherit/sustain a regime created by full backprop.
 - **Optional if recovery is surprising:** post-training lateral ablation on recovered models to confirm they still USE the lateral channel rather than coasting.
 
