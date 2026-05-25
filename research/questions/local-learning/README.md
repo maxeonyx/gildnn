@@ -397,6 +397,24 @@ Both variants track identically for 12K steps. Gap opens at step 15K (not the pr
 
 **Caveats:** Single seed. Optimizer effects (Adam running averages accumulate). Could be capacity/symmetry-breaking coincidence rather than lateral-specific.
 
+### Pre-registered ablation prediction (seed 42 gap = C_old lateral cost, 2026-05-26)
+
+**Observation:** Bridge_detach gap (0.029) ≈ C_old lateral ablation cost (0.030, exact on seed 42). Both on same architecture (4-block, upward, token_injection=all).
+
+**Hypothesis:** Detached laterals provide zero net benefit. Without gradient to shape the sender, the receiver cannot extract useful information. Detached model is functionally equivalent to a model with NO laterals.
+
+**Testable prediction for ablation results:**
+
+| Measurement | Predicted (if dead-lateral hypothesis correct) | Alternative (partial use) |
+|---|---|---|
+| full_backprop lateral-zeroing cost | ~0.030 (same as C_old) | ~0.030 |
+| detached lateral-zeroing cost | ~0 to +0.005 (laterals not used) | +0.010 to +0.020 |
+| detached final vs detached-zeroed | negligible difference | meaningful difference |
+
+**What decides:** If detached zeroing cost is ~0 → hypothesis confirmed (laterals functionally dead without sender gradient). If +0.010-0.020 → laterals partially used (receiver CAN extract some value from unoptimized sender output, but not as much as with co-adaptation).
+
+**Supporting evidence:** Trajectory data shows both variants identical for 12K steps (neither uses laterals early), divergence at 15K (co-adaptation begins in full only). Consistent with "laterals are irrelevant until sender is optimized for communication."
+
 ---
 
 ## Warmup→detach diagnostic — pre-registered 2026-05-26
