@@ -45,7 +45,9 @@ All 3 seeds concordant. Mean Δ_trajectory (+0.042) is nearly 3× the pre-regist
 
 **Action:** Per decision tree → surrogate bridge_detach launched. No intended-architecture follow-up (criterion not met). Trajectory diagnostics NOT run (would be for strong-positive only).
 
-**Bridge_detach experiment RUNNING** (PID 20396, launched 07:40 NZST 2026-05-26). Log: `experiments/wikitext_103/artifacts/bridge_detach/run.jsonl`. Speed: ~118K tok/s. ETA completion: ~10:15 NZST. **No --compile** (torch.compile was counterproductive for this model — caused 15+ min JIT compilation with no speed benefit after).
+**Bridge_detach experiment RUNNING** (PID 20396, launched 07:40 NZST 2026-05-26). Log: `experiments/wikitext_103/artifacts/bridge_detach/run.jsonl`. Speed: ~117K tok/s. ETA completion: ~09:50 NZST (seed 44 detached at step 7K/20K as of 09:35). **No --compile** (torch.compile was counterproductive for this model — caused 15+ min JIT compilation with no speed benefit after).
+
+**Warmup→detach script READY** (`runs/warmup_detach.py`, committed 5851a0f). Sanity-checked. Launches immediately when bridge_detach finishes. ~2.5 hours GPU time (6 runs × 20K steps). Reads bridge_detach baselines from report.json.
 
 **Results so far (seeds 42-43 COMPLETE, seed 44 running):**
 
@@ -154,7 +156,8 @@ Next step per pre-registration: **bridge experiment** (detach_lateral, priority 
   - Multi-block works with all-injection (C_old is -0.021 better than single-block)
   - Lateral-only (token_injection=block0) fails with hardcoded 0.5 (+0.014 worse) AND with zero-init gates (+0.245 worse)
   - **C_old ablation POSITIVE: laterals are load-bearing (Δ=+0.030, all 4 blocks contribute)**
-  - Bridge experiment (detach_lateral) is the next surrogate-architecture Pathway 3 test
+  - **Bridge_detach RUNNING: seeds 42-43 confirm "clearly worse" (Δ=+0.034 mean), seed 44 in progress**
+  - Warmup→detach script READY, launches on bridge_detach completion
 - **In intended architecture (token_injection=block0):**
   - ALL configurations tested so far FAIL (spectators, cold-start)
   - Temporal_window is the fix hypothesis — gives upper blocks exclusive trajectory information
@@ -177,6 +180,13 @@ INTEGRATE / REPORT / UPDATE PLAN → back to PATHWAY SELECTION
 Every gate is a separate subagent review that can send you back. See PROCESS.md for full details.
 
 ---
+
+## GPU queue (explicit ordering)
+
+1. **bridge_detach** — RUNNING, ETA ~09:50. When done: verify seed 44, update results, then →
+2. **warmup_detach** — script ready. Launch immediately after bridge_detach. ~2.5 hours. Then →
+3. **tied_sharing rerun** — `runs/tied_sharing.py`. Independent core question, data lost. ~45 min. Then →
+4. **What the data says** — budget permitting, escalation depends on warmup→detach outcome
 
 ## What should happen next
 
