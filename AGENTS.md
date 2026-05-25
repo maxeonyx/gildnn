@@ -55,6 +55,7 @@ Read [VISION.md](VISION.md) for what we're exploring. Read [PROCESS.md](PROCESS.
 
 - **Language:** Python for ML experimentation. Max has a personal preference for Rust but recognises it's probably not the right choice here.
 - **Backend:** PyTorch deliberately. `torch.compile` for stable core/ paths, custom CUDA/Triton for async research. Decision per [dictation 2026-05-22-12](dictations/2026-05-22-12.md). See `research/questions/backend-choice/README.md`.
+- **⚠ torch.compile caveat:** `ParallelDiagonalModel` with `topology="upward"` causes catastrophic JIT compilation (15+ min, no speed benefit after). Do NOT use `--compile` with experiment scripts for this model. Eager mode runs at ~114K tok/s which is already fast enough. torch.compile may work better once the architecture stabilizes.
 - **Tensor readability:** prefer named-dimension / einops-style operations where practical (e.g. `einops.rearrange`, `einops.reduce` with named axes, or equivalent). Use `jaxtyping` annotations for tensor shape documentation (e.g. `Float[Tensor, "batch seq dim"]`). Both are installed and torch.compile-compatible.
 - Dependencies managed via UV, local virtualenv.
 - **Unified architecture:** an off-the-shelf framework that provides abstractions over backbones, embeddings, data pipelines, and prediction heads is acceptable — probably one already exists. If used, it must be explained very well, not assumed. Max wants to understand what it's doing, not just use it as a black box.
