@@ -242,12 +242,20 @@ Rationale: The surrogate architecture already has load-bearing laterals (Δ=+0.0
 
 **Default action when stop-loss fires:** Surrogate bridge_detach → bootstrap-vs-signal discriminator (warmup→detach) → remaining budget on other pathways.
 
-**Recommended remaining-budget split (after 4-block):**
-- 0–1: intended follow-up (ONLY if full criterion met)
-- 3–4: surrogate local-learning ladder (bridge/detach → bootstrap-vs-signal discriminator → local-objective comparison)
-- 1–2: dynamic depth / iteration-benefit measurement
-- 1–2: tied_sharing rerun OR custom CUDA, depending on which teaches more
+**Recommended remaining-budget split (after bridge_detach, ~5 days left):**
+- 3–4: surrogate local-learning ladder (warmup→detach → predictive coding → scale/Wasserstein)
+- 1: weight-sharing rerun (independent core question, data lost, cheap)
+- 1: clean dynamic-depth measurement (opens/closes Pathway 5)
+- 1: concurrency sweep (strengthens Pathway 2 story beyond single data point)
 - 1: buffer for reruns/surprises
+
+**If bridge_detach POSITIVE (Scenario B — detached ≈ full):** Local-learning ladder collapses. Redirect budget:
+- 1: gradient-radius sweep (detach / k=1 / k=2 / full — measures minimum useful nonlocality)
+- 1: scale detached to more blocks / longer context (robustness vs tiny-surrogate luck)
+- 1: async + local composition test (the raison d'être: does local learning survive stale/concurrent execution?)
+- Weight-sharing + dynamic-depth + concurrency still run unconditionally.
+
+**Traps to avoid:** more intended-architecture rescue (stop-loss fired), custom CUDA kernels (infra not finding), starting new pathways (4/6/7/9/10/11 can't meaningfully start in 5 days).
 
 ### Why token_injection="block0" fails (theory, 2026-05-25)
 
