@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from dataclasses import asdict
 from pathlib import Path
+
+# Ensure repo root is importable regardless of how this script is launched
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import torch
 from jaxtyping import Int

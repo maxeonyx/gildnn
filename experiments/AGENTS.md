@@ -13,6 +13,8 @@ Each experiment gets its own subdirectory: `experiments/<experiment-name>/`. The
 
 Run experiments from the repo root: `.\.venv\Scripts\python.exe -m runs.<name>` (e.g. `runs.closed_loop_prediction`, `runs.transformer_baseline`). The `experiments/` directory holds artifacts, not entry-point scripts.
 
+**Why `-m`:** When Python runs a script directly (`python runs/foo.py`), it puts `runs/` on sys.path — not the repo root. This means `from core import ...` fails with ImportError. Using `-m` puts the current working directory on sys.path instead, so `core` is importable. The scripts also have a `sys.path.insert` fallback, so direct execution works too — but `-m` is the canonical method.
+
 ## What does NOT go here
 
 - Polished reports (those go in `research/questions/<name>/README.md`)
