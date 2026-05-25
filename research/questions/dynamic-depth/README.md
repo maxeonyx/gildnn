@@ -97,3 +97,81 @@ Marginal improvements (mean / std):
 - The existing `per_token_depth_analysis.py` script in `runs/` does something similar but with flawed methodology (overlapping windows). Could be adapted.
 - Key change: use the standard eval function, not sliding windows. One prediction per position.
 - Save raw L_t(d) matrix for all positions — enables later analysis without re-running.
+
+---
+
+## Clean measurement results (2026-05-26)
+
+**Script:** `runs/clean_depth_eval.py` | **Artifacts:** `experiments/wide_recurrent_vs_transformer/artifacts/clean_depth_eval/`
+
+Ran on seed 42 only (seeds 43/44 would require retraining tied-depth models — not done yet). CPU-only eval of existing trained model.
+
+### Methodology validation
+
+Depth-8 val loss measured = **1.6505** vs standard eval = **1.6505** (difference < 0.0001). The methodology fix works — this is the real next-token prediction loss, not the inflated 3.37 from overlapping windows.
+
+### Mean loss by depth (val)
+
+| Depth | Mean loss | Δ from depth-8 |
+|---|---|---|
+| 1 | 2.371 | +0.720 |
+| 2 | 1.948 | +0.298 |
+| 3 | 1.757 | +0.106 |
+| 4 | 1.702 | +0.051 |
+| 5 | 1.675 | +0.024 |
+| 6 | 1.666 | +0.015 |
+| 7 | 1.658 | +0.007 |
+| 8 | 1.650 | — |
+
+Diminishing returns: 78% of total improvement happens by depth 3, 93% by depth 5.
+
+### Oracle-best vs depth-8
+
+| Split | Depth-8 loss | Oracle-best | Improvement | Tokens harmed by depth-8 |
+|---|---|---|---|---|
+| Val (19968 pos) | 1.650 | 1.365 | **0.285 nats (17.3%)** | **71.5%** |
+| Train (19968 pos) | 1.369 | 1.173 | 0.196 nats (14.3%) | 67.7% |
+
+Val improvement proportionally larger than train → **NOT an overfitting artifact.**
+
+### Oracle depth histogram (val)
+
+```
+d1: ████████████████  15.2%  (3034)
+d2: ███████████       11.0%  (2192)
+d3: █████████          9.2%  (1838)
+d4: ██████████         9.4%  (1867)
+d5: ████████           8.3%  (1665)
+d6: ██████████         9.7%  (1937)
+d7: █████████          8.8%  (1750)
+d8: ████████████████████████████  28.5%  (5685)
+```
+
+Surprisingly flat across depths 1-7, with a spike at d8 meaning ~28.5% of tokens genuinely benefit from full depth. The remaining ~71.5% would be better at some d < 8.
+
+### No-regret shallowest depth (δ=0.01)
+
+Mean optimal depth: **4.09** (val) / 4.34 (train)
+
+**Oracle speedup: 1.96×** (val) / 1.84× (train)
+
+At δ=0.01 (nearly lossless threshold), 25.3% of val tokens can safely stop at depth 1, and only 19.0% truly need depth 8.
+
+### Decision per pre-registered criteria
+
+**Oracle speedup (1.96×) > 1.3× ✓ AND oracle-best improves over depth-8 ✓**
+
+→ **Worth pursuing.** Real headroom exists for dynamic depth.
+
+### What this does NOT show
+
+1. **Predictability** — whether shallow state can identify which tokens need more depth. This is the key question for an actual early-exit mechanism. Not yet measured (metric 6 from the design).
+2. **Multi-seed replication** — single seed only. The magnitude could shift.
+3. **Causal mechanism** — we don't know WHY some tokens are harmed by more depth. Possible explanations: attention pattern interference at higher depths, or the model learns depth-8-optimal representations that sacrifice shallower accuracy.
+4. **Architecture-specific** — this is a TinyShakespeare ctx=32 tied-depth transformer. Larger/different models may behave differently.
+
+### Next steps (Pathway 5)
+
+1. **Predictability test** — extract depth-1 or depth-2 hidden state, train a small probe to predict d*_t. If achievable (>70% accuracy), a learned halting mechanism is feasible.
+2. **Multi-seed** — retrain 2 more tied-depth models (seeds 43/44) and confirm the 1.96× speedup is reproducible.
+3. **Learned halting** — add a small confidence head that predicts "stop" at each depth. Train with the oracle signal.
