@@ -49,7 +49,14 @@ All 3 seeds concordant. Mean Δ_trajectory (+0.042) is nearly 3× the pre-regist
 
 **Warmup→detach RUNNING** (PID 20952, launched 10:13 NZST 2026-05-26). ~2.5 hours GPU time (6 runs × 20K steps). Reads bridge_detach baselines from report.json. ETA ~12:45 NZST.
 
-**Early data (seed 42 warm12_detach COMPLETE at 10:39):** final val_loss = 1.7977. R = -0.14 (NEGATIVE — slightly worse than pure detached 1.7936). No recovery at all from the 12K warm-start. Strongly suggestive of Scenario A (gradient needed continuously). Waiting for warm15_detach (the critical condition — switches AFTER gap opens).
+**Seed 42 COMPLETE (both conditions, 11:00 NZST):** Scenario A confirmed for this seed.
+
+| Condition | Final val_loss | R | Gap re-opening | Interpretation |
+|---|---|---|---|---|
+| warm12_detach | 1.7977 | -0.14 | +0.033 | No recovery |
+| warm15_detach | 1.7863 | 0.26 | +0.021 (> 0.010) | Temporary head start only |
+
+Baselines: full=1.7650, detached=1.7936. Both conditions drifted back toward detached. Warm15 retained a tiny advantage (R=0.26 vs warm12's R=-0.14) from its extra 3K steps of full training, but the gap still re-opened — gradient needed CONTINUOUSLY. Seed 43 now running.
 
 **Results (3 seeds COMPLETE):**
 
