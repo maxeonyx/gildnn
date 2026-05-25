@@ -217,6 +217,44 @@ The attention-based "usefulness" signal is explicitly **disfavored** by Max (sal
 
 **Statistical note:** With 2 seeds, require concordance (both seeds agree directionally) for any "clear" claim. The mean alone is insufficient when one seed carries the effect.
 
+### Results (2026-05-25, 22:27 NZST)
+
+| Variant | Seed 42 | Seed 43 | Mean ± Std |
+|---------|---------|---------|------------|
+| C_lateral (upward) | 1.765 | 1.756 | 1.760 ± 0.005 |
+| C_isolated (isolated) | 1.794 | 1.785 | 1.790 ± 0.004 |
+| **Δ (isolated − lateral)** | **+0.029** | **+0.029** | **+0.030** |
+
+**Outcome: CLEARLY LATERAL HELPS.** Both seeds Δ = +0.029, well above 0.015 threshold. Seeds are concordant. Lateral communication is genuinely load-bearing in this regime.
+
+**Readout ablation (C_lateral models only):**
+
+| Blocks included | Seed 42 val_loss | Seed 43 val_loss | Ablation cost |
+|----------------|-----------------|-----------------|---------------|
+| All 4 (full) | 1.765 | 1.756 | — |
+| Block 0 only | 3.326 | 3.228 | +1.5 nats (catastrophic) |
+| Blocks 0+1 | 2.303 | 2.203 | +0.5 nats |
+| Blocks 0+1+2 | 2.177 | 2.107 | +0.4 nats |
+
+ALL four blocks are load-bearing. The model distributes useful computation across all blocks — this is NOT a spectator architecture.
+
+**Artifacts:** `experiments/wikitext_103/artifacts/c_old_ablation/report.json`, `run.jsonl`
+
+### Interpretation
+
+The prerequisite for local learning experiments is **met**: lateral connections carry information that measurably improves prediction. The next step per pre-registration is the **bridge experiment** (full-backprop vs detached-lateral in the same regime).
+
+**What this proves:**
+- ✅ Lateral communication is load-bearing in the token_injection="all" regime
+- ✅ ALL four blocks contribute meaningfully to prediction (not just block 0)
+- ✅ The +0.030 nat gap is 6× the stale-read noise floor (0.005)
+
+**What this does NOT prove:**
+- ❌ Does NOT prove local learning works (still needs the bridge experiment)
+- ❌ Does NOT prove laterals matter in the INTENDED architecture (token_injection="block0") — the temporal_window experiment tests that separately
+- ❌ Does NOT tell us WHERE the lateral info is used — could be purely for readout enrichment, or could be for within-block computation
+
+
 ---
 
 ## Bridge experiment design (if C_old positive) — pre-registered 2026-05-25

@@ -41,15 +41,17 @@ The comparison between tied_8iter and distinct_matched is **confounded** by mult
 - The failure may be about lack of anchoring signal (no fresh tokens after iteration 1) rather than weight sharing per se
 - A clean weight-sharing isolation test would need: shared weights WITH token_injection=all (8 blocks with tied weights, each getting tokens)
 
-**C_old ablation RUNNING.** PID 20548, launched 20:46 NZST. Trains C_lateral (upward topology) vs C_isolated (no lateral connections, same params). Tests whether lateral communication is actually used in the multi-block-with-token-injection architecture.
+**C_old ablation COMPLETE (2026-05-25, 22:27 NZST).** Lateral connections are clearly load-bearing.
 
-**Seed 42 COMPLETE (both variants):**
-- C_lateral: val_loss **1.765**, accuracy 0.503
-- C_isolated: val_loss **1.794**, accuracy 0.491
-- **Δ = +0.029 nats (lateral better)** — above 0.015 "clearly lateral helps" threshold
+| Variant | Seed 42 | Seed 43 | Mean |
+|---------|---------|---------|------|
+| C_lateral (upward) | 1.765 | 1.756 | 1.760 |
+| C_isolated (isolated) | 1.794 | 1.785 | 1.790 |
+| **Δ** | **+0.029** | **+0.029** | **+0.030** |
 
-**Seed 43 C_lateral COMPLETE:** val_loss **1.756** (better than seed 42)
-Seed 43 C_isolated now running. Expected finish ~22:17 NZST.
+Pre-registered outcome: **"Clearly lateral helps"** (Δ ≥ 0.015, both seeds concordant).
+Readout ablation: ALL 4 blocks are load-bearing (block0_only degrades by +1.5 nats).
+Next step per pre-registration: **bridge experiment** (detach_lateral, priority 4).
 
 **Gated experiment — prior negative result.** B_gated (4-block, zero-init gates) was +0.245 nats WORSE than A_single at WikiText-103 ctx=128. Cold-start problem: zero-init gates starve upper blocks of information.
 
@@ -78,9 +80,9 @@ Seed 43 C_isolated now running. Expected finish ~22:17 NZST.
 **Pathway 3 status:**
 - Only token_injection=all (C_old) makes multi-block useful at this scale
 - Lateral-only (token_injection=block0) fails with hardcoded 0.5 (+0.014 worse) AND with zero-init gates (+0.245 worse)
-- Local learning is untestable until we have a regime where blocks help under full backprop
-- Key open question: does C_old actually USE lateral connections, or is it just an ensemble?
-- **C_old ablation running now** — will answer this
+- **C_old ablation POSITIVE: laterals are load-bearing (Δ=+0.030, all 4 blocks contribute)**
+- **Bridge experiment (detach_lateral) is the next Pathway 3 test** — can blocks learn useful laterals without cross-block gradient?
+- Temporal_window experiment pre-registered — tests whether the INTENDED architecture (token_injection=block0) can work
 
 ---
 
@@ -106,8 +108,8 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 
 | Priority | Experiment | Pathway | Why |
 |---|---|---|---|
-| 1 | **C_old ablation** — C_lateral vs C_isolated, train-time structural comparison | 3 | **IN PROGRESS (PID 20548).** Does the multi-block architecture USE lateral connections, or is it just an ensemble? |
-| 2 | **Clean weight-sharing isolation** — 8 blocks with SHARED weights + token_injection=all vs distinct_matched | 1 | The tied_8iter comparison was confounded. Need same routing, only sharing differs. |
+| 1 | **C_old ablation** — C_lateral vs C_isolated, train-time structural comparison | 3 | **COMPLETE. Laterals clearly load-bearing (Δ=+0.030, 2 seeds concordant). Next: bridge experiment.** |
+| 2 | **Clean weight-sharing isolation** — 8 blocks with SHARED weights + token_injection=all vs distinct_matched | 1 | The tied_8iter comparison was confounded. Need same routing, only sharing differs. **LAUNCHING NOW.** |
 | 3 | **Temporal window** — 2-block, readout_mode="last", temporal_window∈{0,4,8} | 3 | Does trajectory information create a niche for upper blocks? **PRE-REGISTERED** in `research/questions/temporal-window/`. |
 | 4 | **Bridge experiment (detach_lateral)** — if C_old shows laterals used | 3 | Full-backprop vs detached-lateral in C_old regime. Pre-registered in local-learning README. |
 | 5 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | Next step after the 28% CUDA Graph result. |
@@ -140,6 +142,7 @@ Upper blocks are downstream of a stale bottleneck controlled by block 0, while b
 | **Propagation-delay 2-block (tiny)** | **3** | **Spectator** | **Block B adds nothing at TinyShakespeare ctx=32. Hardcoded 0.5 mixing harmful; zero-init gate fixes ceiling but B stays closed.** |
 | **Multi-block corrected at WikiText-103 ctx=128** | **3** | **Spectator** | **4-block corrected (hardcoded 0.5) is +0.014 worse than single-block. 4-block old (token_injection=all) is -0.021 better. Blocks help when fed fresh tokens; lateral-only with 0.5 mixing fails.** |
 | **Gated multi-block at WikiText-103 ctx=128** | **3** | **Cold-start failure** | **4-block with zero-init gates is +0.245 worse than single-block. Gates starve upper blocks of signal — worse than hardcoded 0.5. Gate 3 opened negatively (suppressive). Experiment uninformative about original question due to cold-start confound.** |
+| **C_old lateral ablation (WikiText-103 ctx=128)** | **3** | **Laterals clearly load-bearing (Δ=+0.030, 2 seeds)** | **Prerequisite for local learning met. All 4 blocks contribute. Bridge experiment unlocked.** |
 | Multi-rate [1,2,4,8] | 8 | Spectator problem | Block 0 sees all tokens → no specialization |
 | Closed-loop variants A-J | — | Marginal (-0.006 to -0.012) | Architecturally incoherent. Not on any pathway. Done. |
 | CUDA graph training | infra | 10.8x speedup | In core/ |
