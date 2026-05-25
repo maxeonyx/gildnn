@@ -1,6 +1,6 @@
 # Temporal Window: Does trajectory information help upper blocks?
 
-**Status: PRE-REGISTERED (revised after adversarial review)**
+**Status: READY TO RUN (code verified on CPU; awaiting GPU)**
 
 **Pathway:** 3 (Local Learning) — upstream dependency. If upper blocks can't be made useful, local learning has no substrate to test on.
 
@@ -176,8 +176,8 @@ The primary comparison is H8 vs C8 — does trajectory specifically help? Absolu
 
 ---
 
-## Artifacts (after running)
+## Artifacts
 
-- Training logs: `experiments/temporal-window/artifacts/*.jsonl` (not yet created)
-- Experiment script: `runs/temporal_window.py` (not yet written)
-- Code changes: `core/model.py` modifications to `window_proj` and mixing formula (not yet applied)
+- Training logs: `experiments/wikitext_103/artifacts/temporal_window/run.jsonl` (created at runtime)
+- Experiment script: `runs/temporal_window.py` ✅ (sanity-checked on CPU, commit 95efdc8)
+- Code changes: `core/model.py` — `bias=False` on `window_proj`, additive aux branch, `temporal_window_mode` parameter ✅ (commit 95efdc8)
