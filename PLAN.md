@@ -23,6 +23,8 @@ All 3 seeds concordant. Mean Δ_trajectory (+0.042) is nearly 3× the pre-regist
 
 **4-block follow-up RUNNING** (PID 20388, launched 02:55 NZST 2026-05-26). Expected runtime ~3.6 hours. Log: `experiments/temporal-window/artifacts/4block_run.jsonl`. Early data: A_all seed 42 = 1.836 (consistent with spectator baseline — matches A_single 1.832 from tied-depth — but not confirmed until ablation across all 3 seeds).
 
+**Checkpoint preservation:** A background process (PID 14472) monitors for `W8_all_seed_*.pt` files and copies them to `experiments/temporal-window/artifacts/preserved.ignore/`. These are needed for trajectory-specificity diagnostics (`runs/trajectory_diagnostics.py`, commit 65f1b94) if the 4-block outcome is strongly positive. The 4-block script deletes checkpoints after its own ablation suite — preservation must happen BEFORE that cleanup. If the preserver dies, manually copy `W8_all_seed_*.pt` files before the experiment finishes.
+
 **Bridge_detach experiment READY** (`runs/bridge_detach.py`, commit 93854b6). Runs on surrogate architecture (token_injection=all) after the 4-block follow-up REGARDLESS of 4-block outcome — it's the next Pathway 3 surrogate test. If 4-block is strongly positive, an INTENDED-architecture bridge_detach is also needed (different learning problem, different experiment).
 
 **Tied-depth experiment COMPLETE.** All 4 variants × 2 seeds finished. Full results:
