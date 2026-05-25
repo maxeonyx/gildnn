@@ -480,6 +480,7 @@ class ParallelDiagonalModel(nn.Module):
         block_mix_init: float = 0.9,
         detach_lateral: bool = False,
         temporal_window: int = 0,
+        temporal_window_mode: str = "history",
     ) -> None:
         super().__init__()
         if num_blocks <= 0:
@@ -498,6 +499,12 @@ class ParallelDiagonalModel(nn.Module):
         if temporal_window < 0:
             raise ValueError(
                 f"ParallelDiagonalModel temporal_window must be non-negative, got {temporal_window}."
+            )
+        valid_temporal_window_modes = {"history", "current"}
+        if temporal_window_mode not in valid_temporal_window_modes:
+            raise ValueError(
+                "ParallelDiagonalModel temporal_window_mode must be one of "
+                f"{sorted(valid_temporal_window_modes)}, got {temporal_window_mode!r}."
             )
         valid_readout_modes = {"last", "all", "first"}
         if readout_mode not in valid_readout_modes:
@@ -533,6 +540,7 @@ class ParallelDiagonalModel(nn.Module):
         self.topology = topology
         self.detach_lateral = detach_lateral
         self.temporal_window = temporal_window
+        self.temporal_window_mode = temporal_window_mode
         self.token_embedding = nn.Embedding(vocab_size, d_model)
         self.position_embedding = nn.Embedding(context_size, d_model)
         self.token_mixes = nn.ModuleList([MixAdd(init=token_mix_init) for _ in range(num_blocks)])
@@ -550,7 +558,7 @@ class ParallelDiagonalModel(nn.Module):
             else None
         )
         self.window_proj = (
-            nn.Linear(temporal_window * d_model, d_model)
+            nn.Linear(temporal_window * d_model, d_model, bias=False)
             if temporal_window > 0
             else None
         )
@@ -578,6 +586,7 @@ class ParallelDiagonalModel(nn.Module):
             "rates": list(self.rates),
             "internal_steps": self.internal_steps,
             "temporal_window": self.temporal_window,
+            "temporal_window_mode": self.temporal_window_mode,
             "readout_mode": self.readout_mode,
             "token_injection": self.token_injection,
             "topology": self.topology,
@@ -665,17 +674,17 @@ class ParallelDiagonalModel(nn.Module):
                                 if internal_step == 0
                                 else current_states[block_index - 1]
                             )
-                        neighbor_state = self._maybe_detach_lateral(lateral_source)
+                        current_lower = self._maybe_detach_lateral(lateral_source)
+                        block_input = 0.5 * (state_input + current_lower)
                         if block_index > 0 and self.window_proj is not None and temporal_history is not None:
                             lower_history = self._maybe_detach_lateral(temporal_history[block_index - 1])
-                            temporal_neighbor = self.window_proj(
+                            aux = self.window_proj(
                                 rearrange(
                                     lower_history,
                                     "batch window d_model -> batch (window d_model)",
                                 )
                             )
-                            neighbor_state = 0.5 * (neighbor_state + temporal_neighbor)
-                        block_input = 0.5 * (state_input + neighbor_state)
+                            block_input = block_input + aux
                     block_delta = block(block_input)
                     next_states[block_index] = block_mix(block_input, block_delta)
                 current_states = next_states
@@ -684,9 +693,16 @@ class ParallelDiagonalModel(nn.Module):
                 for block_index, (state, rate) in enumerate(zip(previous_states, self.rates, strict=True)):
                     if time_index % rate != 0:
                         continue
-                    updated_history = torch.roll(temporal_history[block_index], shifts=-1, dims=1)
-                    updated_history[:, -1, :] = state
-                    temporal_history[block_index] = updated_history
+                    if self.temporal_window_mode == "current":
+                        temporal_history[block_index] = repeat(
+                            state,
+                            "batch d_model -> batch window d_model",
+                            window=self.temporal_window,
+                        )
+                    else:
+                        updated_history = torch.roll(temporal_history[block_index], shifts=-1, dims=1)
+                        updated_history[:, -1, :] = state
+                        temporal_history[block_index] = updated_history
             if block_output_history is not None:
                 for block_index, state in enumerate(previous_states):
                     block_output_history[block_index].append(state)
