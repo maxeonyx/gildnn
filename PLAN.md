@@ -210,7 +210,7 @@ Rationale: The surrogate architecture already has load-bearing laterals (Δ=+0.0
 
 **Recommended remaining-budget split (after 4-block):**
 - 0–1: intended follow-up (ONLY if full criterion met)
-- 3–4: surrogate local-learning ladder (bridge/detach → locality sweep → local-rule comparison)
+- 3–4: surrogate local-learning ladder (bridge/detach → bootstrap-vs-signal discriminator → local-objective comparison)
 - 1–2: dynamic depth / iteration-benefit measurement
 - 1–2: tied_sharing rerun OR custom CUDA, depending on which teaches more
 - 1: buffer for reruns/surprises

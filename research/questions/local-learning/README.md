@@ -287,6 +287,24 @@ If `detached ≈ full`, two explanations exist:
 | **Detached collapses to ensemble** | val_loss(detached) ≈ val_loss(full) BUT detached shows no lateral-ablation cost | Model found independent solution. Null result for Pathway 3. |
 | **Detached clearly worse** | val_loss(detached) > val_loss(full) by ≥ 0.015 | Cross-block gradient terms matter. Negative for Pathway 3 in this regime. |
 
+### Post-result action plan (surrogate bridge_detach)
+
+**Note on "locality sweep":** In this architecture (nearest-neighbor-only laterals, upward topology), gradient radius sweep is degenerate — 1-hop truncation = full detach because there's at most 1 hop per timestep. The original plan's "locality sweep" is replaced by a bootstrapping-vs-grounding fork.
+
+| Outcome | Next step | Rationale |
+|---|---|---|
+| **Detached learns laterals** | If 4-block intended arch is validated → intended-architecture bridge_detach. Otherwise → report strong positive, move to other pathways. | The cheap question is answered for the surrogate. The real discriminant is the intended architecture where blocks DEPEND on communication. |
+| **Detached collapses to ensemble** | If intended arch validated → intended bridge_detach (no ensemble escape hatch there). If not → predictive coding at interfaces (forces communication to matter locally). | Ensemble bypass means the surrogate is too permissive. The intended architecture removes the bypass, making it the better substrate. |
+| **Detached clearly worse** | **Warmup full→detach diagnostic** (train 5-10K steps full, then switch to detach for remaining 10-15K). | Discriminates bootstrapping (protocol just needs to form before detach) from fundamental signal insufficiency (shared adjoint is too weak). |
+
+**If warmup→detach recovers most of the gap:** Problem was bootstrapping. Detach works once a communication protocol exists. Strong positive with a caveat (needs warmup phase). Next: test whether intended architecture shows the same warmup→recovery pattern.
+
+**If warmup→detach does NOT recover:** Shared adjoint is genuinely insufficient. Escalation path:
+1. **Predictive coding at interfaces** — each block predicts neighbor's future state. Local objective grounded in real prediction error. Most aligned with Max's direction.
+2. **Multi-timestep Wasserstein local loss** — each block trains on its own prediction error of the neighbor's next distribution (from dictation 2026-05-25-1). Bigger conceptual jump but the most principled long-term solution.
+
+**Per-block auxiliary LM heads** are a useful diagnostic at any outcome (quick to implement, shows whether task grounding alone helps) but are not the primary next step for any outcome — they don't specifically improve communication.
+
 ---
 
 ## Intended-architecture bridge_detach design — pre-registered 2026-05-26
