@@ -81,6 +81,7 @@ Pre-registered: `research/questions/local-learning/README.md` lines 532-583.
 - Shuffled-target control (tests whether prediction itself helps vs just the gradient)
 - Implementation: model has `forward_with_state()` for per-block outputs. Needs custom GraphTrainer (standard one hardcodes `model()` + `F.cross_entropy`; this needs `forward_with_state()` + aux loss inside the captured graph).
 - Template: `runs/bridge_detach.py` (custom training loop, NOT `run_training_loop` from core/)
+- **Success criteria (from warmup structural-persistence finding):** Primary: R≥0.5 (val_loss). Supporting: block 3 readout ablation ≥+0.35 (matching full_backprop, not the +0.07 of pure detached or +0.24 of warm12→detach).
 
 ---
 
