@@ -43,14 +43,17 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 Tests: "Is lateral gradient needed CONTINUOUSLY or just for bootstrapping?"
 
-**Seed 42 results (complete):**
+**Seeds 42-43 results (warm12 complete for both; warm15 seed 43 in progress):**
 
-| Condition | Final val_loss | R | Gap re-opening | Interpretation |
-|---|---|---|---|---|
-| warm12_detach | 1.7977 | -0.14 | +0.033 | No recovery |
-| warm15_detach | 1.7863 | 0.26 | +0.021 (>0.010) | Temporary head start only |
+| Seed | Condition | Final val_loss | R | Gap re-opening | Interpretation |
+|---|---|---|---|---|---|
+| 42 | warm12_detach | 1.7977 | -0.14 | +0.033 | No recovery |
+| 42 | warm15_detach | 1.7863 | 0.26 | +0.021 (>0.010) | Temporary head start only |
+| 43 | warm12_detach | 1.7925 | 0.03 | +0.037 | No recovery |
+| 43 | warm15_detach | *running* | — | — | — |
 
-Baselines: full=1.7650, detached=1.7936. Both conditions drifted back toward detached → **Scenario A (gradient needed continuously) confirmed for seed 42.**
+Baselines (from bridge_detach per seed): seed 42 full=1.7650 det=1.7936; seed 43 full=1.7558 det=1.7935.
+Both seeds concordant: drifted back toward detached → **Scenario A (gradient needed continuously) confirmed (2/3 seeds).**
 
 Pre-registration and interpretation framework: `research/questions/local-learning/README.md` lines 477-530.
 
