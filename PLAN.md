@@ -6,16 +6,21 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ## Current state (2026-05-26)
 
-**Temporal_window experiment RUNNING** (PID 18956, ~31% complete, ETA 03:02 NZST).
+**Temporal_window experiment RUNNING** (PID 18956, ~50% complete, ETA ~02:37 NZST).
 
-Partial seed-42 results (very promising):
-- B0: 2.501 (done)
-- H8: 2.370 (done) — Δ_augmented = +0.131
-- C8: ~2.475 at step 15K (in progress) — gap from H8 accelerating (+0.035 at step 15K)
+**Seed 42 COMPLETE — strong branch 1:**
+- B0: 2.501
+- H8: 2.370
+- C8: 2.404
+- **Δ_trajectory = +0.034** (well above 0.015 threshold)
+- Pre-registered prediction confirmed ✅ (predicted C8 2.39-2.44, actual 2.404)
 
-If C8 finishes ~2.43-2.44, Δ_trajectory would be ~0.06 (well above 0.015 threshold → branch 1).
+Seed 43: B0=2.545 done, H8 at step 10K (val_loss 2.523)
+Seeds 43-44 needed to confirm concordance across all 3 seeds.
 
-**Bridge_detach experiment READY** (`runs/bridge_detach.py`, commit 93854b6). Launch immediately after temporal_window finishes, OR if temporal_window shows branch 3 (nothing helps).
+**4-block follow-up script READY** (`runs/temporal_window_4block.py`, commit c6ab083). Pre-registered in temporal-window README. Launches immediately when all 3 seeds confirm branch 1. ~3.6 hours runtime.
+
+**Bridge_detach experiment READY** (`runs/bridge_detach.py`, commit 93854b6). Launches if temporal_window shows branch 2 or 3 (unlikely given seed 42 results).
 
 **Tied-depth experiment COMPLETE.** All 4 variants × 2 seeds finished. Full results:
 
