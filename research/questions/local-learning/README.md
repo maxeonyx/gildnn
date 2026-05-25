@@ -366,6 +366,20 @@ If gap snowballs without plateau: co-adaptation compounds — bad, suggests frag
 
 **Per-block auxiliary LM heads** are a useful diagnostic at any outcome (quick to implement, shows whether task grounding alone helps) but are not the primary next step for any outcome — they don't specifically improve communication.
 
+### Pre-interpretation: divergence timing (seed 42 mid-run observation, 08:27 NZST 2026-05-26)
+
+Both variants track identically for 12K steps. Gap opens at step 15K (not the pre-registered 8K-10K), stabilizes at ~0.018 by step 16-17K. This observation narrows the interpretation space:
+
+**What it tells us about bootstrapping:** The lateral communication protocol bootstraps fine WITHOUT cross-block gradient. 12K steps of identical learning curves is strong evidence that detached blocks can learn to consume lateral signals effectively during early/mid training. This weakens "bootstrapping failure" as an explanation if detached ends clearly worse.
+
+**What the late divergence likely represents:** A refinement/specialization phase where full_backprop blocks start co-adapting across the lateral interface — training neighbors to emit better features. This coincides with a plateau→jump in the full_backprop curve (14-15K plateau, then rapid improvement to 1.765 by 20K). Detached stops at a weaker coordination point because it cannot drive sender improvement.
+
+**Sharpened warmup→detach interpretation:** If detached lands "clearly worse," the trajectory data changes the warmup→detach question from "can the protocol bootstrap at all?" to "is lateral gradient needed to reach the good refinement regime, or needed continuously?" The weaker bootstrap hypothesis (detach can start but not sustain late-stage improvement) is not eliminated by this observation.
+
+**Recommendation:** Still run warmup→detach if clearly worse, but with lower priority — the trajectory data already provides partial discriminant power. If warmup→detach recovers the gap, it specifically means "co-adaptation is needed briefly to reach the refinement regime." If it doesn't recover, shared adjoint is insufficient for continuous improvement.
+
+**Caveats:** Single seed. Optimizer effects (Adam running averages accumulate). Could be capacity/symmetry-breaking coincidence rather than lateral-specific.
+
 ---
 
 ## Intended-architecture bridge_detach design — pre-registered 2026-05-26
