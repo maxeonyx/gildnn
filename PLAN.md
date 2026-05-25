@@ -77,11 +77,15 @@ Next step per pre-registration: **bridge experiment** (detach_lateral, priority 
 - Clean dynamic-depth measurement (the probe was methodologically flawed)
 
 **Pathway 3 status:**
-- Only token_injection=all (C_old) makes multi-block useful at this scale
-- Lateral-only (token_injection=block0) fails with hardcoded 0.5 (+0.014 worse) AND with zero-init gates (+0.245 worse)
-- **C_old ablation POSITIVE: laterals are load-bearing (Δ=+0.030, all 4 blocks contribute)**
-- **Bridge experiment (detach_lateral) is the next Pathway 3 test** — can blocks learn useful laterals without cross-block gradient?
-- Temporal_window experiment pre-registered — tests whether the INTENDED architecture (token_injection=block0) can work
+- **In surrogate architecture (token_injection=all):**
+  - Multi-block works with all-injection (C_old is -0.021 better than single-block)
+  - Lateral-only (token_injection=block0) fails with hardcoded 0.5 (+0.014 worse) AND with zero-init gates (+0.245 worse)
+  - **C_old ablation POSITIVE: laterals are load-bearing (Δ=+0.030, all 4 blocks contribute)**
+  - Bridge experiment (detach_lateral) is the next surrogate-architecture Pathway 3 test
+- **In intended architecture (token_injection=block0):**
+  - ALL configurations tested so far FAIL (spectators, cold-start)
+  - Temporal_window is the fix hypothesis — gives upper blocks exclusive trajectory information
+  - **This is the critical gap.** Max's intended architecture doesn't work yet. Fixing it is upstream of local learning.
 
 ---
 
@@ -103,22 +107,23 @@ Every gate is a separate subagent review that can send you back. See PROCESS.md 
 
 ## What should happen next
 
-Pick from this list based on cheapest honest test. These connect to specific roadmap pathways:
+Pick from this list based on cheapest honest test. These connect to specific roadmap pathways.
 
-| Priority | Experiment | Pathway | Why |
-|---|---|---|---|
-| 1 | **C_old ablation** — C_lateral vs C_isolated, train-time structural comparison | 3 | **COMPLETE. Laterals clearly load-bearing (Δ=+0.030, 2 seeds concordant). Next: bridge experiment.** |
-| 2 | **Clean weight-sharing isolation** — 8 blocks with SHARED weights + token_injection=all vs distinct_matched | 1 | The tied_8iter comparison was confounded. Need same routing, only sharing differs. **RUNNING (PID 22508, ~01:00 NZST).** |
+**⚠️ Surrogate vs intended architecture:** Experiments using `token_injection=all` test a SURROGATE architecture (all blocks get fresh tokens). Max's corrected intended architecture is `token_injection=block0` — only block 0 gets tokens, upper blocks depend on propagation delay ([dictation 2026-05-23-7](dictations/2026-05-23-7.md)). Surrogate results are useful for isolating mechanisms but do NOT validate the intended architecture. Guard against surrogate findings silently becoming "the architecture."
 
-**Conditional on tied_sharing positive (within 0.02 nats, no catastrophic failures):**
+| Priority | Experiment | Pathway | Architecture | Why |
+|---|---|---|---|---|
+| 1 | **C_old ablation** | 3 | surrogate | **COMPLETE. Laterals load-bearing (Δ=+0.030).** |
+| 2 | **Clean weight-sharing isolation** — shared vs distinct feedforward, both with all-injection | 1 | surrogate | Isolates weight sharing from routing. **RUNNING (PID 22508).** |
+| 3 | **Temporal window** — 2-block, readout_mode="last", temporal_window∈{0,4,8} | 3 | **intended** | Does trajectory info create a niche for upper blocks in block0-only? The cheapest direct test of Max's corrected architecture. **PRE-REGISTERED** in `research/questions/temporal-window/`. |
+| 4 | **Iteration-benefit measurement** — eval shared model at 1,2,4,8 iterations | 1/5 | surrogate | Only if tied_sharing positive. Tests dynamic depth in simplified regime. |
+| 5 | **Bridge experiment (detach_lateral)** — full-backprop vs detached-lateral | 3 | surrogate | Can blocks learn useful laterals without cross-block gradient? Pre-registered in local-learning README. |
+| 6 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | infra | Next step after the 28% CUDA Graph result. |
+| 7 | **Dynamic depth (clean measurement)** | 5 | TBD | Preliminary probe methodology was flawed. Needs clean redo. |
 
-The strongest next Pathway 1 experiment would be **iteration-benefit measurement** in the clean shared regime: evaluate the trained shared model at 1, 2, 4, 8 block applications (at inference time) to see if later iterations help non-uniformly across tokens. This distinguishes "sharing is merely adequate" from "sharing unlocks variable compute." If the gain curve is flat/uniform, dynamic depth is decorative; if heterogeneous, it validates the core vision.
+**Priority rationale:** Temporal_window (priority 3) is ranked ABOVE iteration-benefit (priority 4) because it directly tests the corrected intended architecture — block0-only with propagation delay. Making this work is upstream of everything else: if upper blocks have no forward role in the intended architecture, local learning and dynamic depth in that architecture are moot. Iteration-benefit is still valuable but tests only the surrogate regime.
 
-**Important caveat from theory analysis:** The clean test shares only feedforward block weights — per-block `token_mixes` and `block_mixes` remain distinct. A positive result proves "shared processing is viable here," NOT "all parameters can be shared" or "true unbounded recurrence works."
-| 3 | **Temporal window** — 2-block, readout_mode="last", temporal_window∈{0,4,8} | 3 | Does trajectory information create a niche for upper blocks? **PRE-REGISTERED** in `research/questions/temporal-window/`. |
-| 4 | **Bridge experiment (detach_lateral)** — if C_old shows laterals used | 3 | Full-backprop vs detached-lateral in C_old regime. Pre-registered in local-learning README. |
-| 5 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | Next step after the 28% CUDA Graph result. |
-| 6 | **Dynamic depth (clean measurement)** | 5 | Preliminary probe showed heterogeneity but methodology was flawed. Needs clean redo. |
+**Tied_sharing caveat:** The clean test shares only feedforward block weights — per-block `token_mixes` and `block_mixes` remain distinct. A positive result proves "shared feedforward processing is viable with position-specific routing," NOT "same weights applied N times with identical routing" (the full Pathway 1 hypothesis). It is a reasonable first step, not a final answer.
 
 ### Why token_injection="block0" fails (theory, 2026-05-25)
 
@@ -169,3 +174,15 @@ Upper blocks are downstream of a stale bottleneck controlled by block 0, while b
 - **Pathway 5 (Dynamic Depth):** Now enabled by Pathway 1 iteration scaling. Per-depth losses show clear variation — some tokens probably benefit more from extra iterations than others. First measurement (per-token variance) not yet done.
 - **Pathway 8 (Multi-Rate):** Prior weak-positive — inductive bias confirmed at ctx=32. Needs longer context to be meaningful.
 - **Pathway 9 (Norm-Preserving):** May be relevant if the tied_8iter seed failure turns out to be a gradient stability issue through many iterations. Muon or orthogonal parameterization might fix it. But first need to isolate whether it's actually a stability issue vs a routing issue.
+
+---
+
+## Fading strands to watch (from first-principles re-derivation, 2026-05-25)
+
+Max's original vision (dictation 2026-05-24-1) has two mechanisms that are currently not on the active experiment ladder:
+
+1. **Attention-based routing between modules** — the original note says "how do inputs get aggregated by a node? They use attention." Current architecture uses fixed mix-add, not attention. This is fine as simplification while testing basic block viability, but should be revisited once the intended architecture works at all.
+
+2. **Loss prediction as decision mechanism** — "a prediction head that is designed to predict the loss of another prediction head." Central to Pathways 4/5/6, not yet active. Correctly deprioritized (needs working architecture first) but should not be forgotten.
+
+Neither is actionable now, but they represent significant chunks of the vision that need to become active once temporal_window (or equivalent) validates the intended architecture.
