@@ -852,7 +852,11 @@ def main() -> int:
     validate_switch_schedule(selected_specs=selected_specs, training_steps=args.training_steps)
     device = resolve_device(args.device)
 
-    register_active_lock(experiment_name="warmup_detach", variants=args.variants, enabled=not args.no_lock)
+    register_active_lock(
+        experiment_name="warmup_detach",
+        variants=args.variants,
+        enabled=not args.no_lock and not args.sanity_check_only,
+    )
 
     prepare_output_paths(report_path=args.report_path, log_path=args.log_path)
     log_run_restarted(args.log_path)

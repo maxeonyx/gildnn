@@ -79,6 +79,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--compile", dest="compile_model", action="store_true")
     parser.add_argument("--no-compile", dest="compile_model", action="store_false")
     parser.set_defaults(compile_model=False)
+    parser.add_argument("--no-lock", action="store_true")
     parser.add_argument("--sanity-check", "--sanity-check-only", dest="sanity_check_only", action="store_true")
     parser.add_argument(
         "--train-path",
@@ -430,7 +431,11 @@ def main() -> int:
     selected_specs = {key: specs[key] for key in args.variants}
     device = resolve_device(args.device)
 
-    register_active_lock(experiment_name="tied_sharing", variants=args.variants)
+    register_active_lock(
+        experiment_name="tied_sharing",
+        variants=args.variants,
+        enabled=not args.no_lock and not args.sanity_check_only,
+    )
 
     prepare_output_paths(report_path=args.report_path, log_path=args.log_path)
     log_run_restarted(args.log_path)
