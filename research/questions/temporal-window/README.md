@@ -27,6 +27,63 @@ Upper blocks receive only block 0's current lateral state. Block 0 already has t
 
 ---
 
+## Theory: what's in a trajectory that isn't in a snapshot?
+
+### The decisive question
+
+Does there exist predictive information in `(x_{t-7}, ..., x_{t-1})` conditional on `x_t`? Formally: is `I(next_token; T_t) > I(next_token; x_t)` where `T_t = [x_{t-7}; ...; x_t]`?
+
+If yes, trajectory helps. If no, it's redundant.
+
+### What H8 computes: a learned FIR filter
+
+The linear history projection implements a learned multivariate finite impulse response (FIR) filter over block-0 states:
+
+```
+y_t = W[x_{t-7}; ...; x_t] = Σ_k A_k · x_{t-k}
+```
+
+This can compute: finite differences (velocity ≈ x_t - x_{t-1}), second differences (acceleration), weighted averages, exponential smoothing, lag-specific feature extraction — any linear temporal filter.
+
+It **cannot** compute: nonlinear interactions across timepoints (e.g., "feature i was high at t-3 AND feature j is high at t"). But block 1's downstream nonlinearities CAN operate on the linear summaries, so only cross-time interactions destroyed by the projection bottleneck are truly lost.
+
+### Why C8 is exactly current-state-only (not "approximately")
+
+For duplicated-current control input `D_t = [x_t; x_t; ...; x_t]`:
+
+```
+W · D_t = Σ_k A_k · x_t = (Σ_k A_k) · x_t = A_eff · x_t
+```
+
+C8 collapses to a single learned linear projection of the current state. It lives on the diagonal subspace of R^(8d). This is not "approximately rank-1" — it is mathematically EXACTLY a reparameterized current-state-only model.
+
+Consequence: anything that varies when `x_t` is held fixed but history changes is invisible to C8. All temporal diversity — velocity, trend, lag timing, motifs — is exclusively available to H8.
+
+### Most plausible useful signals (ranked)
+
+1. **Derivatives / direction of change** — same current state reached by drift vs jump vs reversal implies different continuations
+2. **Trend / persistence** — "moving consistently toward X" vs "briefly visited X" vs "stationary at X"
+3. **Lag timing** — WHEN a feature was active (1 step ago vs 7 steps ago) may predict next event
+4. **Short temporal motifs** — rise-then-plateau, alternating sign, burst-then-decay
+5. **Periodicity / oscillation** — mathematically possible but unlikely to be primary for language at window=8
+
+### Why block 0's state might be insufficient
+
+Block 0 is trained end-to-end to support prediction, so it has pressure to compress useful information into `x_t`. However:
+
+- Block 0 is small (d=211) — compression is lossy
+- Block 0 optimizes for its own readout pathway (but readout_mode="last" means it has no direct output)
+- At 20K steps, block 0 may not have converged on an optimal compression
+- Two different recent histories can map to similar `x_t` while differing in exactly the part that matters for the next token
+
+### Interpretation constraints
+
+A **positive result** (H8 > C8) means: at this scale and training budget, block 1 can exploit recent block-0 trajectory better than current-state-only access. It does NOT prove trajectory is fundamentally necessary in the limit — block 0 might learn to fold that information into `x_t` with more capacity or training.
+
+A **negative result** (H8 ≈ C8) is less diagnostic: either current state is already sufficient, or the linear interface is too weak, or the window size is wrong, or the scale doesn't reward it.
+
+---
+
 ## Adversarial review findings (2026-05-25)
 
 The original design (B0/B4/B8, 2 seeds) **failed adversarial review**. Key problems:
