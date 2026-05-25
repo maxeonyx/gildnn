@@ -527,6 +527,19 @@ Per pre-registered action plan: clearly worse → warmup→detach diagnostic. Th
 
 The divergence-timing observation (identical curves for 12K, gap at 15K) ALREADY tells us bootstrapping is not the primary problem. This diagnostic is now mainly asking: "once in the good regime, can detach SUSTAIN it?" If `warm15_detach` drifts back, the answer is clearly no — gradient is needed continuously. If it stays, the 5K of full training during the regime transition was enough.
 
+### Structural persistence despite loss regression (seeds 42-43)
+
+Readout ablation on warm12→detach final models reveals a dissociation: val_loss regresses to detached (R≈0.03), but the **internal structure** partially retains the full_backprop pattern.
+
+| Block | Full_backprop | Warm12→detach | Pure detached | Pattern |
+|---|---|---|---|---|
+| 3 | +0.35 to +0.42 | **+0.24 to +0.30** | +0.07 | Block 3 retains ~70% of full-BP contribution |
+| 1 | +0.10 to +0.20 | +0.12 to +0.24 | **+0.44 to +0.68** | Block 1 does NOT develop compensatory role |
+
+The warm12→detach model finds a **different local minimum** than pure detached — same overall loss, but reached through a more distributed organization rather than front-loaded compensation. Block 3's specialization persists structurally even as its quality degrades without maintenance gradient.
+
+**Implication for predictive-residual:** A successful local loss should recover BOTH val_loss (R≥0.5) AND the U-shaped readout structure (block 3 contribution at +0.35+ rather than +0.07). If local loss recovers val_loss but block 3 stays low, the mechanism works differently from cross-block gradient (possibly just regularization).
+
 ---
 
 ## Next escalation: predictive-residual local loss — pre-registered 2026-05-26
