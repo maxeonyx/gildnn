@@ -313,6 +313,20 @@ Based on first-principles analysis of what detach preserves vs removes:
 
 **Why ensemble collapse is unlikely (but still must be tested via ablation):** The upward topology breaks block symmetry (block 0 gets no lateral, block 3 gets 3 levels of processed info). Independent parameters + readout competition create differentiation pressure even without co-adaptation. But upper blocks (esp. block 3) are at highest risk of marginal contribution.
 
+**Dynamics prediction (when curves diverge):**
+- Steps 0–4K: effectively identical (laterals are noise; receiver can't benefit from sender shaping yet)
+- Steps 5K–8K: first tiny opening possible
+- Steps 8K–10K: first clearly visible gap (full_backprop ahead)
+- Steps 10K–20K: gap widens moderately, then plateaus
+
+Empirical anchor: C_old lateral-vs-isolated gap only emerged at ~7K–8K steps. Same architecture.
+
+If curves diverge EARLY (step 2K–4K): sender shaping matters immediately — bad for local learning.
+If curves diverge LATE and gap closes: detached finds alternative path — good for local learning.
+If gap snowballs without plateau: co-adaptation compounds — bad, suggests fragile joint protocol.
+
+**Note:** bridge_detach uses flat AdamW lr=3e-4 (no cosine-annealing, no LR warmup). Divergence timing comes from representation bootstrapping, not LR schedule.
+
 ### Post-result action plan (surrogate bridge_detach)
 
 **Note on "locality sweep":** In this architecture (nearest-neighbor-only laterals, upward topology), gradient radius sweep is degenerate — 1-hop truncation = full detach because there's at most 1 hop per timestep. The original plan's "locality sweep" is replaced by a bootstrapping-vs-grounding fork.
