@@ -458,7 +458,7 @@ The orchestrator is responsible for deciding when to check back — not the suba
 
 **If you (the orchestrator) delegate an experiment without splitting it this way, you have failed the process.** There is always other useful work to do while the GPU runs — theory, reports, doc updates, small non-GPU experiments. Name that work before checking on the run.
 
-Use `runs/active.lock` to record the active large run. **The experiment scripts manage this file automatically** — they create it on startup (with PID and experiment name) and remove it via `atexit` on normal exit. If the process crashes, the lock persists as a stale indicator; agents should check whether the PID is still alive before trusting it. Small runs (<5 min) do not need lock files.
+Use `runs/active.lock` to record the active large run. **The experiment scripts manage this file automatically** — they attempt exclusive creation on startup (refuses if another live process holds the lock, reclaims stale locks from dead PIDs) and remove it via `atexit` only after verifying the lock still belongs to the current process. If the process crashes, the lock persists as a stale indicator; the next script to start will detect the dead PID and reclaim it. Small runs (<5 min) do not need lock files.
 
 **Windows launch reliability:**
 
