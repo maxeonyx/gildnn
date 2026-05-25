@@ -382,6 +382,61 @@ Both variants track identically for 12K steps. Gap opens at step 15K (not the pr
 
 ---
 
+## Warmup→detach diagnostic — pre-registered 2026-05-26
+
+**Conditional on:** bridge_detach "detached clearly worse" outcome (final val_loss ≥ 1.783 or gap consistently > 0.015 across seeds). This is the first diagnostic in the escalation path.
+
+**Question:** Is lateral gradient needed only to REACH the late refinement regime, or needed CONTINUOUSLY to keep refining?
+
+### Conditions
+
+| Condition | Construction | Purpose |
+|---|---|---|
+| `full_20k` | existing bridge_detach baseline | reference best trajectory |
+| `detached_20k` | existing bridge_detach baseline | reference no-gradient endpoint |
+| `warm12_detach` | resume full checkpoint at 12K, switch to detach, continue to 20K | pre-divergence warmup (before gap opens) |
+| `warm15_detach` | resume full checkpoint at 15K, switch to detach, continue to 20K | post-divergence warmup (after entering refinement regime) |
+| `resume_full_ctrl` | resume full checkpoints at 12K and 15K, continue full (1 seed) | control for checkpoint/resume artifacts |
+
+**Implementation:** Checkpoint branching from bridge_detach saved states (model + optimizer + global step). NOT fresh runs. Much cheaper and directly implements the intended intervention.
+
+### Hypotheses and predictions
+
+| Outcome | What it means |
+|---|---|
+| Both warmups drift back toward detached | Lateral gradient needed CONTINUOUSLY for refinement |
+| `warm15_detach` stays near full; `warm12_detach` partial | Only need to REACH the refinement regime |
+| Even `warm12_detach` mostly closes the gap | Early protocol formation is the bottleneck (unlikely given trajectory data) |
+
+### Interpretation thresholds
+
+**Retained-gap fraction:** `R = (L_detached - L_warm→detach) / (L_detached - L_full)` using 20K final val_loss. Higher R = more recovery.
+
+| Interpretation | Criterion |
+|---|---|
+| Recovered / sustained | R ≥ 0.75 AND final loss within 0.005 of full |
+| No meaningful recovery | R ≤ 0.25 OR final loss within 0.005 of detached |
+| Partial | everything between |
+
+**Gap re-opening check:** if warmup run's gap vs full grows by ≥ 0.010 nats after the switch point, it's "temporary head start only," not sustained recovery.
+
+### Seeds and budget
+
+3 seeds × 2 warmup conditions + 1-seed resume controls = **~85-95 min** GPU time (continuations are short: 8K and 5K steps respectively at ~1.7 min/1K).
+
+### Confounds
+
+- **Optimizer state:** tests a training procedure, not pure representation. Success may depend on Adam moments carried from full phase.
+- **Resume artifact:** if batch ordering changes, `resume_full_ctrl` catches it.
+- **What this does NOT show:** true local learning. Only shows whether detach can inherit/sustain a regime created by full backprop.
+- **Optional if recovery is surprising:** post-training lateral ablation on recovered models to confirm they still USE the lateral channel rather than coasting.
+
+### Sharpened by trajectory data
+
+The divergence-timing observation (identical curves for 12K, gap at 15K) ALREADY tells us bootstrapping is not the primary problem. This diagnostic is now mainly asking: "once in the good regime, can detach SUSTAIN it?" If `warm15_detach` drifts back, the answer is clearly no — gradient is needed continuously. If it stays, the 5K of full training during the regime transition was enough.
+
+---
+
 ## Intended-architecture bridge_detach design — pre-registered 2026-05-26
 
 **Conditional on:** 4-block follow-up STRONGLY POSITIVE (W8_all > A_all ≥ 0.015, blocks load-bearing). Only makes sense if the intended architecture has been validated.
