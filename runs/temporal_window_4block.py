@@ -83,6 +83,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--compile", dest="compile_model", action="store_true")
     parser.add_argument("--no-compile", dest="compile_model", action="store_false")
     parser.set_defaults(compile_model=False)
+    parser.add_argument("--keep-checkpoints", action="store_true", default=False)
     parser.add_argument("--sanity-check-only", action="store_true")
     parser.add_argument("--no-lock", action="store_true")
     parser.add_argument(
@@ -658,9 +659,10 @@ def main() -> int:
                     eval_batch_size=args.eval_batch_size,
                     log_path=args.log_path,
                 )
-        for checkpoints_by_seed in checkpoints_by_variant_and_seed.values():
-            for checkpoint_path in checkpoints_by_seed.values():
-                checkpoint_path.unlink(missing_ok=True)
+        if not args.keep_checkpoints:
+            for checkpoints_by_seed in checkpoints_by_variant_and_seed.values():
+                for checkpoint_path in checkpoints_by_seed.values():
+                    checkpoint_path.unlink(missing_ok=True)
 
     wall_seconds = perf_counter() - overall_started_at
     git_status_short = current_git_status_short()
