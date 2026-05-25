@@ -285,6 +285,8 @@ Neither is actionable now, but they represent significant chunks of the vision t
 
 3. **Graph topology** — Max's original vision is a graph, not a stack: "I don't know if that graph helps, but I kind of think it might" ([dictation 2026-05-23-5](dictations/2026-05-23-5.md)). Current architecture is a fixed stack. Graph topology is a major design dimension that hasn't been explored yet — correctly deprioritized while basic block viability is uncertain, but should not be forgotten.
 
+4. **Hierarchical dynamic tokenization** (Pathway 7) — stacked autoencoders with learned chunk boundaries, loss prediction determining where to cut ([dictation 2026-05-24-4](dictations/2026-05-24-4.md)). Bottleneck "useful not just as context for the level above, but also useful as context for the following chunk" at the same level. Correctly deprioritized (needs working base architecture) but represents a major piece of the multi-timescale vision.
+
 ---
 
 ## Multi-timestep architecture — future theoretical direction (dictation 2026-05-25-1)

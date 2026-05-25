@@ -287,6 +287,32 @@ If `detached ≈ full`, two explanations exist:
 | **Detached collapses to ensemble** | val_loss(detached) ≈ val_loss(full) BUT detached shows no lateral-ablation cost | Model found independent solution. Null result for Pathway 3. |
 | **Detached clearly worse** | val_loss(detached) > val_loss(full) by ≥ 0.015 | Cross-block gradient terms matter. Negative for Pathway 3 in this regime. |
 
+### Quantitative prediction (theory-informed, 2026-05-26)
+
+Based on first-principles analysis of what detach preserves vs removes:
+
+**Known endpoints:**
+- Full backprop lateral benefit: Δ = +0.030 (C_lateral=1.760 vs C_isolated=1.790)
+- Detach preserves: forward channel, receiver learning, task-trained sender features
+- Detach removes: sender shaping by downstream gradient, joint optimization of communication protocol
+
+**Predicted survival fraction:** ~65% of the 0.030 lateral benefit survives under detach (plausible range: 45%–80%).
+
+**Concrete prediction:**
+- `full_backprop`: ~1.760 (should match C_old baseline)
+- `detached`: ~1.770 (band: 1.766–1.777)
+- `isolated` (reference): ~1.790
+
+**Interpretation thresholds (sharper than the ±0.015 coarse criterion):**
+- ≤ 1.768: strong evidence detach works (≥73% retained)
+- 1.768–1.773: moderate positive (57%–73% retained)
+- 1.773–1.782: ambiguous (some value survives but meaningful degradation)
+- ≥ 1.783: strong evidence detach fails (most of the 0.030 is gone)
+
+**Low-probability wild card:** Detach could *beat* full backprop (by ~0.002–0.010 nats) if lateral gradients create harmful co-adaptation. This would be theoretically very interesting — implying that in the surrogate regime, joint optimization HURTS because it creates fragile communication protocols that simple feature interpretation would not.
+
+**Why ensemble collapse is unlikely (but still must be tested via ablation):** The upward topology breaks block symmetry (block 0 gets no lateral, block 3 gets 3 levels of processed info). Independent parameters + readout competition create differentiation pressure even without co-adaptation. But upper blocks (esp. block 3) are at highest risk of marginal contribution.
+
 ### Post-result action plan (surrogate bridge_detach)
 
 **Note on "locality sweep":** In this architecture (nearest-neighbor-only laterals, upward topology), gradient radius sweep is degenerate — 1-hop truncation = full detach because there's at most 1 hop per timestep. The original plan's "locality sweep" is replaced by a bootstrapping-vs-grounding fork.
