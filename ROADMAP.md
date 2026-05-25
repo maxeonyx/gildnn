@@ -10,6 +10,8 @@ Each pathway is a research direction with hypotheses to test. Pathways can be ex
 
 Every pathway includes "smallest meaningful experiments" — these show HOW the pathway gets operationalized, not WHAT to do next (that's PLAN.md's job).
 
+Current theoretical direction for the core architecture pathways (especially 1, 3, 4): a multi-timestep block-timestep grid, as described in `research/questions/multi-timestep-architecture/README.md`. This is not experimentally validated yet. Current experiments are still testing prerequisites and basic mechanics. It does not invalidate simpler experiments; it is the current target for what comes after.
+
 ---
 
 ## Pathways at a glance
@@ -19,7 +21,7 @@ Every pathway includes "smallest meaningful experiments" — these show HOW the 
 | 1 | Wide Recurrent vs Deep Transformer | Can a wide shallow network run many times match a deep transformer? | THE fundamental comparison |
 | 2 | Async Parallel Execution | Can many small blocks run truly in parallel on a GPU? | Wall-clock speed, all params resident |
 | 3 | Local Learning | Can blocks learn useful things without global backprop? What signal do interior blocks use? | Modularity, parallel training |
-| 4 | Computation Compression (Self-Prediction) | Can a network learn to front-load its computation — think faster over training? | Dynamic depth, inference speed |
+| 4 | Computation Compression | Can a network learn to front-load or suppress unnecessary computation over training? | Dynamic depth, inference speed |
 | 5 | Dynamic Depth & Early Exit | Can a loss predictor decide when recurrent iterations are done? | Dynamic compute per token |
 | 6 | Dynamic Rollout Length | Can a model predict N tokens ahead and know how many it got right? | Dynamic token count, efficiency |
 | 7 | Hierarchical Dynamic Tokenization | Can stacked autoencoders with learned chunk boundaries create a natural hierarchy? | Multi-timescale, dynamic token count |
@@ -51,7 +53,7 @@ Every pathway includes "smallest meaningful experiments" — these show HOW the 
          │                          │
     ┌────▼─────────────────────────▼──────────────────────────┐
     │  4/5/6. DYNAMIC COMPUTATION FAMILY                       │
-    │  4. Self-prediction: train to think faster                │
+    │  4. Computation compression: explicit or emergent          │
     │  5. Early exit: stop when ready (loss prediction)         │
     │  6. Dynamic rollout: predict N tokens (loss prediction)   │
     └──────────────────────────────────────────────────────────┘
@@ -67,7 +69,7 @@ Every pathway includes "smallest meaningful experiments" — these show HOW the 
 **Key relationships:**
 - Wide Recurrent (1) is the thesis — most other pathways make it work better or faster
 - Async (2) and Local Learning (3) are **independently testable** but compose into the strongest story (parallel training + parallel inference)
-- Self-Prediction (4), Dynamic Depth (5), and Dynamic Rollout (6) are facets of one family — "how does the network use variable compute efficiently?" Loss prediction is the shared mechanism for 5 and 6; self-prediction is the training incentive for 4.
+- Computation Compression (4), Dynamic Depth (5), and Dynamic Rollout (6) are facets of one family — "how does the network use variable compute efficiently?" Loss prediction is the shared mechanism for 5 and 6; Pathway 4 now includes both explicit self-prediction and the broader idea that good prediction may naturally suppress downstream computation.
 - Multi-Rate (8) composes naturally with the recurrent architecture — some blocks iterate faster than others
 - Norm-Preserving (9) is enabler infrastructure, not a direction on its own
 - Graph/Broadcast (10) was examined conceptually and the formalization didn't cohere — open if someone finds a way to make it make sense
@@ -82,7 +84,7 @@ This is the fundamental thesis of the project. A deep transformer has many layer
 
 ### Core hypothesis
 
-A single set of weights applied recurrently N times can develop the same representational capacity as N distinct layers — but with the advantage that N becomes dynamic, the weights can be parallelized across tokens, and the architecture is far more flexible.
+A single set of weights applied recurrently N times can develop the same representational capacity as N distinct layers — but with the advantage that N becomes dynamic, the weights can be parallelized across tokens, and the architecture is far more flexible. Current concretization: a 2D block-timestep grid, where recurrence is implemented as temporal edges over a laterally propagating residual stream.
 
 ### Why it might matter
 
@@ -91,9 +93,12 @@ If true: depth is replaced by iteration count. This unlocks dynamic depth for fr
 ### Main unknowns
 
 - At what width does a recurrent network match a transformer of equivalent compute?
+- Is the block-timestep grid actually the right concretization of the recurrent idea, or just a neat picture?
 - Does the recurrent architecture hit representational limits (same weights can't learn diverse layer-specific features)?
 - How does context length interact? (Many recurrent steps × long context = very different compute profile from transformer)
 - Muon / orthogonal weights presumably critical for stability through many iterations — how many iterations before instability?
+- How many extra timesteps per token are actually needed?
+- Is right-to-left flow genuinely useful, or just additional complexity?
 
 ### Evidence that would increase confidence
 
@@ -163,7 +168,7 @@ Interior blocks (not connected to input/output) can develop useful abstract repr
 
 ### The core open question
 
-**What signal do interior blocks train on?** Only block 0 (at the edge) gets tokens. Block 5 is 5 hops from input. What makes it learn something useful from lateral propagation alone? This is the hardest open question in the project. Neuroscience and predictive coding literature are the place to look for answers.
+**What signal do interior blocks train on?** There's now a concrete candidate answer, not a solved problem: each block predicts the incoming lateral distribution, and the local loss is the distance between predicted and actual arrival. Current candidate geometry: Wasserstein distance on diagonal Gaussians. Whether this actually produces useful interior representations is still open.
 
 ### Why it might matter
 
@@ -171,7 +176,10 @@ If true: training parallelizes across depth/width. Modules become truly independ
 
 ### Main unknowns
 
-- What local signal works? Predictive coding? Target propagation? Forward-Forward? Next-latent prediction? Something else entirely?
+- Does distributional predictive coding actually produce useful interior representations?
+- Is Wasserstein the right local geometry for the signal?
+- Is a diagonal Gaussian rich enough, or too crude?
+- What should the shared combining function be?
 - What's the minimum gradient radius that produces useful learning?
 - Do interior blocks (far from input) learn anything useful, or do they become spectators?
 - Can local learning produce representations competitive with full backprop?
@@ -205,53 +213,58 @@ If true: training parallelizes across depth/width. Modules become truly independ
 
 ---
 
-## Pathway 4: Computation Compression (Self-Prediction)
+## Pathway 4: Computation Compression
 
 ### Why this pathway exists
 
-If the architecture needs 8 recurrent iterations to produce good output, can we train it to produce equivalent output in 4? Self-prediction is the training incentive: at step 4, predict what you'd produce at step 8. Over training, the network learns to front-load computation — to think faster.
+If the architecture needs 8 recurrent iterations to produce good output, can it learn to need fewer? The older story here was explicit self-prediction: at step 4, predict what you'd produce at step 8. Current theory broadens this: computation compression may also emerge naturally if accurate prediction suppresses downstream surprise in the stream.
 
 ### Core hypothesis
 
-Training a network to predict its own future outputs creates gradient pressure that migrates useful computation earlier in the rollout. The network distills itself from its future into its present, continuously during training.
+Useful computation can move earlier in the rollout either because we train it to (explicit self-prediction) or because the architecture naturally rewards accurate early prediction by leaving less surprise for downstream blocks.
 
 ### Why it might matter
 
-If true: inference gets faster over training without explicit pruning or distillation. The model learns to compress its own computation. Combined with early exit (Pathway 5), you get both the ability to stop early AND the incentive to actually be ready earlier.
+If true: inference gets faster over training without explicit pruning or distillation. The model learns to compress its own computation. That compression might be explicitly trained, or it might fall out of predictive silencing in the stream. Combined with early exit (Pathway 5), you get both the ability to stop early AND the incentive to actually be ready earlier.
 
-### How it works (in training)
+### Current mechanisms
 
-The architecture does the full rollout (all 8 steps). At each intermediate step, a prediction head outputs "what I think I'll produce at step 8." The loss on this prediction creates gradient that makes earlier steps more informative. Over time, step 4's predictions of step 8 get accurate, meaning step 4 already contains most of what step 8 would add.
+1. **Explicit self-prediction:** Do the full rollout. At an intermediate step, predict what a later step would produce. This creates pressure to move useful computation earlier.
+2. **Predictive silencing:** In the current multi-timestep theory, if a block predicts the arriving distribution well, there is less downstream surprise to propagate. Computation compression may emerge from that directly, without a separate self-prediction head.
 
 ### Main unknowns
 
-- Does self-prediction actually compress computation in practice, or does it just learn to copy?
+- Does explicit self-prediction actually compress computation in practice, or does it just learn to copy?
+- Does predictive silencing emerge at all, or is it just a nice story?
 - Is a direct MSE/cosine loss the right training signal, or something else?
 - Does this interact well with early exit (Pathway 5)? Does better self-prediction → earlier exit?
 - Is this different in practice from just having a depth penalty (simpler but blunter)?
 
 ### Why it might be better than a depth penalty
 
-A depth penalty is blunt: "use fewer steps." Self-prediction is targeted: "know what you'd say if you kept going." The former might make the model worse at everything. The latter teaches it to be ready faster without sacrificing quality. "If I knew more, thought faster, what would I say?"
+A depth penalty is blunt: "use fewer steps." Explicit self-prediction is targeted: "know what you'd say if you kept going." Predictive silencing is even stronger if it works: the architecture itself stops sending much onward once the state is already well-modelled. The former might make the model worse at everything. The latter two at least aim at readiness rather than raw austerity.
 
 ### Evidence that would increase confidence
 
-- A model that demonstrably produces better output at step 4 after self-prediction training vs without
+- A model that demonstrably produces better output at step 4 after explicit self-prediction training vs without
 - Measurable reduction in needed iterations at matched quality over training time
-- Self-prediction loss decreasing over training (the network getting better at predicting its future)
+- Self-prediction loss decreasing over training (for the explicit mechanism)
+- Measurable reduction in downstream surprise / residual signal over training in the predictive-silencing setup
 
 ### Evidence that would reduce confidence
 
 - Self-prediction head just learns to copy step 4's output (doesn't actually compress)
+- Predictive silencing never materializes — downstream surprise does not fall even as quality improves
 - Depth penalty achieves the same result with no extra mechanism
 - The gradient from self-prediction destabilizes training
 
 ### Smallest meaningful experiments
 
 1. **Measure the opportunity:** Train a recurrent model. Record output quality at steps 1, 2, 4, 8. How much does quality improve with more steps? If step 4 ≈ step 8, there's nothing to compress.
-2. **Self-prediction head:** Add a head at step 4 predicting step 8's output. Train with it. Does step 4's actual output improve?
-3. **Compare to depth penalty:** Same setup, but instead of self-prediction, just add a penalty for using more steps. Which produces better step-4 output?
-4. **Early exit integration:** Combine self-prediction with a loss predictor. Does the model learn to exit earlier over training?
+2. **Explicit self-prediction head:** Add a head at step 4 predicting step 8's output. Train with it. Does step 4's actual output improve?
+3. **Predictive-silencing measurement:** In the local-prediction architecture, measure whether downstream surprise naturally falls with training.
+4. **Compare mechanisms:** Explicit self-prediction vs depth penalty vs predictive silencing. Which actually produces better early-step output or fewer needed steps?
+5. **Early exit integration:** Combine the best compression mechanism with a loss predictor. Does the model learn to exit earlier over training?
 
 ---
 
@@ -269,9 +282,9 @@ A loss predictor can be trained to estimate the value of additional recurrent it
 
 Standard early exit applies to networks with many DIFFERENT layers (each with unique parameters). Here it applies to RECURRENT iterations of the SAME weights. The decision is "how many times to apply this one set of weights" not "how many distinct layers to pass through."
 
-### Connection to self-prediction (Pathway 4)
+### Connection to computation compression (Pathway 4)
 
-Early exit is PASSIVE — you can stop when you happen to be ready. Self-prediction (Pathway 4) is ACTIVE — training pressure to become ready earlier. They compose: self-prediction makes earlier steps better, early exit lets you skip the now-unnecessary later steps.
+Early exit is PASSIVE — you can stop when you happen to be ready. Computation compression (Pathway 4) is ACTIVE — either explicit training pressure to become ready earlier, or an architecture that naturally leaves less to do downstream. They compose: compression makes earlier steps better, early exit lets you skip the now-unnecessary later steps.
 
 ### Loss prediction as a general mechanism
 
@@ -444,7 +457,7 @@ Before claiming any custom architecture works, ground the results against:
 
 | Baseline | Purpose | Status |
 |---|---|---|
-| **Standard transformer** | The accepted SOTA. Same dataset, matched compute, achieving published expectations. | **Done:** val_loss 1.643, 187K params, WikiText-103 char-level |
+| **Standard transformer** | The accepted SOTA. Same dataset, matched compute, achieving published expectations. | **Done:** TinyShakespeare val_loss 1.643, 186K params, ctx=32; WikiText-103 val_loss 1.592 ± 0.003, 2.86M params, ctx=128 |
 | **Simple RNN** (attention over time or mix-add residual across time) | The simplest stateful baseline. | Done (in base-experiments/) |
 | **Ablation control** | Most similar network WITHOUT the modification being tested. | Per-experiment |
 

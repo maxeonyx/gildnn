@@ -31,19 +31,20 @@ Along the way: validate, debunk, and experiment with Max's intuitions and vision
 - **Many small modules rather than one monolith.** Width over depth. Blocks that can be added, removed, rearranged.
 - **Avoid unnecessary synchronization between modules.** Blocks should not need to wait for each other.
 - **Multi-timescale processing.** Some modules iterate rapidly, some update infrequently, naturally developing hierarchical abstraction.
-- **Locally trainable** — or at minimum, neighborhood-locally trainable. Less gradient coupling = more modularity. Full global backprop is what we're trying to reduce or eliminate.
+- **Locally trainable** — or at minimum, neighborhood-locally trainable. Current route: predictive learning over local neighborhoods, where a block learns to predict the state arriving from its lateral neighbor. Less gradient coupling = more modularity. Full global backprop is what we're trying to reduce or eliminate.
 - **Small, understandable, inspectable.** Max wants to understand what it's doing, not use it as a black box. Look at outputs, not just loss curves.
 
 ## Architectural character
 
 These are strong preferences that shape the design space, not absolute requirements:
 
-- **Feedforward blocks** (single residual blocks), not thick RNN stacks with internal hidden state. Later, internal state may be added.
+- **Feedforward blocks** (single residual blocks), not thick RNN stacks with internal hidden state. Blocks live on temporal edges: read from the stream, compute, write back 1 tick later. Later, internal state may be added.
 - **No stock RNN mechanisms** (GRU, LSTM) unless explicitly compared against the ideas here.
-- **No layer norm / batch norm** where avoidable — prefer mix-add or orthogonal parameterization for norm management.
-- **Diagonal information propagation** — connections across time AND depth simultaneously. The interesting structure is the graph of interactions over spacetime, not a single chain.
-- **Predictive / self-predictive organization** — blocks predicting their own inputs, producing messages that help neighbors predict well.
-- **Mix-add residual stream** — `mix(a, b, m) = a * sqrt(σ(m)) + b * sqrt(1 - σ(m))` for norm-preserving residual connections. Learned, not fixed.
+- **No layer norm / batch norm** where avoidable — prefer shared norm-preserving combining schemes or orthogonal parameterization for norm management.
+- **Block-timestep grid** — the architecture is a 2D grid over lateral position and timestep. Lateral flow is the residual stream: the fastest unprocessed path. Blocks are temporal edges that add computation at the cost of delay. The interesting structure is the grid itself.
+- **Local predictive learning** — each block learns to predict the state arriving from its lateral neighbor. If prediction gets good enough, downstream flow may naturally quiet down; compression may emerge from that rather than from an added mechanism.
+- **Distributional residual stream** — the stream carries distributions about state, not just point vectors. A shared/tied combining function merges block output with the lateral stream at each node. The exact form is still open: mix-add is one candidate for point streams; product-of-experts or Bayesian-style updates are candidates for distributional ones.
+- **Shared communication scheme** — the grid wiring and combining function are tied across positions and timesteps. Block internals learn locally; communication structure is global.
 
 ## Datasets
 
