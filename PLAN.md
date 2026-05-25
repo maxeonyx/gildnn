@@ -25,6 +25,8 @@ All 3 seeds concordant. Mean Δ_trajectory (+0.042) is nearly 3× the pre-regist
 
 **Checkpoint preservation:** A background process (PID 14472) monitors for `W8_all_seed_*.pt` files and copies them to `experiments/temporal-window/artifacts/preserved.ignore/`. These are needed for trajectory-specificity diagnostics (`runs/trajectory_diagnostics.py`, commit 65f1b94) if the 4-block outcome is strongly positive. The 4-block script deletes checkpoints after its own ablation suite — preservation must happen BEFORE that cleanup. If the preserver dies, manually copy `W8_all_seed_*.pt` files before the experiment finishes.
 
+**⚠️ W8_all_seed_42 checkpoint LOST.** A subagent test run (verifying --keep-checkpoints flag) overwrote the real checkpoints with random weights before the preserver could copy the real ones. Seeds 43 and 44 are unaffected (not yet trained when the corruption happened). The active.lock was also deleted by the subagent's atexit handler — manually recreated. Trajectory diagnostics will use seeds 43 and 44 only. If seed 42 is needed, budget 25 min for a W8_all-only retrain.
+
 **Bridge_detach experiment READY** (`runs/bridge_detach.py`, commit 93854b6). Runs on surrogate architecture (token_injection=all) after the 4-block follow-up REGARDLESS of 4-block outcome — it's the next Pathway 3 surrogate test. If 4-block is strongly positive, an INTENDED-architecture bridge_detach is also needed (different learning problem, different experiment).
 
 **Tied-depth experiment COMPLETE.** All 4 variants × 2 seeds finished. Full results:

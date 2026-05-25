@@ -133,6 +133,8 @@ Evidence in question READMEs must be **embedded inline** in the markdown (tables
 
 **Background execution.** Experiments expected to take more than ~5 minutes must use a **two-phase delegation**: Phase 1 (launch only) — subagent starts the process, returns PID and log path, and stops. It does NOT wait, poll, or check results. Phase 2 (check) — orchestrator decides when to check back and resumes the subagent to analyse results. Failing to split this way is a process failure. See `PROCESS.md` for the full rule.
 
+**⚠️ NEVER run experiment scripts against the real artifacts directory while a long experiment is active.** The `runs/active.lock` mechanism is advisory — it can be overwritten, and the atexit handler of a short test run will DELETE the lock even if a real long-running experiment is still using the GPU. Before running ANY experiment script (even for testing a code change), ALWAYS use `--sanity-check-only` which routes to a temp directory. If you need to test non-sanity-check behavior, use `--no-lock` AND redirect `--report-path` and `--log-path` to a separate temp directory. Violating this can corrupt in-progress experiment checkpoints and leave the GPU unprotected.
+
 ## Dictation notification
 
 New dictations are detected automatically by the `.opencode/plugins/dictation-notifier.ts` plugin. When a new `.md` file appears in `dictations/`, a message is injected into the active session that the agent will see on its next turn. No polling required — the agent cannot miss it.
