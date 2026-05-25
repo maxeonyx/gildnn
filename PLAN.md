@@ -125,9 +125,7 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 
 **Priority rationale:** Temporal_window (priority 3) is ranked ABOVE iteration-benefit (priority 4) because it directly tests the corrected intended architecture — block0-only with propagation delay. Making this work is upstream of everything else: if upper blocks have no forward role in the intended architecture, local learning and dynamic depth in that architecture are moot. Iteration-benefit is still valuable but tests only the surrogate regime.
 
-**Tied_sharing caveat:** The clean test shares only feedforward block weights — per-block `token_mixes` and `block_mixes` remain distinct. A positive result proves "shared feedforward processing is viable with position-specific routing," NOT "same weights applied N times with identical routing" (the full Pathway 1 hypothesis). It is a reasonable first step, not a final answer.
-
-**After tied_sharing finishes:** Temporal_window is next REGARDLESS of tied_sharing outcome. Tied_sharing is a Pathway 1 test; temporal_window is a Pathway 3 test of the intended architecture. They answer different questions. Record tied_sharing results in `research/questions/wide-recurrent-vs-transformer/README.md`, update this file, then proceed to temporal_window implementation.
+**Tied_sharing caveat:** The clean test shares only feedforward block weights — per-block `token_mixes` and `block_mixes` remain distinct. A positive result proves "shared feedforward processing is viable with position-specific routing," NOT "same weights applied N times with identical routing" (the full Pathway 1 hypothesis). It is a reasonable first step, not a final answer. Tied_sharing needs a 3-seed rerun (data lost) — queued for when GPU is free and if it's still worth the timebox budget.
 
 ### Temporal_window decision tree (pre-planned)
 
