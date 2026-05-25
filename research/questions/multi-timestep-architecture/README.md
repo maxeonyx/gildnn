@@ -138,6 +138,63 @@ The motivation chain:
 
 ---
 
+## Local objective: distributional predictive processing
+
+The stream doesn't carry point vectors — it carries **distributions**. Each block also outputs a distribution. The combining function operates on two distributions, and "surprisal" is the geometrically meaningful distance between them.
+
+### Both sides are distributions
+
+- **Lateral input:** a distribution (the stream's state of knowledge arriving from the left)
+- **Block output:** a distribution (what the block predicts/expects based on its state)
+- **Combining function:** operates on two distributions to produce the stream state at this node
+
+### What "surprisal" means
+
+With two distributions, "how much new information arrived" is well-defined as the transport cost between them. Earth mover's distance (Wasserstein) is the correct metric here — it measures the actual geometric cost to reconcile the block's belief with what arrived.
+
+For diagonal Gaussians (each side parameterized by μ, σ per dimension):
+
+```
+W₂² = ||μ_lateral - μ_block||² + ||σ_lateral - σ_block||²
+```
+
+Cheap, closed-form, differentiable, symmetric, always finite. No log, no division, no infinite values when supports don't overlap.
+
+Why Wasserstein over KL:
+- KL is asymmetric
+- KL doesn't respect the geometry of the underlying space
+- KL is infinite when supports don't overlap
+- Wasserstein measures actual transport cost — "how much work to move from one belief to the other"
+
+### What flows where
+
+- **Rightward (the surprise):** The information gain — what the block's distribution DIDN'T already account for. The component of the lateral distribution that required updating the block's beliefs.
+- **Leftward (the prior/context):** The block's distribution itself — what it expected. This is the processed, higher-level model flowing back toward the input.
+
+### Local loss
+
+Each block minimizes the Wasserstein distance between its predicted distribution and the actual lateral distribution. That's the local training signal — "become a better predictor of what arrives from the left." No cross-block gradients needed.
+
+### Information bottleneck
+
+No external bottleneck constraint (MMD, KL penalty) needed — the distributional framework IS the information theory. The variances encode confidence per dimension. Dimensions the block models well → tight distribution → low surprisal → little flows rightward. Dimensions it can't model → wide distribution → admitting ignorance → more flows through.
+
+### Self-prediction connection (speculative)
+
+If blocks maintain state across timesteps (mix previous output into themselves), a well-trained block that predicts accurately produces low surprisal → less flows rightward → the stream downstream goes quiet. This IS computation compression emerging from the architecture — no explicit self-prediction loss needed. The better the block's model, the less downstream processing is required.
+
+### Open: the combining function
+
+How exactly do two distributions get combined into the stream state + surprise + prior? Options:
+- Product of experts (multiply, precisions add) for Gaussians
+- Bayesian update (one is prior, one is likelihood)
+- Learned decomposition with conservation constraint
+- Something else entirely
+
+The combining function is shared/tied across all positions and timesteps. It could be fixed (analytical, like product of Gaussians) or learned (with tied weights). Not decided — this is the key remaining design question.
+
+---
+
 ## Connection to existing work
 
 - **C_old ablation (COMPLETE — positive):** Lateral connections ARE load-bearing in the surrogate architecture (token_injection=all). Δ=+0.030, all 4 blocks contribute. This validates that blocks CAN communicate usefully through laterals. The multi-timestep design provides a theory for WHY they'd communicate (propagation delay creates information asymmetry) and WHAT they'd send (predictions of left neighbor's future output).
