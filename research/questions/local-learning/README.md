@@ -417,6 +417,63 @@ Both variants track identically for 12K steps. Gap opens at step 15K (not the pr
 
 ---
 
+## Bridge_detach results (2026-05-26, seeds 42-43 complete, seed 44 running)
+
+### Final val_loss
+
+| Seed | full_backprop | detached | Gap |
+|---|---|---|---|
+| 42 | 1.765 | 1.794 | **+0.029** |
+| 43 | 1.756 | 1.794 | **+0.038** |
+| 44 | (running) | (running) | — |
+| Mean (2 seeds) | 1.760 | 1.794 | **+0.034** |
+
+**Outcome: "Clearly worse"** — concordant across both completed seeds, both above the 0.018 threshold.
+
+Notable: detached ceiling is exactly 1.794 in BOTH seeds. Full variant shows normal seed variance (1.756-1.765). The ceiling appears algorithmic rather than random — without lateral gradient, the model hits a consistent quality limit.
+
+### Readout ablation (per-block zeroing cost at eval)
+
+| Block | Full s42 | Full s43 | Det s42 | Det s43 |
+|---|---|---|---|---|
+| 0 | +1.12 | +0.93 | +1.11 | +0.84 |
+| 1 | +0.10 | +0.20 | **+0.44** | **+0.68** |
+| 2 | +0.05 | +0.03 | +0.16 | +0.11 |
+| 3 | **+0.42** | **+0.35** | +0.07 | +0.07 |
+
+**Pattern (consistent across both seeds):**
+- Full_backprop is "U-shaped": blocks 0 and 3 are load-bearing. The last block (furthest from input tokens) develops substantial representation (+0.35-0.42) when lateral gradient shapes what earlier blocks send it.
+- Detached is "front-loaded": blocks 0 and 1 dominate. Block 3 is nearly useless (+0.07). Without lateral gradient, the model settles for a shallower solution using blocks closest to input.
+- The gap (0.029-0.038 nats) is explained by: block 3 loses ~0.35 nats of contribution, block 1 gains ~0.35-0.48 nats compensating → net loss is partial.
+
+**Causal hypothesis (plausible, not uniquely proven):** Without gradient through lateral connections, senders (blocks 0-2) don't learn what to send to block 3. Block 3 receives uninformative lateral input → cannot develop useful specialization. Alternative: detached simply settles for a shallower independent-block solution because it requires less coordination. The readout competition under `readout_mode="all"` makes these hard to distinguish without further experiment.
+
+### ⚠️ Methodological learning: lateral-zeroing ablation is uninformative
+
+The pre-registered "lateral-zeroing cost as THE key discriminator" (line 344 above) **does not work** in this experimental setup.
+
+**What happened:** Both variants produce catastrophic ablation values (10^11-10^15) when `model.topology` is switched to `"isolated"` at eval time.
+
+**Why:** Both models were TRAINED with forward lateral connections (detach only cut the backward pass). Their learned representations deeply assume lateral input exists. Removing laterals at eval is architectural mutilation — it tests "can this model survive losing an entire input pathway?" not "how useful are the laterals?"
+
+**Contrast with C_old:** The C_old experiment trained TWO SEPARATE MODELS (one with laterals, one without). Its Δ=0.030 compared models each trained for their respective regime. That's a valid comparison. This bridge_detach ablation asks a trained-with-laterals model to work without them — fundamentally different question, catastrophic answer.
+
+**Lesson:** Post-training lateral removal is not comparable to training without laterals. The actual discriminator is the **readout pattern** (which blocks develop useful representations), not the lateral-zeroing cost.
+
+**Impact on decision tree:** The "lateral-zeroing cost" row in the interpretation table (above) is now marked as methodologically uninformative for this regime. The "clearly worse" determination is made from the loss gap + readout pattern instead.
+
+### Assessment against pre-registered prediction
+
+The "dead lateral hypothesis" (detached zeroing cost ≈ 0) cannot be directly tested because zeroing produces catastrophic values. However, the READOUT pattern is consistent with a weaker version of the hypothesis: block 3 is effectively unused (contributes only +0.07 in detached vs +0.35-0.42 in full), suggesting the later blocks fail to develop useful computation without lateral gradient — even though the forward lateral pathway exists.
+
+This is "partially dead" — not that laterals carry zero information, but that without gradient to shape the sender, the receiver can't extract enough value from unoptimized lateral output to develop useful specialization.
+
+### Decision: proceed with warmup→detach
+
+Per pre-registered action plan: clearly worse → warmup→detach diagnostic. The question sharpens from "is lateral gradient needed?" to "when can lateral gradient be safely removed — during bootstrapping, during refinement, or never?"
+
+---
+
 ## Warmup→detach diagnostic — pre-registered 2026-05-26
 
 **Conditional on:** bridge_detach "detached clearly worse" outcome (final val_loss ≥ 1.783 or gap consistently > 0.015 across seeds). This is the first diagnostic in the escalation path.
