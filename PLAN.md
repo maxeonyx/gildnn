@@ -115,7 +115,7 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 |---|---|---|---|---|
 | 1 | **C_old ablation** | 3 | surrogate | **COMPLETE. Laterals load-bearing (Δ=+0.030).** |
 | 2 | **Clean weight-sharing isolation** — shared vs distinct feedforward, both with all-injection | 1 | surrogate | Isolates weight sharing from routing. **RUNNING (PID 22508).** |
-| 3 | **Temporal window** — 2-block, readout_mode="last", temporal_window∈{0,4,8} | 3 | **intended** | Does trajectory info create a niche for upper blocks in block0-only? The cheapest direct test of Max's corrected architecture. **PRE-REGISTERED** in `research/questions/temporal-window/`. |
+| 3 | **Temporal window** — 2-block, readout_mode="last", B0/H8/C8 conditions | 3 | **intended** | Does trajectory info create a niche for upper blocks in block0-only? The cheapest direct test of Max's corrected architecture. **READY TO LAUNCH** — `runs/temporal_window.py` verified on CPU. Pre-registered in `research/questions/temporal-window/`. |
 | 4 | **Iteration-benefit measurement** — eval shared model at 1,2,4,8 iterations | 1/5 | surrogate | Only if tied_sharing positive. Tests dynamic depth in simplified regime. |
 | 5 | **Bridge experiment (detach_lateral)** — full-backprop vs detached-lateral | 3 | surrogate | Can blocks learn useful laterals without cross-block gradient? Pre-registered in local-learning README. |
 | 6 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | infra | Next step after the 28% CUDA Graph result. |
