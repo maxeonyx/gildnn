@@ -388,6 +388,18 @@ If A_all does NOT reproduce spectator behavior (i.e., blocks 1-3 turn out to be 
 
 In a multi-rate setup [1,2,4,8], upper blocks fire SLOWER than lower blocks. Between block i+1's firings, block i fires `rate[i+1]/rate[i]` times (typically 2×). This means block i+1's temporal window captures MORE distinct states (higher temporal diversity) than in the all-rate-1 case — the input block has evolved further between each window sample.
 
-Concretely: if block 1 fires every 2 steps and block 0 fires every step, then block 1's 8-element window spans 8 DISTINCT block-0 updates (covering 8 timesteps). In all-rate-1, it also spans 8 distinct updates covering 8 timesteps — same. But if block 2 fires every 4 steps and sees block 1's window: block 1 updated 2× per block-2 firing, so an 8-element window spans 4 block-2 firings = 16 block-0 timesteps. The temporal span GROWS with depth.
+**Implementation detail (verified from `core/model.py`):** history windows track lower-block **firing events**, not wall-clock timesteps. The buffer only rolls when that block actually fires. Multi-rate does NOT fill windows with cached duplicates.
 
-This suggests multi-rate + temporal window are complementary: slower blocks naturally get longer temporal horizons through their windows, potentially extracting longer-range patterns. The "additional staleness" from multi-rate may actually be a feature when combined with temporal windows — it's not staleness if the window captures the full evolution since last firing.
+**Quantitative lookback with rates [1,2,4,8] and window=8:**
+
+| Block | Sees | Tap spacing | Lookback horizon | New entries per firing |
+|-------|------|-------------|------------------|-----------------------|
+| 1 ← 0 | 8 distinct block-0 states | 1 timestep | 8 timesteps | 2 |
+| 2 ← 1 | 8 distinct block-1 states | 2 timesteps | 16 timesteps | 2 |
+| 3 ← 2 | 8 distinct block-2 states | 4 timesteps | 32 timesteps | 2 |
+
+**FIR interpretation:** `window_proj` is a learned FIR filter on lower-block state trajectories. With multi-rate, higher blocks apply this filter to progressively **coarser-sampled, longer-horizon** temporal signals — a natural multiscale decomposition. Each level sees the trajectory on its own natural timescale.
+
+**Limitation:** `window_proj` is **shared across all upper blocks** (one learned filter for all depths). Different timescales might benefit from different learned projections. Per-block projections are a natural follow-up if multi-rate × window proves beneficial but suboptimal.
+
+**This is still hypothesis** (not tested). The 4-block follow-up uses uniform rates to isolate the temporal window effect. The multi-rate interaction would be a separate 2×2 experiment: {uniform rates, multi-rate [1,2,4,8]} × {no window, H8}.
