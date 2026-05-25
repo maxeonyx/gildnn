@@ -377,6 +377,16 @@ Interpretation: forced-readout benefit does NOT generalize to voluntary 4-block 
 
 If A_all does NOT reproduce spectator behavior (i.e., blocks 1-3 turn out to be useful WITHOUT the window), the experiment is invalid as a "rescue" test. This would be a surprising and informative result in itself — suggesting something about the configuration (d=256 vs smaller, or some other factor) makes the intended architecture work without trajectory help.
 
+### Trajectory-specificity diagnostics (added after adversarial review, 2026-05-26)
+
+Per-block zeroing ablation proves "the model uses this block's contribution." It does NOT prove the block learned FROM temporal trajectory information specifically (vs using the window branch as extra capacity/interface). If the strong-positive criterion is met, run these eval-only diagnostics on trained W8_all checkpoints BEFORE committing to intended bridge_detach:
+
+1. **Repeat-last-history**: replace window buffer contents with most-recent lower-block state repeated ×8, then eval. If val_loss barely changes → capacity trick, not trajectory learning.
+2. **Window permutation**: shuffle temporal order of history slots (destroy trajectory but preserve content). If big degradation → model learned from temporal ORDER specifically.
+3. **Age-selective ablation**: keep only recent-1, recent-2, or drop-oldest-half. If recent-1 recovers most benefit → recency shortcut, not broad trajectory use.
+
+**Threshold note:** The 0.015 val_loss threshold was calibrated in the 2-block forced-readout setting above. In this 4-block voluntary-readout setting, it serves as a discipline threshold (stop/go), not as a precisely calibrated scientific boundary. It may be too strict for detecting real voluntary-usefulness effects AND too lenient for claiming full architectural validation.
+
 ### What this does NOT settle (even if positive)
 
 - Whether the mechanism works with heterogeneous rates (multi-rate firing creates additional staleness)
