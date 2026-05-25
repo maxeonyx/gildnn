@@ -494,6 +494,8 @@ The GPU produces evidence. The agent's parallel job is to produce *understanding
 
 ### What to do (priority order)
 
+0. **Run CPU-only experiments** — Eval-only measurements, probing studies, and small-model training (e.g. TinyShakespeare tied-depth) can run on CPU without competing for GPU. These produce real experimental results in parallel. Always check: does any pre-registered experiment have a CPU-viable path?
+
 1. **Deep theory work** — Send the same design question to a thinker 5-10 times with different framings. Collect alternatives. Do the maths to operationalize concepts into concrete architecture variants. Don't accept the first answer — iterate until real alternatives emerge.
 
 2. **Improve past reports** — Model the reader (Max). Reread past daily/weekly narratives. Are they actually good? Do they tell a story? Are they dense and interesting? Rewrite the weak ones. Every report should be worth reading, not just technically present.
