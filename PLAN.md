@@ -71,8 +71,7 @@ Next step per pre-registration: **bridge experiment** (detach_lateral, priority 
 - `.gitignore` now blocks `*.pt` files (model weights never committed)
 
 **What we DON'T have:**
-- **Clean weight-sharing isolation test** — need tied weights WITH token_injection=all to separate sharing from routing
-- C_old lateral ablation (IN PROGRESS — C_old ablation running now)
+- **Clean weight-sharing isolation test** — RUNNING (PID 22508, expected ~01:00 NZST). tied weights WITH token_injection=all to separate sharing from routing
 - Any custom CUDA concurrency beyond the Graph approach
 - Self-prediction (computation compression)
 - Clean dynamic-depth measurement (the probe was methodologically flawed)
@@ -109,7 +108,13 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 | Priority | Experiment | Pathway | Why |
 |---|---|---|---|
 | 1 | **C_old ablation** — C_lateral vs C_isolated, train-time structural comparison | 3 | **COMPLETE. Laterals clearly load-bearing (Δ=+0.030, 2 seeds concordant). Next: bridge experiment.** |
-| 2 | **Clean weight-sharing isolation** — 8 blocks with SHARED weights + token_injection=all vs distinct_matched | 1 | The tied_8iter comparison was confounded. Need same routing, only sharing differs. **LAUNCHING NOW.** |
+| 2 | **Clean weight-sharing isolation** — 8 blocks with SHARED weights + token_injection=all vs distinct_matched | 1 | The tied_8iter comparison was confounded. Need same routing, only sharing differs. **RUNNING (PID 22508, ~01:00 NZST).** |
+
+**Conditional on tied_sharing positive (within 0.02 nats, no catastrophic failures):**
+
+The strongest next Pathway 1 experiment would be **iteration-benefit measurement** in the clean shared regime: evaluate the trained shared model at 1, 2, 4, 8 block applications (at inference time) to see if later iterations help non-uniformly across tokens. This distinguishes "sharing is merely adequate" from "sharing unlocks variable compute." If the gain curve is flat/uniform, dynamic depth is decorative; if heterogeneous, it validates the core vision.
+
+**Important caveat from theory analysis:** The clean test shares only feedforward block weights — per-block `token_mixes` and `block_mixes` remain distinct. A positive result proves "shared processing is viable here," NOT "all parameters can be shared" or "true unbounded recurrence works."
 | 3 | **Temporal window** — 2-block, readout_mode="last", temporal_window∈{0,4,8} | 3 | Does trajectory information create a niche for upper blocks? **PRE-REGISTERED** in `research/questions/temporal-window/`. |
 | 4 | **Bridge experiment (detach_lateral)** — if C_old shows laterals used | 3 | Full-backprop vs detached-lateral in C_old regime. Pre-registered in local-learning README. |
 | 5 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | Next step after the 28% CUDA Graph result. |
@@ -160,7 +165,7 @@ Upper blocks are downstream of a stale bottleneck controlled by block 0, while b
 - **ROADMAP factual correction needed:** Baselines table says "val_loss 1.643, 187K params, WikiText-103 char-level" — but 1.643/187K is the **TinyShakespeare** baseline. The actual WikiText-103 transformer baseline is **1.592 ± 0.003, 2.86M params, 4 layers, 2 seeds**. Suggest updating the baselines table.
 - **Pathway 1 (Wide Recurrent):** Weight sharing is free at tiny scale (tied-depth transformer, TinyShakespeare, 3 seeds). At WikiText-103 scale, tested a DIFFERENT architecture (ParallelDiagonalModel with tied_8iter): 1 of 2 seeds failed badly. However, the comparison is confounded — tied_8iter uses token_injection=block0 while the comparator (distinct_matched) uses token_injection=all. **Cannot attribute the failure to weight sharing specifically.** A clean isolation test is needed: shared weights with token_injection=all. On the successful seed, tied_8iter actually beat distinct_matched (1.798 vs 1.818), suggesting the inductive bias of weight sharing CAN help — it's the robustness that's the problem. Pathway remains alive but needs a cleaner test.
 - **Pathway 2 (Async):** Prior positive — 28% concurrency via CUDA Graphs, stale reads don't hurt. Next: custom CUDA.
-- **Pathway 3 (Local Learning):** Confidence **decreased**. Every attempt at lateral-only multi-block has failed: hardcoded 0.5 (+0.014 worse), zero-init gates (+0.245 worse, cold-start trap). Only token_injection=all (C_old, -0.021 better) makes blocks useful — but that may not involve lateral communication at all (might just be an ensemble). **C_old ablation now running** to determine this. Pathway is blocked pending that result.
+- **Pathway 3 (Local Learning):** The forward architecture problem (spectator blocks) is now explained: lateral-only multi-block fails because upper blocks are redundant delayed decoders. However, **C_old ablation (token_injection=all) proves laterals are genuinely load-bearing (Δ=+0.030, 2 seeds concordant, all 4 blocks contribute to readout).** Pathway is alive. Next: bridge experiment (detach_lateral) — can blocks learn useful communication without cross-block gradient? Also: temporal_window experiment (pre-registered) — can trajectory info create a niche for upper blocks even with token_injection=block0?
 - **Pathway 5 (Dynamic Depth):** Now enabled by Pathway 1 iteration scaling. Per-depth losses show clear variation — some tokens probably benefit more from extra iterations than others. First measurement (per-token variance) not yet done.
 - **Pathway 8 (Multi-Rate):** Prior weak-positive — inductive bias confirmed at ctx=32. Needs longer context to be meaningful.
 - **Pathway 9 (Norm-Preserving):** May be relevant if the tied_8iter seed failure turns out to be a gradient stability issue through many iterations. Muon or orthogonal parameterization might fix it. But first need to isolate whether it's actually a stability issue vs a routing issue.
