@@ -48,7 +48,8 @@ The comparison between tied_8iter and distinct_matched is **confounded** by mult
 - C_isolated: val_loss **1.794**, accuracy 0.491
 - **Δ = +0.029 nats (lateral better)** — above 0.015 "clearly lateral helps" threshold
 
-Seed 43 now running (C_lateral started ~21:35). Two more 20K-step runs remain (~1.5-2 hours).
+**Seed 43 C_lateral COMPLETE:** val_loss **1.756** (better than seed 42)
+Seed 43 C_isolated now running. Expected finish ~22:17 NZST.
 
 **Gated experiment — prior negative result.** B_gated (4-block, zero-init gates) was +0.245 nats WORSE than A_single at WikiText-103 ctx=128. Cold-start problem: zero-init gates starve upper blocks of information.
 
