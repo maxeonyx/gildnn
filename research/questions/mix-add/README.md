@@ -119,9 +119,32 @@ The narrowest honest reading is: on this one tiny transformer host surface, scal
 - It does not settle scalar `m` versus per-channel `m`.
 - It does not say anything decisive about the noise gate, cortical-column work, async execution, or broader architecture direction.
 
+## Implementation note: code uses simplified formula
+
+**The code in `core/model.py` (class `MixAdd`) implements:**
+
+```python
+return (mix * stream) + ((1.0 - mix) * delta)  # where mix = sigmoid(alpha_logit)
+```
+
+**The dictation formula (2025-05-08-1) is:**
+
+```
+mix(a, b, m) = a * sqrt(σ(m)) + b * sqrt(1 - σ(m))
+```
+
+**Difference:** The code uses `σ(m)` and `(1-σ(m))` as coefficients (simple convex combination). The dictation uses `sqrt(σ(m))` and `sqrt(1-σ(m))` (norm-preserving: if inputs are independent unit-norm vectors, output norm = 1 because `σ(m) + (1-σ(m)) = 1` for the squared coefficients).
+
+**Impact:** The code version prevents norm explosion (output ≤ max input norm) but gradually SHRINKS norms over many applications (coefficients don't preserve norm, they form a convex combination). The sqrt version exactly preserves norm under independence assumptions.
+
+**Why not changed:** All experiments to date use the current formula. Max explicitly deprioritized norm preservation ([dictation 2026-05-23-5](../../dictations/2026-05-23-5.md): "the norm preservation is kind of beside the point"). The discrepancy might matter if the architecture scales to many layers where small norm shrinkage compounds. For now, it's a known deviation from the dictation formula.
+
+---
+
 ## Open sub-questions
 
 - Under what conditions does the approximate norm-preservation intuition actually hold well enough to matter?
+- **Does the sqrt-vs-non-sqrt difference matter in practice?** (Simple A/B test: replace `mix * a + (1-mix) * b` with `sqrt(mix) * a + sqrt(1-mix) * b` and compare val_loss/training stability)
 - When, if ever, does Mix-Add help training stability enough to matter beyond a bounded residual-behaviour difference?
 - What changes if `m` is per-channel rather than scalar?
 - What happens on less toy or less approximately normalised host surfaces?
