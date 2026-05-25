@@ -537,13 +537,16 @@ The divergence-timing observation (identical curves for 12K, gap at 15K) ALREADY
 
 ### Design
 
-Same surrogate substrate as bridge_detach. One new condition:
+Same surrogate substrate as bridge_detach. Two new conditions (plus existing baselines):
 
 | Condition | Config | Notes |
 |---|---|---|
 | `full_20k` | existing bridge_detach baseline | ceiling |
 | `detached_20k` | existing bridge_detach baseline | floor |
-| `detached_predres_20k` | `detach_lateral=True` + aux prediction loss | **new** |
+| `detached_predres_20k` | `detach_lateral=True` + aux prediction loss (real targets) | **mechanism test** |
+| `detached_shuffled_20k` | `detach_lateral=True` + aux prediction loss (shuffled targets) | **regularization control** |
+
+The `shuffled` control uses the same aux heads and same loss weight, but predicts a **time-shuffled** version of the lower block's residual. This controls for the regularization/multitask effect of having extra gradient flow through the block — if shuffled matches predres, then the benefit is from the extra objective generically, not from the predictive content.
 
 The aux head on each block `i > 0` predicts block `(i-1)`'s next output/residual. Target is **stop-grad** (no gradient flows back through the target — otherwise we've smuggled cross-block credit assignment back in).
 
@@ -557,13 +560,22 @@ With `token_injection=all`, the full stream state at each position is token-domi
 
 Pre-register one coefficient, calibrated once from a single batch so aux gradients are same-order-of-magnitude as CE gradients on bridge activations. No hyperparameter sweep (budget constraint).
 
+### Known confounds (from adversarial review 2026-05-26)
+
+1. **Moving-target problem:** Lower block's output is nonstationary (changes as CE trains it). The predictor chases a moving target. A null result could mean the idea is bad OR the target is too unstable early in training. This is inherent but interpretation must acknowledge it.
+2. **Readout competition:** `readout_mode="all"` uses learned softmax weights. A block can appear more important because readout shifted toward it, not because its representation genuinely improved. Use readout ablation as **supporting** evidence only, not sole criterion.
+3. **This is a surrogate, not the intended architecture.** Results apply to `token_injection=all` regime only. Do not generalize to the intended `block0` architecture without further testing.
+
 ### Interpretation
+
+Primary metric: val_loss gap closure (R). Supporting: block 3 readout ablation pattern.
 
 | Outcome | Criterion | Meaning | Next step |
 |---|---|---|---|
-| **Strong positive** | R ≥ 0.5 AND block 3 readout ablation rises to ≥ +0.15 | Local prediction signal genuinely replaces some of what cross-block gradient was doing. | Wasserstein/distributional version (matches multi-timestep theory) |
-| **Partial** | 0.2 ≤ R < 0.5, or block 3 wakes up modestly | Prediction-family signal has traction but point-vector is too crude. | Upgrade to distributional prediction (Wasserstein on diagonal Gaussians) |
-| **Null** | R < 0.2, block 3 stays near +0.07 | This point-vector signal did not replace cross-block gradient. | Does NOT falsify Wasserstein theory (geometry and distributional semantics still missing). But does mean point-vector prediction alone isn't enough. |
+| **Strong positive** | R ≥ 0.5 (predres) AND R(predres) > R(shuffled) + 0.15 AND block 3 ablation rises | Local prediction CONTENT specifically helps (not just regularization). | Wasserstein/distributional version |
+| **Partial** | R(predres) > R(shuffled) but modest (0.1-0.3 gap) | Prediction has traction beyond regularization but isn't enough alone. | Upgrade to distributional or try combined with 1-hop truncation |
+| **Regularization only** | R(predres) ≈ R(shuffled) (both improve or both don't) | The predictive content doesn't matter — any multitask signal helps (or doesn't). | Redirect: the problem isn't the local loss content, it's something else |
+| **Null** | R < 0.2 for both predres and shuffled | Neither the content nor the extra objective helps. Point-vector prediction alone not enough. | Wasserstein remains possible (geometry matters), but confidence drops |
 
 Key metric anchors from bridge_detach:
 - Block 3 full_backprop: +0.35 to +0.42
@@ -576,10 +588,11 @@ Key metric anchors from bridge_detach:
 - Whether the local signal works on the intended architecture (this is still surrogate)
 - Whether the loss coefficient matters (one-shot calibration only)
 - Whether the prediction target should be "future" vs "current" (this predicts next-step; could also try current-step prediction of arriving lateral input)
+- Whether the moving-target problem would resolve with a warmup phase (predict only after block 0 stabilizes)
 
 ### Connection to multi-timestep theory
 
-This is the **point-vector approximation** of the same interface-prediction idea from `research/questions/multi-timestep-architecture/README.md`. It tests whether local prediction of arriving information helps at all, without importing the full distributional stream semantics. A positive result supports the predictive-processing family; a negative result does NOT falsify the Wasserstein direction (geometry matters).
+This is the **point-vector approximation** of the same interface-prediction idea from `research/questions/multi-timestep-architecture/README.md`. It tests whether local prediction of arriving information helps at all, without importing the full distributional stream semantics. A positive result supports the predictive-processing family; a negative result does NOT falsify the Wasserstein direction (geometry matters). The shuffled control separates "prediction is the right idea" from "any aux objective helps."
 
 ---
 
