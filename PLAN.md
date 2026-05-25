@@ -15,12 +15,12 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 - **Δ_trajectory = +0.034** (well above 0.015 threshold)
 - Pre-registered prediction confirmed ✅ (predicted C8 2.39-2.44, actual 2.404)
 
-Seed 43: B0=2.545 done, H8 at step 10K (val_loss 2.523)
+Seed 43: B0=2.545 done, H8 at step 17K (val_loss 2.406, tracking similar to seed 42)
 Seeds 43-44 needed to confirm concordance across all 3 seeds.
 
 **4-block follow-up script READY** (`runs/temporal_window_4block.py`, commit c6ab083). Pre-registered in temporal-window README. Launches immediately when all 3 seeds confirm branch 1. ~3.6 hours runtime.
 
-**Bridge_detach experiment READY** (`runs/bridge_detach.py`, commit 93854b6). Launches if temporal_window shows branch 2 or 3 (unlikely given seed 42 results).
+**Bridge_detach experiment READY** (`runs/bridge_detach.py`, commit 93854b6). Runs on surrogate architecture (token_injection=all) after the 4-block follow-up REGARDLESS of 4-block outcome — it's the next Pathway 3 surrogate test. If 4-block is strongly positive, an INTENDED-architecture bridge_detach is also needed (different learning problem, different experiment).
 
 **Tied-depth experiment COMPLETE.** All 4 variants × 2 seeds finished. Full results:
 
@@ -157,7 +157,24 @@ When results arrive, use pre-registered thresholds from `research/questions/temp
 
 **Intended-architecture rescue gets at most temporal_window + 1 follow-up experiment.** That's 2 experiments total. If temporal_window is not decisively positive (branch 1 above), pivot immediately to surrogate-architecture pathways where foundations are proven.
 
+**Clarification:** The stop-loss limits RESCUE experiments. If 4-block is strongly positive, the intended architecture is no longer being rescued — it's validated. Subsequent experiments (e.g., intended-architecture bridge_detach) are "learning-rule tests on validated substrate," not rescue. The stop-loss doesn't fire on those.
+
 Rationale (from adversarial review, 2026-05-26): The surrogate architecture already has load-bearing laterals (Δ=+0.030), all blocks contribute, and multiple high-information experiments are immediately available (bridge/detach_lateral, gradient radius sweep, iteration-benefit). With ~10–12 experiments remaining in the timebox, spending more than 2 on a branch that has failed every prior test is not justified unless evidence is strong.
+
+### Post-4-block decision tree
+
+**If 4-block STRONG POSITIVE** (W8_all > A_all ≥ 0.015, W8_all > C8_all ≥ 0.015, concordant, blocks load-bearing):
+1. **Intended-architecture bridge_detach** — can blocks learn useful laterals without cross-block gradient ON THE VALIDATED INTENDED ARCHITECTURE? This is the core project question.
+2. Eval-only dynamic-depth opportunity measurement on the trained W8_all model (cheap, no new training)
+3. Surrogate bridge_detach (still useful as lower-risk benchmark)
+
+**If 4-block PARTIAL** (some blocks useful, not all):
+- Stop-loss fires for intended rescue. Record as "trajectory creates some niche but doesn't fully overcome spectator problem."
+- Next: surrogate bridge_detach → clean weight-sharing isolation → composition experiments
+
+**If 4-block NULL** (blocks still spectators):
+- Stop-loss fires. 2-block forced-readout benefit didn't generalize.
+- Next: surrogate bridge_detach → if positive, combine bridge × multi-rate → weight-sharing isolation
 
 **Recommended remaining-budget split (after temporal_window):**
 - 1–2: intended follow-up ONLY if temporal_window is branch 1

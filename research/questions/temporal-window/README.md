@@ -1,6 +1,6 @@
 # Temporal Window: Does trajectory information help upper blocks?
 
-**Status: RUNNING (PID 18956, launched 00:41 NZST 2026-05-26). Partial results: B0=2.501, H8=2.370 (seed 42 only). C8 in progress.**
+**Status: RUNNING (PID 18956, launched 00:41 NZST 2026-05-26). Seed 42 COMPLETE: B0=2.501, H8=2.370, C8=2.404 (Δ_trajectory=+0.034, branch 1). Seeds 43-44 in progress.**
 
 **Pathway:** 3 (Local Learning) — upstream dependency. If upper blocks can't be made useful, local learning has no substrate to test on.
 
