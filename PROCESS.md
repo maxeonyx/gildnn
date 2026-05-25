@@ -494,7 +494,11 @@ The GPU produces evidence. The agent's parallel job is to produce *understanding
 
 2. **Improve past reports** — Model the reader (Max). Reread past daily/weekly narratives. Are they actually good? Do they tell a story? Are they dense and interesting? Rewrite the weak ones. Every report should be worth reading, not just technically present.
 
-3. **First-principles re-derivation** — Go back to the dictations. Re-derive the project direction from scratch. Does the current framing match Max's actual intent? Has something drifted? What open questions have been quietly assumed closed?
+3. **First-principles re-derivation** — Go back to the dictations. Re-derive the project direction from scratch. Does the current framing match Max's actual intent? Has something drifted? What open questions have been quietly assumed closed? Specifically check:
+   - Are experiments that WORK testing Max's intended architecture, or a tractable surrogate? If surrogate results dominate, the intended architecture is being neglected.
+   - Are things stated as "settled" actually experimentally confirmed? Or just assumed from surrogate evidence?
+   - Are all major mechanisms from the dictations (attention-based routing, loss prediction, graph topology, hierarchical tokenization) still visible in the active ladder, even if deprioritized?
+   - Have any hedges or qualifiers been lost? ("currently", "I think", "maybe")
 
 4. **Skill and process consistency** — Check the repo against Max's global skills (code-principles, information-architecture, etc.). Is the codebase consistent with them? Are the AGENTS.md files accurate? Is PROCESS.md up to date?
 
