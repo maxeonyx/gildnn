@@ -475,6 +475,7 @@ class ParallelDiagonalModel(nn.Module):
         readout_mode: str = "last",
         token_injection: str = "block0",
         topology: str = "upward",
+        tied_weights: bool = False,
         token_mix_init: float = 0.5,
         block_mix_init: float = 0.9,
         detach_lateral: bool = False,
@@ -535,12 +536,10 @@ class ParallelDiagonalModel(nn.Module):
         self.token_embedding = nn.Embedding(vocab_size, d_model)
         self.position_embedding = nn.Embedding(context_size, d_model)
         self.token_mixes = nn.ModuleList([MixAdd(init=token_mix_init) for _ in range(num_blocks)])
+        shared_block = ResidualFeedForwardBlock(d_model=d_model, feedforward_dim=feedforward_dim) if tied_weights else None
         self.blocks = nn.ModuleList(
             [
-                ResidualFeedForwardBlock(
-                    d_model=d_model,
-                    feedforward_dim=feedforward_dim,
-                )
+                shared_block if shared_block is not None else ResidualFeedForwardBlock(d_model=d_model, feedforward_dim=feedforward_dim)
                 for _ in range(num_blocks)
             ]
         )
