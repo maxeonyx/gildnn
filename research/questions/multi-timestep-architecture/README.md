@@ -193,6 +193,14 @@ How exactly do two distributions get combined into the stream state + surprise +
 
 The combining function is shared/tied across all positions and timesteps. It could be fixed (analytical, like product of Gaussians) or learned (with tied weights). Not decided — this is the key remaining design question.
 
+### Open: covariance structure
+
+In theory we want rotated ellipsoids (full covariance), not just axis-aligned. But full covariance Wasserstein requires O(d³) matrix square root.
+
+Practical option: **shared learned basis.** The combining function includes a learned rotation R (tied everywhere). All blocks output diagonal (μ, σ) in this shared rotated basis. Wasserstein stays cheap (diagonal formula applies in that basis). The rotation R is part of the "evolved wiring" — defines what directions mean in the stream. Blocks adapt to it locally.
+
+However: neural networks often learn their own internal basis regardless. The explicit rotation might be unnecessary overhead — a diagonal parameterization with sufficient capacity might achieve the same thing implicitly. This is an empirical question: compare shared-rotation vs plain diagonal and see if it matters.
+
 ---
 
 ## Connection to existing work
