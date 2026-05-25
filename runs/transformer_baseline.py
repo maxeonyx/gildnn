@@ -24,7 +24,9 @@ from core.run_utils import (
     checkpoint_metrics,
     log_run_restarted,
     maybe_compile_model,
+    mean_rounded,
     prepare_output_paths,
+    redirect_sanity_check_paths,
     register_active_lock,
     release_memory,
     resolve_device,
@@ -33,7 +35,6 @@ from core.run_utils import (
     validate_common_training_args,
     verification_payload,
     verify_forward_and_gradients as shared_verify_forward_and_gradients,
-    mean_rounded,
 )
 from core.training import current_git_sha, current_git_status_short, write_json
 
@@ -81,7 +82,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--compile", dest="compile_model", action="store_true")
     parser.add_argument("--no-compile", dest="compile_model", action="store_false")
     parser.set_defaults(compile_model=False)
-    parser.add_argument("--sanity-check-only", action="store_true")
+    parser.add_argument("--sanity-check", "--sanity-check-only", dest="sanity_check_only", action="store_true")
     parser.add_argument(
         "--train-path",
         type=Path,
@@ -466,6 +467,8 @@ def summarize_results(*, per_seed_results: list[dict[str, object]], sanity_check
 def main() -> int:
     args = parse_args()
     validate_common_training_args(args, warmup_steps=WARMUP_STEPS)
+    if args.sanity_check_only:
+        redirect_sanity_check_paths(args)
 
     device = resolve_device(args.device)
     specs = variant_specs()

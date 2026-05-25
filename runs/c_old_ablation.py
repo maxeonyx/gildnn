@@ -24,6 +24,7 @@ from core.run_utils import (
     log_run_restarted,
     maybe_compile_model,
     prepare_output_paths,
+    redirect_sanity_check_paths,
     register_active_lock,
     release_memory,
     resolve_device,
@@ -472,6 +473,8 @@ def summarize_results(*, per_seed_results: list[dict[str, object]], sanity_check
 def main() -> int:
     args = parse_args()
     validate_common_training_args(args, warmup_steps=WARMUP_STEPS)
+    if args.sanity_check_only:
+        redirect_sanity_check_paths(args)
 
     specs = variant_specs()
     unknown_variants = [variant for variant in args.variants if variant not in specs]
@@ -631,5 +634,7 @@ if __name__ == "__main__":
         import traceback
 
         args = parse_args()
+        if args.sanity_check_only:
+            redirect_sanity_check_paths(args)
         append_log(args.log_path, {"stage": "crash", "traceback": traceback.format_exc()})
         raise

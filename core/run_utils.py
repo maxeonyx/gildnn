@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import atexit
 import gc
 import json
@@ -24,6 +25,25 @@ def append_log(log_path: Path, payload: dict[str, object]) -> None:
     with log_path.open("a", encoding="utf-8") as handle:
         handle.write(line + "\n")
     print(line, flush=True)
+
+
+def redirect_sanity_check_paths(args: argparse.Namespace) -> None:
+    """Redirect artifact paths to a temp directory in sanity-check mode.
+
+    Prevents sanity checks from interfering with live experiment runs
+    that write to the same artifact directory.
+    """
+    import shutil
+    import tempfile
+
+    tmp_dir = Path(tempfile.mkdtemp(prefix="gildnn_sanity_"))
+    args.report_path = tmp_dir / "report.json"
+    args.log_path = tmp_dir / "run.jsonl"
+
+    def _cleanup() -> None:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+
+    atexit.register(_cleanup)
 
 
 def resolve_device(requested_device: str | None) -> torch.device:
