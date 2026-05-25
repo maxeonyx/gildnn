@@ -314,6 +314,7 @@ token_mixes and block_mixes remain per-block (distinct) in both variants. Only t
 
 ### Confound awareness
 
+- **Surrogate architecture:** This test uses `token_injection=all` — NOT Max's intended block0-only architecture ([dictation 2026-05-23-7](../../../dictations/2026-05-23-7.md)). A positive result validates weight sharing in a simplified regime but does not prove it works with propagation-delayed communication. See temporal_window experiment for the intended-architecture test.
 - **Gradient accumulation:** With shared weights, gradients from all 8 block positions accumulate into one parameter set. This is inherent to weight sharing (not a confound to fix) but could interact with optimization. If tied is unstable, check gradient norms before concluding it's a capacity issue.
 - **Not testing "iterate N times":** This test has internal_steps=1 per block. It tests "same processing at every position" not "iterate the same block many times on the same hidden state." The iteration-scaling question is separate and depends on this test passing first.
 
