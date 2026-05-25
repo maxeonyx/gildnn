@@ -140,7 +140,7 @@ The motivation chain:
 
 ## Connection to existing work
 
-- **C_old ablation (running):** Tests whether lateral connections carry information in the current architecture. If yes, validates that blocks CAN communicate usefully. The new design provides a theory for WHY they'd communicate and WHAT they'd send.
+- **C_old ablation (COMPLETE — positive):** Lateral connections ARE load-bearing in the surrogate architecture (token_injection=all). Δ=+0.030, all 4 blocks contribute. This validates that blocks CAN communicate usefully through laterals. The multi-timestep design provides a theory for WHY they'd communicate (propagation delay creates information asymmetry) and WHAT they'd send (predictions of left neighbor's future output).
 
 - **Predictive coding literature:** "Predict your left neighbor's next output" is essentially predictive coding. Each level predicts the activity of the level below/beside. Prediction errors drive learning.
 
