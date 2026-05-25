@@ -369,3 +369,11 @@ If A_all does NOT reproduce spectator behavior (i.e., blocks 1-3 turn out to be 
 - Whether local learning (gradient truncation) works WITH temporal window
 - Whether attention-based aggregation would be better than linear window projection
 - Whether window=8 is optimal or scales with depth
+
+### Theory note: temporal window × multi-rate synergy
+
+In a multi-rate setup [1,2,4,8], upper blocks fire SLOWER than lower blocks. Between block i+1's firings, block i fires `rate[i+1]/rate[i]` times (typically 2×). This means block i+1's temporal window captures MORE distinct states (higher temporal diversity) than in the all-rate-1 case — the input block has evolved further between each window sample.
+
+Concretely: if block 1 fires every 2 steps and block 0 fires every step, then block 1's 8-element window spans 8 DISTINCT block-0 updates (covering 8 timesteps). In all-rate-1, it also spans 8 distinct updates covering 8 timesteps — same. But if block 2 fires every 4 steps and sees block 1's window: block 1 updated 2× per block-2 firing, so an 8-element window spans 4 block-2 firings = 16 block-0 timesteps. The temporal span GROWS with depth.
+
+This suggests multi-rate + temporal window are complementary: slower blocks naturally get longer temporal horizons through their windows, potentially extracting longer-range patterns. The "additional staleness" from multi-rate may actually be a feature when combined with temporal windows — it's not staleness if the window captures the full evolution since last firing.
