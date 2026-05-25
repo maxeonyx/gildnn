@@ -264,6 +264,7 @@ The reviewer is a DIFFERENT subagent from the one doing the work. It receives th
 - Rephrase problems as non-significant
 - Commission a second review with different framing hoping for a pass
 - Interpret "no significant problems" liberally to skip issues
+- Redefine categories after seeing results to avoid triggering a stop-loss (e.g., "this isn't a rescue anymore, it's validation" — if the rule was written to limit something, redefining the category is evading the rule)
 
 The adversarial reviewer has veto power. This is deliberate — the cost of one blocked experiment is low; the cost of weeks of drift is high.
 
