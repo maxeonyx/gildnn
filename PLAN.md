@@ -45,39 +45,40 @@ All 3 seeds concordant. Mean Δ_trajectory (+0.042) is nearly 3× the pre-regist
 
 **Action:** Per decision tree → surrogate bridge_detach launched. No intended-architecture follow-up (criterion not met). Trajectory diagnostics NOT run (would be for strong-positive only).
 
-**Bridge_detach experiment RUNNING** (PID 20396, launched 07:40 NZST 2026-05-26). Log: `experiments/wikitext_103/artifacts/bridge_detach/run.jsonl`. Speed: ~117K tok/s. ETA completion: ~09:50 NZST (seed 44 detached at step 7K/20K as of 09:35). **No --compile** (torch.compile was counterproductive for this model — caused 15+ min JIT compilation with no speed benefit after).
+**Bridge_detach experiment COMPLETE ✅** (2026-05-26). 3 seeds concordant "clearly worse" (mean gap +0.027 nats). Readout pattern perfectly reproduced: full_backprop U-shaped (block 3 cost +0.35-0.42); detached front-loaded (block 3 cost +0.07 all seeds).
 
-**Warmup→detach script READY** (`runs/warmup_detach.py`, committed 5851a0f). Sanity-checked. Launches immediately when bridge_detach finishes. ~2.5 hours GPU time (6 runs × 20K steps). Reads bridge_detach baselines from report.json.
+**Warmup→detach LAUNCHING** (`runs/warmup_detach.py`). ~2.5 hours GPU time (6 runs × 20K steps). Reads bridge_detach baselines from report.json.
 
-**Results so far (seeds 42-43 COMPLETE, seed 44 running):**
+**Results (3 seeds COMPLETE):**
 
-| Metric | Seed 42 | Seed 43 |
-|---|---|---|
-| full_backprop final | 1.765 | 1.756 |
-| detached final | 1.794 | 1.794 |
-| Gap | **+0.029** | **+0.038** |
+| Seed | full_backprop | detached | Gap |
+|---|---|---|---|
+| 42 | 1.765 | 1.794 | **+0.029** |
+| 43 | 1.756 | 1.794 | **+0.038** |
+| 44 | 1.796 | 1.811 | **+0.016** |
+| **Mean** | **1.772 ± 0.017** | **1.799 ± 0.008** | **+0.027** |
 
-**Concordant: both seeds "clearly worse."** Detached ceiling remarkably consistent (1.794 both seeds) while full shows normal seed variance (1.756-1.765). Suggests the ceiling is algorithmic, not random.
+**Concordant: all 3 seeds "clearly worse."** Mean gap +0.027 nats. Full variance (std 0.017) higher than detached (std 0.008). Seed 44 shifted up for both variants but same pattern.
 
 - Trajectory: identical for 12K steps → gap opens at 15K → accelerates through 20K
 
 **Readout ablation pattern (most revealing finding):**
 
-| Block | Full s42 | Full s43 | Det s42 | Det s43 |
-|---|---|---|---|---|
-| 0 | +1.12 | +0.93 | +1.11 | +0.84 |
-| 1 | +0.10 | +0.20 | **+0.44** | **+0.68** |
-| 2 | +0.05 | +0.03 | +0.16 | +0.11 |
-| 3 | **+0.42** | **+0.35** | +0.07 | +0.07 |
+| Block | Full s42 | Full s43 | Full s44 | Det s42 | Det s43 | Det s44 |
+|---|---|---|---|---|---|---|
+| 0 | +1.12 | +0.93 | +0.96 | +1.11 | +0.84 | +1.05 |
+| 1 | +0.10 | +0.20 | +0.10 | **+0.44** | **+0.68** | **+0.41** |
+| 2 | +0.05 | +0.03 | +0.05 | +0.16 | +0.11 | +0.16 |
+| 3 | **+0.42** | **+0.35** | **+0.42** | +0.07 | +0.07 | +0.07 |
 
-**Story (consistent across both seeds):**
+**Story (perfectly consistent across all 3 seeds):**
 - Full_backprop: "U-shaped" — block 3 develops large contribution (0.35-0.42). Lateral gradient enables useful upper-block computation.
-- Detached: "front-loaded" — block 3 nearly useless (0.07), block 1 picks up partial slack (+0.44-0.68 vs 0.10-0.20). Without lateral gradient, model settles for shallower solution.
+- Detached: "front-loaded" — block 3 nearly useless (exactly 0.07 all seeds), block 1 picks up partial slack (+0.41-0.68 vs 0.10-0.20). Without lateral gradient, model settles for shallower solution.
 - Hypothesis (not proven): senders don't learn what to send without gradient → receivers get uninformative lateral input → can't develop useful specialization.
 
 **⚠️ Methodological learning:** The pre-registered "lateral-zeroing cost as discriminator" is uninformative in this regime. Both variants produce catastrophic values (10^11-10^15) because both were trained WITH forward laterals — eval-time removal is architectural mutilation, not the gentle ablation assumed. C_old's 0.030 gap compared two SEPARATELY TRAINED models; this is fundamentally different. The readout pattern is the actual discriminator.
 
-**Decision per pre-registration:** "Clearly worse" → **warmup→detach diagnostic** (pre-registered in local-learning README). Still waiting on seed 44 for confirmation, but 2/2 concordant.
+**Decision per pre-registration:** "Clearly worse" (3/3 concordant) → **warmup→detach diagnostic** (pre-registered in local-learning README). Launched 2026-05-26 10:10 NZST.
 
 **Tied-depth experiment COMPLETE.** All 4 variants × 2 seeds finished. Full results:
 
@@ -183,8 +184,8 @@ Every gate is a separate subagent review that can send you back. See PROCESS.md 
 
 ## GPU queue (explicit ordering)
 
-1. **bridge_detach** — RUNNING, ETA ~09:50. When done: verify seed 44, update results, then →
-2. **warmup_detach** — script ready. Launch immediately after bridge_detach. ~2.5 hours. Then →
+1. ~~bridge_detach~~ — **COMPLETE ✅** (3 seeds concordant, mean gap +0.027)
+2. **warmup_detach** — LAUNCHING NOW. ETA completion ~12:30 NZST. Then →
 3. **tied_sharing rerun** — `runs/tied_sharing.py`. Independent core question, data lost. ~45 min. Then →
 4. **What the data says** — budget permitting, escalation depends on warmup→detach outcome
 
@@ -200,7 +201,7 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 | 2 | **Clean weight-sharing isolation** — shared vs distinct feedforward, both with all-injection | 1 | surrogate | Isolates weight sharing from routing. **DATA LOST — needs 3-seed rerun.** Provisional 1-seed: tied_shared=1.910 vs distinct≈1.85 (~0.06 gap). |
 | 3 | **Temporal window** — 2-block, readout_mode="last", B0/H8/C8 conditions | 3 | **intended** | **COMPLETE ✅ — BRANCH 1 CONFIRMED** (Δ_trajectory=+0.042). 4-block follow-up COMPLETE — STOP-LOSS (conditions 4+5 fail). |
 | 4 | **Iteration-benefit measurement** — eval shared model at 1,2,4,8 iterations | 1/5 | surrogate | Only if tied_sharing positive. Tests dynamic depth in simplified regime. |
-| 5 | **Bridge experiment (detach_lateral)** — full-backprop vs detached-lateral | 3 | surrogate | **RUNNING** (PID 20396, ETA ~10:10 NZST). Pre-registered in local-learning README. |
+| 5 | **Bridge experiment (detach_lateral)** — full-backprop vs detached-lateral | 3 | surrogate | **COMPLETE ✅** — clearly worse (gap +0.027, 3 seeds concordant). Readout pattern confirmed. |
 | 6 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | infra | Next step after the 28% CUDA Graph result. |
 | 7 | **Dynamic depth (clean measurement)** | 5 | TBD | **COMPLETE.** Oracle speedup 1.96×, oracle-best beats depth-8 by 0.285 nats. Pathway 5 worth pursuing. Next: predictability test. |
 
