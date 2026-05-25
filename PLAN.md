@@ -111,6 +111,8 @@ Upper blocks are downstream of a stale bottleneck controlled by block 0, while b
 
 **The fix hypothesis:** Give upper blocks a temporal WINDOW of lower-block states (`temporal_window=4,8` — already exists in model.py). This provides exclusive trajectory information (how block 0's state has been moving) that block 0 can't easily exploit in a single step. Window creates the niche; forced-equal readout prevents collapse.
 
+**Grounding:** Max in [dictation 2026-05-24-5](dictations/2026-05-24-5.md): "Block one should learn to predict something about block zero that block zero couldn't already know or wouldn't need to know therefore. For example, you know maybe block one's output is dependent on input from a longer time ago?"
+
 **Discriminating experiment:** Same corrected WikiText-103 setup, but with `temporal_window∈{4,8}`, `token_injection="block0"`, fixed-equal readout. Measure upper-block ablation (not just val_loss). If windowed > non-windowed AND upper-block ablation is real → fixable. If windowed still collapses → the upward chain is probably the wrong architecture.
 
 **This supersedes "local learning in working config" as priority 5** — fixing the forward architecture is upstream of fixing the learning rule. Local learning is meaningless on blocks that have no forward role.
@@ -144,6 +146,7 @@ Upper blocks are downstream of a stale bottleneck controlled by block 0, while b
 
 (Agent records evidence here; Max decides whether to update ROADMAP.md)
 
+- **ROADMAP factual correction needed:** Baselines table says "val_loss 1.643, 187K params, WikiText-103 char-level" — but 1.643/187K is the **TinyShakespeare** baseline. The actual WikiText-103 transformer baseline is **1.592 ± 0.003, 2.86M params, 4 layers, 2 seeds**. Suggest updating the baselines table.
 - **Pathway 1 (Wide Recurrent):** Weight sharing is free at tiny scale (tied-depth transformer, TinyShakespeare, 3 seeds). At WikiText-103 scale, tested a DIFFERENT architecture (ParallelDiagonalModel with tied_8iter): 1 of 2 seeds failed badly. However, the comparison is confounded — tied_8iter uses token_injection=block0 while the comparator (distinct_matched) uses token_injection=all. **Cannot attribute the failure to weight sharing specifically.** A clean isolation test is needed: shared weights with token_injection=all. On the successful seed, tied_8iter actually beat distinct_matched (1.798 vs 1.818), suggesting the inductive bias of weight sharing CAN help — it's the robustness that's the problem. Pathway remains alive but needs a cleaner test.
 - **Pathway 2 (Async):** Prior positive — 28% concurrency via CUDA Graphs, stale reads don't hurt. Next: custom CUDA.
 - **Pathway 3 (Local Learning):** Confidence **decreased**. Every attempt at lateral-only multi-block has failed: hardcoded 0.5 (+0.014 worse), zero-init gates (+0.245 worse, cold-start trap). Only token_injection=all (C_old, -0.021 better) makes blocks useful — but that may not involve lateral communication at all (might just be an ensemble). **C_old ablation now running** to determine this. Pathway is blocked pending that result.
