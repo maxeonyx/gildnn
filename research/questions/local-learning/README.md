@@ -361,8 +361,25 @@ If gap snowballs without plateau: co-adaptation compounds — bad, suggests frag
 **If warmup→detach recovers most of the gap:** Problem was bootstrapping. Detach works once a communication protocol exists. Strong positive with a caveat (needs warmup phase). Next: test whether intended architecture shows the same warmup→recovery pattern.
 
 **If warmup→detach does NOT recover:** Shared adjoint is genuinely insufficient. Escalation path:
-1. **Predictive coding at interfaces** — each block predicts neighbor's future state. Local objective grounded in real prediction error. Most aligned with Max's direction.
+1. **Predictive coding at interfaces (innovation-predicting variant)** — each block predicts the INNOVATION of its neighbor's next state. See theory analysis below.
 2. **Multi-timestep Wasserstein local loss** — each block trains on its own prediction error of the neighbor's next distribution (from dictation 2026-05-25-1). Bigger conceptual jump but the most principled long-term solution.
+
+### Predictive coding failure-mode analysis (theory, 2026-05-26)
+
+**Naive "predict neighbor's full state" is likely to degenerate in this architecture.** Reasons:
+
+1. **Target triviality:** With `token_injection="all"`, all blocks receive the same token embedding. The neighbor's next state is dominated by the shared next-token embedding, not block-specific computation. An auxiliary head optimizes for "predict next token dynamics" (trivial shared knowledge) rather than "predict unique block contribution" (the useful signal).
+
+2. **State imitation ≠ task relevance:** Being good at predicting a neighbor's future state does not imply producing useful representations for next-char prediction. The auxiliary gradient drives blocks toward emulation/imitation, not toward task-aligned specialization.
+
+3. **Implementation is clean:** 1-step delayed target buffer works. Not a conceptual blocker.
+
+**Fix: predict the INNOVATION (residual component).** Subtract the shared token-driven baseline from the target:
+- Target = `neighbor_next_state - shared_component` (where shared_component ≈ token embedding + stream)
+- This focuses the auxiliary loss on what the neighbor's block SPECIFICALLY contributed, not what all blocks share.
+- Concretely: target is `neighbor.block_output` (the feedforward residual before it's added to the stream), not the full stream state.
+
+**Assessment:** Innovation-predicting variant is viable as an escalation. Key design choices: (1) predict block residual output, not full state; (2) keep auxiliary loss coefficient small (0.01-0.1× main CE); (3) use stop-gradient on target (block i cannot train block i-1 through this path — preserves locality).
 
 **Per-block auxiliary LM heads** are a useful diagnostic at any outcome (quick to implement, shows whether task grounding alone helps) but are not the primary next step for any outcome — they don't specifically improve communication.
 
