@@ -4,6 +4,8 @@
 
 **Commit and push early and often.** Keeping work preserved remotely is part of the normal workflow in this repo. Test first when there is something real to test.
 
+**PowerShell git commit quirk:** Multi-line commit messages passed via `-m` in PowerShell sometimes silently fail (exit code 0 but nothing committed). Always use single-line `-m` messages. If you need more detail, put it in a second `-m` flag or just keep it short. Always check `git log --oneline -1` after committing if the message was complex.
+
 ## ⚠ Epistemic status of all files in this repo
 
 **The authoritative source of truth for this project is [`dictations/`](dictations/).** Everything else — this file, VISION.md, PROCESS.md, PLAN.md — is a derived interpretation, written quickly, and likely imperfect. Do not treat them as authoritative.
