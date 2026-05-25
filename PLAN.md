@@ -45,7 +45,14 @@ All 3 seeds concordant. Mean Δ_trajectory (+0.042) is nearly 3× the pre-regist
 
 **Action:** Per decision tree → surrogate bridge_detach launched. No intended-architecture follow-up (criterion not met). Trajectory diagnostics NOT run (would be for strong-positive only).
 
-**Bridge_detach experiment RUNNING** (PID 20396, launched 07:40 NZST 2026-05-26). Log: `experiments/wikitext_103/artifacts/bridge_detach/run.jsonl`. Speed: ~114K tok/s. ETA completion: ~10:15 NZST. **No --compile** (torch.compile was counterproductive for this model — caused 15+ min JIT compilation with no speed benefit after).
+**Bridge_detach experiment RUNNING** (PID 20396, launched 07:40 NZST 2026-05-26). Log: `experiments/wikitext_103/artifacts/bridge_detach/run.jsonl`. Speed: ~118K tok/s. ETA completion: ~10:30 NZST. **No --compile** (torch.compile was counterproductive for this model — caused 15+ min JIT compilation with no speed benefit after).
+
+**Early observations (seed 42 only — not conclusive):**
+- full_backprop 20K final: 1.765 (**exact match** to C_old seed 42 — correct implementation confirmed)
+- detached at step 9K: 1.965 vs full_backprop at step 9K: 1.969 (**detached ahead by +0.004**)
+- Pre-registration predicted full_backprop ahead at step 8K-10K — WRONG direction so far
+- Aligns with pre-registered "wild card" (anti-co-adaptation): lateral gradients may be slightly harmful
+- **Do not over-interpret** — single seed, single checkpoint. Wait for full 3-seed × 20K + ablation.
 
 **Tied-depth experiment COMPLETE.** All 4 variants × 2 seeds finished. Full results:
 
