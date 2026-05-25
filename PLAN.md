@@ -162,6 +162,8 @@ When results arrive, use pre-registered thresholds from `research/questions/temp
 
 ### ⚠️ Stop-loss rule (timebox discipline)
 
+**Note: This is agent-imposed timebox discipline, not Max's expressed preference.** Max's dictations treat the intended architecture as central to the project. This rule exists because with ~5 days remaining and one GPU, unlimited intended-architecture experiments crowd out other high-information work. Max may override this if he disagrees with the budget allocation.
+
 **The intended-architecture rescue budget is fixed at two experiments total:**
 1. `temporal_window` forced-readout test ✅ (complete, positive)
 2. `4-block` voluntary-readout scaling test (running)
@@ -221,7 +223,7 @@ Rationale: The surrogate architecture already has load-bearing laterals (Δ=+0.0
 
 ### Why token_injection="block0" fails (theory, 2026-05-25)
 
-Upper blocks are downstream of a stale bottleneck controlled by block 0, while block 0 already solves the task directly. They're **redundant delayed decoders**, not complementary experts. This is a forward-architecture problem, not a training/gradient problem.
+Upper blocks are downstream of a stale bottleneck controlled by block 0, while block 0 already solves the task directly. They're **redundant delayed decoders**, not complementary experts. Evidence suggests this is primarily a forward-architecture problem (full backprop didn't help — spectators with full gradients still spectate), though Max keeps the learning-signal question explicitly open ([dictation 2026-05-23-5](dictations/2026-05-23-5.md): "we need to try many variants").
 
 **The fix hypothesis:** Give upper blocks a temporal WINDOW of lower-block states (`temporal_window=4,8` — already exists in model.py). This provides exclusive trajectory information (how block 0's state has been moving) that block 0 can't easily exploit in a single step. With `readout_mode="last"` on a 2-block model, block 1 is forced to be load-bearing (no collapse possible). See full pre-registration: `research/questions/temporal-window/README.md`.
 
@@ -281,6 +283,8 @@ Max's original vision (dictation 2026-05-24-1) has two mechanisms that are curre
 
 Neither is actionable now, but they represent significant chunks of the vision that need to become active once temporal_window (or equivalent) validates the intended architecture.
 
+3. **Graph topology** — Max's original vision is a graph, not a stack: "I don't know if that graph helps, but I kind of think it might" ([dictation 2026-05-23-5](dictations/2026-05-23-5.md)). Current architecture is a fixed stack. Graph topology is a major design dimension that hasn't been explored yet — correctly deprioritized while basic block viability is uncertain, but should not be forgotten.
+
 ---
 
 ## Multi-timestep architecture — future theoretical direction (dictation 2026-05-25-1)
@@ -295,9 +299,9 @@ Key departures from current implementation:
 - **Combining function is shared/tied** across all positions (evolved wiring, not per-block learning)
 
 **Relationship to current experiments:** The dictation says "This doesn't invalidate current work. It provides the theoretical direction for what comes AFTER the current experiments confirm the basics." Current experiments confirm:
-- ✅ Lateral connections carry useful information (C_old: Δ=+0.030)
-- ✅ Temporal trajectory is uniquely useful information (temporal_window: Δ=+0.042)
-- ⏳ Whether blocks can be voluntarily useful with trajectory (4-block: running)
-- ⏳ Whether blocks can learn without cross-block gradient (bridge_detach: queued)
+- ✅ Lateral connections carry useful information — **surrogate architecture** (C_old: Δ=+0.030)
+- ✅ Temporal trajectory is uniquely useful information — **intended architecture, forced-readout 2-block** (temporal_window: Δ=+0.042)
+- ⏳ Whether blocks can be voluntarily useful with trajectory — **intended architecture, 4-block** (running)
+- ⏳ Whether blocks can learn without cross-block gradient — **surrogate** (bridge_detach: queued)
 
 **If bridge_detach (shared-adjoint) fails:** The Wasserstein distributional local loss is the natural escalation — it provides a RICHER local training signal (predict left neighbor) rather than relying on the weak shared adjoint alone. This is the most important connection between current work and the multi-timestep direction.
