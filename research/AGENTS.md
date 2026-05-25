@@ -24,6 +24,8 @@ Read [WRITING.md](WRITING.md) when drafting any daily or weekly narrative, espec
 
 ### Before writing
 
+**Check for unreported findings.** Before drafting, compare the "Completed work" table in PLAN.md against recent dailies. Any experiment that completed since the last daily was written — and whose results aren't in any daily — must appear in today's report. Findings that sit in question READMEs but were never surfaced in a narrative don't reach Max.
+
 Each experiment's question folder (`research/questions/<name>/`) should have been keeping a record as work proceeded: run configs, key metrics, output artifacts (images, example outputs), and a note of what was learned. The daily/weekly narrative draws from these — it does not reconstruct from memory.
 
 If artifacts are missing, run the experiment again or note the gap explicitly. Do not write claims that aren't backed by a saved artifact.
