@@ -529,6 +529,60 @@ The divergence-timing observation (identical curves for 12K, gap at 15K) ALREADY
 
 ---
 
+## Next escalation: predictive-residual local loss — pre-registered 2026-05-26
+
+**Conditional on:** warmup→detach confirming "gradient needed continuously" (both warm12 and warm15 drift back toward detached; R ≤ 0.5 for both). If warmup shows bootstrapping is enough, skip this and characterize minimum warmup instead.
+
+**Question:** Can a grounded local prediction signal replace cross-block gradient?
+
+### Design
+
+Same surrogate substrate as bridge_detach. One new condition:
+
+| Condition | Config | Notes |
+|---|---|---|
+| `full_20k` | existing bridge_detach baseline | ceiling |
+| `detached_20k` | existing bridge_detach baseline | floor |
+| `detached_predres_20k` | `detach_lateral=True` + aux prediction loss | **new** |
+
+The aux head on each block `i > 0` predicts block `(i-1)`'s next output/residual. Target is **stop-grad** (no gradient flows back through the target — otherwise we've smuggled cross-block credit assignment back in).
+
+Architecture: identical to bridge_detach (4 blocks, d=256, ff=512, token_injection=all, readout_mode=all, topology=upward). Same 20K steps, batch_size=64, lr=3e-4, ctx=128, seeds 42/43/44.
+
+### Why predict the block residual, not the full stream state?
+
+With `token_injection=all`, the full stream state at each position is token-dominated. Predicting it is too easy and not communication-specific — the aux head would mostly learn token dynamics. The block-specific residual/output (what the lower block actually ADDS to the stream) is the signal that captures bridge usefulness.
+
+### Aux loss weight
+
+Pre-register one coefficient, calibrated once from a single batch so aux gradients are same-order-of-magnitude as CE gradients on bridge activations. No hyperparameter sweep (budget constraint).
+
+### Interpretation
+
+| Outcome | Criterion | Meaning | Next step |
+|---|---|---|---|
+| **Strong positive** | R ≥ 0.5 AND block 3 readout ablation rises to ≥ +0.15 | Local prediction signal genuinely replaces some of what cross-block gradient was doing. | Wasserstein/distributional version (matches multi-timestep theory) |
+| **Partial** | 0.2 ≤ R < 0.5, or block 3 wakes up modestly | Prediction-family signal has traction but point-vector is too crude. | Upgrade to distributional prediction (Wasserstein on diagonal Gaussians) |
+| **Null** | R < 0.2, block 3 stays near +0.07 | This point-vector signal did not replace cross-block gradient. | Does NOT falsify Wasserstein theory (geometry and distributional semantics still missing). But does mean point-vector prediction alone isn't enough. |
+
+Key metric anchors from bridge_detach:
+- Block 3 full_backprop: +0.35 to +0.42
+- Block 3 detached: +0.07 (noise floor)
+- Mean val_loss gap: +0.027
+
+### What this does NOT settle
+
+- Whether DISTRIBUTIONAL prediction (Wasserstein) would work where point-vector doesn't — that's a separate experiment
+- Whether the local signal works on the intended architecture (this is still surrogate)
+- Whether the loss coefficient matters (one-shot calibration only)
+- Whether the prediction target should be "future" vs "current" (this predicts next-step; could also try current-step prediction of arriving lateral input)
+
+### Connection to multi-timestep theory
+
+This is the **point-vector approximation** of the same interface-prediction idea from `research/questions/multi-timestep-architecture/README.md`. It tests whether local prediction of arriving information helps at all, without importing the full distributional stream semantics. A positive result supports the predictive-processing family; a negative result does NOT falsify the Wasserstein direction (geometry matters).
+
+---
+
 ## Intended-architecture bridge_detach design — pre-registered 2026-05-26
 
 **Conditional on:** 4-block follow-up STRONGLY POSITIVE (W8_all > A_all ≥ 0.015, blocks load-bearing). Only makes sense if the intended architecture has been validated.
