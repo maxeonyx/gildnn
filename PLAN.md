@@ -47,16 +47,15 @@ All 3 seeds concordant. Mean Δ_trajectory (+0.042) is nearly 3× the pre-regist
 
 **Bridge_detach experiment RUNNING** (PID 20396, launched 07:40 NZST 2026-05-26). Log: `experiments/wikitext_103/artifacts/bridge_detach/run.jsonl`. Speed: ~118K tok/s. ETA completion: ~10:30 NZST. **No --compile** (torch.compile was counterproductive for this model — caused 15+ min JIT compilation with no speed benefit after).
 
-**Early observations (seed 42 only — not conclusive):**
-- full_backprop 20K final: 1.765 (**exact match** to C_old seed 42 — correct implementation confirmed)
-- Trajectory comparison (both variants at same steps):
-  - Steps 1K–12K: effectively identical (gap < 0.005, detached slightly ahead if anything)
-  - Step 15K: full=1.860, detach=1.867 (gap opens: +0.007)
-  - Step 16K: full=1.820, detach=1.838 (gap: +0.018)
-  - Step 17K: full=1.810, detach=1.828 (gap: +0.018, stable)
-- Pre-registration predicted divergence at step 8K-10K → actually appeared at ~15K
-- Gap appears stable at ~0.018. Extrapolating: detached final ~1.78-1.79 (borderline "clearly worse" threshold of 1.783)
-- **Do not over-interpret** — single seed, 3K steps remaining. Wait for full 3-seed × 20K + ablation.
+**Early observations (seed 42 COMPLETE — seeds 43-44 still running):**
+- full_backprop seed 42 final: **1.765** (exact match to C_old — correct implementation ✅)
+- detached seed 42 final: **1.794** (gap = **0.029 nats**, above "clearly worse" threshold of 1.783)
+- Trajectory: identical for 12K steps → gap opens at 15K → accelerates through 20K
+  - Step 17K gap: 0.018 → Step 20K gap: 0.029 (widening in final stretch)
+  - Full improved 0.045 in last 3K steps; detached improved only 0.034
+- **Interpretation (seed 42 only):** lateral gradient needed for late-stage refinement. Protocol bootstraps fine without gradient, but co-adaptation drives final quality.
+- Warmup→detach diagnostic pre-registered (local-learning README) — would test if brief warmup during transition regime suffices.
+- **Still need:** seeds 43-44 concordance + lateral-zeroing ablation (THE key discriminator). Single-seed results are NOT conclusive.
 
 **Tied-depth experiment COMPLETE.** All 4 variants × 2 seeds finished. Full results:
 
