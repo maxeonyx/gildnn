@@ -41,7 +41,14 @@ The comparison between tied_8iter and distinct_matched is **confounded** by mult
 - The failure may be about lack of anchoring signal (no fresh tokens after iteration 1) rather than weight sharing per se
 - A clean weight-sharing isolation test would need: shared weights WITH token_injection=all (8 blocks with tied weights, each getting tokens)
 
-**C_old ablation RUNNING.** PID 20548, launched 20:46 NZST (restarted after prior crash at step 14K). Trains C_lateral (upward topology) vs C_isolated (no lateral connections, same params). Tests whether lateral communication is actually used in the multi-block-with-token-injection architecture. As of 21:05: step 14K/20K on C_lateral seed 42, val_loss 1.865, throughput 115K tok/s (healthy, past previous crash point). Expected completion ~22:30-23:00 NZST.
+**C_old ablation RUNNING.** PID 20548, launched 20:46 NZST. Trains C_lateral (upward topology) vs C_isolated (no lateral connections, same params). Tests whether lateral communication is actually used in the multi-block-with-token-injection architecture.
+
+**Seed 42 COMPLETE (both variants):**
+- C_lateral: val_loss **1.765**, accuracy 0.503
+- C_isolated: val_loss **1.794**, accuracy 0.491
+- **Δ = +0.029 nats (lateral better)** — above 0.015 "clearly lateral helps" threshold
+
+Seed 43 now running (C_lateral started ~21:35). Two more 20K-step runs remain (~1.5-2 hours).
 
 **Gated experiment — prior negative result.** B_gated (4-block, zero-init gates) was +0.245 nats WORSE than A_single at WikiText-103 ctx=128. Cold-start problem: zero-init gates starve upper blocks of information.
 
