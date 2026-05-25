@@ -4,7 +4,18 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current state (2026-05-25)
+## Current state (2026-05-26)
+
+**Temporal_window experiment RUNNING** (PID 18956, ~31% complete, ETA 03:02 NZST).
+
+Partial seed-42 results (very promising):
+- B0: 2.501 (done)
+- H8: 2.370 (done) — Δ_augmented = +0.131
+- C8: ~2.475 at step 15K (in progress) — gap from H8 accelerating (+0.035 at step 15K)
+
+If C8 finishes ~2.43-2.44, Δ_trajectory would be ~0.06 (well above 0.015 threshold → branch 1).
+
+**Bridge_detach experiment READY** (`runs/bridge_detach.py`, commit 93854b6). Launch immediately after temporal_window finishes, OR if temporal_window shows branch 3 (nothing helps).
 
 **Tied-depth experiment COMPLETE.** All 4 variants × 2 seeds finished. Full results:
 
