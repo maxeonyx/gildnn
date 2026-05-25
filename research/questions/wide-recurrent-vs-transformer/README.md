@@ -285,6 +285,40 @@ To isolate weight sharing, the clean test would be: 8 blocks with **shared** wei
 
 ---
 
+## Rung 6 (planned): Clean weight-sharing isolation at WikiText-103
+
+> Script: `runs/tied_sharing.py`. Committed, sanity-checked, ready to launch.
+
+### Design
+
+Same architecture, same routing, same FLOPs — only weight sharing differs.
+
+| Variant | Config | Params |
+|---------|--------|--------|
+| tied_shared | 8 blocks, shared weights, d=146, ff=584, token_injection=all, topology=upward | 1,649,102 |
+| distinct_matched | 8 blocks, distinct weights, same config | 2,847,908 |
+
+The parameter difference is intentional — the param reduction IS the benefit of sharing. This is a **compute-matched** comparison, not parameter-matched.
+
+token_mixes and block_mixes remain per-block (distinct) in both variants. Only the feedforward block weights are shared.
+
+3 seeds (42, 43, 44). WikiText-103 char-level, ctx=128, 20K steps, LR 3e-4.
+
+### Pre-registered interpretation
+
+| Outcome | Meaning | Next step |
+|---------|---------|-----------|
+| tied mean within 0.02 nats of distinct, no catastrophic failures | **Weight sharing works at WikiText-103 scale.** Pathway 1 validated. | Iteration scaling: how many times can tied blocks iterate? (tests dynamic depth potential) |
+| tied 0.02–0.05 nats worse than distinct, converges reliably | **Sharing has a real cost but is manageable.** The inductive bias of sharing doesn't fully compensate for the capacity loss. | Consider whether the cost is worth the parameter savings. May redirect to distinct blocks. |
+| tied much worse (>0.05) or shows catastrophic seed failures | **Sharing fundamentally struggles even with correct routing.** | Pathway 1's "same weights iterated" thesis is weakened. Distinct blocks become the default. Still test dynamic distinct-block depth (Pathway 5 variant). |
+
+### Confound awareness
+
+- **Gradient accumulation:** With shared weights, gradients from all 8 block positions accumulate into one parameter set. This is inherent to weight sharing (not a confound to fix) but could interact with optimization. If tied is unstable, check gradient norms before concluding it's a capacity issue.
+- **Not testing "iterate N times":** This test has internal_steps=1 per block. It tests "same processing at every position" not "iterate the same block many times on the same hidden state." The iteration-scaling question is separate and depends on this test passing first.
+
+---
+
 ## Non-goals for this experiment
 
 - Hyperparameter sweeps beyond the 2 LRs
