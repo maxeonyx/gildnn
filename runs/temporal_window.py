@@ -1,16 +1,10 @@
 from __future__ import annotations
 
 import argparse
-import atexit
-import gc
-import json
-import os
 import sys
-from collections.abc import Iterator
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 from pathlib import Path
-from statistics import mean, pstdev
 from time import perf_counter
 
 # Ensure repo root is importable regardless of how this script is launched
@@ -19,12 +13,27 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from jaxtyping import Int
 import torch
 from torch import Tensor, nn
-from torch.nn import functional as F
 
 from core.dataset import CorpusData, load_corpus
 from core.fixed_window_char import set_seed
 from core.model import ParallelDiagonalModel, count_parameters
-from core.training import GraphTrainer, capturable_adamw, current_git_sha, current_git_status_short, write_json
+from core.run_utils import (
+    append_log,
+    build_optimizer,
+    checkpoint_metrics,
+    log_run_restarted,
+    maybe_compile_model,
+    prepare_output_paths,
+    register_active_lock,
+    release_memory,
+    resolve_device,
+    run_training_loop,
+    summarize_variant_runs,
+    validate_common_training_args,
+    verification_payload,
+    verify_forward_and_gradients as shared_verify_forward_and_gradients,
+)
+from core.training import current_git_sha, current_git_status_short, write_json
 
 CONTEXT_SIZE = 128
 TRAINING_STEPS = 20_000
@@ -128,27 +137,6 @@ def variant_specs() -> dict[str, VariantSpec]:
     }
 
 
-def append_log(log_path: Path, payload: dict[str, object]) -> None:
-    line = json.dumps(payload)
-    with log_path.open("a", encoding="utf-8") as handle:
-        handle.write(line + "\n")
-    print(line, flush=True)
-
-
-def resolve_device(requested_device: str | None) -> torch.device:
-    if requested_device is None:
-        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    if requested_device == "cuda" and not torch.cuda.is_available():
-        raise RuntimeError("CUDA requested but torch.cuda.is_available() is false.")
-    return torch.device(requested_device)
-
-
-def maybe_compile_model(model: ParallelDiagonalModel, *, enabled: bool) -> nn.Module:
-    if not enabled:
-        return model
-    return torch.compile(model, backend="aot_eager")
-
-
 def build_model(
     *,
     device: torch.device,
@@ -221,121 +209,6 @@ def validate_parameter_counts(*, vocab_size: int, selected_specs: dict[str, Vari
     }
 
 
-def build_optimizer(
-    model: ParallelDiagonalModel,
-    *,
-    device: torch.device,
-    compile_model: bool,
-    learning_rate: float,
-) -> torch.optim.AdamW:
-    if device.type == "cuda" and not compile_model:
-        return capturable_adamw(model, lr=learning_rate, weight_decay=WEIGHT_DECAY)
-    return torch.optim.AdamW(
-        model.parameters(),
-        lr=learning_rate,
-        betas=(0.9, 0.999),
-        weight_decay=WEIGHT_DECAY,
-    )
-
-
-def random_batches(
-    encoded_corpus: Int[Tensor, "tokens"],
-    *,
-    context_size: int,
-    batch_size: int,
-    device: torch.device,
-    rng: torch.Generator,
-) -> Iterator[tuple[Int[Tensor, "batch context"], Int[Tensor, "batch"]]]:
-    if encoded_corpus.ndim != 1:
-        raise ValueError(f"random_batches expects a 1D corpus tensor, got shape {tuple(encoded_corpus.shape)}.")
-    if encoded_corpus.dtype != torch.long:
-        raise ValueError(f"random_batches expects torch.long tokens, got {encoded_corpus.dtype}.")
-
-    max_start = encoded_corpus.numel() - context_size
-    if max_start <= 0:
-        raise ValueError(
-            "random_batches needs more encoded tokens than context_size. "
-            f"Got corpus length {encoded_corpus.numel()} and context_size {context_size}."
-        )
-
-    offsets = torch.arange(context_size, dtype=torch.long)
-    pin_memory = device.type == "cuda"
-    while True:
-        starts = torch.randint(0, max_start, (batch_size,), generator=rng)
-        inputs = encoded_corpus[starts[:, None] + offsets]
-        targets = encoded_corpus[starts + context_size]
-        if pin_memory:
-            inputs = inputs.pin_memory()
-            targets = targets.pin_memory()
-        yield (
-            inputs.to(device=device, dtype=torch.long, non_blocking=pin_memory),
-            targets.to(device=device, dtype=torch.long, non_blocking=pin_memory),
-        )
-
-
-@torch.inference_mode()
-def evaluate_model_call(
-    *,
-    model: ParallelDiagonalModel,
-    model_call: nn.Module,
-    inputs: Int[Tensor, "examples context"],
-    targets: Int[Tensor, "examples"],
-    batch_size: int,
-) -> dict[str, float]:
-    was_training = model.training
-    model.eval()
-    if model_call is not model:
-        model_call.eval()
-
-    total_examples = 0
-    total_loss = 0.0
-    total_correct = 0
-    for start in range(0, inputs.shape[0], batch_size):
-        stop = min(start + batch_size, inputs.shape[0])
-        batch_inputs = inputs[start:stop]
-        batch_targets = targets[start:stop]
-        logits = model_call(batch_inputs)
-        batch_examples = batch_targets.shape[0]
-        total_loss += F.cross_entropy(logits, batch_targets, reduction="sum").item()
-        total_correct += (logits.argmax(dim=1) == batch_targets).sum().item()
-        total_examples += batch_examples
-
-    if was_training:
-        model.train()
-        if model_call is not model:
-            model_call.train()
-
-    return {
-        "loss": total_loss / total_examples,
-        "accuracy": total_correct / total_examples,
-    }
-
-
-def checkpoint_metrics(
-    *,
-    model: ParallelDiagonalModel,
-    model_call: nn.Module,
-    val_inputs: Int[Tensor, "examples context"],
-    val_targets: Int[Tensor, "examples"],
-    batch_size: int,
-    step: int,
-    tokens_per_second: float | None,
-) -> dict[str, float | int | None]:
-    metrics = evaluate_model_call(
-        model=model,
-        model_call=model_call,
-        inputs=val_inputs,
-        targets=val_targets,
-        batch_size=batch_size,
-    )
-    return {
-        "step": step,
-        "val_loss": round(metrics["loss"], 6),
-        "val_accuracy": round(metrics["accuracy"], 6),
-        "tokens_per_second": None if tokens_per_second is None else round(tokens_per_second, 6),
-    }
-
-
 def verify_forward_and_gradients(
     *,
     model: ParallelDiagonalModel,
@@ -343,102 +216,21 @@ def verify_forward_and_gradients(
     device: torch.device,
     vocab_size: int,
 ) -> dict[str, object]:
-    saved_state = {name: tensor.detach().clone() for name, tensor in model.state_dict().items()}
-    optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
-
-    model.train()
-    if model_call is not model:
-        model_call.train()
-
-    dummy_inputs = torch.randint(0, vocab_size, (2, CONTEXT_SIZE), device=device)
-    dummy_targets = torch.randint(0, vocab_size, (2,), device=device)
-    logits = model_call(dummy_inputs)
-    if tuple(logits.shape) != (2, vocab_size):
-        raise RuntimeError(
-            f"Verification failed: expected output shape (2, {vocab_size}), got {tuple(logits.shape)}."
-        )
-
-    loss = F.cross_entropy(logits, dummy_targets)
-    if not torch.isfinite(loss):
-        raise RuntimeError("Verification failed: dummy loss is not finite.")
-
-    optimizer.zero_grad(set_to_none=True)
-    loss.backward()
-
-    missing_gradient_parameters: list[str] = []
-    zero_gradient_parameters: list[str] = []
-    gradient_norm_sum = 0.0
-    total_trainable_parameters = 0
-    nonzero_gradient_parameters = 0
-    for name, parameter in model.named_parameters():
-        if not parameter.requires_grad:
-            continue
-        total_trainable_parameters += 1
-        if parameter.grad is None:
-            missing_gradient_parameters.append(name)
-            continue
-        if not torch.isfinite(parameter.grad).all():
-            raise RuntimeError(f"Verification failed: parameter {name} has NaN or Inf gradients.")
-        grad_norm = parameter.grad.detach().norm().item()
-        gradient_norm_sum += grad_norm
-        if grad_norm > 0.0:
-            nonzero_gradient_parameters += 1
-        else:
-            zero_gradient_parameters.append(name)
-
-    expected_missing_gradient_parameters: set[str] = set()
-    if model.token_injection == "block0":
-        expected_missing_gradient_parameters.update(
-            f"token_mixes.{block_index}.alpha_logit"
-            for block_index in range(1, model.num_blocks)
-        )
-
-    unexpected_missing_gradient_parameters = sorted(
-        name for name in missing_gradient_parameters if name not in expected_missing_gradient_parameters
+    summary = shared_verify_forward_and_gradients(
+        model=model,
+        model_call=model_call,
+        device=device,
+        vocab_size=vocab_size,
+        context_size=CONTEXT_SIZE,
+        error_prefix="Verification failed",
+        missing_gradient_is_expected=lambda name: model.token_injection == "block0"
+        and any(name == f"token_mixes.{block_index}.alpha_logit" for block_index in range(1, model.num_blocks)),
     )
-    if len(unexpected_missing_gradient_parameters) > 0 or len(zero_gradient_parameters) > 0:
-        raise RuntimeError(
-            "Verification failed: some parameters did not receive gradients. "
-            f"missing={unexpected_missing_gradient_parameters}, zero={zero_gradient_parameters}"
-        )
-
-    optimizer.step()
-    model.zero_grad(set_to_none=True)
-    if model_call is not model:
-        model_call.zero_grad(set_to_none=True)
-    model.load_state_dict(saved_state)
-
-    return {
-        "output_shape": list(logits.shape),
-        "dummy_loss": round(loss.item(), 6),
-        "total_trainable_parameters": total_trainable_parameters,
-        "nonzero_gradient_parameters": nonzero_gradient_parameters,
-        "gradient_norm_sum": round(gradient_norm_sum, 6),
-        "missing_gradient_parameters": missing_gradient_parameters,
-        "expected_missing_gradient_parameters": sorted(expected_missing_gradient_parameters),
-        "unexpected_missing_gradient_parameters": unexpected_missing_gradient_parameters,
-        "zero_gradient_parameters": zero_gradient_parameters,
-        "forward_pass_ok": True,
-        "backward_pass_ok": True,
-    }
-
-
-def training_throughput_tokens_per_second(
-    *,
-    current_step: int,
-    previous_step: int,
-    batch_size: int,
-    elapsed_seconds: float,
-) -> float:
-    if elapsed_seconds <= 0.0:
-        raise ValueError(f"elapsed_seconds must be positive, got {elapsed_seconds}.")
-    steps_completed = current_step - previous_step
-    if steps_completed <= 0:
-        raise ValueError(
-            f"current_step must be greater than previous_step, got current_step={current_step}, previous_step={previous_step}."
-        )
-    tokens_processed = steps_completed * batch_size * CONTEXT_SIZE
-    return tokens_processed / elapsed_seconds
+    return verification_payload(
+        summary,
+        include_expected_missing=True,
+        include_unexpected_missing=True,
+    )
 
 
 def train_single_variant(
@@ -532,9 +324,7 @@ def train_single_variant(
         )
         del model_call
         del model
-        gc.collect()
-        if device.type == "cuda":
-            torch.cuda.empty_cache()
+        release_memory(device=device)
         return result
 
     optimizer = build_optimizer(
@@ -542,69 +332,23 @@ def train_single_variant(
         device=device,
         compile_model=args.compile_model,
         learning_rate=args.learning_rate,
+        weight_decay=WEIGHT_DECAY,
     )
-
-    batch_rng = torch.Generator(device="cpu")
-    batch_rng.manual_seed(seed)
-    batch_iterator = random_batches(
-        encoded_corpus,
+    training = run_training_loop(
+        model=model,
+        model_call=model_call,
+        optimizer=optimizer,
+        encoded_corpus=encoded_corpus,
+        seed=seed,
+        device=device,
         context_size=CONTEXT_SIZE,
         batch_size=args.batch_size,
-        device=device,
-        rng=batch_rng,
-    )
-
-    checkpoints = [initial_checkpoint]
-    trainer: GraphTrainer | None = None
-    last_loss: Tensor | None = None
-    started_at = perf_counter()
-    last_eval_started_at = started_at
-    last_eval_step = 0
-
-    if device.type == "cuda" and not args.compile_model:
-        warmup_batches = [next(batch_iterator) for _ in range(WARMUP_STEPS)]
-        trainer = GraphTrainer(
-            model,
-            optimizer,
-            batch_size=args.batch_size,
-            seq_len=CONTEXT_SIZE,
-            device=device,
-        )
-        trainer.capture(warmup_batches)
-        last_loss = trainer.static_loss.detach().clone()
-        training_step_start = WARMUP_STEPS + 1
-    else:
-        training_step_start = 1
-
-    for step in range(training_step_start, args.training_steps + 1):
-        batch_input, batch_target = next(batch_iterator)
-        if trainer is not None:
-            last_loss = trainer.step(batch_input, batch_target)
-        else:
-            optimizer.zero_grad(set_to_none=True)
-            logits = model_call(batch_input)
-            loss = F.cross_entropy(logits, batch_target)
-            if not torch.isfinite(loss):
-                raise RuntimeError(
-                    f"Training diverged for variant {variant_key} at step {step}: loss is NaN or Inf."
-                )
-            loss.backward()
-            optimizer.step()
-            last_loss = loss.detach().clone()
-
-        if step % args.eval_interval != 0 and step != args.training_steps:
-            continue
-
-        if trainer is not None:
-            trainer.synchronize()
-        now = perf_counter()
-        tokens_per_second = training_throughput_tokens_per_second(
-            current_step=step,
-            previous_step=last_eval_step,
-            batch_size=args.batch_size,
-            elapsed_seconds=now - last_eval_started_at,
-        )
-        checkpoint = checkpoint_metrics(
+        training_steps=args.training_steps,
+        eval_interval=args.eval_interval,
+        compile_model=args.compile_model,
+        warmup_steps=WARMUP_STEPS,
+        initial_checkpoint=initial_checkpoint,
+        checkpoint_builder=lambda step, tokens_per_second: checkpoint_metrics(
             model=model,
             model_call=model_call,
             val_inputs=val_inputs,
@@ -612,9 +356,8 @@ def train_single_variant(
             batch_size=args.eval_batch_size,
             step=step,
             tokens_per_second=tokens_per_second,
-        )
-        checkpoints.append(checkpoint)
-        append_log(
+        ),
+        checkpoint_logger=lambda checkpoint: append_log(
             args.log_path,
             {
                 "stage": "checkpoint",
@@ -622,16 +365,11 @@ def train_single_variant(
                 "variant": variant_key,
                 **checkpoint,
             },
-        )
-        last_eval_started_at = perf_counter()
-        last_eval_step = step
-
-    if trainer is not None:
-        trainer.synchronize()
-    if last_loss is None:
-        raise RuntimeError(f"Variant {variant_key} completed without recording a training loss.")
-
-    wall_seconds = perf_counter() - started_at
+        ),
+        divergence_error_message=f"Training diverged for variant {variant_key} at step {{step}}: loss is NaN or Inf.",
+        missing_loss_error_message=f"Variant {variant_key} completed without recording a training loss.",
+        measure_tokens_per_second=True,
+    )
     result = {
         "seed": seed,
         "variant": variant_key,
@@ -642,11 +380,11 @@ def train_single_variant(
         "parameter_audit": parameter_audit,
         "compiled": args.compile_model,
         "verification": verification,
-        "checkpoints": checkpoints,
-        "best_checkpoint": min(checkpoints, key=lambda checkpoint: checkpoint["val_loss"]),
-        "final_checkpoint": checkpoints[-1],
-        "final_training_loss": round(last_loss.item(), 6),
-        "wall_seconds": round(wall_seconds, 6),
+        "checkpoints": training.checkpoints,
+        "best_checkpoint": min(training.checkpoints, key=lambda checkpoint: checkpoint["val_loss"]),
+        "final_checkpoint": training.checkpoints[-1],
+        "final_training_loss": training.final_training_loss,
+        "wall_seconds": training.wall_seconds,
     }
     append_log(
         args.log_path,
@@ -662,101 +400,24 @@ def train_single_variant(
     )
 
     del optimizer
-    del trainer
     del model_call
     del model
-    del batch_iterator
-    gc.collect()
-    if device.type == "cuda":
-        torch.cuda.empty_cache()
+    release_memory(device=device)
     return result
 
 
-def mean_rounded(values: list[float]) -> float:
-    return round(mean(values), 6)
-
-
-def std_rounded(values: list[float]) -> float:
-    if len(values) < 2:
-        return 0.0
-    return round(pstdev(values), 6)
-
-
 def summarize_results(*, per_seed_results: list[dict[str, object]], sanity_check_only: bool) -> dict[str, object]:
-    results_by_variant: dict[str, list[dict[str, object]]] = {}
-    for result in per_seed_results:
-        results_by_variant.setdefault(str(result["variant"]), []).append(result)
-
-    summary: dict[str, object] = {}
-    for variant, runs in results_by_variant.items():
-        if sanity_check_only:
-            summary[variant] = {
-                "num_runs": len(runs),
-                "parameter_count": runs[0]["parameter_count"],
-                "parameter_audit": runs[0]["parameter_audit"],
-                "verification": runs[0]["verification"],
-            }
-            continue
-
-        final_losses = [float(run["final_checkpoint"]["val_loss"]) for run in runs]
-        final_accuracies = [float(run["final_checkpoint"]["val_accuracy"]) for run in runs]
-        final_tokens_per_second = [float(run["final_checkpoint"]["tokens_per_second"]) for run in runs]
-        wall_seconds = [float(run["wall_seconds"]) for run in runs]
-        summary[variant] = {
-            "num_runs": len(runs),
-            "mean_final_val_loss": mean_rounded(final_losses),
-            "std_final_val_loss": std_rounded(final_losses),
-            "mean_final_val_accuracy": mean_rounded(final_accuracies),
-            "std_final_val_accuracy": std_rounded(final_accuracies),
-            "mean_final_tokens_per_second": mean_rounded(final_tokens_per_second),
-            "std_final_tokens_per_second": std_rounded(final_tokens_per_second),
-            "mean_wall_seconds": mean_rounded(wall_seconds),
-            "runs": runs,
-        }
-    return summary
-
-
-def maybe_write_lock(args: argparse.Namespace) -> None:
-    if args.no_lock or args.sanity_check_only:
-        return
-
-    lock_path = Path("runs/active.lock")
-    lock_path.parent.mkdir(parents=True, exist_ok=True)
-    lock_content = (
-        f"PID: {os.getpid()}\n"
-        f"Experiment: temporal_window\n"
-        f"Variants: {args.variants}\n"
-        f"Started: {datetime.now().astimezone().strftime('%Y-%m-%d %H:%M %z')}\n"
+    return summarize_variant_runs(
+        per_seed_results=per_seed_results,
+        sanity_check_only=sanity_check_only,
+        carry_forward_keys=("parameter_count", "parameter_audit", "verification"),
+        include_tokens_per_second=True,
     )
-    lock_path.write_text(lock_content, encoding="utf-8")
-
-    def _remove_lock() -> None:
-        try:
-            lock_path.unlink(missing_ok=True)
-        except OSError:
-            pass
-
-    atexit.register(_remove_lock)
 
 
 def main() -> int:
     args = parse_args()
-    if len(args.seeds) == 0:
-        raise ValueError("At least one seed is required.")
-    if args.training_steps <= 0:
-        raise ValueError(f"training_steps must be positive, got {args.training_steps}.")
-    if args.eval_interval <= 0:
-        raise ValueError(f"eval_interval must be positive, got {args.eval_interval}.")
-    if args.batch_size <= 0:
-        raise ValueError(f"batch_size must be positive, got {args.batch_size}.")
-    if args.eval_batch_size <= 0:
-        raise ValueError(f"eval_batch_size must be positive, got {args.eval_batch_size}.")
-    if args.eval_samples <= 0:
-        raise ValueError(f"eval_samples must be positive, got {args.eval_samples}.")
-    if not args.sanity_check_only and args.training_steps < WARMUP_STEPS and not args.compile_model:
-        raise ValueError(
-            f"training_steps must be at least {WARMUP_STEPS} for CUDA graph warmup when compile is disabled."
-        )
+    validate_common_training_args(args, warmup_steps=WARMUP_STEPS)
 
     specs = variant_specs()
     unknown_variants = [variant for variant in args.variants if variant not in specs]
@@ -768,21 +429,15 @@ def main() -> int:
     selected_specs = {key: specs[key] for key in args.variants}
     device = resolve_device(args.device)
 
-    maybe_write_lock(args)
+    register_active_lock(
+        experiment_name="temporal_window",
+        variants=args.variants,
+        enabled=not args.no_lock and not args.sanity_check_only,
+        started_at=datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %z"),
+    )
 
-    args.report_path.parent.mkdir(parents=True, exist_ok=True)
-    args.log_path.parent.mkdir(parents=True, exist_ok=True)
-    if args.log_path.exists():
-        previous_log = args.log_path.read_text(encoding="utf-8")
-        if previous_log:
-            append_log(
-                args.log_path,
-                {
-                    "stage": "run_restarted",
-                    "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
-                    "previous_lines": len(previous_log.splitlines()),
-                },
-            )
+    prepare_output_paths(report_path=args.report_path, log_path=args.log_path)
+    log_run_restarted(args.log_path)
 
     corpus = load_corpus(
         train_path=args.train_path,
