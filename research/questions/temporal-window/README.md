@@ -241,21 +241,25 @@ The primary comparison is H8 vs C8 — does trajectory specifically help? Absolu
 
 ---
 
-## In-flight observations (seed 42 COMPLETE, seeds 43-44 in progress, 2026-05-26 01:45 NZST)
+## In-flight observations (seeds 42-43 COMPLETE, seed 44 in progress, 2026-05-26 02:09 NZST)
 
-**Seed 42 final results:**
-| Condition | val_loss | Δ from H8 |
-|-----------|----------|-----------|
-| B0 | 2.501 | +0.132 |
-| H8 | 2.370 | — |
-| C8 | 2.404 | +0.034 |
+**Final results (2 of 3 seeds):**
+| Condition | Seed 42 | Seed 43 | Mean |
+|-----------|---------|---------|------|
+| B0 | 2.501 | 2.545 | 2.523 |
+| H8 | 2.370 | 2.369 | 2.369 |
+| C8 | 2.404 | 2.414 | 2.409 |
 
 **Key deltas:**
-- Δ_trajectory (C8 - H8) = **+0.034** — well above 0.015 pre-registered threshold
-- Δ_augmented (B0 - H8) = **+0.132** — augmented input helps enormously
-- Δ_control (B0 - C8) = **+0.097** — even non-trajectory augmentation helps, but trajectory helps MORE
+| Delta | Seed 42 | Seed 43 | Mean |
+|-------|---------|---------|------|
+| Δ_trajectory (C8 - H8) | +0.034 | +0.045 | **+0.040** |
+| Δ_augmented (B0 - H8) | +0.132 | +0.176 | +0.154 |
+| Δ_control (B0 - C8) | +0.097 | +0.131 | +0.114 |
 
-**Interpretation (seed 42 only, pending seeds 43-44):** Branch 1 strongly indicated. True history (H8) provides uniquely useful information that duplicated-current (C8) cannot. The gap (+0.034) is more than 2× the pre-registered threshold.
+**Interpretation (2 of 3 seeds, both concordant):** Branch 1 virtually certain. Mean Δ_trajectory (+0.040) is nearly 3× the pre-registered threshold (0.015). Both seeds show H8 clearly beating C8. True trajectory information provides uniquely useful temporal diversity that duplicated-current cannot access (as predicted by the FIR filter / diagonal subspace theory).
+
+**Notable:** Seed 43 shows an EVEN STRONGER trajectory effect (+0.045 vs +0.034). H8 is almost identical across seeds (2.370, 2.369) while B0 and C8 are more seed-variable. This suggests the temporal window provides a highly stable learning signal.
 
 **Learning-curve divergence (C8-H8 gap over time, seed 42):**
 
