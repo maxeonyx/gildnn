@@ -1,6 +1,6 @@
 # Temporal Window: Does trajectory information help upper blocks?
 
-**Status: COMPLETE ✅ — BRANCH 1 CONFIRMED. All 3 seeds concordant, mean Δ_trajectory = +0.042 (3× threshold). 4-block follow-up RUNNING (PID 20388, launched 02:55 NZST 2026-05-26).**
+**Status: COMPLETE ✅ — BRANCH 1 CONFIRMED. All 3 seeds concordant, mean Δ_trajectory = +0.042 (3× threshold). 4-block follow-up COMPLETE — STOP-LOSS (conditions 4+5 fail).**
 
 **Pathway:** 3 (Local Learning) — upstream dependency. If upper blocks can't be made useful, local learning has no substrate to test on.
 
@@ -269,7 +269,7 @@ True history (H8) provides uniquely useful temporal diversity that duplicated-cu
 - "Trajectory creates a computational niche for voluntary upper blocks" — only for forced-readout. That's what the 4-block follow-up tests.
 - "Trajectory is fundamentally necessary" — block 0 might learn to fold this info into its state with more capacity/training.
 
-**Next step (now running):** 4-block voluntary readout experiment (PID 20388, ~3.6 hours). See "Follow-up" section below.
+**Next step:** 4-block voluntary readout results are below. Stop-loss fired; per the decision tree, surrogate `bridge_detach` is now running.
 
 **Learning-curve divergence (C8-H8 gap over time, seed 42):**
 
@@ -386,6 +386,42 @@ Per-block zeroing ablation proves "the model uses this block's contribution." It
 3. **Age-selective ablation**: keep only recent-1, recent-2, or drop-oldest-half. If recent-1 recovers most benefit → recency shortcut, not broad trajectory use.
 
 **Threshold note:** The 0.015 val_loss threshold was calibrated in the 2-block forced-readout setting above. In this 4-block voluntary-readout setting, it serves as a discipline threshold (stop/go), not as a precisely calibrated scientific boundary. It may be too strict for detecting real voluntary-usefulness effects AND too lenient for claiming full architectural validation.
+
+### 4-block results (2026-05-26)
+
+| Variant | Seed 42 | Seed 43 | Seed 44 | 3-seed mean |
+|---------|---------|---------|---------|-------------|
+| A_all | 1.836 | 1.839 | 1.859 | 1.845 |
+| C8_all | 1.822 | 1.852 | 1.901 | 1.858 |
+| W8_all | 1.803 | 1.825 | 1.830 | 1.820 |
+
+| Condition | Result | Details |
+|---|---|---|
+| 1. mean(W8)−mean(A) ≤ -0.015 | PASS (-0.025) | |
+| 2. mean(W8)−mean(C8) ≤ -0.015 | PASS (-0.039) | |
+| 3. All seeds concordant | PASS | W8 < both controls on all 3 seeds |
+| 4. W8 upper blocks load-bearing | FAIL | Block 1: +0.42 ✅, Block 2: +0.02 ⚠️, Block 3: ~0 ❌ |
+| 5. A_all upper blocks spectator-like | FAIL | Block 1: +0.07 (load-bearing without temporal window!) |
+
+Per-block ablation costs are Δval_loss versus the full model. Seed 42 block-ablation checkpoints were lost, so the blockwise numbers below use seeds 43+44 only.
+
+| Variant | Block 0 | Block 1 | Block 2 | Block 3 |
+|---|---:|---:|---:|---:|
+| A_all | +1.95 | +0.072 | +0.013 | +0.013 |
+| W8_all | +5.17 | +0.42 | +0.02 | ~0 |
+| C8_all | +5.93 | +0.30 / +0.31 | +0.08 / +0.07 | +0.02 / +0.05 |
+
+- A_all block costs by seed pair: block 1 = +0.069, +0.075; block 2 = +0.013; block 3 = +0.013.
+- W8_all block costs: block 0 becomes even more load-bearing than A_all, block 1 rises to +0.42, block 2 is borderline at +0.02, block 3 remains spectator-like.
+- C8_all is both worse on mean val_loss and much more seed-sensitive: std = 0.039 vs W8_all std = 0.014.
+
+Temporal window creates a real voluntary niche, but it is local. W8_all amplifies block 1 from +0.07 in A_all to +0.42, roughly a 6× gain, without rescuing deeper blocks: the hierarchy is block 1 >> block 2 ≈ block 3. That is enough to beat both controls on all three seeds, but not enough to satisfy the pre-registered load-bearing criterion across blocks 1-3.
+
+The control results matter almost as much as the main effect. A_all block 1 is already load-bearing at +0.07, so the intended `token_injection="block0"` architecture is not as broken as the earlier universal-spectator framing suggested; the one-step lateral path already gives block 1 a small niche. C8_all stays mathematically degenerate and shows that in training dynamics: it is the worst of the three means and the noisiest by far.
+
+Stop-loss outcome: 1-2 blocks found a niche, not broad architectural rescue. Temporal window is therefore a real mechanism for creating computational niches, but its reach appears limited to the nearest block. The original hypothesis — that trajectory would rescue all upper blocks in the intended 4-block architecture — was too optimistic. Per the decision tree, the next branch is surrogate `bridge_detach` (now running).
+
+Artifacts: `experiments/temporal-window/artifacts/4block_report.json`, `experiments/temporal-window/artifacts/4block_run.jsonl`
 
 ### What this does NOT settle (even if positive)
 
