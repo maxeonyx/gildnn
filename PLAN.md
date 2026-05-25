@@ -49,10 +49,14 @@ All 3 seeds concordant. Mean Δ_trajectory (+0.042) is nearly 3× the pre-regist
 
 **Early observations (seed 42 only — not conclusive):**
 - full_backprop 20K final: 1.765 (**exact match** to C_old seed 42 — correct implementation confirmed)
-- detached at step 9K: 1.965 vs full_backprop at step 9K: 1.969 (**detached ahead by +0.004**)
-- Pre-registration predicted full_backprop ahead at step 8K-10K — WRONG direction so far
-- Aligns with pre-registered "wild card" (anti-co-adaptation): lateral gradients may be slightly harmful
-- **Do not over-interpret** — single seed, single checkpoint. Wait for full 3-seed × 20K + ablation.
+- Trajectory comparison (both variants at same steps):
+  - Steps 1K–12K: effectively identical (gap < 0.005, detached slightly ahead if anything)
+  - Step 15K: full=1.860, detach=1.867 (gap opens: +0.007)
+  - Step 16K: full=1.820, detach=1.838 (gap: +0.018)
+  - Step 17K: full=1.810, detach=1.828 (gap: +0.018, stable)
+- Pre-registration predicted divergence at step 8K-10K → actually appeared at ~15K
+- Gap appears stable at ~0.018. Extrapolating: detached final ~1.78-1.79 (borderline "clearly worse" threshold of 1.783)
+- **Do not over-interpret** — single seed, 3K steps remaining. Wait for full 3-seed × 20K + ablation.
 
 **Tied-depth experiment COMPLETE.** All 4 variants × 2 seeds finished. Full results:
 
