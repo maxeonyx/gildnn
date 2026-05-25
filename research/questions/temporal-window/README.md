@@ -263,3 +263,97 @@ The primary comparison is H8 vs C8 — does trajectory specifically help? Absolu
 
 **Theoretical explanation for early C8 ≈ H8:** C8 has a "shared shortcut" advantage — all 8 submatrices receive the same gradient direction, converging faster on easy current-state patterns. H8's gradient must sort out which lags matter, which takes longer. Once easy patterns saturate, H8 can leave the diagonal subspace to exploit lag-specific features; C8 cannot.
 - Code changes: `core/model.py` — `bias=False` on `window_proj`, additive aux branch, `temporal_window_mode` parameter ✅ (commit 95efdc8)
+
+---
+
+## Follow-up: 4-block voluntary readout (PRE-REGISTERED, conditional on branch 1)
+
+**⚠️ This section applies ONLY if the 2-block experiment above confirms branch 1 (H8 > C8 clearly, Δ_trajectory ≥ 0.015, all seeds concordant).** Per the stop-loss rule, this is the final intended-architecture experiment allowed.
+
+### Question
+
+Does temporal trajectory information make upper blocks **voluntarily useful** in a 4-block `readout_mode="all"` regime? The 2-block result (if positive) proves a forced-readout block CAN use trajectory. This tests whether the mechanism scales — does it overcome the spectator problem that has defeated every prior 4-block intended-architecture attempt?
+
+### Conditions
+
+| Variant | temporal_window | temporal_window_mode | Purpose |
+|---|---|---|---|
+| A_all | 0 | — | Control: reproduce known spectator behavior |
+| C8_all | 8 | "current" (duplicated) | Same-capacity non-trajectory control in 4-block voluntary regime |
+| W8_all | 8 | "history" (true trajectory) | Main test: does trajectory rescue make blocks voluntarily useful? |
+
+**Why include C8_all?** The 2-block result proves trajectory > capacity in the forced-readout regime. But forced-readout ≠ voluntary-readout dynamics. In a voluntary regime, the capacity boost from any extra branch might change the equilibrium differently. Including C8_all eliminates "any extra projected input helps voluntary blocks" as an alternative explanation.
+
+### Shared config
+
+- `num_blocks=4`
+- `topology="upward"`
+- `token_injection="block0"`
+- `readout_mode="all"` (all blocks contribute — voluntary participation)
+- `internal_steps=1`
+- `rates=(1, 1, 1, 1)` — all rate-1, no staleness confound. Depth creates the propagation delay.
+- `d_model=256`, `feedforward_dim=512` — matches C_old exactly for direct comparability
+- WikiText-103 ctx=128, 20K steps, batch 64, AdamW lr=3e-4, weight_decay=0.01
+- 3 seeds (42, 43, 44)
+- Temporal window applied to **blocks 1, 2, and 3** (all upper blocks get history from the block below)
+
+### Parameter accounting (verified via sanity check)
+
+- A_all: 3,639,168 params (matches C_old exactly)
+- C8_all / W8_all: 4,163,456 params (identical — one shared `window_proj` across all upper blocks)
+- Difference: 524,288 = Linear(8×256, 256, bias=False) = one shared temporal projection
+- Within-experiment comparison (W8 vs C8) is parameter-matched
+- A_all vs W8/C8 differs by 14.4% — smaller than pre-estimated because the model uses ONE shared `window_proj` for blocks 1, 2, and 3 rather than per-block projections
+
+**Architectural note:** All upper blocks apply the SAME learned FIR filter to their respective lower block's history. This is a shared inductive bias — the model learns one temporal feature extraction pattern applied at all depth levels. If this proves insufficient, per-block projections would be a natural follow-up (but requires model code change).
+
+### Expected runtime
+
+~24 min per variant-seed (based on C_old timing at same d/ff). 9 runs ≈ 3.6 hours total. Two-phase delegation required.
+
+### Required measurements
+
+**Primary:** val_loss by variant × seed, mean and std.
+
+**Post-training per-block readout ablation:** For each trained model, evaluate with each block's readout contribution zeroed:
+- Zero block k's contribution: `output = sum_{i≠k} w_i · s_i` (do NOT renormalize remaining weights)
+- Record val_loss for each ablated block
+- Key comparison: in A_all vs W8_all, which blocks show ablation cost ≥ 0.02?
+
+**Cumulative ablation (secondary):**
+- block 0 only
+- blocks 0+1
+- blocks 0+1+2
+- full model
+- For comparison to C_old where all 4 blocks were load-bearing.
+
+### Success criteria
+
+**Strong positive (viable at scale):**
+1. W8_all beats A_all by ≥ 0.015 mean val_loss
+2. W8_all beats C8_all by ≥ 0.015 mean val_loss
+3. Same sign on all 3 seeds
+4. In W8_all, ablating each of blocks 1, 2, 3 individually raises val_loss by ≥ 0.02 mean
+
+Interpretation: trajectory information is not just usable under forcing; it makes upper blocks voluntarily load-bearing. The intended architecture IS viable when blocks get trajectory access.
+
+**Partial positive:**
+- W8_all beats controls, but only some of blocks 1-3 clear the 0.02 ablation threshold
+
+Interpretation: trajectory creates SOME voluntary niche, but scaling is incomplete. Mechanism works but doesn't fully overcome spectator problem for all blocks.
+
+**Null:**
+- W8_all ≈ A_all, or blocks 1-3 are still spectators (ablation < 0.02) even with window
+
+Interpretation: forced-readout benefit does NOT generalize to voluntary 4-block regime. The 2-block result was an artifact of forcing. Stop-loss fires — pivot to surrogate pathways immediately.
+
+### Control validity check
+
+If A_all does NOT reproduce spectator behavior (i.e., blocks 1-3 turn out to be useful WITHOUT the window), the experiment is invalid as a "rescue" test. This would be a surprising and informative result in itself — suggesting something about the configuration (d=256 vs smaller, or some other factor) makes the intended architecture work without trajectory help.
+
+### What this does NOT settle (even if positive)
+
+- Whether the mechanism works with heterogeneous rates (multi-rate firing creates additional staleness)
+- Whether local learning (gradient truncation) works WITH temporal window
+- Whether attention-based aggregation would be better than linear window projection
+- Whether window=8 is optimal or scales with depth
