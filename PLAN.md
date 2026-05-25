@@ -116,8 +116,8 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 | Priority | Experiment | Pathway | Architecture | Why |
 |---|---|---|---|---|
 | 1 | **C_old ablation** | 3 | surrogate | **COMPLETE. Laterals load-bearing (Δ=+0.030).** |
-| 2 | **Clean weight-sharing isolation** — shared vs distinct feedforward, both with all-injection | 1 | surrogate | Isolates weight sharing from routing. **RUNNING (PID 22508).** |
-| 3 | **Temporal window** — 2-block, readout_mode="last", B0/H8/C8 conditions | 3 | **intended** | Does trajectory info create a niche for upper blocks in block0-only? The cheapest direct test of Max's corrected architecture. **READY TO LAUNCH** — `runs/temporal_window.py` verified on CPU. Pre-registered in `research/questions/temporal-window/`. |
+| 2 | **Clean weight-sharing isolation** — shared vs distinct feedforward, both with all-injection | 1 | surrogate | Isolates weight sharing from routing. **DATA LOST — needs 3-seed rerun.** Provisional 1-seed: tied_shared=1.910 vs distinct≈1.85 (~0.06 gap). |
+| 3 | **Temporal window** — 2-block, readout_mode="last", B0/H8/C8 conditions | 3 | **intended** | Does trajectory info create a niche for upper blocks in block0-only? **RUNNING (PID 18956).** Expected ~03:10 NZST 2026-05-26. Pre-registered in `research/questions/temporal-window/`. |
 | 4 | **Iteration-benefit measurement** — eval shared model at 1,2,4,8 iterations | 1/5 | surrogate | Only if tied_sharing positive. Tests dynamic depth in simplified regime. |
 | 5 | **Bridge experiment (detach_lateral)** — full-backprop vs detached-lateral | 3 | surrogate | Can blocks learn useful laterals without cross-block gradient? Pre-registered in local-learning README. |
 | 6 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | infra | Next step after the 28% CUDA Graph result. |
@@ -128,6 +128,29 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 **Tied_sharing caveat:** The clean test shares only feedforward block weights — per-block `token_mixes` and `block_mixes` remain distinct. A positive result proves "shared feedforward processing is viable with position-specific routing," NOT "same weights applied N times with identical routing" (the full Pathway 1 hypothesis). It is a reasonable first step, not a final answer.
 
 **After tied_sharing finishes:** Temporal_window is next REGARDLESS of tied_sharing outcome. Tied_sharing is a Pathway 1 test; temporal_window is a Pathway 3 test of the intended architecture. They answer different questions. Record tied_sharing results in `research/questions/wide-recurrent-vs-transformer/README.md`, update this file, then proceed to temporal_window implementation.
+
+### Temporal_window decision tree (pre-planned)
+
+When results arrive, use pre-registered thresholds from `research/questions/temporal-window/README.md` (Δ_trajectory ≥ 0.015 + all seeds concordant = "clear H8 > C8"; |Δ| < 0.005 = "≈"). Branches 4–5 are overlays on 1–3.
+
+1. **H8 > B0 AND H8 > C8** (trajectory uniquely helps): Proves temporal diversity creates a niche. Next: scale to 4 blocks with window + `readout_mode="all"`, ablate upper blocks — test voluntary usefulness without forced readout.
+2. **H8 > B0 BUT H8 ≈ C8** (capacity/interface, not history): Extra projected input helps but it's not temporal diversity. Next: test simpler capacity/interface fixes on intended architecture. Deprioritize window-size sweeps.
+3. **H8 ≈ B0 ≈ C8** (nothing helps): Current rescue mechanism fails. Pivot back to surrogate-architecture work: bridge/detach_lateral (Pathway 3) or iteration-benefit (Pathway 1/5). Park intended-architecture rescue as open design problem.
+4. **B0 < 2.0** (overlay): Intended architecture isn't fundamentally broken → less urgency, can go straight to learning-signal tests on B0 if no unique H8 win.
+5. **Seed instability** (overlay): Effect not decision-grade. Rerun with more seeds before theorizing. May be a Pathway 9 (stability) issue.
+
+### ⚠️ Stop-loss rule (timebox discipline)
+
+**Intended-architecture rescue gets at most temporal_window + 1 follow-up experiment.** That's 2 experiments total. If temporal_window is not decisively positive (branch 1 above), pivot immediately to surrogate-architecture pathways where foundations are proven.
+
+Rationale (from adversarial review, 2026-05-26): The surrogate architecture already has load-bearing laterals (Δ=+0.030), all blocks contribute, and multiple high-information experiments are immediately available (bridge/detach_lateral, gradient radius sweep, iteration-benefit). With ~10–12 experiments remaining in the timebox, spending more than 2 on a branch that has failed every prior test is not justified unless evidence is strong.
+
+**Recommended remaining-budget split (after temporal_window):**
+- 1–2: intended follow-up ONLY if temporal_window is branch 1
+- 3–4: surrogate local-learning ladder (bridge/detach → locality sweep → local-rule comparison)
+- 1–2: dynamic depth / iteration-benefit measurement
+- 1–2: tied_sharing rerun OR custom CUDA, depending on which teaches more
+- 1: buffer for reruns/surprises
 
 ### Why token_injection="block0" fails (theory, 2026-05-25)
 
