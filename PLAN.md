@@ -8,15 +8,16 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 **Temporal_window experiment RUNNING** (PID 18956, ~50% complete, ETA ~02:37 NZST).
 
-**Seed 42 COMPLETE — strong branch 1:**
-- B0: 2.501
-- H8: 2.370
-- C8: 2.404
-- **Δ_trajectory = +0.034** (well above 0.015 threshold)
-- Pre-registered prediction confirmed ✅ (predicted C8 2.39-2.44, actual 2.404)
+**Seeds 42 & 43 COMPLETE — strong branch 1:**
+| Seed | B0 | H8 | C8 | Δ_trajectory | Δ_augmented |
+|---|---|---|---|---|---|
+| 42 | 2.501 | 2.370 | 2.404 | +0.034 | +0.132 |
+| 43 | 2.545 | 2.369 | 2.414 | +0.045 | +0.176 |
+| Mean | 2.523 | 2.369 | 2.409 | **+0.040** | +0.154 |
 
-Seed 43: B0=2.545 done, H8 at step 17K (val_loss 2.406, tracking similar to seed 42)
-Seeds 43-44 needed to confirm concordance across all 3 seeds.
+Pre-registered prediction confirmed ✅ (predicted C8 2.39-2.44, actual 2.404/2.414)
+Mean Δ_trajectory (+0.040) is nearly 3× the pre-registered threshold (0.015).
+Seed 44 remaining (~48 min). Branch 1 is virtually certain.
 
 **4-block follow-up script READY** (`runs/temporal_window_4block.py`, commit c6ab083). Pre-registered in temporal-window README. Launches immediately when all 3 seeds confirm branch 1. ~3.6 hours runtime.
 
