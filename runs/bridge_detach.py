@@ -46,6 +46,7 @@ DEFAULT_VARIANTS = ("full_backprop", "detached")
 EVAL_SAMPLES = 4096
 WARMUP_STEPS = 3
 EXPECTED_PARAMETER_COUNT = 3_639_168
+ABLATION_MASK_LOGIT = -100.0
 
 
 @dataclass(frozen=True)
@@ -247,6 +248,129 @@ def run_lateral_ablation(
     return result
 
 
+def cumulative_ablation_names(*, num_blocks: int) -> tuple[str, ...]:
+    if num_blocks != 4:
+        raise ValueError(f"Bridge-detach readout ablation expects num_blocks=4, got {num_blocks}.")
+    return ("block0_only", "blocks_0_1", "blocks_0_1_2", "full")
+
+
+def apply_per_block_ablation(*, trained_logits: Tensor, block_index: int) -> Tensor:
+    replacement = trained_logits.clone()
+    replacement[block_index] = ABLATION_MASK_LOGIT
+    return replacement
+
+
+def apply_cumulative_ablation(*, trained_logits: Tensor, ablation_name: str, num_blocks: int) -> Tensor:
+    replacement = torch.full_like(trained_logits, ABLATION_MASK_LOGIT)
+    match ablation_name:
+        case "block0_only":
+            keep_count = 1
+        case "blocks_0_1":
+            keep_count = 2
+        case "blocks_0_1_2":
+            keep_count = 3
+        case "full":
+            keep_count = num_blocks
+        case _:
+            raise ValueError(f"Unknown cumulative ablation {ablation_name!r}.")
+    replacement[:keep_count] = trained_logits[:keep_count]
+    return replacement
+
+
+def run_readout_ablation(
+    *,
+    seed: int,
+    variant_key: str,
+    model: ParallelDiagonalModel,
+    spec: VariantSpec,
+    val_inputs: Int[Tensor, "examples context"],
+    val_targets: Int[Tensor, "examples"],
+    eval_batch_size: int,
+    log_path: Path,
+) -> dict[str, dict[str, dict[str, float]]]:
+    if model.readout_logits is None:
+        raise RuntimeError(f"{variant_key} readout ablation requires readout_mode='all' with readout_logits present.")
+
+    trained_logits = model.readout_logits.detach().clone()
+    results: dict[str, dict[str, dict[str, float]]] = {
+        "per_block": {},
+        "cumulative": {},
+    }
+
+    try:
+        for block_index in range(spec.num_blocks):
+            ablation_name = f"zero_block_{block_index}"
+            with torch.no_grad():
+                model.readout_logits.copy_(
+                    apply_per_block_ablation(trained_logits=trained_logits, block_index=block_index)
+                )
+            metrics = checkpoint_metrics(
+                model=model,
+                model_call=model,
+                val_inputs=val_inputs,
+                val_targets=val_targets,
+                batch_size=eval_batch_size,
+                step=0,
+                include_tokens_per_second=False,
+            )
+            result = {
+                "val_loss": float(metrics["val_loss"]),
+                "val_accuracy": float(metrics["val_accuracy"]),
+            }
+            results["per_block"][ablation_name] = result
+            append_log(
+                log_path,
+                {
+                    "stage": "readout_ablation",
+                    "seed": seed,
+                    "variant": variant_key,
+                    "ablation_type": "per_block",
+                    "ablation_name": ablation_name,
+                    **result,
+                },
+            )
+
+        for ablation_name in cumulative_ablation_names(num_blocks=spec.num_blocks):
+            with torch.no_grad():
+                model.readout_logits.copy_(
+                    apply_cumulative_ablation(
+                        trained_logits=trained_logits,
+                        ablation_name=ablation_name,
+                        num_blocks=spec.num_blocks,
+                    )
+                )
+            metrics = checkpoint_metrics(
+                model=model,
+                model_call=model,
+                val_inputs=val_inputs,
+                val_targets=val_targets,
+                batch_size=eval_batch_size,
+                step=0,
+                include_tokens_per_second=False,
+            )
+            result = {
+                "val_loss": float(metrics["val_loss"]),
+                "val_accuracy": float(metrics["val_accuracy"]),
+            }
+            results["cumulative"][ablation_name] = result
+            append_log(
+                log_path,
+                {
+                    "stage": "readout_ablation",
+                    "seed": seed,
+                    "variant": variant_key,
+                    "ablation_type": "cumulative",
+                    "ablation_name": ablation_name,
+                    **result,
+                },
+            )
+    finally:
+        with torch.no_grad():
+            model.readout_logits.copy_(trained_logits)
+
+    return results
+
+
 def train_single_variant(
     *,
     seed: int,
@@ -258,7 +382,7 @@ def train_single_variant(
     val_inputs: Int[Tensor, "examples context"],
     val_targets: Int[Tensor, "examples"],
     parameter_audit: dict[str, object],
-) -> tuple[dict[str, object], dict[str, float]]:
+) -> tuple[dict[str, object], dict[str, object]]:
     set_seed(seed)
     encoded_corpus = getattr(corpus.train_dataset, "encoded_corpus", None)
     if not isinstance(encoded_corpus, torch.Tensor):
@@ -317,6 +441,16 @@ def train_single_variant(
             eval_batch_size=args.eval_batch_size,
             log_path=args.log_path,
         )
+        readout_ablation = run_readout_ablation(
+            seed=seed,
+            variant_key=variant_key,
+            model=model,
+            spec=spec,
+            val_inputs=val_inputs,
+            val_targets=val_targets,
+            eval_batch_size=args.eval_batch_size,
+            log_path=args.log_path,
+        )
         result = {
             "seed": seed,
             "variant": variant_key,
@@ -333,6 +467,7 @@ def train_single_variant(
             "final_training_loss": None,
             "wall_seconds": 0.0,
             "ablation": ablation,
+            "readout_ablation": readout_ablation,
         }
         append_log(
             args.log_path,
@@ -349,7 +484,10 @@ def train_single_variant(
         del model_call
         del model
         release_memory(device=device)
-        return result, ablation
+        return result, {
+            "ablation": ablation,
+            "readout_ablation": readout_ablation,
+        }
 
     optimizer = build_optimizer(
         model,
@@ -403,6 +541,16 @@ def train_single_variant(
         eval_batch_size=args.eval_batch_size,
         log_path=args.log_path,
     )
+    readout_ablation = run_readout_ablation(
+        seed=seed,
+        variant_key=variant_key,
+        model=model,
+        spec=spec,
+        val_inputs=val_inputs,
+        val_targets=val_targets,
+        eval_batch_size=args.eval_batch_size,
+        log_path=args.log_path,
+    )
 
     result = {
         "seed": seed,
@@ -420,6 +568,7 @@ def train_single_variant(
         "final_training_loss": training.final_training_loss,
         "wall_seconds": training.wall_seconds,
         "ablation": ablation,
+        "readout_ablation": readout_ablation,
     }
     append_log(
         args.log_path,
@@ -438,7 +587,10 @@ def train_single_variant(
     del model_call
     del model
     release_memory(device=device)
-    return result, ablation
+    return result, {
+        "ablation": ablation,
+        "readout_ablation": readout_ablation,
+    }
 
 
 def summarize_results(*, per_seed_results: list[dict[str, object]], sanity_check_only: bool) -> dict[str, object]:
@@ -509,12 +661,12 @@ def main() -> int:
 
     overall_started_at = perf_counter()
     per_seed_results: list[dict[str, object]] = []
-    ablation_results: dict[str, dict[str, dict[str, float]]] = {}
+    ablation_results: dict[str, dict[str, dict[str, object]]] = {}
     for seed in args.seeds:
         append_log(args.log_path, {"stage": "seed_started", "seed": seed})
         ablation_results[str(seed)] = {}
         for variant_key in args.variants:
-            result, ablation = train_single_variant(
+            result, variant_ablation_results = train_single_variant(
                 seed=seed,
                 variant_key=variant_key,
                 spec=selected_specs[variant_key],
@@ -526,7 +678,7 @@ def main() -> int:
                 parameter_audit=parameter_audit,
             )
             per_seed_results.append(result)
-            ablation_results[str(seed)][variant_key] = ablation
+            ablation_results[str(seed)][variant_key] = variant_ablation_results
         append_log(args.log_path, {"stage": "seed_finished", "seed": seed})
 
     wall_seconds = perf_counter() - overall_started_at
