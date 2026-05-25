@@ -1,0 +1,159 @@
+# Multi-Timestep Architecture: Block-Timestep Grid with Local Learning
+
+**Pathways:** 1 (Wide Recurrent), 3 (Local Learning)
+**Status:** Design exploration (from conversation 2026-05-25)
+
+---
+
+## Core idea
+
+The architecture is a 2D grid. The horizontal axis is lateral distance from the input. The vertical axis is timesteps. The stream flows diagonally through this grid — laterally with no processing. Blocks sit on the temporal (vertical) edges, adding computation with 1-tick delay.
+
+A block IS a temporal edge. Information goes in, the block processes it, it comes back to the same lateral position 1 timestep later. There are no blocks on the lateral path — the fastest route for a token's information to reach all positions is the unprocessed diagonal.
+
+Multiple timesteps per token gives higher-level blocks the chance to send information via right-to-left connections (processed info flowing back toward input).
+
+---
+
+## Grid diagram
+
+4 lateral positions, stride 2 (2 timesteps per token). All connections shown.
+
+```
+        L0         L1         L2         L3
+
+  T0    ○══════╲
+        │       ╲
+       [B0]      ╲
+        │         ╲
+  T1    ○══════╲   ○══════╲
+        │       ╲  │       ╲
+       [B0]      ╲[B1]      ╲
+        │         ╲│         ╲
+  T2    ○══════╲   ○══════╲   ○══════╲                <-- x1 enters at L0
+        │       ╲  │       ╲  │       ╲
+       [B0]      ╲[B1]      ╲[B2]      ╲
+        │         ╲│         ╲│         ╲
+  T3    ○══════╲   ○══════╲   ○══════╲   ○
+        │       ╲  │       ╲  │       ╲  │
+       [B0]      ╲[B1]      ╲[B2]      ╲[B3]
+        │         ╲│         ╲│         ╲ │
+  T4    ○══════╲   ○══════╲   ○══════╲   ○           <-- x2 enters at L0
+        │       ╲  │       ╲  │       ╲  │
+       [B0]      ╲[B1]      ╲[B2]      ╲[B3]
+        │         ╲│         ╲│         ╲ │
+  T5    ○          ○          ○          ○
+```
+
+```
+○          = stream state (node — where info sits between processing)
+══════╲    = lateral flow (the residual stream, NO processing, fastest path)
+│[Bk]│     = block k (temporal edge — processing happens HERE, adds 1 tick delay)
+```
+
+Each ○ receives two inputs:
+1. The lateral flow from upper-left (═══╲ arriving from the adjacent position, unprocessed)
+2. The block output from directly above (│[Bk]│, the processed contribution from the same position)
+
+These are merged by a combining function (same everywhere — see principles below).
+
+The fastest path from x0 entering at (L0, T0) to reaching L3 is 3 ticks along the diagonal — pure stream, no blocks. Block contributions trail behind: B0's processed output of x0 arrives at L1 at T2 (1 tick behind the raw stream), at L2 at T3 (2 ticks behind), etc.
+
+**The stream is only purely unprocessed on the very first diagonal wavefront.** After that, each node holds a temporal superposition — differently-aged information at different levels of processing coexisting in the stream:
+- Raw token info (just arrived via lateral, zero processing)
+- Block output from 1 tick ago (1 level of processing)
+- Contributions derived from 2 ticks ago (2 levels of processing)
+- etc.
+
+"Depth" of processing is encoded as temporal age in the stream. The combining function determines how these differently-aged contributions coexist — it could differ by dimension or direction. Don't over-specify; the goal is getting information flow right so that parallel processing falls out.
+
+---
+
+## What's on each edge
+
+**Lateral (══╲):** The residual stream, flowing without processing. This is not a block's output — it's the stream itself moving to the next position. The diagonal is the natural rate of information propagation.
+
+**Temporal (│[Bk]│):** A block. The block reads the stream at this position, computes on it (1 tick), and writes its contribution back to the same position. The combining function merges the block's output with the incoming lateral flow.
+
+**Key insight:** there are no blocks on the lateral path. The fastest information route is pure stream. Blocks add richness (processed representations) but at the cost of delay. This means raw tokens arrive at distant positions BEFORE any processed representations do.
+
+---
+
+## Right-to-left connections (noted, not yet designed)
+
+Block outputs could also propagate leftward (back toward the input). This would let processed representations from later positions feed back to earlier ones. We're leaving this out of the initial design but bearing it in mind — the grid structure naturally supports bidirectional lateral flow.
+
+---
+
+## Architecture principles
+
+From Max's description (2026-05-25). Preserved at his level of specificity.
+
+### What's clear
+
+1. **Grid structure.** Lateral positions on the horizontal axis, timesteps on the vertical axis. The grid is the computation.
+
+2. **Timesteps >= tokens.** There must not be fewer timesteps than tokens. There could be equal, or more.
+
+3. **Blocks are temporal edges.** A block reads from the stream, processes, and writes back to the same position. This takes 1 timestep. That's all a block is — a temporal edge in the grid.
+
+4. **Lateral = unprocessed stream.** The diagonal flow is the residual stream moving without any processing. It's the fastest path. No blocks on this path.
+
+5. **Token injection at L0.** Raw tokens enter at lateral position 0 (closest to input). Interior positions get the token's information only via the lateral stream — it takes N timesteps for a token to reach position N.
+
+6. **Extra timesteps are for right-to-left flow.** More timesteps per token isn't about giving the left-to-right stream time to arrive (that's already the fastest path). It's about giving the processed, right-to-left connections time to send information back toward the input.
+
+7. **Two separate concerns:**
+   - **Block internals:** learned LOCALLY. Each block trains via a local signal (predict what the left neighbor will send next). This is the "lifetime learning."
+   - **Communication scheme (combining function):** how block output merges with the incoming lateral stream at each node. This is SHARED (tied weights across all positions and timesteps). Could be learned globally (backpropped) or fixed. Same scheme everywhere — "evolved, not learned per-block." Could differ by dimension or direction.
+
+8. **The prediction is the loss, not the output.** The local prediction (of next input from left) provides the training signal. The block's actual output is its representation, shaped by that training pressure. What goes back into the stream is determined by the combining function.
+
+9. **Information flow drives the design.** The combining function, the stride, the right-to-left connections — these are all about getting information flow right. If information flow is correct, parallel processing falls out naturally. The biological inspiration is a consequence of this (brains also do parallel processing), not the starting point.
+
+### What's uncertain
+
+- **Should interior positions also get the raw token?** There's an argument for raw input plus derived representations. This would ground each position independently. Not decided.
+
+- **What exactly does a block produce?** It processes its inputs and produces output. The combining function handles how that merges with the stream. The specifics are TBD.
+
+- **The combining function.** "Combined in some fashion." Don't over-specify. Could differ by dimension or direction. Could be learned (tied, backpropped) or fixed. The point is getting information flow right — the specifics are empirical.
+
+- **Right-to-left flow.** Block outputs going back toward the input. Conceptually present but not yet designed. This is what the extra timesteps are FOR.
+
+---
+
+## Why this design
+
+The motivation chain:
+
+1. Want truly parallel blocks (Pathway 2: async execution)
+2. Want blocks to learn independently (Pathway 3: local learning, no global backprop between blocks)
+3. Need lateral propagation for information to reach all positions
+4. The lateral flow is the RESIDUAL STREAM — unprocessed, no blocks on it, fastest path
+5. Blocks sit on temporal edges — they process in-place, adding delay but also adding richness
+6. Multiple timesteps per token so lateral info has time to reach all positions before the next token arrives
+7. The "predict left neighbor" local loss grounds each block without requiring cross-block gradients
+8. The shared combining function is the minimal global structure — same everywhere, like evolved wiring vs learned synapses
+
+---
+
+## Connection to existing work
+
+- **C_old ablation (running):** Tests whether lateral connections carry information in the current architecture. If yes, validates that blocks CAN communicate usefully. The new design provides a theory for WHY they'd communicate and WHAT they'd send.
+
+- **Predictive coding literature:** "Predict your left neighbor's next output" is essentially predictive coding. Each level predicts the activity of the level below/beside. Prediction errors drive learning.
+
+- **Residual streams (transformers):** The lateral flow IS a residual stream — blocks read from it and write to it without gating the flow. Similar to how transformer layers read/write to the residual stream, but here the stream also flows laterally (across positions), not just vertically (through layers).
+
+---
+
+## Open questions (for future experiments)
+
+1. Does "predict left neighbor" actually produce useful representations, or does it degenerate?
+2. What's the minimum stride (timesteps per token) needed for full propagation given N positions?
+3. Should the combining function be learned (tied, backpropped) or fixed?
+4. At what scale does the local-only learning signal become insufficient vs global backprop?
+5. Can this compose with multi-rate (different positions process at different speeds)?
+6. What does right-to-left flow look like? Does it use the same combining function?
+7. With stride > 1, does the extra processing time (more block applications before next token) substitute for deeper blocks?
