@@ -45,17 +45,37 @@ All 3 seeds concordant. Mean Δ_trajectory (+0.042) is nearly 3× the pre-regist
 
 **Action:** Per decision tree → surrogate bridge_detach launched. No intended-architecture follow-up (criterion not met). Trajectory diagnostics NOT run (would be for strong-positive only).
 
-**Bridge_detach experiment RUNNING** (PID 20396, launched 07:40 NZST 2026-05-26). Log: `experiments/wikitext_103/artifacts/bridge_detach/run.jsonl`. Speed: ~118K tok/s. ETA completion: ~10:30 NZST. **No --compile** (torch.compile was counterproductive for this model — caused 15+ min JIT compilation with no speed benefit after).
+**Bridge_detach experiment RUNNING** (PID 20396, launched 07:40 NZST 2026-05-26). Log: `experiments/wikitext_103/artifacts/bridge_detach/run.jsonl`. Speed: ~118K tok/s. ETA completion: ~10:15 NZST. **No --compile** (torch.compile was counterproductive for this model — caused 15+ min JIT compilation with no speed benefit after).
 
-**Early observations (seed 42 COMPLETE — seeds 43-44 still running):**
-- full_backprop seed 42 final: **1.765** (exact match to C_old — correct implementation ✅)
-- detached seed 42 final: **1.794** (gap = **0.029 nats**, above "clearly worse" threshold of 1.783)
+**Results so far (seeds 42-43 COMPLETE, seed 44 running):**
+
+| Metric | Seed 42 | Seed 43 |
+|---|---|---|
+| full_backprop final | 1.765 | 1.756 |
+| detached final | 1.794 | 1.794 |
+| Gap | **+0.029** | **+0.038** |
+
+**Concordant: both seeds "clearly worse."** Detached ceiling remarkably consistent (1.794 both seeds) while full shows normal seed variance (1.756-1.765). Suggests the ceiling is algorithmic, not random.
+
 - Trajectory: identical for 12K steps → gap opens at 15K → accelerates through 20K
-  - Step 17K gap: 0.018 → Step 20K gap: 0.029 (widening in final stretch)
-  - Full improved 0.045 in last 3K steps; detached improved only 0.034
-- **Interpretation (seed 42 only):** lateral gradient needed for late-stage refinement. Protocol bootstraps fine without gradient, but co-adaptation drives final quality.
-- Warmup→detach diagnostic pre-registered (local-learning README) — would test if brief warmup during transition regime suffices.
-- **Still need:** seeds 43-44 concordance + lateral-zeroing ablation (THE key discriminator). Single-seed results are NOT conclusive.
+
+**Readout ablation pattern (most revealing finding):**
+
+| Block | Full s42 | Full s43 | Det s42 | Det s43 |
+|---|---|---|---|---|
+| 0 | +1.12 | +0.93 | +1.11 | +0.84 |
+| 1 | +0.10 | +0.20 | **+0.44** | **+0.68** |
+| 2 | +0.05 | +0.03 | +0.16 | +0.11 |
+| 3 | **+0.42** | **+0.35** | +0.07 | +0.07 |
+
+**Story (consistent across both seeds):**
+- Full_backprop: "U-shaped" — block 3 develops large contribution (0.35-0.42). Lateral gradient enables useful upper-block computation.
+- Detached: "front-loaded" — block 3 nearly useless (0.07), block 1 picks up partial slack (+0.44-0.68 vs 0.10-0.20). Without lateral gradient, model settles for shallower solution.
+- Hypothesis (not proven): senders don't learn what to send without gradient → receivers get uninformative lateral input → can't develop useful specialization.
+
+**⚠️ Methodological learning:** The pre-registered "lateral-zeroing cost as discriminator" is uninformative in this regime. Both variants produce catastrophic values (10^11-10^15) because both were trained WITH forward laterals — eval-time removal is architectural mutilation, not the gentle ablation assumed. C_old's 0.030 gap compared two SEPARATELY TRAINED models; this is fundamentally different. The readout pattern is the actual discriminator.
+
+**Decision per pre-registration:** "Clearly worse" → **warmup→detach diagnostic** (pre-registered in local-learning README). Still waiting on seed 44 for confirmation, but 2/2 concordant.
 
 **Tied-depth experiment COMPLETE.** All 4 variants × 2 seeds finished. Full results:
 
