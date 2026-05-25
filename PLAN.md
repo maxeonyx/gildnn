@@ -158,9 +158,9 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 |---|---|---|---|---|
 | 1 | **C_old ablation** | 3 | surrogate | **COMPLETE. Laterals load-bearing (Δ=+0.030).** |
 | 2 | **Clean weight-sharing isolation** — shared vs distinct feedforward, both with all-injection | 1 | surrogate | Isolates weight sharing from routing. **DATA LOST — needs 3-seed rerun.** Provisional 1-seed: tied_shared=1.910 vs distinct≈1.85 (~0.06 gap). |
-| 3 | **Temporal window** — 2-block, readout_mode="last", B0/H8/C8 conditions | 3 | **intended** | **COMPLETE ✅ — BRANCH 1 CONFIRMED** (Δ_trajectory=+0.042, 3 seeds concordant). 4-block follow-up RUNNING (PID 20388, ETA ~06:30 NZST). |
+| 3 | **Temporal window** — 2-block, readout_mode="last", B0/H8/C8 conditions | 3 | **intended** | **COMPLETE ✅ — BRANCH 1 CONFIRMED** (Δ_trajectory=+0.042). 4-block follow-up COMPLETE — STOP-LOSS (conditions 4+5 fail). |
 | 4 | **Iteration-benefit measurement** — eval shared model at 1,2,4,8 iterations | 1/5 | surrogate | Only if tied_sharing positive. Tests dynamic depth in simplified regime. |
-| 5 | **Bridge experiment (detach_lateral)** — full-backprop vs detached-lateral | 3 | surrogate | Can blocks learn useful laterals without cross-block gradient? Pre-registered in local-learning README. |
+| 5 | **Bridge experiment (detach_lateral)** — full-backprop vs detached-lateral | 3 | surrogate | **RUNNING** (PID 20396, ETA ~10:10 NZST). Pre-registered in local-learning README. |
 | 6 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | infra | Next step after the 28% CUDA Graph result. |
 | 7 | **Dynamic depth (clean measurement)** | 5 | TBD | Preliminary probe methodology was flawed. Needs clean redo. |
 
