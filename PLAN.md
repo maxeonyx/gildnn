@@ -98,7 +98,7 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 
 | Priority | Experiment | Pathway | Why |
 |---|---|---|---|
-| 1 | **C_old ablation** — C_lateral vs C_isolated, train-time structural comparison | 3 | **IN PROGRESS (PID 12096).** Does the multi-block architecture USE lateral connections, or is it just an ensemble? |
+| 1 | **C_old ablation** — C_lateral vs C_isolated, train-time structural comparison | 3 | **IN PROGRESS (PID 20548).** Does the multi-block architecture USE lateral connections, or is it just an ensemble? |
 | 2 | **Clean weight-sharing isolation** — 8 blocks with SHARED weights + token_injection=all vs distinct_matched | 1 | The tied_8iter comparison was confounded. Need same routing, only sharing differs. |
 | 3 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | Next step after the 28% CUDA Graph result. |
 | 4 | **Dynamic depth (clean measurement)** | 5 | Preliminary probe showed heterogeneity but methodology was flawed. Needs clean redo. |

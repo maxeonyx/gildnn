@@ -878,4 +878,13 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except SystemExit:
+        raise
+    except BaseException:
+        import traceback
+
+        args = parse_args()
+        append_log(args.log_path, {"stage": "crash", "traceback": traceback.format_exc()})
+        raise
