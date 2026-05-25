@@ -47,7 +47,7 @@ All 3 seeds concordant. Mean Δ_trajectory (+0.042) is nearly 3× the pre-regist
 
 **Bridge_detach experiment COMPLETE ✅** (2026-05-26). 3 seeds concordant "clearly worse" (mean gap +0.027 nats). Readout pattern perfectly reproduced: full_backprop U-shaped (block 3 cost +0.35-0.42); detached front-loaded (block 3 cost +0.07 all seeds).
 
-**Warmup→detach LAUNCHING** (`runs/warmup_detach.py`). ~2.5 hours GPU time (6 runs × 20K steps). Reads bridge_detach baselines from report.json.
+**Warmup→detach RUNNING** (PID 20952, launched 10:13 NZST 2026-05-26). ~2.5 hours GPU time (6 runs × 20K steps). Reads bridge_detach baselines from report.json. ETA ~12:35 NZST.
 
 **Results (3 seeds COMPLETE):**
 
@@ -157,8 +157,8 @@ Next step per pre-registration: **bridge experiment** (detach_lateral, priority 
   - Multi-block works with all-injection (C_old is -0.021 better than single-block)
   - Lateral-only (token_injection=block0) fails with hardcoded 0.5 (+0.014 worse) AND with zero-init gates (+0.245 worse)
   - **C_old ablation POSITIVE: laterals are load-bearing (Δ=+0.030, all 4 blocks contribute)**
-  - **Bridge_detach RUNNING: seeds 42-43 confirm "clearly worse" (Δ=+0.034 mean), seed 44 in progress**
-  - Warmup→detach script READY, launches on bridge_detach completion
+  - **Bridge_detach COMPLETE ✅: 3 seeds concordant "clearly worse" (mean gap +0.027). Readout: full U-shaped, detached front-loaded.**
+  - **Warmup→detach RUNNING** (PID 20952, ETA ~12:35 NZST). Tests whether gradient needed continuously or just for bootstrapping.
 - **In intended architecture (token_injection=block0):**
   - ALL configurations tested so far FAIL (spectators, cold-start)
   - Temporal_window is the fix hypothesis — gives upper blocks exclusive trajectory information
@@ -185,7 +185,7 @@ Every gate is a separate subagent review that can send you back. See PROCESS.md 
 ## GPU queue (explicit ordering)
 
 1. ~~bridge_detach~~ — **COMPLETE ✅** (3 seeds concordant, mean gap +0.027)
-2. **warmup_detach** — LAUNCHING NOW. ETA completion ~12:30 NZST. Then →
+2. **warmup_detach** — RUNNING (PID 20952, launched 10:13 NZST). ETA ~12:35 NZST. Then →
 3. **tied_sharing rerun** — `runs/tied_sharing.py`. Independent core question, data lost. ~45 min. Then →
 4. **What the data says** — budget permitting, escalation depends on warmup→detach outcome
 
@@ -370,7 +370,7 @@ Key departures from current implementation:
 **Relationship to current experiments:** The dictation says "This doesn't invalidate current work. It provides the theoretical direction for what comes AFTER the current experiments confirm the basics." Current experiments confirm:
 - ✅ Lateral connections carry useful information — **surrogate architecture** (C_old: Δ=+0.030)
 - ✅ Temporal trajectory is uniquely useful information — **intended architecture, forced-readout 2-block** (temporal_window: Δ=+0.042)
-- ⏳ Whether blocks can be voluntarily useful with trajectory — **intended architecture, 4-block** (running)
-- ⏳ Whether blocks can learn without cross-block gradient — **surrogate** (bridge_detach: queued)
+- ✅ Whether blocks can be voluntarily useful with trajectory — **intended architecture, 4-block** (stop-loss fired: block 1 rescues but blocks 2-3 stay spectators)
+- ✅ Whether blocks can learn without cross-block gradient — **surrogate** (bridge_detach: "clearly worse," gap +0.027, 3 seeds)
 
 **If bridge_detach (shared-adjoint) fails:** The Wasserstein distributional local loss is the natural escalation — it provides a RICHER local training signal (predict left neighbor) rather than relying on the weak shared adjoint alone. This is the most important connection between current work and the multi-timestep direction.
