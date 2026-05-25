@@ -76,8 +76,8 @@ Clean weight-sharing isolation: shared vs distinct feedforward, both with token_
 Pre-registered: `research/questions/local-learning/README.md` lines 532-583.
 - Adversarial-reviewed ✅
 - Shuffled-target control (tests whether prediction itself helps vs just the gradient)
-- Implementation: model has `forward_with_state()` for per-block outputs; `run_training_loop` needs `loss_fn` parameter
-- Template: `runs/bridge_detach.py` (custom training loop)
+- Implementation: model has `forward_with_state()` for per-block outputs. Needs custom GraphTrainer (standard one hardcodes `model()` + `F.cross_entropy`; this needs `forward_with_state()` + aux loss inside the captured graph).
+- Template: `runs/bridge_detach.py` (custom training loop, NOT `run_training_loop` from core/)
 
 ---
 
