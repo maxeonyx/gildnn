@@ -6,20 +6,22 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ## Current state (2026-05-26)
 
-**Temporal_window experiment RUNNING** (PID 18956, ~50% complete, ETA ~02:37 NZST).
+**Temporal_window experiment COMPLETE ✅ — BRANCH 1 CONFIRMED (strongest result in the project).**
 
-**Seeds 42 & 43 COMPLETE — strong branch 1:**
-| Seed | B0 | H8 | C8 | Δ_trajectory | Δ_augmented |
-|---|---|---|---|---|---|
-| 42 | 2.501 | 2.370 | 2.404 | +0.034 | +0.132 |
-| 43 | 2.545 | 2.369 | 2.414 | +0.045 | +0.176 |
-| Mean | 2.523 | 2.369 | 2.409 | **+0.040** | +0.154 |
+| Variant | Seed 42 | Seed 43 | Seed 44 | Mean ± Std |
+|---------|---------|---------|---------|------------|
+| B0 | 2.501 | 2.545 | 2.471 | 2.506 ± 0.037 |
+| H8 | 2.370 | 2.369 | 2.390 | 2.376 ± 0.012 |
+| C8 | 2.404 | 2.414 | 2.435 | 2.418 ± 0.016 |
 
-Pre-registered prediction confirmed ✅ (predicted C8 2.39-2.44, actual 2.404/2.414)
-Mean Δ_trajectory (+0.040) is nearly 3× the pre-registered threshold (0.015).
-Seed 44 remaining (~48 min). Branch 1 is virtually certain.
+| Delta | Seed 42 | Seed 43 | Seed 44 | Mean |
+|-------|---------|---------|---------|------|
+| Δ_trajectory (C8-H8) | +0.034 | +0.045 | +0.045 | **+0.042** |
+| Δ_augmented (B0-H8) | +0.132 | +0.176 | +0.081 | +0.130 |
 
-**4-block follow-up script READY** (`runs/temporal_window_4block.py`, commit c6ab083). Pre-registered in temporal-window README. Launches immediately when all 3 seeds confirm branch 1. ~3.6 hours runtime.
+All 3 seeds concordant. Mean Δ_trajectory (+0.042) is nearly 3× the pre-registered threshold (0.015).
+
+**4-block follow-up RUNNING** (PID 20388, launched 02:55 NZST 2026-05-26). Expected runtime ~3.6 hours. Log: `experiments/temporal-window/artifacts/4block_run.jsonl`.
 
 **Bridge_detach experiment READY** (`runs/bridge_detach.py`, commit 93854b6). Runs on surrogate architecture (token_injection=all) after the 4-block follow-up REGARDLESS of 4-block outcome — it's the next Pathway 3 surrogate test. If 4-block is strongly positive, an INTENDED-architecture bridge_detach is also needed (different learning problem, different experiment).
 

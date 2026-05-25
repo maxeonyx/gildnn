@@ -1,6 +1,6 @@
 # Temporal Window: Does trajectory information help upper blocks?
 
-**Status: RUNNING (PID 18956, launched 00:41 NZST 2026-05-26). Seed 42 COMPLETE: B0=2.501, H8=2.370, C8=2.404 (Δ_trajectory=+0.034, branch 1). Seeds 43-44 in progress.**
+**Status: COMPLETE ✅ — BRANCH 1 CONFIRMED. All 3 seeds concordant, mean Δ_trajectory = +0.042 (3× threshold). 4-block follow-up RUNNING (PID 20388, launched 02:55 NZST 2026-05-26).**
 
 **Pathway:** 3 (Local Learning) — upstream dependency. If upper blocks can't be made useful, local learning has no substrate to test on.
 
@@ -241,25 +241,35 @@ The primary comparison is H8 vs C8 — does trajectory specifically help? Absolu
 
 ---
 
-## In-flight observations (seeds 42-43 COMPLETE, seed 44 in progress, 2026-05-26 02:09 NZST)
+## Final results (all 3 seeds complete, 2026-05-26 02:55 NZST)
 
-**Final results (2 of 3 seeds):**
-| Condition | Seed 42 | Seed 43 | Mean |
-|-----------|---------|---------|------|
-| B0 | 2.501 | 2.545 | 2.523 |
-| H8 | 2.370 | 2.369 | 2.369 |
-| C8 | 2.404 | 2.414 | 2.409 |
+| Condition | Seed 42 | Seed 43 | Seed 44 | Mean ± Std |
+|-----------|---------|---------|---------|------------|
+| B0 | 2.501 | 2.545 | 2.471 | 2.506 ± 0.037 |
+| H8 | 2.370 | 2.369 | 2.390 | 2.376 ± 0.012 |
+| C8 | 2.404 | 2.414 | 2.435 | 2.418 ± 0.016 |
 
 **Key deltas:**
-| Delta | Seed 42 | Seed 43 | Mean |
-|-------|---------|---------|------|
-| Δ_trajectory (C8 - H8) | +0.034 | +0.045 | **+0.040** |
-| Δ_augmented (B0 - H8) | +0.132 | +0.176 | +0.154 |
-| Δ_control (B0 - C8) | +0.097 | +0.131 | +0.114 |
+| Delta | Seed 42 | Seed 43 | Seed 44 | Mean |
+|-------|---------|---------|---------|------|
+| Δ_trajectory (C8-H8) | +0.034 | +0.045 | +0.045 | **+0.042** |
+| Δ_augmented (B0-H8) | +0.132 | +0.176 | +0.081 | +0.130 |
+| Δ_control (B0-C8) | +0.097 | +0.131 | +0.036 | +0.088 |
 
-**Interpretation (2 of 3 seeds, both concordant):** Branch 1 virtually certain. Mean Δ_trajectory (+0.040) is nearly 3× the pre-registered threshold (0.015). Both seeds show H8 clearly beating C8. True trajectory information provides uniquely useful temporal diversity that duplicated-current cannot access (as predicted by the FIR filter / diagonal subspace theory).
+**Concordance:** All 3 seeds show H8 < C8 (positive Δ_trajectory). ✅
+**Threshold:** Mean Δ_trajectory (+0.042) ≥ 0.015. ✅
 
-**Notable:** Seed 43 shows an EVEN STRONGER trajectory effect (+0.045 vs +0.034). H8 is almost identical across seeds (2.370, 2.369) while B0 and C8 are more seed-variable. This suggests the temporal window provides a highly stable learning signal.
+**Pre-registered interpretation: TRAJECTORY CLEARLY HELPS.**
+
+True history (H8) provides uniquely useful temporal diversity that duplicated-current (C8) cannot access. This is predicted exactly by the FIR filter / diagonal subspace theory: C8 collapses to a single effective linear projection of current state, while H8 can exploit lag-specific temporal features.
+
+**Stability finding:** H8 is remarkably stable across seeds (std = 0.012) compared to B0 (std = 0.037) and C8 (std = 0.016). The temporal window provides not only better quality but more consistent optimization — likely because 8 distinct temporal samples create a better-conditioned loss surface than a single snapshot.
+
+**What this does NOT prove:**
+- "Trajectory creates a computational niche for voluntary upper blocks" — only for forced-readout. That's what the 4-block follow-up tests.
+- "Trajectory is fundamentally necessary" — block 0 might learn to fold this info into its state with more capacity/training.
+
+**Next step (now running):** 4-block voluntary readout experiment (PID 20388, ~3.6 hours). See "Follow-up" section below.
 
 **Learning-curve divergence (C8-H8 gap over time, seed 42):**
 
