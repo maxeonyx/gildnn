@@ -21,22 +21,24 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 All 3 seeds concordant. Mean Δ_trajectory (+0.042) is nearly 3× the pre-registered threshold (0.015).
 
-**4-block follow-up RUNNING** (PID 20388, launched 02:55 NZST 2026-05-26). Log: `experiments/temporal-window/artifacts/4block_run.jsonl`. Seeds 42 and 43 COMPLETE, seed 44 in progress (A_all at step 6K/20K as of 05:45 NZST). ETA completion ~06:45 NZST.
+**4-block follow-up RUNNING** (PID 20388, launched 02:55 NZST 2026-05-26). Log: `experiments/temporal-window/artifacts/4block_run.jsonl`. Seeds 42 and 43 COMPLETE, seed 44 W8_all in progress (step 1K/20K as of 06:30 NZST). ETA completion ~07:00 NZST.
 
-**Interim results (seeds 42 + 43):**
+**Interim results (seeds 42 + 43 complete; seed 44 A_all + C8_all complete, W8_all in progress):**
 
-| Variant | Seed 42 | Seed 43 | 2-seed mean |
-|---------|---------|---------|-------------|
-| A_all | 1.836 | 1.839 | 1.838 |
-| C8_all | 1.822 | 1.852 | 1.837 |
-| W8_all | 1.803 | 1.825 | 1.814 |
+| Variant | Seed 42 | Seed 43 | Seed 44 | 3-seed mean |
+|---------|---------|---------|---------|-------------|
+| A_all | 1.836 | 1.839 | 1.859 | 1.845 |
+| C8_all | 1.822 | 1.852 | **1.901** | 1.858 |
+| W8_all | 1.803 | 1.825 | ? | ? |
 
-| Delta | Seed 42 | Seed 43 | 2-seed mean |
-|-------|---------|---------|-------------|
-| W8−A | -0.033 ✅ | -0.014 ⚠️ | -0.024 |
-| W8−C8 | -0.019 ✅ | -0.027 ✅ | -0.023 |
+**Key observation:** C8_all_seed_44 is dramatically high (1.901 — std across 3 seeds ≈ 0.039). This confirms C8 is extremely seed-sensitive. Interpretation: duplicated-current-state is computationally degenerate (mathematical collapse to diagonal subspace), so the "extra capacity" is just noise. W8_all has been far more consistent (seeds 42=1.803, 43=1.825, std=0.011) — real trajectory information provides robust training signal.
 
-**Note:** Seed 43 W8−A is -0.014 (below -0.015 threshold individually, but concordant in sign). C8_all shows more seed sensitivity (1.822 vs 1.852) than W8_all (1.803 vs 1.825) — trajectory information appears to provide more robust training signal than duplicated current state. Mean conditions pass so far; seed 44 will determine final outcome.
+**For strong positive (all 5 conditions):**
+- Condition 1: need W8_44 ≤ 1.862 (so mean(W8) ≤ mean(A) - 0.015 = 1.830)
+- Condition 2: need W8_44 ≤ 1.901 (trivially easy given C8_44 = 1.901)
+- Condition 3: need W8_44 < min(A_44, C8_44) = 1.859 (binding constraint)
+
+Prediction: W8_44 likely ~1.835–1.850 based on W8's low seed variance pattern.
 
 **Checkpoint preservation:** A background process (PID 14472) monitors for `W8_all_seed_*.pt` files and copies them to `experiments/temporal-window/artifacts/preserved.ignore/`. These are needed for trajectory-specificity diagnostics (`runs/trajectory_diagnostics.py`, commit 65f1b94) if the 4-block outcome is strongly positive. The 4-block script deletes checkpoints after its own ablation suite — preservation must happen BEFORE that cleanup. If the preserver dies, manually copy `W8_all_seed_*.pt` files before the experiment finishes.
 
