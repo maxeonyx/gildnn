@@ -61,3 +61,39 @@ Marginal improvements (mean / std):
 3. Train vs val comparison to rule out overfitting
 4. Multi-seed replication
 5. Test whether shallow state can predict sign/magnitude of future marginal improvement
+
+---
+
+## Clean measurement design (pre-registered 2026-05-26)
+
+**Substrate:** Existing trained tied-depth transformer (d_model=72, 4 heads, TinyShakespeare ctx=32, depth=8, 3 seeds). Eval-only — no new training required. GPU time: minutes.
+
+### Methodology
+
+**Standard next-token eval only.** For each corpus position t, build exactly one example with maximum available left context (up to 32 chars). Predict next token ONCE. Record logits at the FINAL position after every tied iteration d=1..8. Compute per-token cross-entropy L_t(d). Do this on val AND a matched train subset of equal size, for all 3 seeds.
+
+**Self-attention coupling addressed:** Depth is defined per PREDICTION EVENT (whole forward pass uses same depth), not per-token within a single pass. This is valid — you can't halt different positions independently, but you CAN choose different depths for different examples.
+
+### Metrics to compute
+
+1. **Mean loss by depth** E[L(d)] — recover normal depth-vs-quality curve
+2. **Oracle-best loss** E[min_d L_t(d)] — if this beats depth-8, some tokens are HARMED by extra depth
+3. **Oracle depth histogram** — distribution of d*_t = argmin_d L_t(d)
+4. **No-regret shallowest depth** d_t^δ = min{d: L_t(d) ≤ L_t(8) + δ} with δ=0.01 (NOT 0.1 which was too loose)
+5. **Oracle speedup** 8 / E[d_t^δ]
+6. **Predictability** — can shallow features (depth-1 or depth-2 state) predict d*_t or marginal improvement?
+
+### Decision criteria
+
+| Result | Interpretation |
+|---|---|
+| Oracle speedup > 1.3× AND oracle-best improves over depth-8 | **Worth pursuing** — real headroom exists |
+| d*=8 almost always, speedup 1.0-1.1× | **Not worth it** — depth-8 is near-optimal for all tokens |
+| Oracle-best substantially better but not predictable from shallow state | Headroom exists but halting is hard to learn (still interesting for Pathway 5) |
+| Train speedup >> val speedup | Overfitting artifact — depth isn't helping on new data |
+
+### Implementation notes
+
+- The existing `per_token_depth_analysis.py` script in `runs/` does something similar but with flawed methodology (overlapping windows). Could be adapted.
+- Key change: use the standard eval function, not sliding windows. One prediction per position.
+- Save raw L_t(d) matrix for all positions — enables later analysis without re-running.
