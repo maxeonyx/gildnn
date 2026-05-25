@@ -21,30 +21,31 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 All 3 seeds concordant. Mean Δ_trajectory (+0.042) is nearly 3× the pre-registered threshold (0.015).
 
-**4-block follow-up RUNNING** (PID 20388, launched 02:55 NZST 2026-05-26). Log: `experiments/temporal-window/artifacts/4block_run.jsonl`. Seeds 42 and 43 COMPLETE, seed 44 W8_all in progress (step 1K/20K as of 06:30 NZST). ETA completion ~07:00 NZST.
-
-**Interim results (seeds 42 + 43 complete; seed 44 A_all + C8_all complete, W8_all in progress):**
+**4-block follow-up COMPLETE ✅ — STOP-LOSS FIRES (conditions 4+5 fail).**
 
 | Variant | Seed 42 | Seed 43 | Seed 44 | 3-seed mean |
 |---------|---------|---------|---------|-------------|
 | A_all | 1.836 | 1.839 | 1.859 | 1.845 |
-| C8_all | 1.822 | 1.852 | **1.901** | 1.858 |
-| W8_all | 1.803 | 1.825 | ? | ? |
+| C8_all | 1.822 | 1.852 | 1.901 | 1.858 |
+| W8_all | 1.803 | 1.825 | 1.830 | 1.820 |
 
-**Key observation:** C8_all_seed_44 is dramatically high (1.901 — std across 3 seeds ≈ 0.039). This confirms C8 is extremely seed-sensitive. Interpretation: duplicated-current-state is computationally degenerate (mathematical collapse to diagonal subspace), so the "extra capacity" is just noise. W8_all has been far more consistent (seeds 42=1.803, 43=1.825, std=0.011) — real trajectory information provides robust training signal.
+| Condition | Result | Details |
+|---|---|---|
+| 1. mean(W8)−mean(A) ≤ -0.015 | **PASS** (-0.025) | |
+| 2. mean(W8)−mean(C8) ≤ -0.015 | **PASS** (-0.039) | |
+| 3. All seeds concordant | **PASS** | W8 < both controls on all 3 seeds |
+| 4. W8 upper blocks load-bearing | **FAIL** | Block 1: +0.42 ✅, Block 2: +0.02/+0.017 ⚠️, Block 3: ~0 ❌ |
+| 5. A_all upper blocks spectator-like | **FAIL** | Block 1: +0.07 (load-bearing without temporal window!) |
 
-**For strong positive (all 5 conditions):**
-- Condition 1: need W8_44 ≤ 1.862 (so mean(W8) ≤ mean(A) - 0.015 = 1.830)
-- Condition 2: need W8_44 ≤ 1.901 (trivially easy given C8_44 = 1.901)
-- Condition 3: need W8_44 < min(A_44, C8_44) = 1.859 (binding constraint)
+**Interpretation:** Temporal window STRONGLY amplifies block 1 (0.07→0.42, 6x improvement) but doesn't rescue deeper blocks. Block 3 remains spectator in both conditions. This is "1-2 blocks found a niche, not broad architectural rescue." The hierarchy of usefulness degrades with distance from token source.
 
-Prediction: W8_44 likely ~1.835–1.850 based on W8's low seed variance pattern.
+**Unexpected finding:** A_all block 1 is load-bearing (+0.07) even WITHOUT temporal window. This means the intended architecture isn't as broken as the "universal spectator" theory suggested — at least the nearest block can find some role. Investigate why (likely: even a single stale-state lateral from block 0 provides some information for readout_mode="all").
 
-**Checkpoint preservation:** A background process (PID 14472) monitors for `W8_all_seed_*.pt` files and copies them to `experiments/temporal-window/artifacts/preserved.ignore/`. These are needed for trajectory-specificity diagnostics (`runs/trajectory_diagnostics.py`, commit 65f1b94) if the 4-block outcome is strongly positive. The 4-block script deletes checkpoints after its own ablation suite — preservation must happen BEFORE that cleanup. If the preserver dies, manually copy `W8_all_seed_*.pt` files before the experiment finishes.
+**C8 extreme seed sensitivity (std=0.039 vs W8 std=0.014)** confirms C8 is mathematically degenerate (diagonal subspace collapse). Real trajectory provides robust signal; fake capacity provides noise.
 
-**⚠️ W8_all_seed_42 checkpoint LOST.** A subagent test run (verifying --keep-checkpoints flag) overwrote the real checkpoints with random weights before the preserver could copy the real ones. Seeds 43 and 44 are unaffected (not yet trained when the corruption happened). The active.lock was also deleted by the subagent's atexit handler — manually recreated. Trajectory diagnostics will use seeds 43 and 44 only. If seed 42 is needed, budget 25 min for a W8_all-only retrain.
+**Action:** Per decision tree → surrogate bridge_detach launched. No intended-architecture follow-up (criterion not met). Trajectory diagnostics NOT run (would be for strong-positive only).
 
-**Bridge_detach experiment READY** (`runs/bridge_detach.py`, commit 93854b6). Runs on surrogate architecture (token_injection=all) after the 4-block follow-up REGARDLESS of 4-block outcome — it's the next Pathway 3 surrogate test. If 4-block is strongly positive, an INTENDED-architecture bridge_detach is also needed (different learning problem, different experiment).
+**Bridge_detach experiment LAUNCHED** — surrogate architecture (token_injection="all"), detach_lateral test. See bridge_detach section below.
 
 **Tied-depth experiment COMPLETE.** All 4 variants × 2 seeds finished. Full results:
 
