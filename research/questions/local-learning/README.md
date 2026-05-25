@@ -261,7 +261,7 @@ The prerequisite for local learning experiments is **met**: lateral connections 
 
 **What it is:** Same C_old regime (`topology="upward"`, `token_injection="all"`, 4 blocks, d=256), training with `detach_lateral=True` vs `detach_lateral=False`. The flag already exists in `core/model.py` (`ParallelDiagonalModel(..., detach_lateral=True)`). No new code required — only a config change from C_lateral.
 
-**What detach_lateral does:** In `topology="upward"`, block i>0 receives `0.5 * (own_state + neighbor_state)` where neighbor is the lower block's previous-timestep state. With `detach_lateral=True`, `neighbor_state = lateral_source.detach()` — the forward signal flows but no gradient passes backward through the lateral edge.
+**What detach_lateral does:** In `topology="upward"`, block i>0 receives `0.5 * (own_state + neighbor_state)` where neighbor is the lower block's previous-timestep state. With `detach_lateral=True`, `neighbor_state = lateral_source.detach()` — the forward signal flows but no gradient passes backward through the lateral edge. **Importantly, `detach_lateral` also detaches the temporal_window path** (line 680 in model.py: `lower_history = self._maybe_detach_lateral(temporal_history[block_index - 1])`). So an intended-architecture bridge_detach (with temporal_window > 0) requires NO code changes — just config.
 
 **What this tests:** Can the model learn to use lateral communication without gradient credit assignment through those edges? Full-backprop lets block i+1 train block i to emit useful features. Detached lets block i+1 learn to *use* block i's output but cannot train block i to make it better.
 
