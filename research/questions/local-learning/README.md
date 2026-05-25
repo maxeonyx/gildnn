@@ -491,6 +491,8 @@ Per pre-registered action plan: clearly worse → warmup→detach diagnostic. Th
 
 **Implementation:** Fresh 20K-step runs with mid-training switch. At step N, flip `model.detach_lateral = True` and continue. No checkpoint branching needed — `detach_lateral` is a runtime attribute checked during forward pass (`_maybe_detach_lateral()`), not an architectural change. Optimizer state, model weights, and dataloader RNG all continue uninterrupted. This is the cleanest implementation: no resume artifacts, no checkpoint format issues.
 
+**⚠️ CUDA Graph caveat:** `GraphTrainer` captures the entire forward+backward pass as a static CUDA graph. Changing `model.detach_lateral` at runtime has NO EFFECT on an already-captured graph — the original computation is replayed exactly. The warmup→detach switch must: (1) delete the old `GraphTrainer`, (2) set `model.detach_lateral = True`, (3) create a new `GraphTrainer` and re-capture with the updated model. This maintains CUDA graph speed (~116K tok/s) for both phases. Without graphs, eager mode is ~10× slower — unacceptable for 6 runs × 20K steps.
+
 ### Hypotheses and predictions
 
 | Outcome | What it means |
