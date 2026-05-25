@@ -100,9 +100,20 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 |---|---|---|---|
 | 1 | **C_old ablation** — C_lateral vs C_isolated, train-time structural comparison | 3 | **IN PROGRESS (PID 20548).** Does the multi-block architecture USE lateral connections, or is it just an ensemble? |
 | 2 | **Clean weight-sharing isolation** — 8 blocks with SHARED weights + token_injection=all vs distinct_matched | 1 | The tied_8iter comparison was confounded. Need same routing, only sharing differs. |
-| 3 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | Next step after the 28% CUDA Graph result. |
-| 4 | **Dynamic depth (clean measurement)** | 5 | Preliminary probe showed heterogeneity but methodology was flawed. Needs clean redo. |
-| 5 | **Local learning in working config** — if C_old ablation shows lateral IS used | 3 | Stop-gradient + local CE on a regime where blocks are known useful. Only do after #1 confirms lateral matters. |
+| 3 | **Corrected architecture with temporal window** — token_injection=block0 + temporal_window∈{4,8} + forced equal readout | 3 | The cheapest test of whether the INTENDED architecture can work. See theory below. |
+| 4 | **Bridge experiment (detach_lateral)** — if C_old shows laterals used | 3 | Full-backprop vs detached-lateral in C_old regime. Pre-registered in local-learning README. |
+| 5 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | Next step after the 28% CUDA Graph result. |
+| 6 | **Dynamic depth (clean measurement)** | 5 | Preliminary probe showed heterogeneity but methodology was flawed. Needs clean redo. |
+
+### Why token_injection="block0" fails (theory, 2026-05-25)
+
+Upper blocks are downstream of a stale bottleneck controlled by block 0, while block 0 already solves the task directly. They're **redundant delayed decoders**, not complementary experts. This is a forward-architecture problem, not a training/gradient problem.
+
+**The fix hypothesis:** Give upper blocks a temporal WINDOW of lower-block states (`temporal_window=4,8` — already exists in model.py). This provides exclusive trajectory information (how block 0's state has been moving) that block 0 can't easily exploit in a single step. Window creates the niche; forced-equal readout prevents collapse.
+
+**Discriminating experiment:** Same corrected WikiText-103 setup, but with `temporal_window∈{4,8}`, `token_injection="block0"`, fixed-equal readout. Measure upper-block ablation (not just val_loss). If windowed > non-windowed AND upper-block ablation is real → fixable. If windowed still collapses → the upward chain is probably the wrong architecture.
+
+**This supersedes "local learning in working config" as priority 5** — fixing the forward architecture is upstream of fixing the learning rule. Local learning is meaningless on blocks that have no forward role.
 
 ---
 
