@@ -327,6 +327,27 @@ If gap snowballs without plateau: co-adaptation compounds — bad, suggests frag
 
 **Note:** bridge_detach uses flat AdamW lr=3e-4 (no cosine-annealing, no LR warmup). Divergence timing comes from representation bootstrapping, not LR schedule.
 
+### Pre-registered ablation pattern predictions (2026-05-26)
+
+**Full_backprop** should reproduce C_old: lateral-zeroing cost ~+0.030, steep cumulative ablation, all 4 blocks load-bearing. If it doesn't, that's a reproduction issue before interpreting detach.
+
+**Detached** patterns determine the outcome class:
+
+| Measurement | Learned laterals | Ensemble collapse | Clearly worse |
+|---|---|---|---|
+| Lateral-zeroing cost | Large: +0.020 to +0.030 | Near zero: 0 to +0.005 | Small: 0 to +0.015 |
+| Per-block readout | All 4 non-spectator (≥+0.02) | Modest/flat (independent contributors) | Bottom-heavy (upper blocks spectator-ish) |
+| Cumulative ablation | Steep (block0_only catastrophic) | Flat/ensemble (each block adds little) | Flat (upper blocks add nothing) |
+
+**Practical reading order (most to least discriminating):**
+1. Detached final val_loss vs full (separates "clearly worse" from not)
+2. **Detached lateral-zeroing cost** (THE key discriminator — uniquely identifies learned laterals vs collapse)
+3. Detached cumulative ablation (steep vs flat distinguishes real distribution from spectator/ensemble)
+4. Detached per-block readout (confirms specific block contributions but ambiguous alone)
+5. Full-backprop diagnostics (sanity check only)
+
+**Edge cases not to force into 3 buckets:** Intermediate lateral-zeroing (+0.010–0.020) means partial lateral use. Detached clearly worse BUT still substantial lateral-zeroing means "learned somewhat but sender shaping still matters." Detached beating full with large lateral-zeroing would be the anti-co-adaptation wild card.
+
 ### Post-result action plan (surrogate bridge_detach)
 
 **Note on "locality sweep":** In this architecture (nearest-neighbor-only laterals, upward topology), gradient radius sweep is degenerate — 1-hop truncation = full detach because there's at most 1 hop per timestep. The original plan's "locality sweep" is replaced by a bootstrapping-vs-grounding fork.
