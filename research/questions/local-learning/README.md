@@ -219,6 +219,38 @@ The attention-based "usefulness" signal is explicitly **disfavored** by Max (sal
 
 ---
 
+## Bridge experiment design (if C_old positive) — pre-registered 2026-05-25
+
+**What it is:** Same C_old regime (`topology="upward"`, `token_injection="all"`, 4 blocks, d=256), training with `detach_lateral=True` vs `detach_lateral=False`. The flag already exists in `core/model.py` (`ParallelDiagonalModel(..., detach_lateral=True)`). No new code required — only a config change from C_lateral.
+
+**What detach_lateral does:** In `topology="upward"`, block i>0 receives `0.5 * (own_state + neighbor_state)` where neighbor is the lower block's previous-timestep state. With `detach_lateral=True`, `neighbor_state = lateral_source.detach()` — the forward signal flows but no gradient passes backward through the lateral edge.
+
+**What this tests:** Can the model learn to use lateral communication without gradient credit assignment through those edges? Full-backprop lets block i+1 train block i to emit useful features. Detached lets block i+1 learn to *use* block i's output but cannot train block i to make it better.
+
+**What this is NOT:**
+- Not true local learning (still uses one global CE loss, full backprop inside each block)
+- Not the corrected architecture (still token_injection="all")
+- Not testing temporal locality (still backprops through each block's own temporal state)
+- Not predictive coding or target propagation
+
+**⚠ Critical measurement requirement: val_loss alone is AMBIGUOUS.**
+
+If `detached ≈ full`, two explanations exist:
+1. (Exciting) The model learned to use laterals without lateral gradients
+2. (Boring) The model learned to NOT use laterals — collapsed to independent token-fed blocks
+
+**Required second measure:** Post-training forward ablation on BOTH trained models. Eval normally, then eval with laterals zeroed/shuffled. If the detached-trained model still shows a large ablation cost → laterals are genuinely learned without gradient. If ablation cost is small → model collapsed to ensemble.
+
+**Pre-registered interpretation:**
+
+| Outcome | Criterion | Meaning |
+|---|---|---|
+| **Detached learns laterals** | val_loss(detached) ≈ val_loss(full) AND lateral-ablation cost ≈ same for both | Cross-block gradient not needed in this regime. Strong positive for Pathway 3. |
+| **Detached collapses to ensemble** | val_loss(detached) ≈ val_loss(full) BUT detached shows no lateral-ablation cost | Model found independent solution. Null result for Pathway 3. |
+| **Detached clearly worse** | val_loss(detached) > val_loss(full) by ≥ 0.015 | Cross-block gradient terms matter. Negative for Pathway 3 in this regime. |
+
+---
+
 ## Next steps
 
 1. **Confirm spectator result** across seeds — done (3-seed result: corrected = single block on TinyShakespeare at d=256). See `experiments/fixed_multi_rate/artifacts/token_injection_sanity/`.
