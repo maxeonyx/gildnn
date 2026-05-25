@@ -107,7 +107,7 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 |---|---|---|---|
 | 1 | **C_old ablation** — C_lateral vs C_isolated, train-time structural comparison | 3 | **IN PROGRESS (PID 20548).** Does the multi-block architecture USE lateral connections, or is it just an ensemble? |
 | 2 | **Clean weight-sharing isolation** — 8 blocks with SHARED weights + token_injection=all vs distinct_matched | 1 | The tied_8iter comparison was confounded. Need same routing, only sharing differs. |
-| 3 | **Corrected architecture with temporal window** — token_injection=block0 + temporal_window∈{4,8} + forced equal readout | 3 | The cheapest test of whether the INTENDED architecture can work. See theory below. |
+| 3 | **Temporal window** — 2-block, readout_mode="last", temporal_window∈{0,4,8} | 3 | Does trajectory information create a niche for upper blocks? **PRE-REGISTERED** in `research/questions/temporal-window/`. |
 | 4 | **Bridge experiment (detach_lateral)** — if C_old shows laterals used | 3 | Full-backprop vs detached-lateral in C_old regime. Pre-registered in local-learning README. |
 | 5 | **Custom CUDA concurrency** — persistent kernels or fused dispatch | 2 (async) | Next step after the 28% CUDA Graph result. |
 | 6 | **Dynamic depth (clean measurement)** | 5 | Preliminary probe showed heterogeneity but methodology was flawed. Needs clean redo. |
@@ -116,11 +116,11 @@ Pick from this list based on cheapest honest test. These connect to specific roa
 
 Upper blocks are downstream of a stale bottleneck controlled by block 0, while block 0 already solves the task directly. They're **redundant delayed decoders**, not complementary experts. This is a forward-architecture problem, not a training/gradient problem.
 
-**The fix hypothesis:** Give upper blocks a temporal WINDOW of lower-block states (`temporal_window=4,8` — already exists in model.py). This provides exclusive trajectory information (how block 0's state has been moving) that block 0 can't easily exploit in a single step. Window creates the niche; forced-equal readout prevents collapse.
+**The fix hypothesis:** Give upper blocks a temporal WINDOW of lower-block states (`temporal_window=4,8` — already exists in model.py). This provides exclusive trajectory information (how block 0's state has been moving) that block 0 can't easily exploit in a single step. With `readout_mode="last"` on a 2-block model, block 1 is forced to be load-bearing (no collapse possible). See full pre-registration: `research/questions/temporal-window/README.md`.
 
 **Grounding:** Max in [dictation 2026-05-24-5](dictations/2026-05-24-5.md): "Block one should learn to predict something about block zero that block zero couldn't already know or wouldn't need to know therefore. For example, you know maybe block one's output is dependent on input from a longer time ago?"
 
-**Discriminating experiment:** Same corrected WikiText-103 setup, but with `temporal_window∈{4,8}`, `token_injection="block0"`, fixed-equal readout. Measure upper-block ablation (not just val_loss). If windowed > non-windowed AND upper-block ablation is real → fixable. If windowed still collapses → the upward chain is probably the wrong architecture.
+**Design insight:** Use 2 blocks with `readout_mode="last"` (NOT 4 blocks with `readout_mode="all"`). This eliminates collapse, chain-scaling, and multi-block interaction confounds. The question reduces to: does trajectory info help the forced-readout upper block produce better predictions?
 
 **This supersedes "local learning in working config" as priority 5** — fixing the forward architecture is upstream of fixing the learning rule. Local learning is meaningless on blocks that have no forward role.
 
