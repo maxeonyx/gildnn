@@ -183,7 +183,12 @@ Rationale: The surrogate architecture already has load-bearing laterals (Δ=+0.0
 5. A_all remains spectator-like (upper blocks NOT load-bearing in A_all)
 
 **If all 5 met → STRONG POSITIVE:**
-- Intended-architecture bridge_detach (one experiment, predeclared)
+- Run trajectory-specificity diagnostics on W8_all checkpoints (eval-only, no new training):
+  1. **Repeat-last-history**: replace window buffer with most-recent state repeated ×8. If performance barely changes → capacity trick, not trajectory learning. (trivial)
+  2. **Window permutation**: shuffle temporal order of history slots. If big degradation → model learned from temporal order specifically. (easy)
+  3. **Age-selective ablation**: keep only recent-1, recent-2, drop-oldest-half. If recent-1 recovers most benefit → recency shortcut, not broad trajectory use. (easy)
+- If diagnostics confirm trajectory learning → intended-architecture bridge_detach (one experiment, predeclared)
+- If diagnostics suggest capacity trick → treat as D1 (capacity helps, not trajectory). Pivot to surrogate.
 - Eval-only dynamic-depth measurement on trained W8_all (cheap, no new training)
 - Report as "strong provisional positive" — note threshold was ported from different regime
 
