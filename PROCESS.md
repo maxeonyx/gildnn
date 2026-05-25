@@ -117,6 +117,8 @@ The point of writing first is to force explicit hypotheses and surface hidden as
 
 Fill in results, next steps, and reasons for deferral as the experiment proceeds, not only at the end.
 
+**Before launching a GPU experiment, verify measurement coverage:** Check that the experiment script actually produces ALL measurements listed in the pre-registration section of the question README. A pre-registered measurement that isn't implemented in the script is invisible until the experiment finishes and you realize the data wasn't collected — wasting the entire run. Cross-reference the README's "required measurements" against the script's output fields. If there's a gap, fix the script first.
+
 ### Before starting a new experiment
 
 Before committing to an experiment, answer these questions:
