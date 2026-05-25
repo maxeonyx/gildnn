@@ -71,7 +71,7 @@ Next step per pre-registration: **bridge experiment** (detach_lateral, priority 
 - `.gitignore` now blocks `*.pt` files (model weights never committed)
 
 **What we DON'T have:**
-- **Clean weight-sharing isolation test** — RUNNING (PID 22508, expected ~01:00 NZST). tied weights WITH token_injection=all to separate sharing from routing
+- **Clean weight-sharing isolation test** — RUNNING (PID 22508, expected ~02:30 NZST). tied weights WITH token_injection=all to separate sharing from routing
 - Any custom CUDA concurrency beyond the Graph approach
 - Self-prediction (computation compression)
 - Clean dynamic-depth measurement (the probe was methodologically flawed)
