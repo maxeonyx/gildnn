@@ -1,0 +1,9 @@
+{
+  "source_characters": 1115394,
+  "train_characters": 100000,
+  "validation_characters": 20000,
+  "context_size": 32,
+  "full_validation_examples": 19968,
+  "train_examples_total": 99968,
+  "train_subset_examples": 19968
+}
