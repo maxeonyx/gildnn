@@ -20,7 +20,8 @@ On session start:
 2. Read `PLAN.md` and any `TASK-*.ignore.md` files in the repo root.
 3. Check the time and whether a daily or weekly report is due.
 4. Check whether a background run is active (`runs/active.lock`).
-5. Continue the current task if there is one. Otherwise pick the cheapest useful next step.
+5. **Check `git status`** — commit any uncommitted work from the previous session. The handover protocol requires committing everything, but violations happen. Don't leave orphaned changes.
+6. Continue the current task if there is one. Otherwise pick the cheapest useful next step.
 
 Max may speak during a session, but do not assume that means he is back and available. Keep working unless he clearly takes over.
 
