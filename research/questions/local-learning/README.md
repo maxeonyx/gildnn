@@ -289,7 +289,99 @@ If `detached ≈ full`, two explanations exist:
 
 ---
 
-## Next steps
+## Intended-architecture bridge_detach design — pre-registered 2026-05-26
+
+**Conditional on:** 4-block follow-up STRONGLY POSITIVE (W8_all > A_all ≥ 0.015, blocks load-bearing). Only makes sense if the intended architecture has been validated.
+
+### What makes this different from the surrogate bridge_detach above
+
+The surrogate version tests an easier question: blocks that already have independent token input (can function alone) — can they ALSO exploit lateral info without lateral gradient? That's "optional enrichment."
+
+The intended version tests a harder and more fundamental question:
+
+> **Can upper blocks learn to use lower-block communication when that communication is their ONLY source of task-relevant information, and when they cannot train the sender to emit better features?**
+
+In the intended architecture (`token_injection="block0"`), upper blocks get NO direct tokens. Their information comes ONLY through:
+1. Lateral connections (block i-1's previous state)
+2. Temporal window (last N states from block i-1)
+
+Under `detach_lateral=True`, both paths are stop-gradiented. The forward pass is identical — upper blocks still SEE everything. But gradient cannot flow backward through the bridge. Lower blocks cannot be trained to emit features that are useful for upper blocks.
+
+This distinguishes two learning regimes:
+- **Co-adaptive:** sender and receiver jointly negotiate a communication protocol (full backprop)
+- **Opportunistic:** receiver learns to exploit whatever the sender naturally produces (detached)
+
+### Why this is the project's core question
+
+Per [dictation 2026-05-23-5](../../../dictations/2026-05-23-5.md): "How can I get local learning, enabling parallelism?"
+
+If detached works on the intended architecture, it proves that blocks can learn useful roles from a purely local signal (shared adjoint + own parameters + detached inputs). Lower blocks emit whatever is good for their own contribution; upper blocks independently learn to interpret it. No global coordination needed. This is the strongest possible evidence for Pathway 3.
+
+If detached fails, it proves the intended architecture requires end-to-end gradient — the communication channel needs active shaping from both ends. The fallback is semi-local methods (1-hop truncation, distillation heads, predictive coding at interfaces).
+
+### Experiment design
+
+**Config:** Identical to 4-block W8_all variant (the validated intended architecture):
+- 4 blocks, d=256, ff=512
+- `token_injection="block0"`, `temporal_window=8`
+- `readout_mode="all"`, `topology="upward"`, rates=(1,1,1,1)
+- 20K steps, batch_size=64, lr=3e-4, context_size=128, WikiText-103
+
+**Conditions:**
+- `W8_full`: `detach_lateral=False` (full backprop across bridges)
+- `W8_detached`: `detach_lateral=True` (stop-gradient on lateral + temporal_window inputs)
+
+**Seeds:** 42, 43, 44 (same as temporal_window and 4-block)
+
+**No new code required:** `detach_lateral` already covers both lateral and temporal_window paths (model.py line 680).
+
+### What gradient signal remains for upper blocks under detach?
+
+Upper blocks still receive:
+- Gradient from the task loss through their own readout contribution (shared adjoint: dL/dh_i = dL/dS)
+- Full backprop through their own parameters and internal state
+- Gradient through `window_proj` weights (learning how to project the detached temporal input)
+
+What is cut:
+- Gradient flowing backward INTO lower blocks through the lateral/temporal path
+- Lower blocks cannot be trained to emit upper-block-friendly features
+
+So this is NOT "upper blocks get no gradient." It's "upper blocks can learn to USE inputs, but cannot SHAPE what those inputs contain."
+
+### Cold-start / bootstrapping concern
+
+More severe than surrogate version:
+- Early in training, block 0 emits immature/noisy features
+- Upper blocks try to learn from a moving, noisy feature stream they can't influence
+- `readout_mode="all"` may shift weight toward block 0 if it learns faster (readout competition)
+- Risk: upper blocks fall behind early and never recover
+
+This means **learning curves matter**, not just final val_loss. If detached shows delayed convergence but catches up, that's meaningful (bootstrapping latency, not impossibility). If it never catches up, that's more concerning.
+
+### Pre-registered interpretation
+
+| Outcome | Criterion | Meaning |
+|---|---|---|
+| **Detached learns bridges** | val_loss(W8_detached) ≈ val_loss(W8_full) (|Δ| < 0.015) AND per-block readout ablation shows all blocks load-bearing in BOTH conditions | Local learning is viable on the intended architecture. Upper blocks can independently learn useful roles from natural lower-block emissions. Strongest Pathway 3 evidence. |
+| **Partial degradation** | val_loss(W8_detached) 0.015–0.050 worse than W8_full, OR some blocks lose their contribution under detach | Cross-block gradient helps alignment/bootstrapping but isn't strictly necessary. Suggests semi-local approaches (1-hop truncation, warmup with full backprop then detach) could recover most of the gap. |
+| **Full collapse** | val_loss(W8_detached) > 0.050 worse, OR upper blocks become spectators under detach | Intended architecture REQUIRES end-to-end gradient for useful delayed hierarchy. Pivot to predictive coding, target propagation, or per-block auxiliary objectives to provide local grounding. |
+
+### Required measurements (beyond val_loss)
+
+1. **Per-block readout ablation** (same as 4-block follow-up) — do blocks 1/2/3 actually contribute under detached training?
+2. **Learning curve comparison** — plot val_loss vs step for both conditions. Delayed convergence vs permanent gap.
+3. **Cumulative block ablation** — ablate blocks top-down: [0+1+2+3], [0+1+2], [0+1], [0]. Compare patterns between full and detached.
+4. **Lateral-zeroing ablation** — at eval time, zero the lateral/temporal inputs. Does the detached model still use them? (Rules out "collapsed to spectator" masquerading as "detached ≈ full")
+
+### What this experiment will NOT settle
+
+- Whether the intended architecture is better than the surrogate at scale (different question)
+- Whether semi-local methods (1-hop, distillation) can recover quality if full-detach fails
+- Whether multi-rate interacts with detach (this experiment uses uniform rates)
+- Whether longer training would close any gap (fixed budget comparison)
+- Whether predictive coding is the right local objective (this tests the cheapest version: no local objective at all, just shared-adjoint)
+
+---
 
 1. **Confirm spectator result** across seeds — done (3-seed result: corrected = single block on TinyShakespeare at d=256). See `experiments/fixed_multi_rate/artifacts/token_injection_sanity/`.
 2. **WikiText-103 baseline** — test whether multi-block helps on a dataset where single-block hasn't saturated. Running or queued.
