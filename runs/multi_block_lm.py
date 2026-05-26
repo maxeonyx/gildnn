@@ -88,6 +88,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--long-target-offset", type=int, default=0)
     parser.add_argument("--pretrain-mid-steps", type=int, default=0)
     parser.add_argument("--pretrain-long-steps", type=int, default=0)
+    parser.add_argument("--steps", type=int, default=TRAINING_STEPS)
     return parser.parse_args()
 
 
@@ -637,6 +638,7 @@ def train_condition(
     long_block_config: LongBlockConfig,
     long_target_offset: int,
     pretrain_config: PretrainConfig,
+    training_steps: int,
 ) -> ConditionResult:
     set_seed(seed)
     model = build_model(condition_name, train_dataset.vocab_size, long_block_config).to(device)
@@ -650,7 +652,7 @@ def train_condition(
     optimizer = make_optimizer(model, device)
     started_at = perf_counter()
 
-    for step in range(1, TRAINING_STEPS + 1):
+    for step in range(1, training_steps + 1):
         model.train()
         short_inputs, mid_inputs, long_inputs, targets_multi = sample_batch(
             train_dataset,
@@ -697,9 +699,9 @@ def train_condition(
         total_loss.backward()
         optimizer.step()
 
-        if step % PRINT_INTERVAL == 0 or step == TRAINING_STEPS:
+        if step % PRINT_INTERVAL == 0 or step == training_steps:
             print(
-                f"[{condition_name}] step={step:03d}/{TRAINING_STEPS} "
+                f"[{condition_name}] step={step:03d}/{training_steps} "
                 f"block0_ce={output_loss.item():.4f} block0_acc={output_accuracy.item():.4%} "
                 f"mid_ce={mid_loss_value:.4f} mid_acc={mid_acc_value:.4%} "
                 f"long_ce={long_loss_value:.4f} long_acc={long_acc_value:.4%}",
@@ -809,7 +811,7 @@ def main() -> None:
         f"long_d_model={long_block_config.d_model} long_n_layers={long_block_config.n_layers} "
         f"long_target_offset={long_target_offset} "
         f"pretrain_mid_steps={pretrain_config.mid_steps} pretrain_long_steps={pretrain_config.long_steps} "
-        f"steps={TRAINING_STEPS} batch={BATCH_SIZE} lateral_scale={LATERAL_SCALE} "
+        f"steps={args.steps} batch={BATCH_SIZE} lateral_scale={LATERAL_SCALE} "
         f"conditions={','.join(requested_conditions)}",
         flush=True,
     )
@@ -824,6 +826,7 @@ def main() -> None:
             long_block_config=long_block_config,
             long_target_offset=long_target_offset,
             pretrain_config=pretrain_config,
+            training_steps=args.steps,
         )
         for condition_name in requested_conditions
     ]
