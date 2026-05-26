@@ -348,7 +348,11 @@ def write_report(
     report_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
-def main() -> None:
+def resolve_report_path(path: Path) -> Path:
+    """If path is a directory, append report.json. Otherwise use as-is."""
+    if path.is_dir():
+        return path / "report.json"
+    return path
     args = parse_args()
     if args.iterations < 2:
         raise ValueError(f"iterations must be at least 2, got {args.iterations}")
@@ -374,6 +378,8 @@ def main() -> None:
     if args.sanity_check_only:
         redirect_sanity_check_paths(args)
 
+    # Resolve report_path: if it's a directory, use report.json inside it
+    args.report_path = resolve_report_path(args.report_path)
     prepare_output_paths(report_path=args.report_path, log_path=args.log_path)
     log_run_restarted(args.log_path)
     if not args.sanity_check_only:
