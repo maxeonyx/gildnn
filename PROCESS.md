@@ -376,6 +376,8 @@ Do not combine multiple speculative mechanisms too early. Do not test the entire
 
 Break the system into pieces. Test each piece in isolation first (seconds, not minutes). Then attach two pieces together and test the attachment. Then build up pieces into chunks, and the final system from chunks.
 
+**Intermediate experiments are sanity checks, not deep dives.** The point is: does it work at all? Is anything dumb going on? Is it learning? Is the architecture not nonsensical? Verify and move on. Target ~44 seconds per intermediate check. Don't spend heaps of time on them — they're building blocks, not results.
+
 **Example:** For local predictive loss, don't jump to "2-block model with local loss + mixing + topology" as the first experiment. That has too many confounds. Instead:
 - Verify the prediction objective works in isolation (30 seconds)
 - Verify the mixing doesn't destroy signal (30 seconds)
