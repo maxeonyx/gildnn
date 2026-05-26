@@ -4,15 +4,17 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current operational state (2026-05-27, 00:20 NZST)
+## Current operational state (2026-05-27, 00:25 NZST)
 
-**GPU: FREE.** Experiment completed.
+**GPU: BUSY.** Running 8-iteration experiment (PID 21944). Log: `runs/recurrent_depth_8iter_run.log`. Report: `experiments/tinyshakespeare/artifacts/recurrent_depth_lm/report_8iter.json`. Expected ~30 more minutes from now.
 
-**Key result:** Recurrent-4 BEATS distinct-4: val_loss 1.6315 vs 1.7234 (Δ = -0.092), with 3.6× fewer params and 20% faster training. Weight sharing acts as regularization at this data scale.
+**Key result (this session):** Recurrent-4 BEATS distinct-4: val_loss 1.6315 vs 1.7234 (Δ = -0.092), with 3.6× fewer params and 20% faster training. Weight sharing acts as regularization at this data scale. Full write-up: `research/questions/recurrent-depth/README.md`.
 
-**Daily report 2026-05-26:** WRITTEN (will need 2026-05-27 later). See `research/daily/2026-05-26.md`.
+**Pending:** 8-iteration experiment running. When done, read the report JSON and update the question README.
 
-**Integration:** `core/tied_readout.py` now contains the validated model architecture (commit `103deca`).
+**Daily report 2026-05-27:** NOT YET WRITTEN (it's only 00:25).
+
+**Integration:** `core/tied_readout.py` contains validated model architecture.
 
 ---
 
@@ -192,6 +194,22 @@ Script: `runs/multirate_buffer_lm.py`. Tests whether a slow block can help block
 **Age-bucket analysis** (buffered condition): age 0 (fresh) = 1.94, age 1 = 2.19, age 2-7 ≈ 2.22-2.26. Even freshly-fired is catastrophically bad — problem is training dynamics (block 0 trained mostly with stale signal), not just inference staleness.
 
 Full write-up: `research/questions/multirate-buffer/README.md`
+
+### CRITICAL: All experiments use wrong sequence length (2026-05-27, Max)
+
+**Problem:** Every experiment uses `SHORT_CONTEXT = 4` (4-char input windows). The architecture is an RNN — context length doesn't affect per-step compute, only batch size and weight size matter. We should be testing with **thousands of tokens** of sequence length.
+
+**Why this matters:**
+- With 4 chars there's no temporal structure to discover — recurrence is invisible
+- Truncated BPTT means: forward through entire sequence (10K+ tokens), backprop through K steps (32-64). Hidden state carries long-range information even without full BPTT gradient.
+- The "sequential regime incompatible with laterals" finding may be an artifact of tiny sequences where adjacent positions overlap 3/4 chars
+- The "stale laterals don't work" finding may reverse when there's actually thousands of tokens of history to compress
+
+**What was wrong about the transformer comparison:** We hobbled the RNN to match the transformer's interface (short windows). The correct comparison is: transformer at its sweet spot (128-256 token attention) vs RNN at its sweet spot (thousands of tokens, truncated BPTT) at matched parameter count.
+
+**Action:** Redesign experiments around long-sequence unrolling with truncated BPTT. This is the priority.
+
+---
 
 ### What's actually next (2026-05-26 night, post-multirate)
 
