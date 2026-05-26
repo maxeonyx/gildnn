@@ -4,19 +4,37 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current operational state (2026-05-27, 04:14 NZST)
+## Current operational state (2026-05-27, 05:30 NZST)
 
-**GPU: FREE.** Oracle depth analysis at d=256/4-iter complete.
+**GPU: FREE.** Regression halt head experiment complete. Major success.
 
-**This session's work:**
-1. **Pathway 1 RESOLVED:** Multi-seed verification (3 seeds) shows mean Δ=-0.011, p≈0.11. Not significant. Pathway 1 inconclusive at this scale.
-2. **Direction decision:** Switched to Pathway 5 (Dynamic Depth / Early Exit) based on think-agent analysis. More directly connected to vision, already has oracle evidence, clear yes/no in timebox.
-3. **Oracle measurement at d=256/4-iter:** Oracle speedup = 1.37× (passes 1.3× threshold). 44.9% of tokens harmed by full depth. Worth pursuing.
-4. **Key insight from comparing scales:** More iterations = more headroom. d=72/depth-8 gave 1.96×; d=256/depth-4 gives 1.37×. Dynamic depth should target depth-8+ models.
+**This session's work (complete trajectory):**
+1. **Pathway 1 RESOLVED:** Multi-seed verification (3 seeds) shows mean Δ=-0.011, p≈0.11. Not significant. Inconclusive at this scale.
+2. **Direction decision:** Switched to Pathway 5 (Dynamic Depth / Early Exit). Rationale: oracle evidence exists, directly serves vision, clear yes/no in timebox.
+3. **Oracle at d=256/4-iter:** 1.37× speedup. Worth pursuing.
+4. **Oracle at d=256/8-iter:** 1.58× speedup. Confirms: more iterations = more headroom.
+5. **Binary BCE halt head (10K steps):** PRACTICAL FAILURE. AUROC ~0.69 but worse than fixed depth-6.
+6. **Binary BCE (30K steps):** Falsification confirmed — AUROC saturates at ~0.70, doesn't beat trivial baseline.
+7. **Regression halt head (10K steps):** **SUCCESS.** 1.33× speedup at 0.017 nats loss. 55.7% oracle efficiency. Beats fixed-depth baseline at ε=0.02 (1.38× vs 1.33×).
 
-**Daily report 2026-05-27:** NOT YET WRITTEN (write after 4pm at next stopping point).
+**Key discovery:** Regression (predict remaining gain) dramatically outperforms binary classification (predict safe/not-safe) for halt head training. Same model, same time, same architecture — only the loss matters.
+
+**Daily report 2026-05-27:** NOT YET WRITTEN (due after 4pm, it's now 5:30am — will be due tonight).
 
 **Integration:** `core/tied_readout.py` contains validated model architecture.
+
+### Immediate next steps
+
+1. **Scale-up test:** Run regression halting at d=256, 8 iterations, 20K steps. Does the mechanism improve at larger scale? Expected ~25-35 min.
+2. **Daily report:** Due after 4pm today. Will cover: Pathway 1 resolution, direction switch to Pathway 5, oracle measurements, binary halt failure, regression halt success.
+3. **If scale-up works:** Consider integration into `core/` as a first-class architecture feature.
+
+### What's been validated
+
+- Oracle opportunity is real and substantial (1.58× at d=256/8-iter)
+- Post-hoc probing fails (model doesn't naturally develop halt-predictive features)
+- Binary BCE joint training fails in practice (learns signal but not enough to beat fixed-depth)
+- **Regression joint training succeeds** — the model CAN learn "am I done?" when incentivized correctly
 
 ---
 
