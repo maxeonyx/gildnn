@@ -166,13 +166,47 @@ Script: `runs/recurrent_lateral_lm.py`. Fixed lateral timing per dictation 2026-
 The stale recurrent lateral as implemented doesn't work. But this doesn't kill multi-rate — it redirects it. Multi-rate needs to provide info asymmetry through **context accumulation at firing time** (the slow block processes a buffer of accumulated positions when it fires), not through step-by-step state compression.
 
 Options:
-1. **Multi-rate with context buffer** — slow block fires every K positions, processes all K windows at once (= K*4 effective context). This is the fixed-window approach but amortized over time.
+1. ~~**Multi-rate with context buffer** — slow block fires every K positions, processes all K windows at once (= K*4 effective context). This is the fixed-window approach but amortized over time.~~ **TESTED — DOES NOT WORK.** Sequential regime is incompatible with laterals. See below.
 2. **Truncated BPTT** — allow gradient through a few state steps. Tests whether temporal credit assignment unlocks the mechanism.
 3. **Communication objective** — train block 1 to predict something useful for block 0, not just its own local CE.
 
-### Operational notes for recurrent_lateral_lm.py
+### Multi-rate with context buffer — SEQUENTIAL REGIME INCOMPATIBLE (2026-05-26 night)
 
-**⚠️ MUST specify `--temperature 0.07 --batch-size 32`** when running this script with normalize=True (the default). The script defaults are temperature=1.0 which gives meaninglessly high CE loss with normalized embeddings (logits bounded to cosine similarities ∈ [-1,1]). Temperature 0.07 matches the validated architecture.
+Script: `runs/multirate_buffer_lm.py`. Tests whether a slow block can help block 0 when processing sequences position-by-position.
+
+**Finding: The sequential training regime is fundamentally incompatible with the lateral mechanism, regardless of context size.**
+
+| Condition | slow_ctx | val_loss | Δ | Read |
+|---|---|---|---|---|
+| block0_alone (baseline) | — | 1.6154 | — | — |
+| direct_ctx32_refresh1 (control) | 32 | 1.6154 | 0.000 | Lateral load-bearing (ablation +0.29) but net-zero benefit |
+| buffered_ctx32_refresh8 | 32 | 2.2051 | +0.590 | Catastrophically worse |
+| direct_ctx128_refresh1 (rescue attempt) | 128 | 1.6795 | +0.039 | Even 128-char context fails in sequential mode |
+
+**Why:** In sequential processing, adjacent positions overlap 127/128 (or 31/32). The slow lateral is nearly constant between positions → block 0 treats it as a static bias → no content-specific information extracted.
+
+**Contrast:** The same mechanism with 128-char context gives Δ=-0.088 in the window-based regime (tied_readout_lm.py), where each sample is independently drawn and the lateral varies meaningfully.
+
+**Age-bucket analysis** (buffered condition): age 0 (fresh) = 1.94, age 1 = 2.19, age 2-7 ≈ 2.22-2.26. Even freshly-fired is catastrophically bad — problem is training dynamics (block 0 trained mostly with stale signal), not just inference staleness.
+
+Full write-up: `research/questions/multirate-buffer/README.md`
+
+### What's actually next (2026-05-26 night, post-multirate)
+
+The complete picture of negative results:
+1. **Stale recurrent laterals** — don't work (no temporal credit assignment)
+2. **Buffered/held laterals in sequential mode** — don't work (near-constant signal, training dynamics)
+3. **Sequential training regime** — incompatible with laterals entirely (even fresh per-position fails)
+
+**The only working configuration: window-based training (random independent samples) with fresh per-position slow block computation.**
+
+Remaining options:
+1. **Truncated BPTT** — would provide temporal credit assignment. But would still be in sequential mode, which we just showed is incompatible. Would need to be combined with window-based training.
+2. **Integration** — the fixed-window mechanism (tied_readout_lm.py) WORKS. Integrate it into `core/` as the proven baseline. "Integrate before experimenting."
+3. **Different pathway** — the multi-rate / temporal reuse direction has been thoroughly tested and doesn't work without temporal credit assignment. Consider switching to a different roadmap pathway (e.g. Pathway 4: Computation Compression, Pathway 5: Dynamic Depth, Pathway 7: Hierarchical Tokenization).
+4. **Longer context for fixed-window** — test whether increasing block 0 from 4→16 chars and slow from 128→512 grows the effect.
+
+**Recommendation:** Option 2 (integrate) is highest priority per AGENTS.md rule "Integrate before experimenting." The fixed-window architecture works reliably; it should be in `core/` before starting new experiments.
 
 ---
 
@@ -213,9 +247,10 @@ Options:
 | **Pretrain+freeze ablation** | **3** | **two_blocks: -0.199** | **Interior blocks need more training; pretrained blocks are COMPLEMENTARY** |
 | **Co-train 4800 steps** | **3** | **two_blocks: 1.6435** | **BEATS pretrain+freeze. No staging needed, just more steps.** |
 | **Recurrent lateral (stale)** | **3→1** | **Stale laterals: NEUTRAL at best (Δ=+0.017 with scale=0.2, 4800 steps)** | **Detached state doesn't learn useful communication. Fixed-window approach still best for info asymmetry.** |
+| **Multi-rate buffer (sequential)** | **8→3** | **Sequential regime fails: Δ=0.00 at ctx32, Δ=+0.04 at ctx128** | **Sequential training incompatible with laterals — near-constant signal from overlapping windows. Window-based training required.** |
 
 ---
 
 ## The agent's working loop
 
-Follow PROCESS.md. Current position: **STALE RECURRENT LATERAL TESTED — DOESN'T WORK.** Detached state doesn't learn communication. Next: multi-rate with context buffer (fixed-window approach amortized over time), OR truncated BPTT to test if temporal credit assignment unlocks it.
+Follow PROCESS.md. Current position: **MULTI-RATE BUFFER TESTED — SEQUENTIAL REGIME INCOMPATIBLE WITH LATERALS.** All forms of temporal reuse fail. Only working approach: window-based training with fresh per-position computation (tied_readout_lm.py). Next: integrate the working mechanism into core/, then decide new direction.
