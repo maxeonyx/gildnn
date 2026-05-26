@@ -116,29 +116,48 @@ Key insights:
 
 **Architecture implication:** The multi-block architecture WORKS. The key variable is training budget, not architecture tricks. Give interior blocks enough optimization and they develop useful, complementary representations naturally.
 
-### What's next: NEW ARCHITECTURE (dictation 2026-05-26-5)
+### Architecture validation COMPLETE — scale up next
 
-Dictation redirected: Max described the actual architecture he wants. Different geometry from what we validated — needs piece-by-piece testing at tiny scale before scaling up.
+Tiny-scale validation of dictation 2026-05-26-5 architecture is done:
 
-**Architecture change (from dictation):**
-- **Weight-tied dot-product readout** — no output projection, logits = dot(output, embeddings) / temp
-- **Addition as combination** — lateral contributions added in shared embedding space (IS the Bayesian product)
-- **Embedding-space local loss** — cosine or L2 between block output and target embedding (not CE through projection)
-- **Noise on laterals** — forces timescale separation (most speculative piece)
+| Piece | Result | Decision |
+|---|---|---|
+| A0: Tied readout | ✓ 1.7206 matches old baseline 1.71 | **Keep** |
+| A1: Normalized addition (no scale factor) | ✓ Δ=-0.088 (better than old -0.068!) | **Keep** |
+| A2: Embedding-space local loss | ✗ cosine +0.14 worse, L2 +0.05 worse | **Keep CE** |
+| A3: Noise on laterals | Deferred — no timescale in fixed-window setting | Needs recurrent arch |
 
-**Validation order (tiny scale, ~70s each):**
-1. A0: Single-block tied-readout baseline (verify trains sanely)
-2. A1: Multi-block with addition-based combination (core redirect)
-3. A2: Embedding-space local loss (cosine/L2 vs CE)
-4. A3: Noise on laterals (last — most speculative)
+**Validated architecture for scale-up:**
+- Shared normalized token embeddings (weight-tied readout)
+- Normalized block outputs (L2-norm before addition)
+- Addition-based lateral combination (no scale factor, no learned projection)
+- CE local loss for interior blocks (last-position, gradient isolation via .detach())
+- Temperature = 0.07 (controls logit sharpness with normalized vectors)
+- Script: `runs/tied_readout_lm.py --normalize --temperature 0.07`
 
-**Decision gate:** If tied readout or additive combination is clearly broken at tiny scale, stop and debug. If they work, proceed to A2/A3. Scale up only the best surviving variant.
+**Tiny-scale reference:** block0_alone=1.7522, two_blocks=1.6646, Δ=-0.088
 
-**Why not scale old architecture first:** Max redirected the target architecture. Scaling the old one answers "does a surrogate scale?" which is lower-value now.
+### What's next: SCALE UP
+
+Does the normalized tied-readout architecture work at a more honest model size?
+
+**Design:**
+- d_model: 64 → 128
+- n_heads: 2 → 4
+- ff_dim: 128 → 256
+- n_layers: 1 → 2 per block
+- Context: same (4/32/128)
+- Training steps: 4800 → 20K (or until convergence)
+- Batch size: 256 (reduce if OOM)
+- Temperature: 0.07 (may need retuning at larger scale)
+
+**Success criterion:** two_blocks still meaningfully beats block0_alone. Effect should be at least as large as tiny scale (-0.088).
+
+**Secondary:** Generate sample text from the trained model.
 
 ### Feedback loop status
 
-Tiny-scale experiments take ~70 seconds. Full sequence (A0–A3) < 10 minutes if all work.
+Estimated ~5 minutes per condition at this scale (2x wider, 2x deeper, 4x longer training). Still one-session work.
 
 
 ---
