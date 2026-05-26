@@ -79,17 +79,27 @@ Diagnosis: reconstruction converged to near-zero (0.0002) because self-attention
 
 **Staging is NOT a requirement.** Remove from decision table.
 
-### What's next: increase effect size and confirm with seeds
+### What's next: multi-block experiment
 
-The current effect is -0.013 to -0.017 nats (1 seed). Options to increase confidence and effect size:
+**DONE:**
+- ✅ Multi-seed (3 seeds, ctx 4/128): mean Δ = -0.037, all seeds positive
+- ✅ Increased asymmetry (ctx 4/128 vs ctx 8/64): effect grows (-0.023 vs -0.017)
 
-1. **Multi-seed run** (3 seeds) — confirm the -0.017 is real, not noise
-2. **Increase context asymmetry** — try block 0 ctx=4, block 1 ctx=128 (more info gap)
-3. **Larger models** — d_model=128 (more capacity to use the lateral info)
-4. **Longer training** — 2000+ steps (may not have converged yet)
-5. **Curriculum warmup** — lateral_scale ramps 0→0.2 over first 200 steps (alternative to hard connect)
+**The mechanism is confirmed on real language.** Effect scales with info asymmetry. Co-training > staging.
 
-The cheapest discriminating next step: **multi-seed (3 seeds) on the current setup** to confirm the finding is real.
+**NEXT:** Does adding a **second** interior block with a different context length provide additional benefit?
+
+Design: block 0 (ctx=4, CE), block 1 (ctx=32, local last-pos CE), block 2 (ctx=128, local last-pos CE). Both block 1 and block 2 send lateral to block 0. Compare:
+1. block0 alone
+2. block0 + block1 (ctx=32)
+3. block0 + block2 (ctx=128)
+4. block0 + block1 + block2 (both — the multi-timestep architecture)
+
+If (4) > max(2,3): the blocks are complementary, not redundant. This is the multi-timestep architecture working.
+
+If (4) ≈ max(2,3): diminishing returns from additional blocks. The info asymmetry saturates at one block.
+
+Script: extend `runs/staged_char_lm.py` or write a new `runs/multi_block_lm.py`.
 
 ### Feedback loop status
 
@@ -151,9 +161,11 @@ All experiments complete in <12 seconds per condition. The feedback loop is very
 | **Context-asymmetry staged** | **3** | **100% accuracy** | **Block 1 first → freeze → lateral works** |
 | **Staged char LM (recon)** | **3** | **+0.014 (worse)** | **All-position reconstruction is trivial — doesn't pressure exported vector** |
 | **Staged char LM (last-pos CE)** | **3** | **-0.017 (better!)** | **Last-position CE works; co-training works too; staging not required** |
+| **Asymmetry scaling** | **3** | **ctx 4/128: -0.023** | **Effect grows with more info asymmetry** |
+| **3-seed confirmation** | **3** | **mean -0.037 ± 0.028** | **All 3 seeds positive; mechanism confirmed on real language** |
 
 ---
 
 ## The agent's working loop
 
-Follow PROCESS.md. Current position: **CONFIRM FINDING — multi-seed.** The mechanism works on real char-level LM. Next: run 3 seeds on the co-trained last-pos CE condition to confirm the -0.017 is real.
+Follow PROCESS.md. Current position: **MULTI-BLOCK EXPERIMENT.** Single interior block confirmed (3 seeds, effect scales with asymmetry). Next: test whether multiple interior blocks at different context lengths are complementary.
