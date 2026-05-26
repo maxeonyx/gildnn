@@ -4,23 +4,17 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current operational state (2026-05-27, 03:00 NZST)
+## Current operational state (2026-05-27, 04:14 NZST)
 
-**GPU: FREE.** Multi-seed verification complete (PID 22800 finished).
+**GPU: FREE.** Oracle depth analysis at d=256/4-iter complete.
 
-**This session's results (PATHWAY 1 RESOLUTION):**
-1. **8-iter scaling:** recurrent_8 val=1.615 vs distinct_8=1.787 (Δ=-0.172). Stability perfect.
-2. **Larger-data REVERSAL:** On 900K chars, distinct_4 (817K) val=1.615, recurrent_4 (224K) val=1.684. **Advantage was entirely regularization.**
-3. **Width-scaling:** recurrent_4_d256 (842K) val=1.594 vs distinct_4_d256 (3.2M) val=1.567.
-4. **MULTI-SEED VERIFICATION (3 seeds):**
-   - recurrent_4_d256 (842K): mean=1.600, std=0.004
-   - distinct_4_d128 (817K): mean=1.610, std=0.007
-   - **Mean Δ = -0.011 (recurrent slightly better), NOT statistically significant (p≈0.11)**
-   - Per-seed: -0.015, -0.019, +0.001
+**This session's work:**
+1. **Pathway 1 RESOLVED:** Multi-seed verification (3 seeds) shows mean Δ=-0.011, p≈0.11. Not significant. Pathway 1 inconclusive at this scale.
+2. **Direction decision:** Switched to Pathway 5 (Dynamic Depth / Early Exit) based on think-agent analysis. More directly connected to vision, already has oracle evidence, clear yes/no in timebox.
+3. **Oracle measurement at d=256/4-iter:** Oracle speedup = 1.37× (passes 1.3× threshold). 44.9% of tokens harmed by full depth. Worth pursuing.
+4. **Key insight from comparing scales:** More iterations = more headroom. d=72/depth-8 gave 1.96×; d=256/depth-4 gives 1.37×. Dynamic depth should target depth-8+ models.
 
-**Pathway 1 conclusion: INCONCLUSIVE / WEAK POSITIVE.** At matched params, recurrence shows a small noisy hint of advantage (~0.011 nats), but it's not established evidence. Per-FLOP, distinct still wins. The dramatic original advantage (-0.092) was entirely overfitting. Weight sharing is a good regularizer, possibly a marginal inductive bias at this scale.
-
-**Daily report 2026-05-27:** NOT YET WRITTEN (it's only 03:00).
+**Daily report 2026-05-27:** NOT YET WRITTEN (write after 4pm at next stopping point).
 
 **Integration:** `core/tied_readout.py` contains validated model architecture.
 
