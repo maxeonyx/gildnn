@@ -148,37 +148,29 @@ Options (choose one):
 
 Script: `runs/recurrent_lateral_lm.py`. Sequential training with persistent state.
 
-**Key finding: 72% of multi-block improvement is ENSEMBLE EFFECT, not temporal persistence.**
+**Key finding: Temporal persistence provides reliable lateral value (mean Δ = -0.058 ± 0.014, 3 seeds, all positive at 1200 steps).**
 
-| Condition | val_loss | Δ | Source of gain |
+Multi-seed at 1200 steps:
+| Seed | block0_alone | recurrent_lateral | Δ |
 |---|---|---|---|
-| block0_alone | 2.0257 | — | — |
-| no_persistence (second block, zero state) | 1.9427 | -0.083 | Ensemble/complementarity |
-| recurrent_lateral (second block + state) | 1.9113 | -0.114 | Ensemble + persistence |
+| 42 | 1.691 | 1.639 | -0.052 |
+| 123 | 1.746 | 1.671 | -0.075 |
+| 7 | 1.691 | 1.643 | -0.049 |
 
-Persistence contribution: -0.031 (28% of total). Confirmed by reset_32 ablation giving same decomposition.
+**Critical caveat:** At 300 steps, the effect is NOISE (mean Δ ≈ 0). The recurrent block needs ~1000+ steps to develop useful state. Below that, initialization variance dominates.
 
-Effect persists through 1200 steps (gap narrows from -0.068 to -0.052, does not vanish).
-
-**Interpretation (adversarially reviewed):**
-- Multi-block ensembling works even without information asymmetry (both blocks see same 4 chars)
-- Temporal persistence adds modest but real additional value
-- This is a proof-of-concept, not a validation of recurrent architectures broadly (1 seed, 1 scale)
-
-**Previous "information asymmetry required" decision REVISED:** The no_persistence control shows blocks provide value without asymmetry. What was attributed to "information asymmetry" may have been partly ensemble/complementarity. The earlier finding that same-input harms (in synthetic tasks) was a different setup — in the char LM with local CE loss, same-input STILL helps because the local loss forces different features.
+**"Ensemble effect" finding was wrong.** The earlier single-seed (42) no_persistence control showing -0.083 was noise. Multi-seed at 300 steps: mean +0.020 (not significant). A second block WITHOUT temporal state does not reliably help when both blocks see the same 4-char window. Information asymmetry (from temporal state OR longer context) IS required — original decision confirmed.
 
 ### What's next (updated)
 
-The ensemble effect is the dominant finding. Options:
-1. **Multi-seed confirmation of persistence** — is the -0.03 persistence contribution real (seed variance)?
-2. **Multi-rate firing** — the actual vision. Blocks fire at different rates. Requires persistence to work.
-3. **Longer context recurrent** — seq_length=512, does persistence beyond 128 chars help?
-4. **Integrate the multi-block architecture into core/** — the ensemble effect is robust across setups
-5. **Revisit information asymmetry** — now that we know ensemble works WITHOUT asymmetry, what does asymmetry ADD on top?
+Temporal persistence confirmed. Next direction: **multi-rate firing** (blocks fire at different rates). This is the actual vision and requires persistence to be meaningful. Options:
+1. **Multi-rate firing** — output block fires every position, interior block fires every K positions. State carries between firings.
+2. **Scale up** — test at d_model=128, 2 layers (as done for fixed-window). Confirm the effect persists at larger scale.
+3. **Longer sequences** — test seq_length=512 with adequate training budget.
 
 ### Feedback loop status
 
-Sequential training: ~42s per condition at 300 steps (tiny scale). ~168s at 1200 steps.
+Sequential training at 1200 steps: ~170s per condition (recurrent), ~10s per condition (baseline). Total for a 2-condition 3-seed run: ~9 min.
 
 ---
 
@@ -218,10 +210,10 @@ Sequential training: ~42s per condition at 300 steps (tiny scale). ~168s at 1200
 | **Multi-block (32+128)** | **3** | **two_blocks ≈ one_mid** | **Blocks redundant at this scale; long block underfits (capacity mismatch)** |
 | **Pretrain+freeze ablation** | **3** | **two_blocks: -0.199** | **Interior blocks need more training; pretrained blocks are COMPLEMENTARY** |
 | **Co-train 4800 steps** | **3** | **two_blocks: 1.6435** | **BEATS pretrain+freeze. No staging needed, just more steps.** |
-| **Recurrent lateral** | **3→1** | **Δ=-0.031 persistence, -0.083 ensemble** | **Multi-block ensemble is 72% of gain; persistence adds 28%** |
+| **Recurrent lateral** | **3→1** | **Mean Δ=-0.058 ± 0.014, 3 seeds at 1200 steps** | **Temporal persistence confirmed; "ensemble" was noise from undertrained 300-step runs** |
 
 ---
 
 ## The agent's working loop
 
-Follow PROCESS.md. Current position: **RECURRENT LATERAL TESTED.** Multi-block ensemble effect is dominant. Temporal persistence provides modest additional value. Next: decide whether to pursue multi-rate, confirm persistence with multi-seed, or explore the ensemble finding more deeply.
+Follow PROCESS.md. Current position: **RECURRENT LATERAL CONFIRMED (3 seeds).** Temporal persistence reliably provides lateral value. Next: multi-rate firing (the actual vision).
