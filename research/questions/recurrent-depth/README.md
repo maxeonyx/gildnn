@@ -151,43 +151,88 @@ The distinct model is heavily overfitting (train-val gap of 0.62 nats). Weight s
 5. **Returns diminish after about 5 iterations:** the big gains are in iterations 1-4; iterations 5-8 add only 0.07 nats total.
 6. **Activation RMS growth is linear and predictable:** per-iteration LayerNorms prevent exponential blowup.
 
+## Larger-data control: advantage is regularization
+
+### Results
+
+| Condition | Params | Val Loss (100K train) | Val Loss (900K train) |
+|---|---|---|---|
+| distinct_4 | 817K | 1.723 | **1.615** |
+| recurrent_4 | 224K | **1.632** | 1.684 |
+
+- On 100K chars: recurrent wins by Δ=-0.092. Weight sharing prevents overfitting.
+- On 900K chars: distinct wins by Δ=+0.069. Extra capacity pays off when data is sufficient.
+
+### Per-iteration eval (recurrent_4, large data)
+
+| Iteration | Val Loss |
+|---|---|
+| 3 | 1.707 |
+| 4 | 1.684 |
+
+Iteration 4 still helps, but the larger-data recurrent model stops at 1.684 instead of reaching the 1.615 achieved by the distinct model.
+
+### Activation RMS (large data)
+
+0.42 → 0.72 → 1.07 → 1.44
+
+The recurrent dynamics still look healthy. This run does not show a stability failure; it shows a capacity ceiling.
+
+### Key findings
+
+1. **The recurrent advantage is entirely regularization from weight sharing.**
+2. At 100K chars with 817K params, the distinct model memorizes (train loss ~1.0, val 1.72).
+3. At 900K chars, the distinct model stops overfitting (train ~1.1-1.4, val 1.62) and wins.
+4. The recurrent model's parameter-efficient design becomes a disadvantage when data is plentiful — it lacks the capacity to exploit the additional training signal.
+5. Weight sharing is not a free lunch for quality — it is a strong regularizer that helps when data is scarce.
+
+### Implication for Pathway 1
+
+This does not kill Pathway 1, but it changes the question. The original question was "can shared weights match distinct layers?" The answer is: not at matched depth with fewer params.
+
+The real question is now:
+
+**At matched parameter count (wider recurrent model vs narrow distinct), which architecture is better?**
+
+If a recurrent model with ~817K params (wider `d_model`) still matches or beats a 4-layer distinct model with ~817K params, then iteration provides useful inductive bias beyond regularization.
+
 ## Interpretation
 
-**H1 (optimistic) is confirmed** at this scale: recurrence not only matches but beats distinct layers, and the margin grows from 0.092 nats at 4 iterations to 0.172 nats at 8 iterations.
+The original 100K-char result was real, but its cause was misidentified. Recurrent-4 beats distinct-4 on small data because weight sharing regularizes the model. Once training data increases to 900K characters, the distinct model's extra capacity stops being a liability and becomes an advantage.
 
-The growing gap strongly supports the overfitting explanation. The distinct 8-layer model has 1.6M parameters on only 100K training characters and gets worse as depth increases, while the recurrent 8-iteration model stays at 226K parameters and keeps improving with more computation.
+So the answer to the original question is narrower than it first appeared: shared-weight recurrence can beat distinct depth at matched compute when the distinct model is over-parameterized for the dataset, but not when the same narrow recurrent model is asked to compete with a larger-capacity distinct model on sufficient data.
 
-**H3 (instability) is rejected:** 8 iterations are still completely stable with standard training. Activation RMS growth is linear, not exponential.
+**H3 (instability) is still rejected:** both the 8-iteration run and the larger-data recurrent control remain stable. Stability is not the blocker here.
 
-This raises the critical next question: **does the recurrent advantage persist once there is enough data that neither model can overfit heavily?** If the distinct model stops memorizing, its extra capacity might close or reverse the gap.
+The next question is now a fairer Pathway 1 test: if recurrence gets the same parameter budget as distinct depth, does the iterative inductive bias still help?
 
 ## What this settles
 
-- At this data scale (100K chars, d=128, ctx=128), shared-weight recurrence is BETTER than distinct layers at matched compute
+- At 100K chars, shared-weight recurrence beats distinct depth because weight sharing regularizes an otherwise overfit comparison
+- At 900K chars, the 817K-parameter distinct model beats the 224K-parameter recurrent model by 0.069 nats
 - 8 iterations of the same block are stable with no special techniques needed
-- Each iteration provides clear monotonic improvement, with diminishing returns appearing after roughly iteration 5
-- Weight sharing provides implicit regularization that is beneficial at this scale
+- Weight sharing provides useful regularization, but it is not free quality once data is plentiful
 
 ## What this does NOT settle
 
-- Whether the advantage persists at larger data scale (where overfitting matters less)
-- Whether wider recurrent models (same param count as distinct) are even better
+- Whether a wider recurrent model at the same parameter count as distinct still wins or matches
 - How many iterations before instability appears (8 is still stable, and RMS growth remains linear)
 - Whether local learning (Pathway 3) composes well with recurrence
 - Whether this result generalizes beyond TinyShakespeare
 
 ## Next steps (per decision rule)
 
-Gap is ≤ 0.03 (actually recurrent is BETTER): **strong evidence for Pathway 1.**
-
 Immediate follow-ups:
-1. **Larger data:** Run the same comparison on 900K train chars / 100K val chars to test whether the current advantage is mostly regularization.
-2. **Width scaling:** Make recurrent model as wide as distinct (same param count). Does it dominate even further?
-3. **Iteration scaling:** Try 16 iterations. Where does instability appear beyond the now-verified stable 8-iteration point?
-4. **Composition with Pathway 3:** Add local CE loss per iteration (= the proven lateral mechanism applied to temporal iterations)
+1. **Width scaling:** Make the recurrent model wider to match ~817K params. Compare fairly: same params, same data (900K), same steps (20K).
+2. **Iteration scaling:** Try 16 iterations. Where does instability appear beyond the now-verified stable 8-iteration point?
+3. **Composition with Pathway 3:** Add local CE loss per iteration (= the proven lateral mechanism applied to temporal iterations).
 
 ## Artifacts
 
 - Report JSON: `experiments/tinyshakespeare/artifacts/recurrent_depth_lm/report.json`
+- Report JSON (8 iterations): `experiments/tinyshakespeare/artifacts/recurrent_depth_lm/report_8iter.json`
+- Report JSON (900K control): `experiments/tinyshakespeare/artifacts/recurrent_depth_lm/report_largedata.json`
 - Log: `runs/recurrent_depth_run.log`
+- Log (8 iterations): `runs/recurrent_depth_8iter_run.log`
+- Log (900K control): `runs/recurrent_depth_largedata_run.log`
 - Script: `runs/recurrent_depth_lm.py`
