@@ -129,6 +129,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--halt-warmup-fraction", type=float, default=HALT_WARMUP_FRACTION)
     parser.add_argument("--sanity-check-only", action="store_true")
     parser.add_argument("--no-lock", action="store_true")
+    parser.add_argument("--save-checkpoint", action="store_true")
     parser.add_argument("--report-path", type=Path, default=artifact_dir / "report.json")
     parser.add_argument("--log-path", type=Path, default=artifact_dir / "run.jsonl")
     return parser.parse_args()
@@ -656,6 +657,25 @@ def write_report(
     report_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
+def save_checkpoint(
+    checkpoint_path: Path,
+    *,
+    model: RecurrentDepthLM,
+    config: ExperimentConfig,
+    args: argparse.Namespace,
+    vocab_size: int,
+) -> None:
+    checkpoint_payload = {
+        "model_state_dict": model.state_dict(),
+        "config": asdict(config),
+        "seed": args.seed,
+        "vocab_size": vocab_size,
+        "train_characters": args.train_characters,
+        "val_characters": args.val_characters,
+    }
+    torch.save(checkpoint_payload, checkpoint_path)
+
+
 def main() -> None:
     args = parse_args()
     if args.learning_rate <= 0.0:
@@ -754,11 +774,21 @@ def main() -> None:
         evaluation=evaluation,
         device=device,
     )
+    checkpoint_path = args.report_path.parent / "checkpoint.pt"
+    if args.save_checkpoint:
+        save_checkpoint(
+            checkpoint_path,
+            model=model,
+            config=config,
+            args=args,
+            vocab_size=vocab_size,
+        )
     append_log(
         args.log_path,
         {
             "stage": "run_completed",
             "report_path": str(args.report_path),
+            "checkpoint_path": str(checkpoint_path) if args.save_checkpoint else None,
             "training": {
                 "final_train_loss": round(training.final_train_loss, 6),
                 "final_lm_loss": round(training.final_lm_loss, 6),
