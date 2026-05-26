@@ -8,3 +8,10 @@ runs/*.err
 runs/active.lock
 # No model weights or large tensors in git
 **/*.pt
+# Experiment runtime artifacts (logs, outputs, generated text)
+experiments/**/stdout.log
+experiments/**/stderr.log
+experiments/**/run.jsonl
+experiments/**/report.json
+experiments/**/checkpoint_*.pt
+experiments/**/*.txt
