@@ -4,7 +4,7 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current operational state (2026-05-27, 05:55 NZST)
+## Current operational state (2026-05-27, 06:05 NZST)
 
 **GPU: BUSY.** Extended training run (PID 16340, d=256/8-iter/50K steps, ETA ~06:35).
 
@@ -13,9 +13,12 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 - Log: `experiments/tinyshakespeare/artifacts/halting_regression_d256_50k/run.jsonl`
 - Report: `experiments/tinyshakespeare/artifacts/halting_regression_d256_50k/report.json`
 - Lock: `runs/active.lock`
+- At step 22K/50K as of 06:04 — Pearson 0.409, LM loss 1.40, both improving steadily
 - Purpose: Determine if d=256 halt head convergence improves with more training (20K steps gave 33.6% oracle efficiency vs d=128's 60.4% at 10K)
 
-**d=256/20K result (just completed):** Mixed. Mechanism works at aggressive ε (1.47× at 0.024 loss) but doesn't beat fixed-depth baselines at conservative ε. Eval Pearson 0.458 (vs 0.572 at d=128). Still climbing at 20K — hence the 50K follow-up.
+**Integration design (pre-computed):** If 50K passes criteria, create `core/recurrent_depth.py` with `SharedRecurrentCore`, `HaltHead`, `RecurrentDepthLM` — parallel model class to `TiedReadoutModel`, NOT a generic halting framework. Reuse existing primitives (`CausalSelfAttention`, `FeedForward`, `normalize_hidden`, `tied_logits`). Do NOT pull training/eval machinery into core/.
+
+**Piece tests:** ALL PASS (verified 06:04). Core healthy for integration.
 
 **Daily report 2026-05-27:** NOT YET WRITTEN (due after 4pm).
 
