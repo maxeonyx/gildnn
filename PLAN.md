@@ -199,6 +199,8 @@ Full write-up: `research/questions/multirate-buffer/README.md`
 
 ### CRITICAL: All experiments use wrong sequence length (2026-05-27, Max)
 
+> **Agent note (2026-05-27, 01:00):** This section was written about the older SHORT_CONTEXT=4 experiments (tied_readout_lm, multirate_buffer, recurrent_lateral). It does NOT apply to `recurrent_depth_lm.py` which already uses 128-char attention windows. The claim "context length doesn't affect per-step compute" is also incorrect for attention-based models (quadratic). This section describes a DIFFERENT architecture (true temporal RNN with truncated BPTT) which would be a separate experiment from the current Pathway 1 tests. The current recurrent-depth work (shared transformer weights iterated N times over a fixed window) is a valid test of Pathway 1's core claim. See think-agent analysis from this session.
+
 **Problem:** Every experiment uses `SHORT_CONTEXT = 4` (4-char input windows). The architecture is an RNN — context length doesn't affect per-step compute, only batch size and weight size matter. We should be testing with **thousands of tokens** of sequence length.
 
 **Why this matters:**
