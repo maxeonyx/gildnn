@@ -4,25 +4,47 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current operational state (2026-05-27, 06:49 NZST)
+## Current operational state (2026-05-27, 06:50 NZST)
 
 **GPU: FREE.**
 
-**Pathway 5 conclusion (this session):**
-- 50K run COMPLETED: Pearson 0.561, ε=0.02 speedup 1.20 (doesn't beat fixed-6 at tight threshold)
-- Key finding: prediction quality scales (Pearson matches d=128) but oracle headroom shrinks with training
-- Calibration experiment CONFIRMED: affine calibration boosts ε=0.02 speedup from 1.30→1.39, beating fixed-6
-- **Integration warranted:** mechanism proven + calibration fix identified + prediction scales
+**Pathway 5: RESOLVED this session.** Full arc:
+- Oracle measurements → binary BCE halt head (FAIL) → regression MSE halt head (SUCCESS at d=128)
+- Scale-up to d=256/50K: Pearson scales (0.561) but strict-threshold speedup doesn't (calibration mismatch)
+- Calibration experiment: affine post-hoc fix → ε=0.02 speedup jumps from 1.30 to 1.39, beating fixed-6
+- **Integrated into `core/recurrent_depth.py`** — tested, all 5 piece tests pass
 
-**Daily report 2026-05-27:** NOT YET WRITTEN (due after 4pm).
+**Daily report 2026-05-27:** NOT YET WRITTEN (due after 4pm). Today's report covers the full Pathway 5 resolution — the most significant experimental arc of the project so far.
 
 ---
 
 ## What's next
 
-1. **Integration into `core/`** — create `core/recurrent_depth.py` with `SharedRecurrentCore`, `HaltHead`, `RecurrentDepthLM`. Include optional calibration parameters for inference. Training/eval machinery stays in `runs/`.
-2. **Daily report** (after 4pm): Full Pathway 5 arc — oracle → binary fail → regression success → scale-up → calibration fix
-3. **After integration:** What's the next research direction? Pathway 4 (active compression) is the natural successor — model learning to be "ready" earlier would enlarge the oracle ceiling
+1. ~~Integration~~ **DONE** — `core/recurrent_depth.py` with `SharedRecurrentCore`, `HaltHead`, `RecurrentDepthLM`, calibration support
+2. **Choose next research direction** — see "Open directions" below
+3. **Daily report** (after 4pm)
+4. **Process note:** Consider making `--save-checkpoint` default for future experiment runs (calibration experiment was initially blocked by missing checkpoint)
+
+---
+
+## Open directions (post Pathway 5)
+
+The two validated architectures serve different vision requirements:
+
+| Architecture | Sequential inference? | Multi-rate? | Dynamic depth? | Local learning? |
+|---|---|---|---|---|
+| `core/tied_readout.py` (multi-rate laterals) | ❌ window-only | ✓ | ❌ | ✓ |
+| `core/recurrent_depth.py` (shared-weight iteration) | ✓ | ❌ | ✓ | ❌ |
+
+Neither alone satisfies the full vision. Options:
+
+**A. Pathway 4 (Active Compression)** — natural successor to Pathway 5. Can the recurrent depth model learn to frontload computation, making early depths more informative? This enlarges the oracle ceiling and compounds with the halt head. Operates on the sequential model.
+
+**B. Sequential inference for multi-rate laterals** — the deeper problem. Window-trained laterals collapse in sequential mode (K=2 → +0.43 loss). Solving this would unblock the full vision architecture. Requires fundamentally different local objectives (not CE per-position).
+
+**C. Combining both architectures** — can the recurrent depth model have multi-rate lateral inputs at each depth? Or: can the lateral model iterate its blocks? These are unexplored compositions.
+
+**D. Scaling the recurrent depth model** — bigger dataset, bigger model, interactive demo. The mechanism works and is integrated; how does it perform at a scale where it generates interesting text?
 
 ---
 
@@ -30,9 +52,7 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 **The question:** Does adding predictive-loss-trained interior blocks improve over a single CE-connected block?
 
-**Design constraint (non-negotiable):** Interior blocks receive ONLY local signals. No task gradient (CE) flows to them. The output block gets CE. Interior blocks predict what arrives laterally.
-
-**Status:** Validated at d=128 scale (Δ=-0.045 with two blocks). Architecture in `core/tied_readout.py`. Dynamic depth is the current active pathway.
+**Status:** VALIDATED at d=128 scale (Δ=-0.045 with two blocks). Architecture in `core/tied_readout.py`. The multi-rate architecture works with window-based training; Pathway 8 closure means sequential inference remains an open problem.
 
 ---
 
@@ -46,34 +66,16 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Pathway 5 results (Dynamic Depth / Early Exit)
+## Pathway 5 results (Dynamic Depth / Early Exit) — RESOLVED
 
-### Oracle measurements
+### Summary
 
-| Config | Oracle speedup | Notes |
-|---|---|---|
-| d=72, 8-iter | 1.96× | Large headroom at small scale |
-| d=256, 4-iter | 1.37× | Moderate headroom |
-| d=256, 8-iter | 1.58× | Good headroom, target config |
+Regression halt head (predict remaining loss gain) achieves dynamic early exit beating fixed-depth baselines. Key numbers:
+- d=128/10K: Pearson 0.572, ε=0.02 speedup 1.38×, oracle efficiency 60%
+- d=256/50K: Pearson 0.561, needs affine calibration to beat fixed-6
+- After calibration: ε=0.02 speedup 1.39× at loss 0.014 (vs fixed-6: 1.33× at 0.02)
 
-### Halt head approaches
-
-| Approach | Result | Key metric |
-|---|---|---|
-| Post-hoc probe | FAIL | Model doesn't naturally develop halt-predictive features |
-| Binary BCE (10K) | FAIL | AUROC 0.69, worse than fixed depth-6 |
-| Binary BCE (30K) | FAIL | Saturates at AUROC 0.70 |
-| **Regression MSE (10K)** | **SUCCESS** | **55.7% oracle efficiency, beats fixed-depth** |
-
-### Regression halt head detail (d=128, 8-iter, 10K steps)
-
-| ε threshold | Speedup | Loss hit | Oracle efficiency |
-|---|---|---|---|
-| 0.01 | 1.33× | 0.017 | 55.7% |
-| 0.02 | 1.38× | 0.021 | 60.4% |
-| 0.05 | 1.57× | 0.035 | 72.9% |
-
-Fixed depth-6 baseline: 1.33× speedup at 0.013 loss hit. Regression ε=0.02 BEATS this (1.38× at 0.021).
+Integrated as `core/recurrent_depth.py`. Full write-up: `research/questions/dynamic-depth/README.md`
 
 ---
 
@@ -83,6 +85,7 @@ Fixed depth-6 baseline: 1.33× speedup at 0.013 loss hit. Regression ε=0.02 BEA
 |---|---|---|
 | 1 (Recurrent Depth) | INCONCLUSIVE | Δ=-0.011, p≈0.11 at matched params. Per-FLOP distinct wins. |
 | 3 (Local Learning) | VALIDATED | Window-based + fresh lateral works. Co-training self-organizes. |
+| 5 (Dynamic Depth) | **RESOLVED** | Regression halt head works. Calibration fixes scale gap. Integrated. |
 | 8 (Multi-Rate) | CLOSED | Sequential regime incompatible; CE-trained laterals position-specific |
 
 ---
@@ -93,6 +96,8 @@ Fixed depth-6 baseline: 1.33× speedup at 0.013 loss hit. Regression ε=0.02 BEA
 - `ROADMAP.md` — research pathways (DO NOT EDIT)
 - `PROCESS.md` — experiment discipline and loop
 - `research/questions/dynamic-depth/README.md` — full Pathway 5 write-up
-- `core/tied_readout.py` — validated architecture
-- `runs/halting_regression.py` — the working regression halt head
+- `core/tied_readout.py` — validated multi-rate lateral architecture
+- `core/recurrent_depth.py` — validated recurrent depth + halting architecture
+- `runs/halting_regression.py` — regression halt head training script
+- `runs/calibration_check.py` — post-training calibration analysis
 - `research/daily/2026-05-26.md` — yesterday's report
