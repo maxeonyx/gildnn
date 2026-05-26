@@ -391,6 +391,13 @@ def precompute_state_biases(
     return torch.stack(state_biases, dim=1)
 
 
+def shift_recurrent_hidden_for_lateral(recurrent_hidden: Tensor, *, batch_size: int, num_positions: int) -> Tensor:
+    hidden_by_position = recurrent_hidden.view(batch_size, num_positions, -1)
+    zero_lateral = torch.zeros_like(hidden_by_position[:, :1, :])
+    shifted_hidden = torch.cat((zero_lateral, hidden_by_position[:, :-1, :]), dim=1)
+    return shifted_hidden.view(batch_size * num_positions, -1)
+
+
 def run_sequence_batch_train(
     model: RecurrentLateralModel,
     sequence_batch: Tensor,
@@ -408,12 +415,18 @@ def run_sequence_batch_train(
     with autocast_context(device):
         output_hidden = model.output_hidden(flat_windows)
         recurrent_hidden = None
+        recurrent_lateral = None
         recurrent_loss: Tensor | None = None
         if model.recurrent_block is not None:
             if state_biases is None:
                 raise ValueError("state_biases missing for recurrent condition")
             flat_state_biases = state_biases.view(batch_size * num_positions, model.model_size.d_model)
             recurrent_hidden, _ = model.recurrent_hidden(flat_windows, flat_state_biases)
+            recurrent_lateral = shift_recurrent_hidden_for_lateral(
+                recurrent_hidden,
+                batch_size=batch_size,
+                num_positions=num_positions,
+            )
             recurrent_loss = aggregated_interior_local_loss(
                 recurrent_hidden,
                 embedding=model.token_embedding,
@@ -424,7 +437,7 @@ def run_sequence_batch_train(
                 batch_size=batch_size,
                 num_positions=num_positions,
             )
-        logits = model.output_logits(output_hidden, recurrent_hidden)
+        logits = model.output_logits(output_hidden, recurrent_lateral)
         block0_loss = summed_cross_entropy(logits, flat_targets, batch_size=batch_size)
         block0_accuracy = (logits.argmax(dim=-1) == flat_targets).float().mean()
         total_loss = block0_loss if recurrent_loss is None else block0_loss + recurrent_loss
@@ -468,15 +481,23 @@ def evaluate_condition(
 
         with autocast_context(device):
             output_hidden = model.output_hidden(flat_windows)
-            recurrent_hidden = None
+            recurrent_lateral = None
             if model.recurrent_block is not None:
                 if state_biases is None:
                     raise ValueError("state_biases missing for recurrent condition")
-                valid_state_biases = state_biases[:, valid_position_mask, :]
-                flat_state_biases = valid_state_biases.reshape(-1, model.model_size.d_model)
-                recurrent_hidden, _ = model.recurrent_hidden(flat_windows, flat_state_biases)
+                flat_all_windows = windows.reshape(-1, SHORT_CONTEXT)
+                flat_state_biases = state_biases.reshape(-1, model.model_size.d_model)
+                recurrent_hidden, _ = model.recurrent_hidden(flat_all_windows, flat_state_biases)
+                shifted_recurrent_hidden = shift_recurrent_hidden_for_lateral(
+                    recurrent_hidden,
+                    batch_size=windows.shape[0],
+                    num_positions=num_positions,
+                )
+                recurrent_lateral = shifted_recurrent_hidden.view(windows.shape[0], num_positions, -1)[
+                    :, valid_position_mask, :
+                ].reshape(-1, model.model_size.d_model)
 
-            logits = model.output_logits(output_hidden, recurrent_hidden)
+            logits = model.output_logits(output_hidden, recurrent_lateral)
             loss, _ = next_char_metrics(logits, flat_targets)
             total_loss += loss.item() * flat_targets.shape[0]
             total_correct += (logits.argmax(dim=-1) == flat_targets).sum().item()
