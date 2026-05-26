@@ -113,6 +113,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--learning-rate", type=float, default=LEARNING_RATE)
     parser.add_argument("--distinct-layers", type=positive_int, default=DISTINCT_LAYERS)
     parser.add_argument("--recurrent-iterations", type=positive_int, default=RECURRENT_ITERATIONS)
+    parser.add_argument("--d-model", type=positive_int, default=D_MODEL)
+    parser.add_argument("--n-heads", type=positive_int, default=N_HEADS)
+    parser.add_argument("--ff-dim", type=positive_int, default=FF_DIM)
     parser.add_argument("--sanity-check-only", action="store_true")
     parser.add_argument("--no-lock", action="store_true")
     parser.add_argument("--report-path", type=Path, default=artifact_dir / "report.json")
@@ -520,6 +523,9 @@ def main() -> None:
     config = ExperimentConfig(
         distinct_layers=args.distinct_layers,
         recurrent_iterations=args.recurrent_iterations,
+        d_model=args.d_model,
+        n_heads=args.n_heads,
+        ff_dim=args.ff_dim,
     )
     condition_specs = build_condition_specs(config)
     device = resolve_device(args.device)
