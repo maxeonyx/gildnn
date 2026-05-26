@@ -144,21 +144,31 @@ Options (choose one):
 3. **Move toward recurrent** — the vision's actual architecture: blocks fire at different rates, state persists
 4. **Test noise on laterals** — only meaningful with temporal structure (option 3)
 
-### Recurrent lateral experiment — LATERAL TIMING BUG (dictation 2026-05-26-6)
+### Recurrent lateral experiment — STALE LATERALS DON'T WORK (2026-05-26, late evening)
 
-Script: `runs/recurrent_lateral_lm.py`. Sequential training with persistent state.
+Script: `runs/recurrent_lateral_lm.py`. Fixed lateral timing per dictation 2026-05-26-6.
 
-**⚠️ EXPERIMENT IS WRONG.** Block 1's output at position t is fed to block 0 at position t (same timestep). This makes them sequential — just a deeper network. The vision requires STALE laterals: block 0 at position t gets block 1's output from position t-1. Both blocks fire concurrently.
+**Finding: Stale laterals (one-position delay) from detached recurrent state provide NO benefit.**
 
-**Previous results (mean Δ=-0.058, 3 seeds) are INVALID.** They measured sequential depth, not parallel communication.
+| Setup | Result |
+|---|---|
+| lateral_scale=1.0, 1200 steps, 3 seeds | ALL WORSE (Δ = +0.12 to +0.56) |
+| lateral_scale=0.2, 4800 steps, 1 seed | Neutral (Δ = +0.017) |
 
-**Fix needed:** Delay lateral by one position. Block 0 at position t receives block 1's recurrent_hidden from position t-1 (zeros at t=0). Then re-run multi-seed at 1200 steps to see if stale laterals still help.
+**Why it fails:** Block 1 is trained for local CE (predict its own next-char). It has no incentive to produce state that's useful for block 0 one step later. Without BPTT or temporal credit assignment, the state captures patterns that overfit the training data (train loss 1.48 < block0's 1.55) but don't generalize (val loss 1.63 > block0's 1.61).
 
-### What's next (updated)
+**Previous "positive" result was timing bug:** Same-timestep lateral = extra sequential depth, which trivially helps. Parallel (stale) lateral = no benefit.
 
-1. **FIX lateral timing** — implement one-position delay in the experiment script
-2. **Re-run multi-seed at 1200 steps** — confirm whether stale laterals still provide value
-3. Then proceed to multi-rate firing (which requires this fix as a prerequisite anyway)
+**Fixed-window still works** because it provides IMMEDIATE info asymmetry (128 chars vs 4), requiring no temporal accumulation or communication learning.
+
+### What's next (revised)
+
+The stale recurrent lateral as implemented doesn't work. But this doesn't kill multi-rate — it redirects it. Multi-rate needs to provide info asymmetry through **context accumulation at firing time** (the slow block processes a buffer of accumulated positions when it fires), not through step-by-step state compression.
+
+Options:
+1. **Multi-rate with context buffer** — slow block fires every K positions, processes all K windows at once (= K*4 effective context). This is the fixed-window approach but amortized over time.
+2. **Truncated BPTT** — allow gradient through a few state steps. Tests whether temporal credit assignment unlocks the mechanism.
+3. **Communication objective** — train block 1 to predict something useful for block 0, not just its own local CE.
 
 ---
 
@@ -198,10 +208,10 @@ Script: `runs/recurrent_lateral_lm.py`. Sequential training with persistent stat
 | **Multi-block (32+128)** | **3** | **two_blocks ≈ one_mid** | **Blocks redundant at this scale; long block underfits (capacity mismatch)** |
 | **Pretrain+freeze ablation** | **3** | **two_blocks: -0.199** | **Interior blocks need more training; pretrained blocks are COMPLEMENTARY** |
 | **Co-train 4800 steps** | **3** | **two_blocks: 1.6435** | **BEATS pretrain+freeze. No staging needed, just more steps.** |
-| **Recurrent lateral** | **3→1** | **INVALID — lateral timing bug** | **Was measuring sequential depth, not parallel communication. Needs re-run with one-position delay.** |
+| **Recurrent lateral (stale)** | **3→1** | **Stale laterals: NEUTRAL at best (Δ=+0.017 with scale=0.2, 4800 steps)** | **Detached state doesn't learn useful communication. Fixed-window approach still best for info asymmetry.** |
 
 ---
 
 ## The agent's working loop
 
-Follow PROCESS.md. Current position: **RECURRENT LATERAL HAS TIMING BUG (dictation 2026-05-26-6).** Fix lateral delay, re-run, then proceed to multi-rate.
+Follow PROCESS.md. Current position: **STALE RECURRENT LATERAL TESTED — DOESN'T WORK.** Detached state doesn't learn communication. Next: multi-rate with context buffer (fixed-window approach amortized over time), OR truncated BPTT to test if temporal credit assignment unlocks it.

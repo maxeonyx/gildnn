@@ -117,79 +117,74 @@ Block 1 (recurrent interior):
 
 Script: [`runs/recurrent_lateral_lm.py`](../../../runs/recurrent_lateral_lm.py)
 
-### Multi-seed confirmation (1200 steps, seq_length=128, d_model=64, 1 layer, batch=32)
+### Previous results (INVALID — same-timestep bug)
+
+The earlier results (mean Δ = -0.058, "confirmed") were measured with the lateral arriving at the SAME timestep (position t → position t). This made the blocks sequential (extra depth), not parallel. Those results are invalidated.
+
+### Corrected experiment: stale lateral (one-position delay)
+
+After fixing lateral timing (block 0 at position t receives block 1's output from position t-1):
+
+**lateral_scale=1.0, 1200 steps, 3 seeds (params: --batch-size 32 --temperature 0.07):**
 
 | Seed | block0_alone | recurrent_lateral | Δ |
 |---|---|---|---|
-| 42 | 1.6906 | 1.6390 | -0.052 |
-| 123 | 1.7459 | 1.6712 | -0.075 |
-| 7 | 1.6913 | 1.6426 | -0.049 |
-| **Mean** | **1.709** | **1.651** | **-0.058 ± 0.014** |
+| 42 | 1.7065 | 1.8421 | +0.136 |
+| 123 | 1.7504 | 2.3058 | +0.555 |
+| 7 | 1.6872 | 1.8110 | +0.124 |
 
-All 3 seeds positive. Effect is robust at 1200 steps.
+**Stale laterals at scale=1.0 actively HURT.** The noise from an undertrained recurrent block overwhelms block 0.
 
-### Training budget matters critically
+**lateral_scale=0.2, 4800 steps, seed 42:**
 
-At 300 steps, the same experiment is NOISE:
+| Condition | val_loss | Δ |
+|---|---|---|
+| block0_alone | 1.6112 | — |
+| recurrent_lateral | 1.6280 | +0.017 (neutral) |
 
-| Seed | Δ (recurrent - baseline) at 300 steps |
-|---|---|
-| 42 | -0.054 |
-| 123 | +0.087 |
-| 7 | -0.026 |
-| Mean | +0.002 (not significant) |
+With reduced lateral scale and 4x more training: essentially neutral. But the TRAINING loss tells a different story:
 
-The recurrent block needs ~1000+ steps to develop useful state representations. Below that threshold, the effect is dominated by initialization variance.
+| Condition | train CE @ 4800 | val_loss |
+|---|---|---|
+| block0_alone | 1.553 | 1.611 |
+| recurrent_lateral | 1.480 | 1.628 |
 
-### The "ensemble effect" finding was wrong
-
-An earlier single-seed (42) comparison suggested 72% of the multi-block gain was "ensemble/complementarity" (from a `no_persistence` control that showed -0.083). Multi-seed reveals this was noise:
-
-| Seed | no_persistence Δ at 300 steps |
-|---|---|
-| 42 | -0.083 (helped) |
-| 123 | +0.079 (hurt) |
-| 7 | +0.064 (hurt) |
-| Mean | +0.020 (not significant) |
-
-**At 300 steps, a second block WITHOUT temporal state provides no reliable benefit when both blocks see the same 4-char window.** The earlier "ensemble effect" was a lucky seed.
-
-### What IS real (at 1200 steps)
-
-The recurrent lateral block (with temporal state) reliably helps: mean Δ = -0.058, all seeds positive. The temporal state provides genuine information that the output block cannot extract from its 4-char window alone.
-
-### Convergence trajectory (seed 42 only)
-
-| Steps | block0_alone | recurrent_lateral | Δ |
-|---|---|---|---|
-| 300 | 2.020 | 1.953 | -0.068 |
-| 600 | 1.813 | 1.760 | -0.054 |
-| 1200 | 1.691 | 1.639 | -0.052 |
-
-The gap narrows initially as block0 catches up, then stabilizes around -0.05.
+The recurrent model trains BETTER (lower training loss) but validates WORSE — it overfits. The state captures temporal patterns in the training data that don't generalize.
 
 ## Interpretation
 
-1. **Temporal persistence provides reliable lateral value** given sufficient training (1200+ steps). Mean improvement -0.058 ± 0.014 across 3 seeds. All seeds positive.
+1. **Stale laterals from detached recurrent state DO NOT WORK** at this scale with this mechanism. At scale=1.0 they actively hurt; at scale=0.2 they're neutral.
 
-2. **Training budget is critical.** Below ~1000 steps, the recurrent block hasn't developed useful state and the effect is dominated by initialization variance. This is analogous to the earlier finding that interior blocks need 4000+ steps in the fixed-window setting.
+2. **The "positive result" was entirely the timing bug.** Same-timestep lateral = extra sequential depth, which trivially helps. Parallel (stale) lateral = no benefit.
 
-3. **"Ensemble effect" was a mirage.** A second block WITHOUT temporal state (same 4-char input, no persistence) does NOT reliably help — it's noise. The benefit specifically requires temporal persistence providing information asymmetry.
+3. **The state IS capturing information** (proven by lower training loss), but it's not the RIGHT information for block 0. Block 1 is trained for local CE (predict its own next-char), NOT to produce messages useful for block 0 one step later. Without temporal credit assignment (BPTT), there's no gradient telling block 1 "your state was useful/useless to block 0."
 
-4. **Information asymmetry IS required** — original decision was correct. The source of asymmetry can be temporal (accumulated state from past positions) OR spatial (larger context window). Both work. Neither "ensemble" nor "same-input complementarity" are the mechanism.
+4. **Why fixed-window works and stale-recurrent doesn't:** Fixed-window block 1 has IMMEDIATE, OBVIOUS extra information (128 chars vs 4 chars). The useful signal requires no temporal accumulation or communication learning. Stale recurrent block 1 must INVENT a useful long-range message from a d=64 vector updated step-by-step, with only local CE as its training signal.
 
-5. **Effect size is comparable to fixed-window approach** (-0.058 recurrent vs -0.088 fixed-window at tiny scale), but this is an uncontrolled comparison across different scripts/training regimes.
+5. **The overlap problem:** Block 0 at position t sees [t-3, t-2, t-1, t]. Block 1's stale output from t-1 was built from [t-4, t-3, t-2, t-1]. The overlap is 3/4 chars — the ONLY genuinely new information is whatever the state accumulated from positions 0..t-4. With no BPTT, that residue is extremely weak.
 
 ## What this taught us
 
-- Multi-seed checking is essential. Single-seed results at 300 steps were completely misleading.
-- The "no_persistence" control was valuable — it COULD have shown that ensemble works without state. Instead it showed the opposite: you need information asymmetry.
-- The recurrent block needs a training warm-up period (just like the fixed-window interior blocks needed 4000+ steps). The state becomes useful only after the block learns to compress history.
-- **Original "information asymmetry required" finding is CONFIRMED, not overturned.** The 300-step single-seed result that seemed to contradict it was noise.
+- **The timing bug gave a false positive that masked a real negative.** Always check that architectural constraints (parallelism) are actually implemented.
+- **Information asymmetry must be IMMEDIATE, not accumulated.** Giving block 1 more context (fixed-window) works. Asking block 1 to accumulate useful state step-by-step without temporal gradient does not.
+- **Local CE trains blocks to predict well for themselves, not to communicate.** A block optimized for local prediction has no incentive to store information in its state that's useful for another block one step later.
+- **State CAN capture information** (training loss proves this) but overfits to training sequences — doesn't generalize.
+- **Information asymmetry IS required** — reconfirmed via the null result. Same-window blocks don't help each other regardless of temporal state.
 
-## Next steps
+## Implications for multi-rate firing
 
-- **Multi-rate firing** — the actual vision. Now that persistence is confirmed, test whether blocks can fire at different rates (every 4 positions, every 16 positions). This is the core architectural question.
-- **Scale up** — test at d_model=128, 2 layers (as validated in the fixed-window script). Does the effect persist at larger scale?
-- **Longer sequences** — test seq_length=512 with adequate training to see if state beyond 128 chars provides additional value.
-- **No_persistence control at 1200 steps** — confirm that the ensemble effect is genuinely absent with more training (not just a 300-step artifact in the other direction).
+Multi-rate firing (block 1 fires every K positions) would help the **information geometry** — when K=4, block 1's lateral would be 4 steps stale, but it would have processed 4 unique windows between firings. This increases asymmetry.
+
+BUT multi-rate alone does NOT solve the **communication learning problem**. If block 1 is still trained only with local CE and detached state, it still has no incentive to produce laterals useful for block 0.
+
+**Possible solutions (not yet tested):**
+1. **Give block 1 a larger window at firing time** — process the K accumulated positions together (= K*SHORT_CONTEXT effective context). This provides immediate info asymmetry like fixed-window.
+2. **Truncated BPTT** — allow gradient to flow through a few steps of state, giving block 1 indirect feedback on state quality.
+3. **Train block 1 with a communication objective** — predict something future-useful for block 0, not just its own local next-char.
+4. **Multi-rate with context accumulation** — the slow block accumulates a buffer of positions and processes them all at once when it fires. This is essentially fixed-window but amortized.
+
+## Exit condition assessment
+
+The result is **between NULL and NEGATIVE:** stale laterals from detached recurrent state don't help (null at scale=0.2, hurt at scale=1.0). The mechanism is too weak without temporal credit assignment.
+
+This does NOT kill the multi-rate direction — but it means multi-rate needs to provide information asymmetry through CONTEXT (accumulated buffer at firing time) rather than relying solely on recurrent state compression.
