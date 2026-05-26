@@ -116,17 +116,32 @@ Key insights:
 
 **Architecture implication:** The multi-block architecture WORKS. The key variable is training budget, not architecture tricks. Give interior blocks enough optimization and they develop useful, complementary representations naturally.
 
-### What's next
+### What's next: SCALE-UP EXPERIMENT
 
-The mechanism is thoroughly validated. Multiple blocks at different contexts are complementary given enough training. The obvious next direction:
+The mechanism is validated at tiny scale. **The remaining uncertainty: does it survive a more honest model size?**
 
-1. **Scale up** — larger model, longer context, proper training budget. Does the improvement persist?
-2. **Integrate into core/** — clean, reusable multi-block architecture with gradient isolation
-3. **Test on harder tasks** — where long-range context genuinely matters (code, structured text)
+**Design:**
+- Model: d_model=128, 4 heads, ff_dim=256, 2 layers per block
+- Block 0 (output): ctx=16, CE loss
+- Block 1 (mid): ctx=64, local last-pos CE
+- Block 2 (long): ctx=256, local last-pos CE
+- Training: 20K steps (or until convergence — monitor for plateau)
+- Data: TinyShakespeare (still fast loading, instant feedback loop)
+- Batch size: 128 (reduced for memory with longer contexts)
+
+**Conditions:**
+1. block0_alone (baseline transformer, ctx=16)
+2. two_blocks (multi-block with lateral communication)
+
+**Success:** two_blocks meaningfully beats block0_alone (Δ > noise). Effect should be larger than at tiny scale because there's more capacity to use the lateral info.
+
+**Secondary deliverable:** Once trained, generate text interactively to show Max what the model produces. The vision says "type at it, see what it generates."
+
+**Minimal integration only:** Don't refactor into core/ first. Write a clean script for this experiment. Integrate after if results are good.
 
 ### Feedback loop status
 
-Runs at 4800 steps take ~70 seconds per lateral condition on GPU. Still fast enough for iteration.
+Scale-up will take 5-10 minutes per condition (estimate). Still fast enough for one decisive experiment in a session.
 
 
 ---
