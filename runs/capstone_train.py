@@ -353,6 +353,9 @@ def resolve_report_path(path: Path) -> Path:
     if path.is_dir():
         return path / "report.json"
     return path
+
+
+def main() -> None:
     args = parse_args()
     if args.iterations < 2:
         raise ValueError(f"iterations must be at least 2, got {args.iterations}")
