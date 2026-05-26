@@ -656,37 +656,56 @@ The real diagnosis is different from all three branches:
 
 ---
 
+## Calibration experiment (d=256, 10K steps)
+
+**Artifacts:** `experiments/tinyshakespeare/artifacts/calibration_check/report.json`
+
+To test whether calibration rather than headroom is the practical bottleneck, I trained a cheap d=256/10K checkpoint with checkpoint saving enabled, froze it, then fit a per-depth affine map from predicted gain to actual gain on a held-out split.
+
+### ε=0.02 on the test split
+
+| Policy | Speedup | Loss hit | Oracle eff. |
+|---|---|---|---|
+| Original | 1.297× | 0.012 | 40.0% |
+| Affine-calibrated | 1.390× | 0.014 | 52.6% |
+
+This is a material improvement. The same halt head, with no retraining, moves from a borderline result to a clear win over the fixed baseline.
+
+### Against fixed-depth baselines
+
+At this 10K d=256 checkpoint, fixed depth-6 gives **1.33× speedup at 0.02 loss hit**. After affine calibration, the learned halt head achieves **1.39× at 0.014 loss hit**.
+
+So at the target model size, **calibrated learned halting beats fixed-depth-6 even at ε=0.02**.
+
+### What the affine parameters say
+
+The fitted affine scales expose the miscalibration pattern directly:
+
+- **Depths 1-3 are roughly calibrated:** scales **0.96**, **0.82**, **0.65**
+- **Depth 4 already over-predicts:** scale **0.40**
+- **Depths 5-7 massively over-predict remaining gain:** scales **0.17**, **0.04**, **-0.004**
+
+So the late-depth predictions are not just noisy — they are systematically too large. The halt head keeps saying "there is still meaningful gain left" when the true remaining gain is tiny or already gone.
+
+### Conclusion
+
+**Calibration is the bottleneck, not fundamental headroom.**
+
+If headroom were the limiting factor, a cheap post-hoc affine map would not move ε=0.02 from **1.297×** to **1.390×** while keeping the loss hit essentially unchanged (**0.012→0.014**). The halt head already contains enough ranking information to make good decisions; it just needs its absolute scale corrected.
+
+---
+
 ## What this means for the vision
 
 **Vision requirement served:** "Support dynamic computation — variable effort per token at inference (think longer on hard tokens, skip easy ones)."
 
-**What we've proven:** A regression halt head (predict remaining loss gain) can learn to allocate depth per-token, achieving 60% of oracle efficiency at d=128 with only 10K training steps. The mechanism is simple (2-layer MLP, shared across depths, ~130 extra params) and trains jointly with no instability.
+**What we've proven:** A regression halt head (predict remaining loss gain) learns real per-token depth allocation. The mechanism works at small scale, and its **prediction quality scales to d=256**: shallow-depth Pearson is **0.56** at d=256 versus **0.57** at d=128.
 
-**What remains unproven:** Whether this scales to the model sizes that matter for the final architecture. The d=256 run is the discriminating test.
+**What the 50K result changed:** The main obstacle at larger scale is **not** that the halt head stops learning useful structure. It is that strict ε-threshold decisions depend on **calibration**, and the raw d=256 head is mis-scaled even when its ranking is good.
 
-### Decision branches after 50K result
+**What the calibration experiment showed:** a simple post-hoc affine correction turns an ε=0.02 operating point of roughly **1.30×** into **1.39×**, which beats fixed-depth-6 at the target model size. That makes the mechanism look **integration-worthy**, provided calibration is treated as part of the method rather than an afterthought.
 
-**If Pearson ≥ 0.50 and ε=0.02 beats fixed-6 (speedup > 1.33× at loss ≤ 0.015):**
-- Diagnosis: purely a convergence/training-budget issue at larger scale.
-- Action: integrate into `core/` as a first-class feature. The halt head becomes part of `SharedRecurrentCore`.
-- Next pathway connection: combine with Pathway 4 (computation compression) — if the model learns to be *ready* earlier via self-prediction, and also *knows* it's ready via the halt head, you get both active compression and passive early-exit.
-
-**If Pearson improves (0.45→0.48) but still doesn't dominate fixed-depth:**
-- Diagnosis: mechanism works but the halt head architecture is undersized for d=256.
-- Action: keep experimental. Try a 3-layer halt head (Linear→GELU→Linear→GELU→Linear) or increase hidden dim. The question becomes architectural, not fundamental.
-- Integration: premature — the design isn't stable.
-
-**If Pearson plateaus (stays ~0.45):**
-- Diagnosis: the 2-layer halt head fundamentally can't decode d=256 features well enough.
-- Action: the d=128 result stands as proof-of-concept. Integration at d=128 is still valid but less exciting.
-- Broader implication: dynamic depth may need to compose with Pathway 4's computation compression to be practical at larger scales — the model needs to *actively* prepare halt-predictive features, not just hope the probe finds them.
-
-### Integration criteria (what would warrant promotion to `core/`)
-
-1. ε=0.02 must beat fixed-depth at the target model size (currently d=256)
-2. No training instability — halt loss should decrease monotonically after warmup
-3. Minimal parameter overhead (currently ~0.1% — this is fine)
-4. The halt head design must be stable (no more architecture changes needed)
+**Connection to Pathway 4:** this is still only optimizing the *decision rule* on top of a fixed recurrent model. If Pathway 4's "active compression" makes the model become ready earlier, that would increase the oracle headroom itself. Dynamic halting would then get two gains at once: better calibrated stopping, and a larger ceiling to exploit.
 
 > **Purpose:** Determine whether a jointly-trained halt head can learn to predict oracle depth, given that post-hoc probing failed (3.4% above baseline).
 
