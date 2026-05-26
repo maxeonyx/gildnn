@@ -36,13 +36,14 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ## What's next
 
-**GPU is free. ~3 days remain.**
+**GPU busy with d=512 until ~09:30. ~3 days remain.**
 
 ### Immediate
 
+- Wait for d=512 → generate samples → compare to d=256 → update capstone report
 - **Daily report** (after 4pm)
 
-### Options for remaining time
+### Options for remaining time (after d=512)
 
 **A. Scale to d=512 or more steps** — the capstone text is word-level coherent but not sentence-level. A bigger model or more training would produce genuinely interesting text for interactive use. Cost: 2-4 hours at d=512, or ~25 min for 50K more steps at d=256.
 

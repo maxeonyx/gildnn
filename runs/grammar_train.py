@@ -4,21 +4,22 @@ import argparse
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from time import perf_counter
 
 if __package__ in (None, ""):
     raise RuntimeError(
-        "Run from the repo root with `.\\.venv\\Scripts\\python.exe -m runs.capstone_train ...` so `core` imports resolve cleanly."
+        "Run from the repo root with `.\\.venv\\Scripts\\python.exe -m runs.grammar_train ...` so `core` imports resolve cleanly."
     )
 
 import torch
+from torch.nn import functional as F
 
-from core.dataset import CorpusData, RandomWindowCharDataset, download_wikitext_103_raw, load_corpus
+from core.dataset import RandomWindowCharDataset, load_corpus
 from core.fixed_window_char import set_seed
 from core.model import count_parameters
 from core.recurrent_depth import RecurrentDepthConfig, RecurrentDepthLM
 from core.recurrent_depth_training import (
     autocast_context,
-    choose_depth_indices,
     compute_actual_gains,
     compute_per_depth_losses_and_predictions,
     evaluate_model,
@@ -34,18 +35,18 @@ from core.run_utils import (
 )
 
 
-DEFAULT_STEPS = 20_000
+DEFAULT_STEPS = 5_000
 SANITY_CHECK_STEPS = 10
-DEFAULT_CONTEXT_SIZE = 256
-DEFAULT_D_MODEL = 256
+DEFAULT_CONTEXT_SIZE = 64
+DEFAULT_D_MODEL = 64
 DEFAULT_N_HEADS = 4
-DEFAULT_FF_DIM = 1_024
+DEFAULT_FF_DIM = 256
 DEFAULT_ITERATIONS = 8
 DEFAULT_TEMPERATURE = 0.07
 DEFAULT_BATCH_SIZE = 128
 SANITY_CHECK_BATCH_SIZE = 16
 DEFAULT_LEARNING_RATE = 3e-4
-DEFAULT_EVAL_INTERVAL = 1_000
+DEFAULT_EVAL_INTERVAL = 500
 SANITY_CHECK_EVAL_INTERVAL = 5
 DEFAULT_EVAL_BATCH_SIZE = 2_048
 DEFAULT_EVAL_SAMPLES = 2_048
@@ -57,6 +58,7 @@ DEFAULT_DROPOUT = 0.0
 
 @dataclass(frozen=True)
 class ExperimentConfig:
+    data_dir: str
     context_size: int = DEFAULT_CONTEXT_SIZE
     d_model: int = DEFAULT_D_MODEL
     n_heads: int = DEFAULT_N_HEADS
@@ -110,8 +112,9 @@ def positive_float(value: str) -> float:
 
 def parse_args() -> argparse.Namespace:
     repo_root = Path(__file__).resolve().parents[1]
-    artifact_dir = repo_root / "experiments" / "capstone_generation" / "artifacts" / "train"
+    artifact_dir = repo_root / "experiments" / "grammar_depth" / "artifacts" / "train"
     parser = argparse.ArgumentParser()
+    parser.add_argument("--data-dir", type=Path, default=repo_root / "data" / "grammar")
     parser.add_argument("--steps", type=positive_int, default=DEFAULT_STEPS)
     parser.add_argument("--d-model", type=positive_int, default=DEFAULT_D_MODEL)
     parser.add_argument("--ff-dim", type=positive_int, default=DEFAULT_FF_DIM)
@@ -141,17 +144,6 @@ def resolve_eval_interval(args: argparse.Namespace) -> int:
     return SANITY_CHECK_EVAL_INTERVAL if args.sanity_check_only else DEFAULT_EVAL_INTERVAL
 
 
-def ensure_wikitext_corpus(*, config: ExperimentConfig) -> tuple[CorpusData, dict[str, str]]:
-    paths = download_wikitext_103_raw()
-    corpus = load_corpus(
-        train_path=paths["wiki.train.raw"],
-        val_path=paths["wiki.valid.raw"],
-        context_size=config.context_size,
-        eval_samples=config.eval_samples,
-    )
-    return corpus, {name: str(path) for name, path in paths.items()}
-
-
 def build_model(*, vocab_size: int, config: ExperimentConfig) -> RecurrentDepthLM:
     return RecurrentDepthLM(
         vocab_size=vocab_size,
@@ -168,13 +160,20 @@ def build_model(*, vocab_size: int, config: ExperimentConfig) -> RecurrentDepthL
     )
 
 
+def resolve_report_path(path: Path) -> Path:
+    if path.is_dir():
+        return path / "report.json"
+    return path
+
+
 def save_checkpoint(
     checkpoint_path: Path,
     *,
     model: RecurrentDepthLM,
     config: ExperimentConfig,
-    corpus: CorpusData,
-    corpus_paths: dict[str, str],
+    char_to_idx: dict[str, int],
+    idx_to_char: dict[int, str],
+    vocab_size: int,
     device: torch.device,
     steps: int,
     batch_size: int,
@@ -186,9 +185,9 @@ def save_checkpoint(
         "model_state_dict": model.state_dict(),
         "model_config": asdict(model.config),
         "experiment_config": asdict(config),
-        "char_to_idx": corpus.char_to_idx,
-        "idx_to_char": {str(index): char for index, char in corpus.idx_to_char.items()},
-        "vocab_size": corpus.vocab_size,
+        "char_to_idx": char_to_idx,
+        "idx_to_char": {str(index): char for index, char in idx_to_char.items()},
+        "vocab_size": vocab_size,
         "training_metadata": {
             "device": device.type,
             "steps": steps,
@@ -204,7 +203,6 @@ def save_checkpoint(
             "training_wall_seconds": round(training.wall_seconds, 6),
             "final_eval_wall_seconds": round(final_eval.wall_seconds, 6),
         },
-        "corpus_paths": corpus_paths,
     }
     torch.save(checkpoint, checkpoint_path)
 
@@ -213,9 +211,8 @@ def write_report(
     report_path: Path,
     *,
     config: ExperimentConfig,
-    corpus: CorpusData,
-    corpus_paths: dict[str, str],
     parameter_count: int,
+    vocab_size: int,
     device: torch.device,
     sanity_check_only: bool,
     steps: int,
@@ -233,8 +230,7 @@ def write_report(
         "steps": steps,
         "batch_size": batch_size,
         "learning_rate": learning_rate,
-        "vocab_size": corpus.vocab_size,
-        "corpus_paths": corpus_paths,
+        "vocab_size": vocab_size,
         "checkpoint_path": str(checkpoint_path),
         "training": {
             "final_step": training.final_step,
@@ -259,15 +255,6 @@ def write_report(
         ],
     }
     report_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-
-
-def resolve_report_path(path: Path) -> Path:
-    """If path is a directory, append report.json. Otherwise use as-is."""
-    if path.is_dir():
-        return path / "report.json"
-    return path
-
-
 def main() -> None:
     args = parse_args()
     if args.iterations < 2:
@@ -278,6 +265,7 @@ def main() -> None:
     steps = resolve_training_steps(args)
     batch_size = resolve_batch_size(args)
     config = ExperimentConfig(
+        data_dir=str(args.data_dir),
         context_size=args.context_size,
         d_model=args.d_model,
         n_heads=args.n_heads,
@@ -294,13 +282,12 @@ def main() -> None:
     if args.sanity_check_only:
         redirect_sanity_check_paths(args)
 
-    # Resolve report_path: if it's a directory, use report.json inside it
     args.report_path = resolve_report_path(args.report_path)
     prepare_output_paths(report_path=args.report_path, log_path=args.log_path)
     log_run_restarted(args.log_path)
     if not args.sanity_check_only:
         register_active_lock(
-            experiment_name="capstone_train",
+            experiment_name="grammar_train",
             variants=[f"d{config.d_model}", f"ctx{config.context_size}", f"iter{config.iterations}"],
             enabled=not args.no_lock,
         )
@@ -319,10 +306,17 @@ def main() -> None:
     )
 
     set_seed(args.seed)
-    corpus, corpus_paths = ensure_wikitext_corpus(config=config)
+    train_path = args.data_dir / "train.txt"
+    val_path = args.data_dir / "val.txt"
+    corpus = load_corpus(
+        train_path=train_path,
+        val_path=val_path,
+        context_size=config.context_size,
+        eval_samples=config.eval_samples,
+    )
     train_dataset = corpus.train_dataset
     if not isinstance(train_dataset, RandomWindowCharDataset):
-        raise TypeError("Expected load_corpus() to return RandomWindowCharDataset for WikiText-103 training.")
+        raise TypeError("Expected load_corpus() to return RandomWindowCharDataset for grammar training.")
 
     train_generator = torch.Generator(device="cpu")
     train_generator.manual_seed(args.seed)
@@ -343,7 +337,7 @@ def main() -> None:
             "train_windows": len(train_dataset),
             "val_examples": int(val_targets.shape[0]),
             "vocab_size": corpus.vocab_size,
-            "corpus_paths": corpus_paths,
+            "data_dir": str(args.data_dir),
         },
     )
 
@@ -390,7 +384,8 @@ def main() -> None:
         if step % config.eval_interval != 0 and step != steps:
             continue
 
-        val_loss, val_halt_loss, avg_depth, eval_wall_seconds = evaluate_model(
+        eval_started_at = perf_counter()
+        val_loss, val_halt_loss, avg_depth, _ = evaluate_model(
             model,
             val_inputs=val_inputs,
             val_targets=val_targets,
@@ -408,7 +403,7 @@ def main() -> None:
             val_halt_loss=val_halt_loss,
             avg_depth=avg_depth,
             learning_rate=learning_rate,
-            wall_seconds=eval_wall_seconds,
+            wall_seconds=perf_counter() - eval_started_at,
         )
         checkpoints.append(summary)
         append_log(
@@ -448,8 +443,9 @@ def main() -> None:
         checkpoint_path,
         model=model,
         config=config,
-        corpus=corpus,
-        corpus_paths=corpus_paths,
+        char_to_idx=corpus.char_to_idx,
+        idx_to_char=corpus.idx_to_char,
+        vocab_size=corpus.vocab_size,
         device=device,
         steps=steps,
         batch_size=batch_size,
@@ -460,9 +456,8 @@ def main() -> None:
     write_report(
         args.report_path,
         config=config,
-        corpus=corpus,
-        corpus_paths=corpus_paths,
         parameter_count=parameter_count,
+        vocab_size=corpus.vocab_size,
         device=device,
         sanity_check_only=args.sanity_check_only,
         steps=steps,
