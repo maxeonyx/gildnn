@@ -75,8 +75,19 @@ class HaltHead(nn.Module):
     def __init__(self, *, d_model: int, hidden_dim: int = 64) -> None:
         super().__init__()
         self.norm = nn.LayerNorm(d_model)
-        self.input_proj = nn.Linear(d_model + 1, hidden_dim)
-        self.output_proj = nn.Linear(hidden_dim, 1)
+        self.mlp = nn.Sequential(
+            nn.Linear(d_model + 1, hidden_dim),
+            nn.GELU(),
+            nn.Linear(hidden_dim, 1),
+        )
+
+    @property
+    def input_proj(self) -> nn.Linear:
+        return self.mlp[0]
+
+    @property
+    def output_proj(self) -> nn.Linear:
+        return self.mlp[2]
 
     def forward(
         self,
@@ -93,8 +104,7 @@ class HaltHead(nn.Module):
             dtype=normalized_hidden.dtype,
         )
         hidden = torch.cat([normalized_hidden, depth_fraction], dim=-1)
-        hidden = torch.nn.functional.gelu(self.input_proj(hidden))
-        return self.output_proj(hidden).squeeze(-1)
+        return self.mlp(hidden).squeeze(-1)
 
 
 class RecurrentDepthLM(nn.Module):
@@ -133,15 +143,29 @@ class RecurrentDepthLM(nn.Module):
     def halting_depth_count(self) -> int:
         return max(self.config.iterations - 1, 0)
 
-    def embed(self, tokens: Int[Tensor, "batch context"]) -> Float[Tensor, "batch context d_model"]:
-        if tokens.shape[1] != self.config.context_size:
-            raise ValueError(f"Expected context {self.config.context_size}, got {tokens.shape[1]}")
-        positions = torch.arange(self.config.context_size, device=tokens.device)
+    def embed_sequence(
+        self,
+        tokens: Int[Tensor, "batch context"],
+        *,
+        right_align: bool,
+    ) -> Float[Tensor, "batch context d_model"]:
+        context_length = tokens.shape[1]
+        if context_length <= 0:
+            raise ValueError("tokens must contain at least one position")
+        if context_length > self.config.context_size:
+            raise ValueError(f"Expected at most context {self.config.context_size}, got {context_length}")
+        if not right_align and context_length != self.config.context_size:
+            raise ValueError(f"Expected context {self.config.context_size}, got {context_length}")
+        position_start = self.config.context_size - context_length if right_align else 0
+        positions = torch.arange(position_start, position_start + context_length, device=tokens.device)
         token_hidden = self.token_embedding(tokens)
         if self.normalize:
             token_hidden = normalize_hidden(token_hidden)
         hidden = token_hidden + self.position_embedding(positions)
         return self.embedding_dropout(hidden)
+
+    def embed(self, tokens: Int[Tensor, "batch context"]) -> Float[Tensor, "batch context d_model"]:
+        return self.embed_sequence(tokens, right_align=False)
 
     def iteration_states(
         self,
@@ -264,7 +288,17 @@ class RecurrentDepthLM(nn.Module):
         epsilon: float,
         calibration: dict[str, Any] | Tensor | None = None,
     ) -> HaltingOutput:
-        hidden = self.embed(tokens)
+        return self.forward_sequence_with_halting(tokens, epsilon=epsilon, calibration=calibration, right_align=False)
+
+    def forward_sequence_with_halting(
+        self,
+        tokens: Int[Tensor, "batch context"],
+        *,
+        epsilon: float,
+        calibration: dict[str, Any] | Tensor | None = None,
+        right_align: bool,
+    ) -> HaltingOutput:
+        hidden = self.embed_sequence(tokens, right_align=right_align)
         batch_size = tokens.shape[0]
         device = hidden.device
         dtype = hidden.dtype
