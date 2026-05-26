@@ -170,6 +170,10 @@ Options:
 2. **Truncated BPTT** — allow gradient through a few state steps. Tests whether temporal credit assignment unlocks the mechanism.
 3. **Communication objective** — train block 1 to predict something useful for block 0, not just its own local CE.
 
+### Operational notes for recurrent_lateral_lm.py
+
+**⚠️ MUST specify `--temperature 0.07 --batch-size 32`** when running this script with normalize=True (the default). The script defaults are temperature=1.0 which gives meaninglessly high CE loss with normalized embeddings (logits bounded to cosine similarities ∈ [-1,1]). Temperature 0.07 matches the validated architecture.
+
 ---
 
 ## Key references
