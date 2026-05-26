@@ -39,35 +39,52 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## What to do next (per dictation 2026-05-26-3: decompose, don't iterate on the assembly)
+## What to do next
 
-The last experiment tested too many interacting variables at once: 50/50 mixing, MSE on raw activations, the topology, the prediction target. Per dictation 2026-05-26-3, the next step is NOT "try additive lateral on the same combined setup." The next step is: **decompose into pieces, test each in isolation.**
+### Critical conceptual finding (2026-05-26 afternoon)
 
-### The pieces to test independently (seconds each, not minutes):
+**The "same input, same timestep" composed test is fundamentally broken.** When both blocks see the same tokens at the same time, and block 1 is trained to predict block 0's output, block 1 has NO information advantage. Its lateral can only ever be a redundant imperfect copy of what block 0 already computes. Mixing that in (at any α > 0) is always harmful — confirmed at α=0.5 (WikiText: +0.163) and α=0.1 (synthetic: +0.021).
 
-1. **Does the MSE prediction objective converge at all?** — Strip away mixing entirely. One block, one linear head predicting a FIXED target (e.g. the embedding layer output, or a random but fixed projection). Does the local MSE loss decrease? This isolates whether the loss function itself works.
+This is not a hyperparameter problem. It's a DESIGN problem. The local MSE objective pushes toward redundancy, not complementarity.
 
-2. **Does mixing destroy signal?** — Baseline: 1 block with CE. Treatment: same block, but feed it `0.5 * (own_input + noise)`. How much does 50/50 mixing with random noise hurt? This isolates the mixing harm without ANY second block.
+### What's needed: information asymmetry
 
-3. **Does the prediction objective track a moving target?** — One block, one predictor, target is the output of a SEPARATELY trained block (trained with CE on different data, frozen). Does the predictor converge to predicting the frozen block's output? This isolates the prediction mechanism from the moving-target problem.
+For block 1 to help block 0, block 1 must know something block 0 does not. This aligns with Max's actual architecture vision (dictation 2026-05-25-1): different blocks run at different temporal rates, so higher blocks have "bigger picture" context that lower blocks lack.
 
-4. **What mixing ratio preserves signal?** — Same as (2) but sweep ratios: 0.9/0.1, 0.8/0.2, etc. Find the point where mixing stops hurting.
+### The correct next experiment: split-input test
 
-Once pieces are understood, compose them. Only then does the full 2-block local-loss experiment make sense.
+**Cleanest honest composed test (< 60 seconds):**
+- Task depends on TWO pieces of information: block 0 sees piece A, block 1 sees piece B
+- Block 0 cannot solve the task alone; it needs block 1's lateral
+- Conditions:
+  1. Block 0 alone (should fail at the part requiring B)
+  2. Block 0 + block 1 with lateral (should improve)
+  3. Block 0 + block 1 with SHUFFLED lateral (should be same as alone — control)
 
-### Feedback loop optimization
+**Concrete design options:**
+- (a) Token stream where next-token depends on (current_token, context_summary). Block 0 sees current token. Block 1 sees context summary.
+- (b) Generate sequences from a grammar; block 0 sees current position, block 1 sees stack state / nesting depth.
+- (c) Simple XOR task: y = f(a, b), block 0 sees a, block 1 sees b. Minimal but tests the mechanism clearly.
 
-The previous cycle took ~30 minutes per condition (13 min run + corpus loading + analysis). Per dictation: if a 2-minute run on a simpler task answers the same question, use that instead.
+(c) is the fastest to implement but doesn't test language modeling. (a) or (b) are closer to the real use case. Recommend (a) since it's a natural LM task with split information.
 
-Options for faster feedback:
-- **TinyShakespeare** or equivalent small dataset (no 90-second corpus load)
-- **Synthetic data** (e.g. random sequences, or a CFG grammar) — can't be overparameterized, fast to generate
-- **Fewer steps** — if the mechanism signal appears in 200 steps, don't run 2000
-- **Smaller model** — d_model=64 or 128 instead of 256
+### Pieces already verified (done)
 
-### Synthetic task investigation
+All 4 piece-tests pass (`runs/piece_tests.py`):
+1. Fixed-target MSE: PASS (drop 274x, cosine 0.9986)
+2. Mixing damage: PASS (α=0.5 catastrophic, α=0.1 preserves)
+3. Moving target: PASS (only 17% worse than frozen)
+4. Topology: PASS (correct wiring 31x better)
 
-Per dictation 2026-05-26-3: investigate what synthetic task would be good for this project. Key property needed: data isn't the bottleneck, so architectural differences are visible. CFG/grammar tasks are interesting (strict nesting, hierarchical structure) but not prescribed. This is an investigation, not a commitment.
+### Composed test that failed (design was broken)
+
+`runs/composed_local_loss.py`: baseline 0.666, treatment 0.686 (+0.021). Block 1 learned (MSE 0.034→0.004) but couldn't help because it had no unique information.
+
+### Feedback loop status
+
+Piece-tests: 0.2–1.6 seconds each ✓  
+Composed test: 25–53 seconds each ✓  
+**Feedback loop is now FAST.** The bottleneck is conceptual clarity, not runtime.
 
 ---
 
@@ -79,16 +96,17 @@ Per dictation 2026-05-26-3: investigate what synthetic task would be good for th
 | 4-block follow-up | **Stop-loss fired** (conditions 4+5 fail) | No more intended-architecture rescue |
 | Bridge_detach | Clearly worse (gap +0.027, 3 seeds) | Gradient IS needed for block specialization |
 | **Dictation 2026-05-26-2** | **Redirect** | **Only compare against legitimate alternatives** |
-| **Local predictive loss v1** | **Mechanism works, architecture harms it** | **Decompose before iterating** |
-| **Dictation 2026-05-26-3** | **Process: build from pieces** | **No more assembled-system experiments until pieces are tested** |
+| **Local predictive loss v1** | **Mechanism works, design is broken** | **Block 1 needs information advantage over block 0** |
+| **Dictation 2026-05-26-3** | **Process: build from pieces** | **Decompose, fast feedback, synthetic tasks** |
+| **Same-input composed test** | **Fundamentally cannot show benefit** | **Must give block 1 different/extra information** |
 | Timebox | ~4 days remaining | Use fastest possible feedback loops |
 
 **Traps to avoid:**
-- Testing the whole assembly again with one tweak (violates "build from pieces")
-- Using WikiText-103 when a 2-second synthetic dataset would answer the same question
-- Running 2000 steps when 200 steps would show the signal
+- Same-input-same-timestep experiments (block 1 can never help without unique info)
+- Using WikiText-103 when a synthetic dataset would answer the same question faster
+- Running longer hoping the signal appears (it can't if the design is broken)
 - Defaulting to what we were doing before (no inertia)
-- Changing too many things at once (one variable per piece-test)
+- Treating the "prediction → redundancy" problem as a hyperparameter issue
 
 ---
 
@@ -117,10 +135,12 @@ Per dictation 2026-05-26-3: investigate what synthetic task would be good for th
 | C_old lateral ablation | 3 | Δ=+0.030, 2 seeds | Laterals load-bearing |
 | Bridge_detach | 3 | +0.027, 3 seeds | U-shaped vs front-loaded readout |
 | Warmup→detach | 3 | Scenario A (2/3 seeds) | Gradient needed continuously (moot now) |
-| **Local predictive loss v1** | **3** | **Mechanism works, mixing harms** | **50/50 is the bottleneck, not the loss** |
+| **Local predictive loss v1** | **3** | **Mechanism works, design is broken** | **Same-input → redundancy → can't help** |
+| **Piece tests** | **3** | **All 4 PASS** | **MSE, mixing, tracking, topology all work individually** |
+| **Composed (same input)** | **3** | **Baseline 0.666, treatment 0.686 (+0.021)** | **No information advantage = always harmful** |
 
 ---
 
 ## The agent's working loop
 
-Follow PROCESS.md. Current position: **CONCEPTUAL CLARIFICATION — decomposition.** Must design the isolated piece-tests before implementing. First: figure out the fastest experimental setup (dataset, model size, step count) that can prove each piece in seconds.
+Follow PROCESS.md. Current position: **CONCEPTUAL CLARIFICATION → redesign.** The pieces work but the composition requires information asymmetry. Next: implement the split-input test (block 0 sees part of the input, block 1 sees the rest). This directly tests whether local predictive lateral communication can transfer useful information.
