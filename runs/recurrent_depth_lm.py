@@ -86,6 +86,12 @@ class TrainedCondition:
     recurrent_diagnostics: RecurrentDiagnostics | None
 
 
+@dataclass(frozen=True)
+class ConditionSpec:
+    kind: str
+    label: str
+
+
 def positive_int(value: str) -> int:
     parsed = int(value)
     if parsed <= 0:
@@ -103,6 +109,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--batch-size", type=positive_int, default=TRAIN_BATCH_SIZE)
     parser.add_argument("--eval-batch-size", type=positive_int, default=EVAL_BATCH_SIZE)
     parser.add_argument("--learning-rate", type=float, default=LEARNING_RATE)
+    parser.add_argument("--distinct-layers", type=positive_int, default=DISTINCT_LAYERS)
+    parser.add_argument("--recurrent-iterations", type=positive_int, default=RECURRENT_ITERATIONS)
     parser.add_argument("--sanity-check-only", action="store_true")
     parser.add_argument("--no-lock", action="store_true")
     parser.add_argument("--report-path", type=Path, default=artifact_dir / "report.json")
@@ -262,12 +270,19 @@ class RecurrentDepthLM(nn.Module):
         return tied_logits(last_hidden, self.token_embedding, temperature=self.config.temperature, normalize=True)
 
 
-def build_model(condition: str, *, vocab_size: int, config: ExperimentConfig) -> nn.Module:
-    if condition == "distinct_4":
+def build_model(condition_kind: str, *, vocab_size: int, config: ExperimentConfig) -> nn.Module:
+    if condition_kind == "distinct":
         return DistinctDepthLM(vocab_size=vocab_size, config=config)
-    if condition == "recurrent_4":
+    if condition_kind == "recurrent":
         return RecurrentDepthLM(vocab_size=vocab_size, config=config)
-    raise ValueError(f"unsupported condition: {condition}")
+    raise ValueError(f"unsupported condition: {condition_kind}")
+
+
+def build_condition_specs(config: ExperimentConfig) -> tuple[ConditionSpec, ConditionSpec]:
+    return (
+        ConditionSpec(kind="distinct", label=f"distinct_{config.distinct_layers}"),
+        ConditionSpec(kind="recurrent", label=f"recurrent_{config.recurrent_iterations}"),
+    )
 
 
 @torch.inference_mode()
@@ -342,7 +357,7 @@ def evaluate_recurrent_diagnostics(
 
 
 def train_condition(
-    condition: str,
+    condition: ConditionSpec,
     train_dataset: tuple[Tensor, Tensor],
     val_dataset: tuple[Tensor, Tensor],
     *,
@@ -357,7 +372,7 @@ def train_condition(
     log_path: Path,
 ) -> TrainedCondition:
     set_seed(seed)
-    model = build_model(condition, vocab_size=vocab_size, config=config).to(device)
+    model = build_model(condition.kind, vocab_size=vocab_size, config=config).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, fused=device.type == "cuda")
     gradient_trace: list[GradientNormPoint] = []
 
@@ -365,7 +380,7 @@ def train_condition(
         log_path,
         {
             "stage": "condition_started",
-            "condition": condition,
+            "condition": condition.label,
             "params": count_parameters(model),
             "steps": steps,
             "batch_size": batch_size,
@@ -388,10 +403,10 @@ def train_condition(
             point = GradientNormPoint(step=step, grad_norm=grad_total_norm, train_loss=float(loss.item()))
             gradient_trace.append(point)
             print(
-                f"[{condition}] step={step:05d}/{steps} train_loss={point.train_loss:.4f} grad_norm={point.grad_norm:.4f}",
+                f"[{condition.label}] step={step:05d}/{steps} train_loss={point.train_loss:.4f} grad_norm={point.grad_norm:.4f}",
                 flush=True,
             )
-            append_log(log_path, {"stage": "grad_norm", "condition": condition, **asdict(point)})
+            append_log(log_path, {"stage": "grad_norm", "condition": condition.label, **asdict(point)})
 
     train_time_seconds = perf_counter() - started_at
     val_loss = evaluate_model(model, val_dataset, eval_batch_size=eval_batch_size, device=device)
@@ -405,7 +420,7 @@ def train_condition(
         log_path,
         {
             "stage": "condition_completed",
-            "condition": condition,
+            "condition": condition.label,
             "val_loss": round(val_loss, 6),
             "train_time_seconds": round(train_time_seconds, 6),
             "params": count_parameters(model),
@@ -420,7 +435,7 @@ def train_condition(
 
     return TrainedCondition(
         result=ConditionResult(
-            condition=condition,
+            condition=condition.label,
             params=count_parameters(model),
             val_loss=val_loss,
             train_time_seconds=train_time_seconds,
@@ -442,13 +457,13 @@ def print_results_table(results: list[ConditionResult]) -> None:
 
 def print_recurrent_tables(diagnostics: RecurrentDiagnostics) -> None:
     print("", flush=True)
-    print("=== Per-iteration eval (recurrent_4) ===", flush=True)
+    print("=== Per-iteration eval ===", flush=True)
     print("Iteration | Val Loss", flush=True)
     for index, value in enumerate(diagnostics.per_iteration_val_loss, start=1):
         print(f"{index:<9} | {value:.4f}", flush=True)
 
     print("", flush=True)
-    print("=== Activation RMS (recurrent_4, sampled eval) ===", flush=True)
+    print("=== Activation RMS (sampled eval) ===", flush=True)
     print("Iteration | RMS", flush=True)
     for index, value in enumerate(diagnostics.activation_rms_by_iteration, start=1):
         print(f"{index:<9} | {value:.4f}", flush=True)
@@ -500,7 +515,11 @@ def main() -> None:
     if args.learning_rate <= 0.0:
         raise ValueError(f"learning_rate must be positive, got {args.learning_rate}")
 
-    config = ExperimentConfig()
+    config = ExperimentConfig(
+        distinct_layers=args.distinct_layers,
+        recurrent_iterations=args.recurrent_iterations,
+    )
+    condition_specs = build_condition_specs(config)
     device = resolve_device(args.device)
     if device.type == "cuda":
         torch.set_float32_matmul_precision("high")
@@ -514,7 +533,7 @@ def main() -> None:
     if not args.sanity_check_only:
         register_active_lock(
             experiment_name="recurrent_depth_lm",
-            variants=["distinct_4", "recurrent_4"],
+            variants=[condition.label for condition in condition_specs],
             enabled=not args.no_lock,
         )
 
@@ -549,7 +568,6 @@ def main() -> None:
 
     steps = resolve_training_steps(args)
     batch_size = resolve_batch_size(args)
-    conditions = ["distinct_4", "recurrent_4"]
     trained_conditions = [
         train_condition(
             condition,
@@ -565,14 +583,15 @@ def main() -> None:
             device=device,
             log_path=args.log_path,
         )
-        for condition in conditions
+        for condition in condition_specs
     ]
 
     print("", flush=True)
     print_results_table([trained.result for trained in trained_conditions])
-    recurrent = next(trained for trained in trained_conditions if trained.result.condition == "recurrent_4")
+    recurrent_label = f"recurrent_{config.recurrent_iterations}"
+    recurrent = next(trained for trained in trained_conditions if trained.result.condition == recurrent_label)
     if recurrent.recurrent_diagnostics is None:
-        raise RuntimeError("recurrent_4 diagnostics missing")
+        raise RuntimeError(f"{recurrent_label} diagnostics missing")
     print_recurrent_tables(recurrent.recurrent_diagnostics)
 
     write_report(args.report_path, args=args, config=config, results=trained_conditions)
