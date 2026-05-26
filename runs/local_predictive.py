@@ -177,11 +177,21 @@ def combined_named_parameters(modules: ConditionModules) -> list[tuple[str, nn.P
     return named_parameters
 
 
-def expected_missing_gradients(spec: ConditionSpec) -> set[str]:
+def expected_zero_gradients(spec: ConditionSpec, *, lambda_local: float) -> set[str]:
     expected: set[str] = set()
     if spec.token_injection == "block0" and spec.num_blocks > 1:
         for block_index in range(1, spec.num_blocks):
             expected.add(f"model.token_mixes.{block_index}.alpha_logit")
+    # When lambda_local=0, interior blocks and prediction head get no gradient (control condition)
+    if spec.use_local_predictive_loss and lambda_local == 0.0 and spec.num_blocks > 1:
+        for block_index in range(1, spec.num_blocks):
+            expected.add(f"model.blocks.{block_index}.proj_in.weight")
+            expected.add(f"model.blocks.{block_index}.proj_in.bias")
+            expected.add(f"model.blocks.{block_index}.proj_out.weight")
+            expected.add(f"model.blocks.{block_index}.proj_out.bias")
+            expected.add(f"model.block_mixes.{block_index}.alpha_logit")
+        expected.add("prediction_head.weight")
+        expected.add("prediction_head.bias")
     return expected
 
 
@@ -256,7 +266,7 @@ def verify_forward_and_gradients(
 
     missing_gradient_parameters: list[str] = []
     zero_gradient_parameters: list[str] = []
-    expected_missing = expected_missing_gradients(spec)
+    expected_missing = expected_zero_gradients(spec, lambda_local=lambda_local)
     unexpected_missing_gradient_parameters: list[str] = []
     gradient_norm_sum = 0.0
     nonzero_gradient_parameters = 0
