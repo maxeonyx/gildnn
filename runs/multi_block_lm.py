@@ -62,6 +62,12 @@ class LongBlockConfig:
     n_layers: int
 
 
+@dataclass(frozen=True)
+class PretrainConfig:
+    mid_steps: int
+    long_steps: int
+
+
 def dataset_to_device(dataset: WindowDataset, device: torch.device) -> WindowDataset:
     return WindowDataset(
         short_inputs=dataset.short_inputs.to(device),
@@ -80,6 +86,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--long-d-model", type=int, default=64)
     parser.add_argument("--long-n-layers", type=int, default=1)
     parser.add_argument("--long-target-offset", type=int, default=0)
+    parser.add_argument("--pretrain-mid-steps", type=int, default=0)
+    parser.add_argument("--pretrain-long-steps", type=int, default=0)
     return parser.parse_args()
 
 
@@ -119,6 +127,14 @@ def resolve_long_target_offset(args: argparse.Namespace) -> int:
     if args.long_target_offset < 0:
         raise ValueError(f"long_target_offset must be non-negative, got {args.long_target_offset}")
     return args.long_target_offset
+
+
+def resolve_pretrain_config(args: argparse.Namespace) -> PretrainConfig:
+    if args.pretrain_mid_steps < 0:
+        raise ValueError(f"pretrain_mid_steps must be non-negative, got {args.pretrain_mid_steps}")
+    if args.pretrain_long_steps < 0:
+        raise ValueError(f"pretrain_long_steps must be non-negative, got {args.pretrain_long_steps}")
+    return PretrainConfig(mid_steps=args.pretrain_mid_steps, long_steps=args.pretrain_long_steps)
 
 
 def _resolve_text_file() -> Path:
@@ -403,6 +419,13 @@ class InteriorBlock(nn.Module):
     def lateral(self, last_hidden: Float[Tensor, "batch 1 d_model"]) -> Float[Tensor, "batch 1 lateral_d_model"]:
         return LATERAL_SCALE * self.lateral_proj(last_hidden.detach())
 
+    def pretrain_parameters(self) -> list[nn.Parameter]:
+        return list(self.encoder.parameters()) + list(self.local_head.parameters())
+
+    def freeze_pretrained_representation(self) -> None:
+        self.encoder.requires_grad_(False)
+        self.local_head.requires_grad_(False)
+
 
 class MultiBlockModel(nn.Module):
     def __init__(self, *, vocab_size: int, use_mid: bool, use_long: bool, long_block_config: LongBlockConfig) -> None:
@@ -470,7 +493,17 @@ def build_model(condition_name: str, vocab_size: int, long_block_config: LongBlo
 
 def make_optimizer(model: nn.Module, device: torch.device) -> torch.optim.Optimizer:
     fused = device.type == "cuda"
-    return torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE, fused=fused)
+    trainable_parameters = [parameter for parameter in model.parameters() if parameter.requires_grad]
+    if len(trainable_parameters) == 0:
+        raise ValueError("Model has no trainable parameters.")
+    return torch.optim.AdamW(trainable_parameters, lr=LEARNING_RATE, fused=fused)
+
+
+def make_parameter_optimizer(parameters: list[nn.Parameter], device: torch.device) -> torch.optim.Optimizer:
+    if len(parameters) == 0:
+        raise ValueError("Need at least one trainable parameter.")
+    fused = device.type == "cuda"
+    return torch.optim.AdamW(parameters, lr=LEARNING_RATE, fused=fused)
 
 
 def warm_up_cuda(
@@ -527,6 +560,73 @@ def warm_up_cuda(
     del model
 
 
+def pretrain_interior_block(
+    block: InteriorBlock,
+    *,
+    block_name: str,
+    train_inputs: Int[Tensor, "examples context"],
+    local_targets: Int[Tensor, "examples"],
+    steps: int,
+    device: torch.device,
+) -> None:
+    if steps == 0:
+        return
+
+    optimizer = make_parameter_optimizer(block.pretrain_parameters(), device)
+    block.train()
+    for step in range(1, steps + 1):
+        indices = torch.randint(0, train_inputs.shape[0], (BATCH_SIZE,), device=device)
+        batch_inputs = train_inputs[indices]
+        batch_targets = local_targets[indices]
+
+        with autocast_context(device):
+            _, local_logits = block.last_hidden_and_local_logits(batch_inputs)
+            local_loss, local_accuracy = next_char_metrics(local_logits, batch_targets)
+
+        optimizer.zero_grad(set_to_none=True)
+        local_loss.backward()
+        optimizer.step()
+
+        if step % 500 == 0 or step == steps:
+            print(
+                f"[pretrain_{block_name}] step={step:04d}/{steps} "
+                f"local_ce={local_loss.item():.4f} local_acc={local_accuracy.item():.4%}",
+                flush=True,
+            )
+
+
+def maybe_pretrain_blocks(
+    model: MultiBlockModel,
+    train_dataset: WindowDataset,
+    *,
+    pretrain_config: PretrainConfig,
+    long_target_offset: int,
+    device: torch.device,
+) -> None:
+    next_targets = train_dataset.targets_multi[:, 0]
+    if model.mid_block is not None and pretrain_config.mid_steps > 0:
+        pretrain_interior_block(
+            model.mid_block,
+            block_name="mid",
+            train_inputs=train_dataset.mid_inputs,
+            local_targets=next_targets,
+            steps=pretrain_config.mid_steps,
+            device=device,
+        )
+        model.mid_block.freeze_pretrained_representation()
+
+    if model.long_block is not None and pretrain_config.long_steps > 0:
+        pretrain_interior_block(
+            model.long_block,
+            block_name="long",
+            train_inputs=train_dataset.long_inputs,
+            local_targets=train_dataset.targets_multi[:, long_target_offset],
+            steps=pretrain_config.long_steps,
+            device=device,
+        )
+        model.long_block.freeze_pretrained_representation()
+
+
 def train_condition(
     condition_name: str,
     train_dataset: WindowDataset,
@@ -536,9 +636,17 @@ def train_condition(
     device: torch.device,
     long_block_config: LongBlockConfig,
     long_target_offset: int,
+    pretrain_config: PretrainConfig,
 ) -> ConditionResult:
     set_seed(seed)
     model = build_model(condition_name, train_dataset.vocab_size, long_block_config).to(device)
+    maybe_pretrain_blocks(
+        model,
+        train_dataset,
+        pretrain_config=pretrain_config,
+        long_target_offset=long_target_offset,
+        device=device,
+    )
     optimizer = make_optimizer(model, device)
     started_at = perf_counter()
 
@@ -677,6 +785,7 @@ def main() -> None:
     device = resolve_device(args.device)
     long_block_config = resolve_long_block_config(args)
     long_target_offset = resolve_long_target_offset(args)
+    pretrain_config = resolve_pretrain_config(args)
     set_seed(args.seed)
     if device.type == "cuda":
         torch.set_float32_matmul_precision("high")
@@ -699,6 +808,7 @@ def main() -> None:
         f"short_ctx={SHORT_CONTEXT} mid_ctx={MID_CONTEXT} long_ctx={LONG_CONTEXT} "
         f"long_d_model={long_block_config.d_model} long_n_layers={long_block_config.n_layers} "
         f"long_target_offset={long_target_offset} "
+        f"pretrain_mid_steps={pretrain_config.mid_steps} pretrain_long_steps={pretrain_config.long_steps} "
         f"steps={TRAINING_STEPS} batch={BATCH_SIZE} lateral_scale={LATERAL_SCALE} "
         f"conditions={','.join(requested_conditions)}",
         flush=True,
@@ -713,6 +823,7 @@ def main() -> None:
             device=device,
             long_block_config=long_block_config,
             long_target_offset=long_target_offset,
+            pretrain_config=pretrain_config,
         )
         for condition_name in requested_conditions
     ]
