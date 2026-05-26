@@ -70,6 +70,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--temperature", type=float, default=TEMPERATURE)
     parser.add_argument("--lateral-scale", type=float, default=1.0)
     parser.add_argument("--normalize", action="store_true")
+    parser.add_argument("--local-loss", choices=("ce", "cosine", "l2"), default="ce")
     return parser.parse_args()
 
 
@@ -224,6 +225,31 @@ def tied_logits(hidden: Tensor, embedding: nn.Embedding, *, temperature: float, 
     return F.linear(hidden, embedding.weight) / temperature
 
 
+def normalized_target_embeddings(embedding: nn.Embedding, targets: Tensor) -> Tensor:
+    return F.normalize(embedding.weight[targets].float(), dim=-1).to(embedding.weight.dtype)
+
+
+def interior_local_loss(
+    hidden: Tensor,
+    *,
+    embedding: nn.Embedding,
+    targets: Tensor,
+    temperature: float,
+    normalize: bool,
+    local_loss: str,
+) -> Tensor:
+    if local_loss == "ce":
+        logits = tied_logits(hidden, embedding, temperature=temperature, normalize=normalize)
+        return F.cross_entropy(logits, targets)
+
+    target_embeddings = normalized_target_embeddings(embedding, targets)
+    if local_loss == "cosine":
+        return 1.0 - F.cosine_similarity(hidden.float(), target_embeddings.float(), dim=-1).mean()
+    if local_loss == "l2":
+        return F.mse_loss(hidden.float(), target_embeddings.float())
+    raise ValueError(f"Unsupported local_loss: {local_loss}")
+
+
 class CausalSelfAttention(nn.Module):
     def __init__(self, *, d_model: int, n_heads: int) -> None:
         super().__init__()
@@ -303,12 +329,14 @@ class TiedReadoutModel(nn.Module):
         use_long: bool,
         temperature: float,
         lateral_scale: float,
-        normalize: bool,
+    normalize: bool,
+        local_loss: str,
     ) -> None:
         super().__init__()
         self.temperature = temperature
         self.lateral_scale = lateral_scale
         self.normalize = normalize
+        self.local_loss = local_loss
         self.token_embedding = nn.Embedding(vocab_size, D_MODEL)
         self.output_block = SequenceEncoder(
             context_size=SHORT_CONTEXT,
@@ -350,14 +378,8 @@ class TiedReadoutModel(nn.Module):
             return normalize_hidden(hidden)
         return hidden
 
-    def block_logits(self, block: SequenceEncoder, inputs: Tensor) -> tuple[Tensor, Tensor]:
-        last_hidden = self.block_last_hidden(block, inputs)
-        return last_hidden, tied_logits(
-            last_hidden,
-            self.token_embedding,
-            temperature=self.temperature,
-            normalize=self.normalize,
-        )
+    def block_last_hidden_only(self, block: SequenceEncoder, inputs: Tensor) -> Tensor:
+        return self.block_last_hidden(block, inputs)
 
     def output_logits(self, short_inputs: Tensor, *, mid_hidden: Tensor | None = None, long_hidden: Tensor | None = None) -> Tensor:
         output_hidden = self.block_last_hidden(self.output_block, short_inputs)
@@ -380,6 +402,7 @@ def build_model(
     temperature: float,
     lateral_scale: float,
     normalize: bool,
+    local_loss: str,
 ) -> TiedReadoutModel:
     match condition_name:
         case "block0_alone":
@@ -390,6 +413,7 @@ def build_model(
                 temperature=temperature,
                 lateral_scale=lateral_scale,
                 normalize=normalize,
+                local_loss=local_loss,
             )
         case "two_blocks":
             return TiedReadoutModel(
@@ -399,6 +423,7 @@ def build_model(
                 temperature=temperature,
                 lateral_scale=lateral_scale,
                 normalize=normalize,
+                local_loss=local_loss,
             )
         case _:
             raise ValueError(f"Unsupported condition: {condition_name}")
@@ -415,6 +440,7 @@ def warm_up_cuda(
     temperature: float,
     lateral_scale: float,
     normalize: bool,
+    local_loss: str,
 ) -> None:
     if device.type != "cuda":
         return
@@ -426,18 +452,33 @@ def warm_up_cuda(
         temperature=temperature,
         lateral_scale=lateral_scale,
         normalize=normalize,
+        local_loss=local_loss,
     ).to(device)
     optimizer = make_optimizer(model, device)
     short_inputs, mid_inputs, long_inputs, targets = sample_batch(train_dataset, batch_size=BATCH_SIZE, device=device)
 
     model.train()
     with autocast_context(device):
-        mid_hidden, mid_logits = model.block_logits(model.mid_block, mid_inputs)
-        long_hidden, long_logits = model.block_logits(model.long_block, long_inputs)
+        mid_hidden = model.block_last_hidden_only(model.mid_block, mid_inputs)
+        long_hidden = model.block_last_hidden_only(model.long_block, long_inputs)
         output_logits = model.output_logits(short_inputs, mid_hidden=mid_hidden, long_hidden=long_hidden)
         output_loss, _ = next_char_metrics(output_logits, targets)
-        mid_loss, _ = next_char_metrics(mid_logits, targets)
-        long_loss, _ = next_char_metrics(long_logits, targets)
+        mid_loss = interior_local_loss(
+            mid_hidden,
+            embedding=model.token_embedding,
+            targets=targets,
+            temperature=model.temperature,
+            normalize=model.normalize,
+            local_loss=model.local_loss,
+        )
+        long_loss = interior_local_loss(
+            long_hidden,
+            embedding=model.token_embedding,
+            targets=targets,
+            temperature=model.temperature,
+            normalize=model.normalize,
+            local_loss=model.local_loss,
+        )
         total_loss = output_loss + mid_loss + long_loss
 
     optimizer.zero_grad(set_to_none=True)
@@ -489,6 +530,7 @@ def train_condition(
     temperature: float,
     lateral_scale: float,
     normalize: bool,
+    local_loss: str,
     training_steps: int,
 ) -> ConditionResult:
     set_seed(seed)
@@ -498,6 +540,7 @@ def train_condition(
         temperature=temperature,
         lateral_scale=lateral_scale,
         normalize=normalize,
+        local_loss=local_loss,
     ).to(device)
     optimizer = make_optimizer(model, device)
     started_at = perf_counter()
@@ -512,22 +555,32 @@ def train_condition(
             long_hidden = None
             mid_loss_value = 0.0
             long_loss_value = 0.0
-            mid_acc_value = 0.0
-            long_acc_value = 0.0
 
             if model.mid_block is not None:
-                mid_hidden, mid_logits = model.block_logits(model.mid_block, mid_inputs)
-                mid_loss, mid_accuracy = next_char_metrics(mid_logits, targets)
+                mid_hidden = model.block_last_hidden_only(model.mid_block, mid_inputs)
+                mid_loss = interior_local_loss(
+                    mid_hidden,
+                    embedding=model.token_embedding,
+                    targets=targets,
+                    temperature=model.temperature,
+                    normalize=model.normalize,
+                    local_loss=model.local_loss,
+                )
                 total_loss_terms.append(mid_loss)
                 mid_loss_value = mid_loss.item()
-                mid_acc_value = mid_accuracy.item()
 
             if model.long_block is not None:
-                long_hidden, long_logits = model.block_logits(model.long_block, long_inputs)
-                long_loss, long_accuracy = next_char_metrics(long_logits, targets)
+                long_hidden = model.block_last_hidden_only(model.long_block, long_inputs)
+                long_loss = interior_local_loss(
+                    long_hidden,
+                    embedding=model.token_embedding,
+                    targets=targets,
+                    temperature=model.temperature,
+                    normalize=model.normalize,
+                    local_loss=model.local_loss,
+                )
                 total_loss_terms.append(long_loss)
                 long_loss_value = long_loss.item()
-                long_acc_value = long_accuracy.item()
 
             output_logits = model.output_logits(short_inputs, mid_hidden=mid_hidden, long_hidden=long_hidden)
             output_loss, output_accuracy = next_char_metrics(output_logits, targets)
@@ -542,8 +595,7 @@ def train_condition(
             print(
                 f"[{condition_name}] step={step:04d}/{training_steps} "
                 f"block0_ce={output_loss.item():.4f} block0_acc={output_accuracy.item():.4%} "
-                f"mid_ce={mid_loss_value:.4f} mid_acc={mid_acc_value:.4%} "
-                f"long_ce={long_loss_value:.4f} long_acc={long_acc_value:.4%}",
+                f"mid_loss={mid_loss_value:.4f} long_loss={long_loss_value:.4f}",
                 flush=True,
             )
 
@@ -600,6 +652,7 @@ def main() -> None:
         temperature=args.temperature,
         lateral_scale=args.lateral_scale,
         normalize=args.normalize,
+        local_loss=args.local_loss,
     )
     print(
         "tied readout lm "
@@ -607,7 +660,7 @@ def main() -> None:
         f"val_examples={val_dataset.targets.shape[0]} vocab={train_dataset.vocab_size} "
         f"short_ctx={SHORT_CONTEXT} mid_ctx={MID_CONTEXT} long_ctx={LONG_CONTEXT} "
         f"d_model={D_MODEL} n_heads={N_HEADS} ff_dim={FF_DIM} n_layers={N_LAYERS} "
-        f"steps={args.steps} batch={BATCH_SIZE} temperature={args.temperature:.4f} lateral_scale={args.lateral_scale:.4f} normalize={args.normalize} "
+        f"steps={args.steps} batch={BATCH_SIZE} temperature={args.temperature:.4f} lateral_scale={args.lateral_scale:.4f} normalize={args.normalize} local_loss={args.local_loss} "
         f"conditions={','.join(requested_conditions)}",
         flush=True,
     )
@@ -622,6 +675,7 @@ def main() -> None:
             temperature=args.temperature,
             lateral_scale=args.lateral_scale,
             normalize=args.normalize,
+            local_loss=args.local_loss,
             training_steps=args.steps,
         )
         for condition_name in requested_conditions
