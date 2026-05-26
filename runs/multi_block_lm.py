@@ -56,6 +56,12 @@ class ConditionResult:
     wall_seconds: float
 
 
+@dataclass(frozen=True)
+class LongBlockConfig:
+    d_model: int
+    n_layers: int
+
+
 def dataset_to_device(dataset: WindowDataset, device: torch.device) -> WindowDataset:
     return WindowDataset(
         short_inputs=dataset.short_inputs.to(device),
@@ -71,6 +77,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
     parser.add_argument("--device", choices=("cpu", "cuda"), default=None)
     parser.add_argument("--conditions", type=str, default=",".join(ALL_CONDITIONS))
+    parser.add_argument("--long-d-model", type=int, default=64)
+    parser.add_argument("--long-n-layers", type=int, default=1)
     return parser.parse_args()
 
 
@@ -96,6 +104,14 @@ def resolve_device(requested_device: str | None) -> torch.device:
             raise ValueError("CUDA requested but not available.")
         return torch.device(requested_device)
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+def resolve_long_block_config(args: argparse.Namespace) -> LongBlockConfig:
+    if args.long_d_model <= 0:
+        raise ValueError(f"long_d_model must be positive, got {args.long_d_model}")
+    if args.long_n_layers <= 0:
+        raise ValueError(f"long_n_layers must be positive, got {args.long_n_layers}")
+    return LongBlockConfig(d_model=args.long_d_model, n_layers=args.long_n_layers)
 
 
 def load_window_dataset() -> tuple[WindowDataset, WindowDataset]:
@@ -202,17 +218,33 @@ class TransformerBlock(nn.Module):
 
 
 class SequenceEncoder(nn.Module):
-    def __init__(self, *, vocab_size: int, context_size: int, d_model: int, n_heads: int, ff_dim: int) -> None:
+    def __init__(
+        self,
+        *,
+        vocab_size: int,
+        context_size: int,
+        d_model: int,
+        n_heads: int,
+        ff_dim: int,
+        n_layers: int = 1,
+    ) -> None:
         super().__init__()
+        if n_layers <= 0:
+            raise ValueError(f"n_layers must be positive, got {n_layers}")
         self.context_size = context_size
         self.token_embedding = nn.Embedding(vocab_size, d_model)
         self.position_embedding = nn.Embedding(context_size, d_model)
-        self.block = TransformerBlock(d_model=d_model, n_heads=n_heads, ff_dim=ff_dim, max_context=context_size)
+        self.blocks = nn.ModuleList(
+            TransformerBlock(d_model=d_model, n_heads=n_heads, ff_dim=ff_dim, max_context=context_size)
+            for _ in range(n_layers)
+        )
 
     def forward(self, inputs: Int[Tensor, "batch context"]) -> Float[Tensor, "batch context d_model"]:
         positions = torch.arange(self.context_size, device=inputs.device)
         hidden = self.token_embedding(inputs) + self.position_embedding(positions)
-        return self.block(hidden)
+        for block in self.blocks:
+            hidden = block(hidden)
+        return hidden
 
 
 class OutputBlock(nn.Module):
@@ -224,6 +256,7 @@ class OutputBlock(nn.Module):
             d_model=d_model,
             n_heads=2,
             ff_dim=128,
+            n_layers=1,
         )
         self.output_head = nn.Linear(d_model, vocab_size)
 
@@ -243,7 +276,17 @@ class OutputBlock(nn.Module):
 
 
 class InteriorBlock(nn.Module):
-    def __init__(self, *, vocab_size: int, context_size: int, d_model: int, n_heads: int, ff_dim: int) -> None:
+    def __init__(
+        self,
+        *,
+        vocab_size: int,
+        context_size: int,
+        d_model: int,
+        n_heads: int,
+        ff_dim: int,
+        n_layers: int,
+        lateral_out_dim: int,
+    ) -> None:
         super().__init__()
         self.encoder = SequenceEncoder(
             vocab_size=vocab_size,
@@ -251,9 +294,10 @@ class InteriorBlock(nn.Module):
             d_model=d_model,
             n_heads=n_heads,
             ff_dim=ff_dim,
+            n_layers=n_layers,
         )
         self.local_head = nn.Linear(d_model, vocab_size)
-        self.lateral_proj = nn.Linear(d_model, d_model)
+        self.lateral_proj = nn.Linear(d_model, lateral_out_dim)
 
     def encode_last_hidden(self, inputs: Int[Tensor, "batch context"]) -> Float[Tensor, "batch 1 d_model"]:
         return self.encoder(inputs)[:, -1:, :]
@@ -267,24 +311,26 @@ class InteriorBlock(nn.Module):
         local_logits = self.local_head(last_hidden.squeeze(1))
         return last_hidden, local_logits
 
-    def lateral(self, last_hidden: Float[Tensor, "batch 1 d_model"]) -> Float[Tensor, "batch 1 d_model"]:
+    def lateral(self, last_hidden: Float[Tensor, "batch 1 d_model"]) -> Float[Tensor, "batch 1 lateral_d_model"]:
         return LATERAL_SCALE * self.lateral_proj(last_hidden.detach())
 
 
 class MultiBlockModel(nn.Module):
-    def __init__(self, *, vocab_size: int, use_mid: bool, use_long: bool) -> None:
+    def __init__(self, *, vocab_size: int, use_mid: bool, use_long: bool, long_block_config: LongBlockConfig) -> None:
         super().__init__()
-        d_model = 64
+        output_d_model = 64
         n_heads = 2
         ff_dim = 128
-        self.output_block = OutputBlock(vocab_size=vocab_size, d_model=d_model)
+        self.output_block = OutputBlock(vocab_size=vocab_size, d_model=output_d_model)
         self.mid_block = (
             InteriorBlock(
                 vocab_size=vocab_size,
                 context_size=MID_CONTEXT,
-                d_model=d_model,
+                d_model=output_d_model,
                 n_heads=n_heads,
                 ff_dim=ff_dim,
+                n_layers=1,
+                lateral_out_dim=output_d_model,
             )
             if use_mid
             else None
@@ -293,9 +339,11 @@ class MultiBlockModel(nn.Module):
             InteriorBlock(
                 vocab_size=vocab_size,
                 context_size=LONG_CONTEXT,
-                d_model=d_model,
+                d_model=long_block_config.d_model,
                 n_heads=n_heads,
                 ff_dim=ff_dim,
+                n_layers=long_block_config.n_layers,
+                lateral_out_dim=output_d_model,
             )
             if use_long
             else None
@@ -317,16 +365,16 @@ class MultiBlockModel(nn.Module):
         return self.output_block.logits(short_inputs, lateral_sum=lateral_sum)
 
 
-def build_model(condition_name: str, vocab_size: int) -> MultiBlockModel:
+def build_model(condition_name: str, vocab_size: int, long_block_config: LongBlockConfig) -> MultiBlockModel:
     match condition_name:
         case "block0_alone":
-            return MultiBlockModel(vocab_size=vocab_size, use_mid=False, use_long=False)
+            return MultiBlockModel(vocab_size=vocab_size, use_mid=False, use_long=False, long_block_config=long_block_config)
         case "one_block_mid":
-            return MultiBlockModel(vocab_size=vocab_size, use_mid=True, use_long=False)
+            return MultiBlockModel(vocab_size=vocab_size, use_mid=True, use_long=False, long_block_config=long_block_config)
         case "one_block_long":
-            return MultiBlockModel(vocab_size=vocab_size, use_mid=False, use_long=True)
+            return MultiBlockModel(vocab_size=vocab_size, use_mid=False, use_long=True, long_block_config=long_block_config)
         case "two_blocks":
-            return MultiBlockModel(vocab_size=vocab_size, use_mid=True, use_long=True)
+            return MultiBlockModel(vocab_size=vocab_size, use_mid=True, use_long=True, long_block_config=long_block_config)
         case _:
             raise ValueError(f"Unsupported condition: {condition_name}")
 
@@ -336,12 +384,12 @@ def make_optimizer(model: nn.Module, device: torch.device) -> torch.optim.Optimi
     return torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE, fused=fused)
 
 
-def warm_up_cuda(train_dataset: WindowDataset, device: torch.device) -> None:
+def warm_up_cuda(train_dataset: WindowDataset, device: torch.device, long_block_config: LongBlockConfig) -> None:
     if device.type != "cuda":
         return
 
     set_seed(DEFAULT_SEED)
-    model = build_model("two_blocks", train_dataset.vocab_size).to(device)
+    model = build_model("two_blocks", train_dataset.vocab_size, long_block_config).to(device)
     optimizer = make_optimizer(model, device)
     short_inputs, mid_inputs, long_inputs, targets = sample_batch(
         train_dataset,
@@ -389,9 +437,10 @@ def train_condition(
     *,
     seed: int,
     device: torch.device,
+    long_block_config: LongBlockConfig,
 ) -> ConditionResult:
     set_seed(seed)
-    model = build_model(condition_name, train_dataset.vocab_size).to(device)
+    model = build_model(condition_name, train_dataset.vocab_size, long_block_config).to(device)
     optimizer = make_optimizer(model, device)
     started_at = perf_counter()
 
@@ -526,6 +575,7 @@ def main() -> None:
     args = parse_args()
     requested_conditions = parse_condition_names(args.conditions)
     device = resolve_device(args.device)
+    long_block_config = resolve_long_block_config(args)
     set_seed(args.seed)
     if device.type == "cuda":
         torch.set_float32_matmul_precision("high")
@@ -535,12 +585,13 @@ def main() -> None:
     train_dataset, val_dataset = load_window_dataset()
     train_dataset = dataset_to_device(train_dataset, device)
     val_dataset = dataset_to_device(val_dataset, device)
-    warm_up_cuda(train_dataset, device)
+    warm_up_cuda(train_dataset, device, long_block_config)
     print(
         "multi block lm "
         f"device={device.type} seed={args.seed} train_examples={train_dataset.targets.shape[0]} "
         f"val_examples={val_dataset.targets.shape[0]} vocab={train_dataset.vocab_size} "
         f"short_ctx={SHORT_CONTEXT} mid_ctx={MID_CONTEXT} long_ctx={LONG_CONTEXT} "
+        f"long_d_model={long_block_config.d_model} long_n_layers={long_block_config.n_layers} "
         f"steps={TRAINING_STEPS} batch={BATCH_SIZE} lateral_scale={LATERAL_SCALE} "
         f"conditions={','.join(requested_conditions)}",
         flush=True,
@@ -553,6 +604,7 @@ def main() -> None:
             val_dataset,
             seed=args.seed,
             device=device,
+            long_block_config=long_block_config,
         )
         for condition_name in requested_conditions
     ]
