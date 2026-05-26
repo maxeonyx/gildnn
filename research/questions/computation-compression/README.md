@@ -68,6 +68,21 @@ Interesting: for ~9% of tokens, the final iteration makes things WORSE. These ar
 
 ## Next steps
 
-1. **Repeat on d=512** — when that checkpoint is ready, run same analysis. Does larger model show same or different depth curve?
-2. **Design compression experiment** — given the opportunity exists, test: explicit self-prediction at depth 2 predicting depth 8's output. Does it improve depth-2 quality?
-3. **Halt threshold sweep** — lower `halt_epsilon` to see if the halt head can be made more aggressive without quality loss
+**⚠️ Prior negative result exists.** The narrow version of Pathway 4 — KL distillation from depth-8 logits to depth-2 logits — was already tested and **failed** on a smaller model (GRU scaffold, TinyShakespeare). See [`research/questions/self-prediction-compute-compression/README.md`](../self-prediction-compute-compression/README.md). At every fixed depth, the self-prediction variant was slightly worse. Stronger auxiliary weight failed the ladder gate entirely.
+
+That negative result argues against re-running the same mechanism at larger scale. It's one data point on a different architecture, but the simplest reading is: "multi-exit training already extracts most of what shallow steps can learn."
+
+**What remains open (from that report):**
+- Latent-space distillation (predict hidden state, not logits)
+- Different prediction target (e.g., future lateral state in multi-timestep architecture)
+- Whether the RecurrentDepthLM architecture (transformer-based, not GRU) changes the sign
+- Whether the "predictive silencing" mechanism from the multi-timestep theory emerges naturally without explicit training
+
+**Concrete options for next Pathway 4 work (in order of cheapness):**
+
+1. **Repeat per-depth measurement on d=512** — when that checkpoint is ready. Same cost (CPU-only), confirms whether the curve shape is model-size-invariant.
+2. **Halt threshold sweep** — lower `halt_epsilon` on existing d=256 checkpoint to see if the halt head can be more aggressive without quality loss. CPU-only.
+3. **Continuation A/B test** — continue from d=256 checkpoint with vs without depth-2 KL distillation. 2K steps, measure per-depth val loss. This tests whether the architecture change (transformer vs GRU) matters. ~5 min GPU.
+4. **Latent-space distillation** — predict depth-8 hidden state from depth-2, via a learned projection head. Different mechanism from the prior negative. ~10 min GPU.
+
+Given the negative prior, **1 and 2 are the most honest next steps** (they're free and produce evidence). Option 3 is the cheapest that could change the sign but risks confirming a known negative. Option 4 is genuinely novel but more expensive.
