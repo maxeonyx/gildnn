@@ -69,6 +69,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--steps", type=int, default=TRAINING_STEPS)
     parser.add_argument("--temperature", type=float, default=TEMPERATURE)
     parser.add_argument("--lateral-scale", type=float, default=1.0)
+    parser.add_argument("--normalize", action="store_true")
     return parser.parse_args()
 
 
@@ -209,9 +210,17 @@ def next_char_metrics(logits: Tensor, targets: Tensor) -> tuple[Tensor, Tensor]:
     return loss, accuracy
 
 
-def tied_logits(hidden: Tensor, embedding: nn.Embedding, *, temperature: float) -> Tensor:
+def normalize_hidden(hidden: Tensor) -> Tensor:
+    return F.normalize(hidden.float(), dim=-1).to(hidden.dtype)
+
+
+def tied_logits(hidden: Tensor, embedding: nn.Embedding, *, temperature: float, normalize: bool) -> Tensor:
     if temperature <= 0.0:
         raise ValueError(f"temperature must be positive, got {temperature}")
+    if normalize:
+        hidden = normalize_hidden(hidden)
+        embedding_weight = F.normalize(embedding.weight.float(), dim=-1).to(embedding.weight.dtype)
+        return F.linear(hidden, embedding_weight) / temperature
     return F.linear(hidden, embedding.weight) / temperature
 
 
@@ -286,10 +295,20 @@ class SequenceEncoder(nn.Module):
 
 
 class TiedReadoutModel(nn.Module):
-    def __init__(self, *, vocab_size: int, use_mid: bool, use_long: bool, temperature: float, lateral_scale: float) -> None:
+    def __init__(
+        self,
+        *,
+        vocab_size: int,
+        use_mid: bool,
+        use_long: bool,
+        temperature: float,
+        lateral_scale: float,
+        normalize: bool,
+    ) -> None:
         super().__init__()
         self.temperature = temperature
         self.lateral_scale = lateral_scale
+        self.normalize = normalize
         self.token_embedding = nn.Embedding(vocab_size, D_MODEL)
         self.output_block = SequenceEncoder(
             context_size=SHORT_CONTEXT,
@@ -326,11 +345,19 @@ class TiedReadoutModel(nn.Module):
         nn.init.normal_(self.token_embedding.weight, mean=0.0, std=D_MODEL**-0.5)
 
     def block_last_hidden(self, block: SequenceEncoder, inputs: Tensor) -> Tensor:
-        return block(inputs, self.token_embedding)[:, -1, :]
+        hidden = block(inputs, self.token_embedding)[:, -1, :]
+        if self.normalize:
+            return normalize_hidden(hidden)
+        return hidden
 
     def block_logits(self, block: SequenceEncoder, inputs: Tensor) -> tuple[Tensor, Tensor]:
         last_hidden = self.block_last_hidden(block, inputs)
-        return last_hidden, tied_logits(last_hidden, self.token_embedding, temperature=self.temperature)
+        return last_hidden, tied_logits(
+            last_hidden,
+            self.token_embedding,
+            temperature=self.temperature,
+            normalize=self.normalize,
+        )
 
     def output_logits(self, short_inputs: Tensor, *, mid_hidden: Tensor | None = None, long_hidden: Tensor | None = None) -> Tensor:
         output_hidden = self.block_last_hidden(self.output_block, short_inputs)
@@ -338,10 +365,22 @@ class TiedReadoutModel(nn.Module):
             output_hidden = output_hidden + self.lateral_scale * mid_hidden.detach()
         if long_hidden is not None:
             output_hidden = output_hidden + self.lateral_scale * long_hidden.detach()
-        return tied_logits(output_hidden, self.token_embedding, temperature=self.temperature)
+        return tied_logits(
+            output_hidden,
+            self.token_embedding,
+            temperature=self.temperature,
+            normalize=self.normalize,
+        )
 
 
-def build_model(condition_name: str, *, vocab_size: int, temperature: float, lateral_scale: float) -> TiedReadoutModel:
+def build_model(
+    condition_name: str,
+    *,
+    vocab_size: int,
+    temperature: float,
+    lateral_scale: float,
+    normalize: bool,
+) -> TiedReadoutModel:
     match condition_name:
         case "block0_alone":
             return TiedReadoutModel(
@@ -350,6 +389,7 @@ def build_model(condition_name: str, *, vocab_size: int, temperature: float, lat
                 use_long=False,
                 temperature=temperature,
                 lateral_scale=lateral_scale,
+                normalize=normalize,
             )
         case "two_blocks":
             return TiedReadoutModel(
@@ -358,6 +398,7 @@ def build_model(condition_name: str, *, vocab_size: int, temperature: float, lat
                 use_long=True,
                 temperature=temperature,
                 lateral_scale=lateral_scale,
+                normalize=normalize,
             )
         case _:
             raise ValueError(f"Unsupported condition: {condition_name}")
@@ -367,7 +408,14 @@ def make_optimizer(model: nn.Module, device: torch.device) -> torch.optim.Optimi
     return torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE, fused=device.type == "cuda")
 
 
-def warm_up_cuda(train_dataset: WindowDataset, *, device: torch.device, temperature: float, lateral_scale: float) -> None:
+def warm_up_cuda(
+    train_dataset: WindowDataset,
+    *,
+    device: torch.device,
+    temperature: float,
+    lateral_scale: float,
+    normalize: bool,
+) -> None:
     if device.type != "cuda":
         return
 
@@ -377,6 +425,7 @@ def warm_up_cuda(train_dataset: WindowDataset, *, device: torch.device, temperat
         vocab_size=train_dataset.vocab_size,
         temperature=temperature,
         lateral_scale=lateral_scale,
+        normalize=normalize,
     ).to(device)
     optimizer = make_optimizer(model, device)
     short_inputs, mid_inputs, long_inputs, targets = sample_batch(train_dataset, batch_size=BATCH_SIZE, device=device)
@@ -439,6 +488,7 @@ def train_condition(
     device: torch.device,
     temperature: float,
     lateral_scale: float,
+    normalize: bool,
     training_steps: int,
 ) -> ConditionResult:
     set_seed(seed)
@@ -447,6 +497,7 @@ def train_condition(
         vocab_size=train_dataset.vocab_size,
         temperature=temperature,
         lateral_scale=lateral_scale,
+        normalize=normalize,
     ).to(device)
     optimizer = make_optimizer(model, device)
     started_at = perf_counter()
@@ -543,14 +594,20 @@ def main() -> None:
     train_dataset, val_dataset = load_window_dataset()
     train_dataset = dataset_to_device(train_dataset, device)
     val_dataset = dataset_to_device(val_dataset, device)
-    warm_up_cuda(train_dataset, device=device, temperature=args.temperature, lateral_scale=args.lateral_scale)
+    warm_up_cuda(
+        train_dataset,
+        device=device,
+        temperature=args.temperature,
+        lateral_scale=args.lateral_scale,
+        normalize=args.normalize,
+    )
     print(
         "tied readout lm "
         f"device={device.type} seed={args.seed} train_examples={train_dataset.targets.shape[0]} "
         f"val_examples={val_dataset.targets.shape[0]} vocab={train_dataset.vocab_size} "
         f"short_ctx={SHORT_CONTEXT} mid_ctx={MID_CONTEXT} long_ctx={LONG_CONTEXT} "
         f"d_model={D_MODEL} n_heads={N_HEADS} ff_dim={FF_DIM} n_layers={N_LAYERS} "
-        f"steps={args.steps} batch={BATCH_SIZE} temperature={args.temperature:.4f} lateral_scale={args.lateral_scale:.4f} "
+        f"steps={args.steps} batch={BATCH_SIZE} temperature={args.temperature:.4f} lateral_scale={args.lateral_scale:.4f} normalize={args.normalize} "
         f"conditions={','.join(requested_conditions)}",
         flush=True,
     )
@@ -564,6 +621,7 @@ def main() -> None:
             device=device,
             temperature=args.temperature,
             lateral_scale=args.lateral_scale,
+            normalize=args.normalize,
             training_steps=args.steps,
         )
         for condition_name in requested_conditions
