@@ -226,6 +226,14 @@ Work is structured as **nested loops with adversarial review gates**, not a sequ
 │  │  │  │    results?                                   │  │  │  │
 │  │  │  │  - Is the comparison fair (matched compute,   │  │  │  │
 │  │  │  │    same data, proper ablation)?               │  │  │  │
+│  │  │  │  - OVERFITTING CONFOUND: if conditions have   │  │  │  │
+│  │  │  │    unequal params and larger model has a big  │  │  │  │
+│  │  │  │    train-val gap, smaller model wins by       │  │  │  │
+│  │  │  │    default (regularization). Control: scale   │  │  │  │
+│  │  │  │    data until larger model stops overfitting. │  │  │  │
+│  │  │  │  - COMPUTE CONFOUND: wider models at matched  │  │  │  │
+│  │  │  │    params do more FLOPs/step (d² scaling).    │  │  │  │
+│  │  │  │    Report both per-param and per-FLOP.        │  │  │  │
 │  │  │  │  - Does every component receive learning      │  │  │  │
 │  │  │  │    signal at initialization? Are there         │  │  │  │
 │  │  │  │    cold-start / chicken-and-egg traps?        │  │  │  │
@@ -247,6 +255,10 @@ Work is structured as **nested loops with adversarial review gates**, not a sequ
 │  │  │  │  │  GATE: Adversarial review (subagent).   │  │  │  │  │
 │  │  │  │  │  - Is the interpretation honest?        │  │  │  │  │
 │  │  │  │  │  - Are we overclaiming?                 │  │  │  │  │
+│  │  │  │  │  - SINGLE-SEED SMALL EFFECTS: results   │  │  │  │  │
+│  │  │  │  │    with |Δ| < 0.05 on one seed are      │  │  │  │  │
+│  │  │  │  │    noise-level. Mark as PROVISIONAL and  │  │  │  │  │
+│  │  │  │  │    verify with 3+ seeds before claiming. │  │  │  │  │
 │  │  │  │  │  - Is the pathway still viable?         │  │  │  │  │
 │  │  │  │  │  - Should we continue on this pathway   │  │  │  │  │
 │  │  │  │  │    or redirect?                         │  │  │  │  │
