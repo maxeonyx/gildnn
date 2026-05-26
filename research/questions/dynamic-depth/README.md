@@ -224,3 +224,72 @@ This doesn't kill Pathway 5 — it calibrates expectations. "Dynamic depth" is a
 2. **Multi-seed** — retrain 2 more tied-depth models (seeds 43/44) and confirm the 1.96× speedup is reproducible.
 3. **Halting-aware training** — train a model WITH a small confidence head from the start (predicting "how much will the next iteration help?"). The model may learn to encode depth-useful features in its hidden state when incentivized to do so.
 4. **Per-depth marginal prediction** — instead of predicting from depth-1 state only, predict at EACH depth whether the next iteration will help. This matches the architecture better (you make the stop decision incrementally, not from shallow state alone).
+
+---
+
+## Oracle measurement at d=256, 4 iterations (2026-05-27)
+
+**Script:** `runs/oracle_depth_analysis.py` | **Artifacts:** `experiments/tinyshakespeare/artifacts/oracle_depth_analysis/`
+
+Tests whether the oracle opportunity persists at the larger scale used in Pathway 1 experiments (d=256, 4 iterations, 900K chars, 20K steps). This is a different model from the d=72/depth-8 measurement above.
+
+### Mean loss by depth (val)
+
+| Depth | Mean loss | Δ from depth-4 |
+|---|---|---|
+| 1 | 2.375 | +0.816 |
+| 2 | 1.729 | +0.170 |
+| 3 | 1.584 | +0.026 |
+| 4 | 1.558 | — |
+
+Diminishing returns: 94.9% of total improvement happens by depth 3 (0.816→0.026 marginal left).
+
+### Oracle-best vs depth-4
+
+| Split | Depth-4 loss | Oracle-best | Improvement | Tokens harmed by depth-4 |
+|---|---|---|---|---|
+| Val (19872 pos) | 1.558 | 1.396 | **0.163 nats (10.4%)** | **44.9%** |
+
+### Oracle depth histogram (val)
+
+```
+d1: ██████████████        12.8%  (2548)
+d2: █████████████████     16.5%  (3278)
+d3: ████████████████      15.5%  (3089)
+d4: ████████████████████████████████████████████████████████  55.1%  (10957)
+```
+
+55% of tokens genuinely benefit from full depth-4. Much higher than the d=72/depth-8 model (28.5% needed depth-8) — which makes sense: fewer iterations means each one carries more weight.
+
+### No-regret shallowest depth (δ=0.01)
+
+Mean optimal depth: **2.93**
+
+**Oracle speedup: 1.37×**
+
+At δ=0.01, 19.7% of tokens can safely stop at depth 1. 47.9% truly need depth 4.
+
+### Decision per pre-registered criteria
+
+**Oracle speedup (1.37×) > 1.3× ✓ AND oracle-best improves over depth-4 ✓**
+
+→ **Worth pursuing.** Real headroom exists, though less than the d=72/depth-8 case (1.96×).
+
+### Comparison: d=72/depth-8 vs d=256/depth-4
+
+| Metric | d=72, depth-8 | d=256, depth-4 |
+|---|---|---|
+| Oracle speedup | 1.96× | 1.37× |
+| Oracle-best improvement | 0.285 nats (17.3%) | 0.163 nats (10.4%) |
+| Tokens harmed by full depth | 71.5% | 44.9% |
+| Tokens needing full depth | 28.5% | 55.1% |
+
+The deeper model (8 iterations) has far more headroom for early exit. This suggests: **dynamic depth is most valuable with MORE iterations, not fewer.** The d=256/4-iter model is already fairly well-utilized at each depth.
+
+### Implication
+
+If pursuing dynamic depth, prefer deeper models (8+ iterations) where the opportunity is larger. At 4 iterations, the headroom is real but modest (1.37×). The 1.96× result at 8 iterations is far more attractive — and our stability results showed training is stable through 8 iterations (and likely more).
+
+### Next step
+
+**Halting-aware training at depth-8** — train a d=256, 8-iteration model with a per-depth confidence head from the start. Use the oracle measurement to set expectations. The d=72 result suggests ~2× speedup is achievable if the halt head can learn the pattern.

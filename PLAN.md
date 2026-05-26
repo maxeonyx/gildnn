@@ -302,4 +302,4 @@ This FULLY closes multi-rate for Pathway 8 with local CE objectives. Any form of
 
 ## The agent's working loop
 
-Follow PROCESS.md. Current position: **PATHWAY 1 RESOLVED (inconclusive at this scale).** Multi-seed shows Δ=-0.011±0.011, not significant. The next productive direction is **Pathway 3 composition** — add per-iteration CE loss to the recurrent model, testing whether local learning amplifies the recurrent advantage. OR redirect to proven Pathway 3 with distinct layers and focus on scaling/improving that.
+Follow PROCESS.md. Current position: **PATHWAY 5 (Dynamic Depth) — oracle measurement on d=256 model.** Pathway 1 resolved (inconclusive). Switching to Pathway 5 because: already has 1.96× oracle evidence at d=72/depth-8, connects directly to the vision (dynamic compute per token), and can produce a clear yes/no in the remaining timebox. Running `runs/oracle_depth_analysis.py` to measure oracle opportunity at the larger scale (d=256, 4 iterations, 900K chars). If oracle speedup > 1.3×: proceed to halting-aware training. If not: Pathway 5 may not be viable at 4 iterations.
