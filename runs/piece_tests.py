@@ -9,6 +9,8 @@ import torch
 from torch import Tensor, nn
 from torch.nn import functional as F
 
+from core.recurrent_depth import RecurrentDepthConfig, RecurrentDepthLM
+
 
 DEVICE = torch.device("cpu")
 BASE_SEED = 1729
@@ -594,10 +596,97 @@ def run_topology() -> TestResult:
     return result
 
 
+def configure_depth_sensitive_halt_head(model: RecurrentDepthLM) -> None:
+    with torch.no_grad():
+        model.halt_head.input_proj.weight.zero_()
+        model.halt_head.input_proj.bias.zero_()
+        model.halt_head.output_proj.weight.zero_()
+        model.halt_head.output_proj.bias.zero_()
+        model.halt_head.input_proj.weight[0, -1] = -1.0
+        model.halt_head.input_proj.bias[0] = 1.0
+        model.halt_head.output_proj.weight[0, 0] = 1.0
+
+
+def run_recurrent_depth() -> TestResult:
+    set_seed(BASE_SEED + 4)
+    start = time.perf_counter()
+    print_header("recurrent-depth")
+
+    vocab_size = 19
+    context_size = 5
+    config = RecurrentDepthConfig(
+        context_size=context_size,
+        d_model=64,
+        n_heads=2,
+        ff_dim=256,
+        iterations=4,
+        temperature=0.1,
+        dropout=0.0,
+    )
+    model = RecurrentDepthLM(vocab_size=vocab_size, config=config).to(DEVICE)
+    optimizer = torch.optim.Adam(model.parameters(), lr=3e-3)
+
+    val_tokens, val_targets = make_recurrence_batch(batch_size=512, seq_len=context_size + 1, vocab_size=vocab_size)
+    with torch.no_grad():
+        initial_logits, initial_halt_predictions = model(val_tokens)
+        initial_loss = F.cross_entropy(initial_logits, val_targets).item()
+
+    for _ in range(300):
+        train_tokens, train_targets = make_recurrence_batch(batch_size=128, seq_len=context_size + 1, vocab_size=vocab_size)
+        logits, _ = model(train_tokens)
+        loss = F.cross_entropy(logits, train_targets)
+        optimizer.zero_grad(set_to_none=True)
+        loss.backward()
+        optimizer.step()
+
+    with torch.no_grad():
+        final_logits, final_halt_predictions = model(val_tokens)
+        final_loss = F.cross_entropy(final_logits, val_targets).item()
+
+    configure_depth_sensitive_halt_head(model)
+    with torch.no_grad():
+        uncalibrated = model.forward_with_halting(val_tokens, epsilon=0.3)
+        calibrated = model.forward_with_halting(
+            val_tokens,
+            epsilon=0.3,
+            calibration={"scale": torch.full((config.iterations - 1,), 0.5), "bias": torch.zeros(config.iterations - 1)},
+        )
+
+    avg_depth_uncalibrated = uncalibrated.halt_depths.float().mean().item()
+    avg_depth_calibrated = calibrated.halt_depths.float().mean().item()
+    passed = (
+        final_loss < initial_loss
+        and initial_halt_predictions.shape == (val_tokens.shape[0], config.iterations - 1)
+        and final_halt_predictions.shape == (val_tokens.shape[0], config.iterations - 1)
+        and avg_depth_uncalibrated < config.iterations
+        and avg_depth_calibrated < avg_depth_uncalibrated
+    )
+
+    print(f"loss {initial_loss:.4f} -> {final_loss:.4f}")
+    print(
+        f"avg_depth uncalibrated={avg_depth_uncalibrated:.4f} calibrated={avg_depth_calibrated:.4f} full={config.iterations:.1f}"
+    )
+
+    result = TestResult(
+        name="recurrent-depth",
+        passed=passed,
+        duration_seconds=time.perf_counter() - start,
+        metrics={
+            "initial_loss": initial_loss,
+            "final_loss": final_loss,
+            "avg_depth_uncalibrated": avg_depth_uncalibrated,
+            "avg_depth_calibrated": avg_depth_calibrated,
+        },
+    )
+    print_verdict(result)
+    return result
+
+
 TESTS = {
     "fixed-target": run_fixed_target,
     "mixing-damage": run_mixing_damage,
     "moving-target": run_moving_target,
+    "recurrent-depth": run_recurrent_depth,
     "topology": run_topology,
 }
 

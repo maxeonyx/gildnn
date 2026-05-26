@@ -18,8 +18,8 @@ from torch import Tensor, nn
 from torch.nn import functional as F
 
 from core.fixed_window_char import load_dataset, set_seed
+from core.recurrent_depth import RecurrentDepthConfig, RecurrentDepthLM
 from core.run_utils import append_log, prepare_output_paths, redirect_sanity_check_paths, register_active_lock, resolve_device
-from core.tied_readout import CausalSelfAttention, FeedForward, normalize_hidden, tied_logits
 
 CONTEXT_SIZE = 128
 RECURRENT_ITERATIONS = 8
@@ -177,92 +177,19 @@ def pearson_correlation(predictions: Tensor, targets: Tensor) -> float:
     return float((centered_predictions @ centered_targets / denominator).item())
 
 
-class SharedRecurrentCore(nn.Module):
-    def __init__(self, *, d_model: int, n_heads: int, ff_dim: int, dropout: float, iterations: int) -> None:
-        super().__init__()
-        self.iterations = iterations
-        self.attn_norms = nn.ModuleList(nn.LayerNorm(d_model) for _ in range(iterations))
-        self.attn = CausalSelfAttention(d_model=d_model, n_heads=n_heads)
-        self.attn_dropout = nn.Dropout(dropout)
-        self.ffn_norms = nn.ModuleList(nn.LayerNorm(d_model) for _ in range(iterations))
-        self.ffn = FeedForward(d_model=d_model, ff_dim=ff_dim)
-        self.ffn_dropout = nn.Dropout(dropout)
-
-    def forward(self, hidden: Tensor, *, collect_iteration_states: bool) -> tuple[Tensor, list[Tensor]]:
-        iteration_states: list[Tensor] = []
-        for iteration_index in range(self.iterations):
-            hidden = hidden + self.attn_dropout(self.attn(self.attn_norms[iteration_index](hidden)))
-            hidden = hidden + self.ffn_dropout(self.ffn(self.ffn_norms[iteration_index](hidden)))
-            if collect_iteration_states:
-                iteration_states.append(hidden)
-        return hidden, iteration_states
-
-
-class HaltHead(nn.Module):
-    def __init__(self, *, d_model: int) -> None:
-        super().__init__()
-        self.norm = nn.LayerNorm(d_model)
-        self.mlp = nn.Sequential(
-            nn.Linear(d_model + 1, 64),
-            nn.GELU(),
-            nn.Linear(64, 1),
-        )
-
-    def forward(self, last_hidden: Tensor, *, depth_index: int, total_depth: int) -> Tensor:
-        normalized_hidden = self.norm(last_hidden)
-        depth_fraction = torch.full(
-            (last_hidden.shape[0], 1),
-            fill_value=depth_index / total_depth,
-            device=last_hidden.device,
-            dtype=normalized_hidden.dtype,
-        )
-        return self.mlp(torch.cat([normalized_hidden, depth_fraction], dim=-1)).squeeze(-1)
-
-
-class RecurrentDepthLM(nn.Module):
-    def __init__(self, *, vocab_size: int, config: ExperimentConfig) -> None:
-        super().__init__()
-        self.config = config
-        self.token_embedding = nn.Embedding(vocab_size, config.d_model)
-        self.position_embedding = nn.Embedding(config.context_size, config.d_model)
-        self.embedding_dropout = nn.Dropout(config.dropout)
-        self.core = SharedRecurrentCore(
+def build_model(*, vocab_size: int, config: ExperimentConfig) -> RecurrentDepthLM:
+    return RecurrentDepthLM(
+        vocab_size=vocab_size,
+        config=RecurrentDepthConfig(
+            context_size=config.context_size,
             d_model=config.d_model,
             n_heads=config.n_heads,
             ff_dim=config.ff_dim,
-            dropout=config.dropout,
             iterations=config.recurrent_iterations,
-        )
-        self.halt_head = HaltHead(d_model=config.d_model)
-        self.reset_parameters()
-
-    def reset_parameters(self) -> None:
-        nn.init.normal_(self.token_embedding.weight, mean=0.0, std=self.config.d_model**-0.5)
-        nn.init.normal_(self.position_embedding.weight, mean=0.0, std=self.config.d_model**-0.5)
-
-    def embed(self, tokens: Tensor) -> Tensor:
-        positions = torch.arange(self.config.context_size, device=tokens.device)
-        token_hidden = normalize_hidden(self.token_embedding(tokens))
-        hidden = token_hidden + self.position_embedding(positions)
-        return self.embedding_dropout(hidden)
-
-    def iteration_states(self, tokens: Tensor, *, collect_iteration_states: bool) -> tuple[Tensor, list[Tensor]]:
-        hidden = self.embed(tokens)
-        return self.core(hidden, collect_iteration_states=collect_iteration_states)
-
-    def lm_logits_from_hidden(self, last_hidden: Tensor) -> Tensor:
-        return tied_logits(last_hidden, self.token_embedding, temperature=self.config.temperature, normalize=True)
-
-    def predicted_gain_from_hidden(self, last_hidden: Tensor, *, depth_index: int) -> Tensor:
-        return self.halt_head(last_hidden, depth_index=depth_index, total_depth=self.config.recurrent_iterations)
-
-    def forward(self, tokens: Tensor) -> Tensor:
-        hidden, _ = self.iteration_states(tokens, collect_iteration_states=False)
-        return self.lm_logits_from_hidden(hidden[:, -1, :])
-
-
-def build_model(*, vocab_size: int, config: ExperimentConfig) -> RecurrentDepthLM:
-    return RecurrentDepthLM(vocab_size=vocab_size, config=config)
+            temperature=config.temperature,
+            dropout=config.dropout,
+        ),
+    )
 
 
 def build_optimizer(model: nn.Module, *, learning_rate: float, device: torch.device) -> torch.optim.Optimizer:
