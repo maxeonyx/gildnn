@@ -76,6 +76,34 @@ class TrainedCondition:
     model: TiedReadoutModel
 
 
+@dataclass(frozen=True)
+class CacheAgeBucket:
+    age: int
+    val_loss: float
+    count: int
+
+
+@dataclass(frozen=True)
+class CacheEvalResult:
+    cache_interval: int
+    val_loss: float
+    delta_from_k1: float
+    approx_tokens_per_second: float
+    slow_recomputes: int
+    age_buckets: tuple[CacheAgeBucket, ...]
+
+
+@dataclass(frozen=True)
+class PrecomputedEvalState:
+    output_hidden: Tensor
+    mid_hidden: Tensor | None
+    long_hidden: Tensor | None
+    targets: Tensor
+    output_seconds: float
+    mid_seconds: float
+    long_seconds: float
+
+
 def positive_int(value: str) -> int:
     parsed = int(value)
     if parsed <= 0:
@@ -108,6 +136,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--generate", action="store_true")
     parser.add_argument("--prompt", type=str, default=None)
     parser.add_argument("--sample-temperature", type=float, default=0.8)
+    parser.add_argument("--eval-cache-intervals", type=str, default=None)
     return parser.parse_args()
 
 
@@ -134,6 +163,18 @@ def parse_condition_names(raw_conditions: str) -> tuple[str, ...]:
             + ", ".join(ALL_CONDITIONS)
         )
     return requested_conditions
+
+
+def parse_cache_intervals(raw_intervals: str | None) -> tuple[int, ...]:
+    if raw_intervals is None:
+        return ()
+    parsed = tuple(int(part.strip()) for part in raw_intervals.split(",") if part.strip())
+    if len(parsed) == 0:
+        raise ValueError("eval-cache-intervals must contain at least one positive integer")
+    invalid = [interval for interval in parsed if interval <= 0]
+    if invalid:
+        raise ValueError(f"eval-cache-intervals must be positive integers, got {invalid}")
+    return parsed
 
 
 def resolve_device(requested_device: str | None) -> torch.device:
@@ -437,16 +478,7 @@ class TiedReadoutModel(nn.Module):
 
     def output_logits(self, short_inputs: Tensor, *, mid_hidden: Tensor | None = None, long_hidden: Tensor | None = None) -> Tensor:
         output_hidden = self.block_last_hidden(self.output_block, short_inputs)
-        if mid_hidden is not None:
-            output_hidden = output_hidden + self.lateral_scale * mid_hidden.detach()
-        if long_hidden is not None:
-            output_hidden = output_hidden + self.lateral_scale * long_hidden.detach()
-        return tied_logits(
-            output_hidden,
-            self.token_embedding,
-            temperature=self.temperature,
-            normalize=self.normalize,
-        )
+        return combined_output_logits(self, output_hidden, mid_hidden=mid_hidden, long_hidden=long_hidden)
 
 
 def build_model(
@@ -577,6 +609,26 @@ def print_generated_text(*, condition_name: str, prompt: str, generated_text: st
     print(generated_text, flush=True)
 
 
+def combined_output_logits(
+    model: TiedReadoutModel,
+    output_hidden: Tensor,
+    *,
+    mid_hidden: Tensor | None = None,
+    long_hidden: Tensor | None = None,
+) -> Tensor:
+    combined_hidden = output_hidden
+    if mid_hidden is not None:
+        combined_hidden = combined_hidden + model.lateral_scale * mid_hidden.detach()
+    if long_hidden is not None:
+        combined_hidden = combined_hidden + model.lateral_scale * long_hidden.detach()
+    return tied_logits(
+        combined_hidden,
+        model.token_embedding,
+        temperature=model.temperature,
+        normalize=model.normalize,
+    )
+
+
 def warm_up_cuda(
     train_dataset: WindowDataset,
     *,
@@ -639,6 +691,152 @@ def warm_up_cuda(
         model.output_logits(short_inputs, mid_hidden=warm_mid_hidden, long_hidden=warm_long_hidden)
 
     torch.cuda.synchronize()
+
+
+def maybe_synchronize(device: torch.device) -> None:
+    if device.type == "cuda":
+        torch.cuda.synchronize()
+
+
+@torch.no_grad()
+def precompute_eval_state(
+    model: TiedReadoutModel,
+    dataset: WindowDataset,
+    *,
+    batch_size: int,
+    device: torch.device,
+) -> PrecomputedEvalState:
+    model.eval()
+    output_hiddens: list[Tensor] = []
+    mid_hiddens: list[Tensor] = []
+    long_hiddens: list[Tensor] = []
+    output_seconds = 0.0
+    mid_seconds = 0.0
+    long_seconds = 0.0
+
+    for start in range(0, dataset.targets.shape[0], batch_size):
+        stop = min(start + batch_size, dataset.targets.shape[0])
+        short_inputs = dataset.short_inputs[start:stop]
+        mid_inputs = dataset.mid_inputs[start:stop]
+        long_inputs = dataset.long_inputs[start:stop]
+
+        maybe_synchronize(device)
+        output_started_at = perf_counter()
+        with autocast_context(device):
+            output_hidden = model.block_last_hidden(model.output_block, short_inputs)
+        maybe_synchronize(device)
+        output_seconds += perf_counter() - output_started_at
+        output_hiddens.append(output_hidden.float())
+
+        if model.mid_block is not None:
+            maybe_synchronize(device)
+            mid_started_at = perf_counter()
+            with autocast_context(device):
+                mid_hidden = model.block_last_hidden(model.mid_block, mid_inputs)
+            maybe_synchronize(device)
+            mid_seconds += perf_counter() - mid_started_at
+            mid_hiddens.append(mid_hidden.float())
+
+        if model.long_block is not None:
+            maybe_synchronize(device)
+            long_started_at = perf_counter()
+            with autocast_context(device):
+                long_hidden = model.block_last_hidden(model.long_block, long_inputs)
+            maybe_synchronize(device)
+            long_seconds += perf_counter() - long_started_at
+            long_hiddens.append(long_hidden.float())
+
+    return PrecomputedEvalState(
+        output_hidden=torch.cat(output_hiddens, dim=0),
+        mid_hidden=None if len(mid_hiddens) == 0 else torch.cat(mid_hiddens, dim=0),
+        long_hidden=None if len(long_hiddens) == 0 else torch.cat(long_hiddens, dim=0),
+        targets=dataset.targets,
+        output_seconds=output_seconds,
+        mid_seconds=mid_seconds,
+        long_seconds=long_seconds,
+    )
+
+
+def cached_long_hidden(long_hidden: Tensor, *, cache_interval: int) -> tuple[Tensor, int, Tensor]:
+    positions = torch.arange(long_hidden.shape[0], device=long_hidden.device)
+    recompute_indices = torch.arange(0, long_hidden.shape[0], cache_interval, device=long_hidden.device)
+    cached = long_hidden[recompute_indices][torch.div(positions, cache_interval, rounding_mode="floor")]
+    ages = positions.remainder(cache_interval)
+    return cached, int(recompute_indices.shape[0]), ages
+
+
+@torch.no_grad()
+def evaluate_with_caching(
+    model: TiedReadoutModel,
+    dataset: WindowDataset,
+    *,
+    cache_intervals: tuple[int, ...],
+    batch_size: int,
+    device: torch.device,
+) -> tuple[CacheEvalResult, ...]:
+    if model.long_block is None:
+        raise ValueError("Caching evaluation requires a model with a long block")
+
+    precomputed = precompute_eval_state(model, dataset, batch_size=batch_size, device=device)
+    base_compute_seconds = precomputed.output_seconds + precomputed.mid_seconds
+    results: list[CacheEvalResult] = []
+    k1_loss: float | None = None
+
+    for cache_interval in cache_intervals:
+        cached_long, slow_recomputes, ages = cached_long_hidden(precomputed.long_hidden, cache_interval=cache_interval)
+        total_loss = 0.0
+        total_examples = 0
+        age_loss_sums = [0.0 for _ in range(cache_interval)]
+        age_counts = [0 for _ in range(cache_interval)]
+
+        for start in range(0, precomputed.targets.shape[0], batch_size):
+            stop = min(start + batch_size, precomputed.targets.shape[0])
+            output_hidden = precomputed.output_hidden[start:stop].to(device=device, dtype=model.token_embedding.weight.dtype)
+            mid_hidden = None
+            if precomputed.mid_hidden is not None:
+                mid_hidden = precomputed.mid_hidden[start:stop].to(device=device, dtype=model.token_embedding.weight.dtype)
+            long_hidden = cached_long[start:stop].to(device=device, dtype=model.token_embedding.weight.dtype)
+            targets = precomputed.targets[start:stop]
+
+            with autocast_context(device):
+                logits = combined_output_logits(model, output_hidden, mid_hidden=mid_hidden, long_hidden=long_hidden)
+            losses = F.cross_entropy(logits, targets, reduction="none")
+            total_loss += losses.sum().item()
+            total_examples += targets.shape[0]
+
+            age_slice = ages[start:stop]
+            for age in range(cache_interval):
+                age_mask = age_slice == age
+                if not age_mask.any():
+                    continue
+                age_loss_sums[age] += losses[age_mask].sum().item()
+                age_counts[age] += int(age_mask.sum().item())
+
+        val_loss = total_loss / total_examples
+        if k1_loss is None:
+            k1_loss = val_loss
+        approx_seconds = base_compute_seconds + precomputed.long_seconds * (slow_recomputes / precomputed.targets.shape[0])
+        age_buckets = tuple(
+            CacheAgeBucket(
+                age=age,
+                val_loss=age_loss_sums[age] / age_counts[age],
+                count=age_counts[age],
+            )
+            for age in range(cache_interval)
+            if age_counts[age] > 0
+        )
+        results.append(
+            CacheEvalResult(
+                cache_interval=cache_interval,
+                val_loss=val_loss,
+                delta_from_k1=val_loss - k1_loss,
+                approx_tokens_per_second=precomputed.targets.shape[0] / approx_seconds,
+                slow_recomputes=slow_recomputes,
+                age_buckets=age_buckets,
+            )
+        )
+
+    return tuple(results)
 
 
 @torch.no_grad()
@@ -786,9 +984,45 @@ def print_results_table(results: list[ConditionResult]) -> None:
         )
 
 
+def print_cache_results(results: tuple[CacheEvalResult, ...]) -> None:
+    header = (
+        "cache_k".ljust(10)
+        + "val_loss".rjust(12)
+        + "delta_k1".rjust(12)
+        + "tok_s".rjust(12)
+        + "slow_pass".rjust(12)
+    )
+    print("\ncache_eval", flush=True)
+    print(header, flush=True)
+    print("-" * len(header), flush=True)
+    for result in results:
+        print(
+            str(result.cache_interval).ljust(10)
+            + f"{result.val_loss:12.4f}"
+            + f"{result.delta_from_k1:12.4f}"
+            + f"{result.approx_tokens_per_second:12.1f}"
+            + f"{result.slow_recomputes:12d}",
+            flush=True,
+        )
+
+
+def print_cache_age_buckets(results: tuple[CacheEvalResult, ...]) -> None:
+    for result in results:
+        if len(result.age_buckets) <= 1:
+            continue
+        print(f"\n[cache_k={result.cache_interval}] age_bucket_val_loss", flush=True)
+        print("age".ljust(8) + "val_loss".rjust(12) + "count".rjust(12), flush=True)
+        print("-" * 32, flush=True)
+        for bucket in result.age_buckets:
+            print(str(bucket.age).ljust(8) + f"{bucket.val_loss:12.4f}" + f"{bucket.count:12d}", flush=True)
+
+
 def main() -> None:
     args = parse_args()
     requested_conditions = parse_condition_names(args.conditions)
+    cache_intervals = parse_cache_intervals(args.eval_cache_intervals)
+    if len(cache_intervals) > 0 and "two_blocks" not in requested_conditions:
+        raise ValueError("eval-cache-intervals requires training the two_blocks condition")
     model_size = resolve_model_size(args)
     device = resolve_device(args.device)
     set_seed(args.seed)
@@ -871,6 +1105,23 @@ def main() -> None:
         for result in results
     ]
     print_results_table(adjusted_results)
+
+    if len(cache_intervals) > 0:
+        two_blocks_model = next(
+            (trained_condition.model for trained_condition in trained_conditions if trained_condition.result.name == "two_blocks"),
+            None,
+        )
+        if two_blocks_model is None:
+            raise ValueError("two_blocks model missing for cache evaluation")
+        cache_results = evaluate_with_caching(
+            two_blocks_model,
+            val_dataset,
+            cache_intervals=cache_intervals,
+            batch_size=EVAL_BATCH_SIZE,
+            device=device,
+        )
+        print_cache_results(cache_results)
+        print_cache_age_buckets(cache_results)
 
 
 if __name__ == "__main__":
