@@ -105,6 +105,26 @@ This ladder is non-negotiable.
 - **Earn longer runs.** First show the mechanism works in minutes on the smallest honest setup that can demonstrate it.
 - Do not jump to multi-hour or multi-seed runs to prove something that has not yet worked in a short single-seed run.
 - Each increase in steps, model size, dataset size, or seed count must answer a question that a cheaper shorter run cannot.
+- **Don't run longer than necessary.** If a 10-minute run proves what you need, don't run for 3 hours. If 2 minutes would suffice, don't run for 50 minutes. The goal is to get the answer, not to complete the epoch or exhaust the dataset.
+
+### Graduated complexity
+
+Use the smallest training configuration that proves the mechanism — including dataset size and complexity. The key property: a task where the data isn't the bottleneck, so architectural differences are visible. If the model is overparameterized for the task, you can't distinguish real architectural improvements from fitting noise.
+
+### No standard dataset
+
+There is no single "standard dataset" for this project. One of the explicit purposes is running any architecture across multiple datasets and tasks. Character-level language modelling is fine for now, but the project should expand to image patch sequences and other tasks.
+
+**Baselines for every comparison:** For every dataset and every run length, there should be a baseline. Baselines should be recorded. But you only need a baseline when you need to compare — run the baseline alongside any mechanism test on a new task or run length.
+
+### Synthetic tasks
+
+A synthetic dataset solves specific experimental problems: it won't be overparameterized (you can have a dataset that won't be fully learned), so architectural differences are visible without the overfitting confound. CFG/grammar tasks are interesting because they have strict nesting and hierarchical structure — more like programming languages. But the choice of synthetic task needs investigation; it's not prescribed.
+
+Use synthetic tasks when:
+- The natural-language dataset is too easy for the model size (overparameterized)
+- You need to isolate an architectural property (e.g., hierarchical processing) without confounds
+- You want faster feedback loops (smaller datasets, faster convergence)
 
 ### Report-first experiment protocol
 
@@ -299,6 +319,17 @@ The Process Improvement Loop is not just a one-shot check on session start. Re-e
 - **After every daily report** — ask: "was today's work shaped well by the process, or did I work around it?"
 - **After any result (meaningful or not)** — update PLAN.md with what was learned. If the result changes pathway viability, note that too.
 - **After any unexpected outcome** — if reality surprised you, either your model of the system was wrong or the process let a bad experiment through. Figure out which.
+- **After every experiment cycle** — ask: "how could I have done that faster? How can I get the same experimental result with better experimental design and less wall clock time?" If a 2-minute run on a simpler task would have answered the same question, that's what should have happened. The experimental process should get tighter over time, not stay static.
+
+### No inertia
+
+Think from first principles about what's best for us. Don't default to what we were doing before or what other people are doing. We need to compare against others to stay grounded, but we shouldn't just be doing what everyone else is doing.
+
+This applies to:
+- Dataset choice (don't use WikiText-103 by default just because it's what we used last time)
+- Architecture choices (don't keep components that haven't proven themselves)
+- Experiment design (don't repeat the same 22-minute cycle if a 2-minute version would answer the question)
+- Process (don't follow yesterday's plan if today's first-principles analysis suggests something better)
 
 ### Updating the roadmap from results
 
@@ -339,11 +370,18 @@ Start with the simplest version that could possibly work. For example: tiny cont
 
 Do not smuggle in architectural complexity "for later." Add complexity only after the simpler version genuinely works.
 
-### Isolation before composition
+### Isolation before composition — build up from pieces
 
-Do not combine multiple speculative mechanisms too early.
+Do not combine multiple speculative mechanisms too early. Do not test the entire assembled system in one go.
 
-When exploring a new architectural idea, run thorough experiments on the individual pieces in isolation before composing them into a larger system. Composition is a later experiment — once the pieces are at least somewhat understood in their own right.
+Break the system into pieces. Test each piece in isolation first (seconds, not minutes). Then attach two pieces together and test the attachment. Then build up pieces into chunks, and the final system from chunks.
+
+**Example:** For local predictive loss, don't jump to "2-block model with local loss + mixing + topology" as the first experiment. That has too many confounds. Instead:
+- Verify the prediction objective works in isolation (30 seconds)
+- Verify the mixing doesn't destroy signal (30 seconds)
+- Then combine them
+
+If an experiment has multiple interacting variables (loss function, mixing strategy, topology, prediction target, scale) — any one of which could be the problem — it is too complex. Decompose before iterating.
 
 If a simplified architecture or framing was introduced by a prior agent rather than the dictations, treat it as a hypothesis to justify or replace, not as the project goal.
 

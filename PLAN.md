@@ -4,11 +4,13 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current operational state (2026-05-26, 16:30 NZST)
+## Current operational state (2026-05-26, 17:00 NZST)
 
 **GPU: FREE.** No active experiment.
 
 **Daily report 2026-05-26:** WRITTEN. See `research/daily/2026-05-26.md`.
+
+**New dictation 2026-05-26-3:** PROCESSED. Process corrections applied to PROCESS.md. Work direction updated in this file.
 
 ---
 
@@ -37,19 +39,35 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## What to do next
+## What to do next (per dictation 2026-05-26-3: decompose, don't iterate on the assembly)
 
-The mechanism works but the architecture needs a different mixing strategy. The hardcoded `0.5 * (own_state + lateral)` is the bottleneck. Options to try:
+The last experiment tested too many interacting variables at once: 50/50 mixing, MSE on raw activations, the topology, the prediction target. Per dictation 2026-05-26-3, the next step is NOT "try additive lateral on the same combined setup." The next step is: **decompose into pieces, test each in isolation.**
 
-1. **Additive lateral (residual):** `block_input = own_state + scale * projection(lateral)`. Block 0 keeps its FULL state, block 1's contribution is added as a small residual. Scale could be learnable or fixed small. This avoids the 50/50 dilution entirely.
+### The pieces to test independently (seconds each, not minutes):
 
-2. **Layer-norm before mixing:** Normalize both sides before combining. Prevents scale explosions (fixes the gated instability) and makes MSE less sensitive to representation drift (partially fixes moving-target problem).
+1. **Does the MSE prediction objective converge at all?** — Strip away mixing entirely. One block, one linear head predicting a FIXED target (e.g. the embedding layer output, or a random but fixed projection). Does the local MSE loss decrease? This isolates whether the loss function itself works.
 
-3. **Cosine / normalized prediction loss:** Predict direction not magnitude. More stable target.
+2. **Does mixing destroy signal?** — Baseline: 1 block with CE. Treatment: same block, but feed it `0.5 * (own_input + noise)`. How much does 50/50 mixing with random noise hurt? This isolates the mixing harm without ANY second block.
 
-4. **Lower lambda (0.1 instead of 1.0) with 0.5 mix:** Let block 1 learn slowly, don't let local loss dominate.
+3. **Does the prediction objective track a moving target?** — One block, one predictor, target is the output of a SEPARATELY trained block (trained with CE on different data, frozen). Does the predictor converge to predicting the frozen block's output? This isolates the prediction mechanism from the moving-target problem.
 
-**Recommended:** Try (1) additive lateral first — it's the cleanest architectural fix and directly addresses the dominant harm (dilution). If that works, the mechanism has room to breathe.
+4. **What mixing ratio preserves signal?** — Same as (2) but sweep ratios: 0.9/0.1, 0.8/0.2, etc. Find the point where mixing stops hurting.
+
+Once pieces are understood, compose them. Only then does the full 2-block local-loss experiment make sense.
+
+### Feedback loop optimization
+
+The previous cycle took ~30 minutes per condition (13 min run + corpus loading + analysis). Per dictation: if a 2-minute run on a simpler task answers the same question, use that instead.
+
+Options for faster feedback:
+- **TinyShakespeare** or equivalent small dataset (no 90-second corpus load)
+- **Synthetic data** (e.g. random sequences, or a CFG grammar) — can't be overparameterized, fast to generate
+- **Fewer steps** — if the mechanism signal appears in 200 steps, don't run 2000
+- **Smaller model** — d_model=64 or 128 instead of 256
+
+### Synthetic task investigation
+
+Per dictation 2026-05-26-3: investigate what synthetic task would be good for this project. Key property needed: data isn't the bottleneck, so architectural differences are visible. CFG/grammar tasks are interesting (strict nesting, hierarchical structure) but not prescribed. This is an investigation, not a commitment.
 
 ---
 
@@ -61,14 +79,16 @@ The mechanism works but the architecture needs a different mixing strategy. The 
 | 4-block follow-up | **Stop-loss fired** (conditions 4+5 fail) | No more intended-architecture rescue |
 | Bridge_detach | Clearly worse (gap +0.027, 3 seeds) | Gradient IS needed for block specialization |
 | **Dictation 2026-05-26-2** | **Redirect** | **Only compare against legitimate alternatives** |
-| **Local predictive loss v1** | **Mechanism works, architecture harms it** | **Fix mixing before scaling** |
-| Timebox | ~4 days remaining | Earn GPU time. Short runs first. |
+| **Local predictive loss v1** | **Mechanism works, architecture harms it** | **Decompose before iterating** |
+| **Dictation 2026-05-26-3** | **Process: build from pieces** | **No more assembled-system experiments until pieces are tested** |
+| Timebox | ~4 days remaining | Use fastest possible feedback loops |
 
 **Traps to avoid:**
-- Running longer with the same broken mixing (won't help)
-- Multi-hour runs before the mixing problem is solved
-- Symmetric lateral_mix init (block 1 NEEDS to see block 0)
-- Changing too many things at once (one fix per run)
+- Testing the whole assembly again with one tweak (violates "build from pieces")
+- Using WikiText-103 when a 2-second synthetic dataset would answer the same question
+- Running 2000 steps when 200 steps would show the signal
+- Defaulting to what we were doing before (no inertia)
+- Changing too many things at once (one variable per piece-test)
 
 ---
 
@@ -76,10 +96,11 @@ The mechanism works but the architecture needs a different mixing strategy. The 
 
 - `VISION.md` — stakeholder requirements
 - `ROADMAP.md` — Pathway 3 (local learning) is active
-- `dictations/2026-05-26-2.md` — the redirect
+- `dictations/2026-05-26-3.md` — decompose, synthetic tasks, optimize feedback loops
+- `dictations/2026-05-26-2.md` — the redirect to local predictive loss
 - `research/questions/multi-timestep-architecture/README.md` — Max's architecture vision (distributional, Wasserstein)
-- `runs/local_predictive.py` — the experiment script (supports --lateral-mix-init, --lambda-local)
-- `research/daily/2026-05-26.md` — today's full write-up
+- `runs/local_predictive.py` — the experiment script (has the confounds, but pieces can be extracted)
+- `research/daily/2026-05-26.md` — today's write-up of the confounded experiment
 
 ---
 
@@ -102,4 +123,4 @@ The mechanism works but the architecture needs a different mixing strategy. The 
 
 ## The agent's working loop
 
-Follow PROCESS.md. Current position: **back at EXPERIMENT DESIGN**. The conceptual mechanism is validated. Next: fix the architecture (mixing strategy), then re-test.
+Follow PROCESS.md. Current position: **CONCEPTUAL CLARIFICATION — decomposition.** Must design the isolated piece-tests before implementing. First: figure out the fastest experimental setup (dataset, model size, step count) that can prove each piece in seconds.
