@@ -4,15 +4,17 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current operational state (2026-05-27, 00:25 NZST)
+## Current operational state (2026-05-27, 01:00 NZST)
 
-**GPU: BUSY.** Running 8-iteration experiment (PID 21944). Log: `runs/recurrent_depth_8iter_run.log`. Report: `experiments/tinyshakespeare/artifacts/recurrent_depth_lm/report_8iter.json`. Expected ~30 more minutes from now.
+**GPU: BUSY.** Running larger-data experiment (PID 11788). 4 distinct vs 4 recurrent on 900K training chars (9× more data). Log: `runs/recurrent_depth_largedata_run.log`. Report: `experiments/tinyshakespeare/artifacts/recurrent_depth_lm/report_largedata.json`. Expected ~25 min.
 
-**Key result (this session):** Recurrent-4 BEATS distinct-4: val_loss 1.6315 vs 1.7234 (Δ = -0.092), with 3.6× fewer params and 20% faster training. Weight sharing acts as regularization at this data scale. Full write-up: `research/questions/recurrent-depth/README.md`.
+**Session results so far:**
+1. 8-iter scaling COMPLETE: recurrent_8 val_loss=1.615, distinct_8 val_loss=1.787. Gap GROWS from -0.092 (N=4) to -0.172 (N=8). Stability perfect. Documented in README.
+2. Larger-data experiment launched to test whether advantage is purely regularization.
 
-**Pending:** 8-iteration experiment running. When done, read the report JSON and update the question README.
+**Key question being answered right now:** Does the recurrent advantage persist when there's enough data that the distinct model can't easily overfit?
 
-**Daily report 2026-05-27:** NOT YET WRITTEN (it's only 00:25).
+**Daily report 2026-05-27:** NOT YET WRITTEN (it's only 01:00).
 
 **Integration:** `core/tied_readout.py` contains validated model architecture.
 
