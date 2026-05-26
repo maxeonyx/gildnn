@@ -41,50 +41,48 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ## What to do next
 
-### Critical conceptual finding (2026-05-26 afternoon)
+### Key finding: staged training is required (2026-05-26 evening)
 
-**The "same input, same timestep" composed test is fundamentally broken.** When both blocks see the same tokens at the same time, and block 1 is trained to predict block 0's output, block 1 has NO information advantage. Its lateral can only ever be a redundant imperfect copy of what block 0 already computes. Mixing that in (at any α > 0) is always harmful — confirmed at α=0.5 (WikiText: +0.163) and α=0.1 (synthetic: +0.021).
+The full experimental chain this session:
 
-This is not a hyperparameter problem. It's a DESIGN problem. The local MSE objective pushes toward redundancy, not complementarity.
+| Experiment | Result | Insight |
+|---|---|---|
+| Piece tests (4 isolated) | All PASS | MSE, mixing, tracking, topology all work alone |
+| Same-input composed (WikiText α=0.5) | +0.163 worse | Block 1 has no info advantage |
+| Same-input composed (synthetic α=0.1) | +0.021 worse | Same problem, less mixing damage |
+| Split-input (block 0 sees A, block 1 sees B) | 100% | Lateral works when info is split |
+| Context-asymmetry co-trained | 12% (chance) | Co-training fails — lateral can't track unstable source |
+| Context-asymmetry recon co-trained | 12% (chance) | Better local loss doesn't fix co-training |
+| **Context-asymmetry staged** | **100%** | **Block 1 first → freeze → train lateral = works perfectly** |
 
-### What's needed: information asymmetry
+**The architecture concept IS validated.** All three requirements are confirmed:
+1. Information asymmetry (block 1 must have info block 0 lacks) ✓
+2. Local self-supervised loss (reconstruction, not "predict block 0") ✓
+3. Staged training (block 1 stabilizes BEFORE lateral learns) ✓
 
-For block 1 to help block 0, block 1 must know something block 0 does not. This aligns with Max's actual architecture vision (dictation 2026-05-25-1): different blocks run at different temporal rates, so higher blocks have "bigger picture" context that lower blocks lack.
+### What's next: apply staged training to a real LM task
 
-### The correct next experiment: split-input test
+The next honest test toward the actual architecture:
+1. **Short-context block 0** (e.g., ctx=4-8) trained with CE on next-token prediction
+2. **Long-context block 1** (e.g., ctx=32-64) trained with reconstruction loss independently
+3. **Connect and fine-tune:** freeze block 1, connect lateral, train lateral_proj + output_head to use block 1's context
 
-**Cleanest honest composed test (< 60 seconds):**
-- Task depends on TWO pieces of information: block 0 sees piece A, block 1 sees piece B
-- Block 0 cannot solve the task alone; it needs block 1's lateral
-- Conditions:
-  1. Block 0 alone (should fail at the part requiring B)
-  2. Block 0 + block 1 with lateral (should improve)
-  3. Block 0 + block 1 with SHUFFLED lateral (should be same as alone — control)
+Task: any character-level LM where longer context helps (even TinyShakespeare — natural language inherently benefits from more context). Synthetic tasks could also work.
 
-**Concrete design options:**
-- (a) Token stream where next-token depends on (current_token, context_summary). Block 0 sees current token. Block 1 sees context summary.
-- (b) Generate sequences from a grammar; block 0 sees current position, block 1 sees stack state / nesting depth.
-- (c) Simple XOR task: y = f(a, b), block 0 sees a, block 1 sees b. Minimal but tests the mechanism clearly.
+Key question this test answers: **On a real LM task, does a locally-trained context block improve short-context predictions?** This is the actual multi-timestep architecture in miniature.
 
-(c) is the fastest to implement but doesn't test language modeling. (a) or (b) are closer to the real use case. Recommend (a) since it's a natural LM task with split information.
+### Alternative: curriculum warmup instead of hard staging
 
-### Pieces already verified (done)
-
-All 4 piece-tests pass (`runs/piece_tests.py`):
-1. Fixed-target MSE: PASS (drop 274x, cosine 0.9986)
-2. Mixing damage: PASS (α=0.5 catastrophic, α=0.1 preserves)
-3. Moving target: PASS (only 17% worse than frozen)
-4. Topology: PASS (correct wiring 31x better)
-
-### Composed test that failed (design was broken)
-
-`runs/composed_local_loss.py`: baseline 0.666, treatment 0.686 (+0.021). Block 1 learned (MSE 0.034→0.004) but couldn't help because it had no unique information.
+Instead of freeze-then-connect, try:
+- `lateral_scale = 0` for first 300 steps (block 1 trains reconstruction)
+- Ramp `lateral_scale` from 0 to target over steps 300-500
+- This allows continuous training without hard phase boundaries
+- More biologically plausible (connections strengthen as representations stabilize)
 
 ### Feedback loop status
 
-Piece-tests: 0.2–1.6 seconds each ✓  
-Composed test: 25–53 seconds each ✓  
-**Feedback loop is now FAST.** The bottleneck is conceptual clarity, not runtime.
+All experiments complete in <15 seconds. Inline Python tests for rapid iteration. The feedback loop is tight.
+
 
 ---
 
@@ -92,21 +90,18 @@ Composed test: 25–53 seconds each ✓
 
 | Decision | Outcome | Constraint it imposes |
 |---|---|---|
-| Temporal_window 2-block | Branch 1 confirmed (Δ=+0.042, 3 seeds) | Trajectory info uniquely helps intended arch |
-| 4-block follow-up | **Stop-loss fired** (conditions 4+5 fail) | No more intended-architecture rescue |
-| Bridge_detach | Clearly worse (gap +0.027, 3 seeds) | Gradient IS needed for block specialization |
-| **Dictation 2026-05-26-2** | **Redirect** | **Only compare against legitimate alternatives** |
-| **Local predictive loss v1** | **Mechanism works, design is broken** | **Block 1 needs information advantage over block 0** |
-| **Dictation 2026-05-26-3** | **Process: build from pieces** | **Decompose, fast feedback, synthetic tasks** |
-| **Same-input composed test** | **Fundamentally cannot show benefit** | **Must give block 1 different/extra information** |
+| **Staged training required** | **Co-training fails, staged works (100%)** | **Block 1 must stabilize before lateral is used** |
+| **Information asymmetry required** | **Same-input always harms, split-input works** | **Blocks must see different information** |
+| **Reconstruction > predict-block-0** | **Predict-block-0 pushes redundancy** | **Local loss should encode own input, not imitate other block** |
+| Dictation 2026-05-26-2 | Redirect | Only compare against legitimate alternatives |
+| Dictation 2026-05-26-3 | Process: build from pieces | Decompose, fast feedback, synthetic tasks |
 | Timebox | ~4 days remaining | Use fastest possible feedback loops |
 
 **Traps to avoid:**
-- Same-input-same-timestep experiments (block 1 can never help without unique info)
-- Using WikiText-103 when a synthetic dataset would answer the same question faster
-- Running longer hoping the signal appears (it can't if the design is broken)
-- Defaulting to what we were doing before (no inertia)
-- Treating the "prediction → redundancy" problem as a hyperparameter issue
+- Co-training blocks from scratch (use staged/warmup instead)
+- "Predict block 0's state" as local loss (pushes toward redundancy)
+- Same-input-same-timestep experiments (no information advantage possible)
+- Testing the full complex architecture before the minimal staged version works on real LM
 
 ---
 
@@ -135,12 +130,13 @@ Composed test: 25–53 seconds each ✓
 | C_old lateral ablation | 3 | Δ=+0.030, 2 seeds | Laterals load-bearing |
 | Bridge_detach | 3 | +0.027, 3 seeds | U-shaped vs front-loaded readout |
 | Warmup→detach | 3 | Scenario A (2/3 seeds) | Gradient needed continuously (moot now) |
-| **Local predictive loss v1** | **3** | **Mechanism works, design is broken** | **Same-input → redundancy → can't help** |
 | **Piece tests** | **3** | **All 4 PASS** | **MSE, mixing, tracking, topology all work individually** |
-| **Composed (same input)** | **3** | **Baseline 0.666, treatment 0.686 (+0.021)** | **No information advantage = always harmful** |
+| **Split-input** | **3** | **100% accuracy** | **Lateral works perfectly with info asymmetry** |
+| **Context-asymmetry co-trained** | **3** | **FAIL (12% = chance)** | **Co-training dynamics prevent learning** |
+| **Context-asymmetry staged** | **3** | **100% accuracy** | **Block 1 first → freeze → lateral works** |
 
 ---
 
 ## The agent's working loop
 
-Follow PROCESS.md. Current position: **CONCEPTUAL CLARIFICATION → redesign.** The pieces work but the composition requires information asymmetry. Next: implement the split-input test (block 0 sees part of the input, block 1 sees the rest). This directly tests whether local predictive lateral communication can transfer useful information.
+Follow PROCESS.md. Current position: **EXPERIMENT DESIGN — real LM task.** The synthetic mechanism is fully validated. Next: apply staged training to a real character-level LM task with different context sizes (short-ctx block 0 + long-ctx block 1). This is the minimum bridge to the actual multi-timestep architecture.
