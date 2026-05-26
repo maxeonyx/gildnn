@@ -220,19 +220,64 @@ The next question is now a fairer Pathway 1 test: if recurrence gets the same pa
 - Whether local learning (Pathway 3) composes well with recurrence
 - Whether this result generalizes beyond TinyShakespeare
 
-## Next steps (per decision rule)
+## Width-scaling: matched-param comparison (PROVISIONAL)
 
-Immediate follow-ups:
-1. **Width scaling:** Make the recurrent model wider to match ~817K params. Compare fairly: same params, same data (900K), same steps (20K).
-2. **Iteration scaling:** Try 16 iterations. Where does instability appear beyond the now-verified stable 8-iteration point?
-3. **Composition with Pathway 3:** Add local CE loss per iteration (= the proven lateral mechanism applied to temporal iterations).
+### Setup
+
+Widen the recurrent model to d=256 so it has ~842K params (vs distinct_4_d128's ~817K). Same data (900K chars), same training (20K steps). This tests whether recurrence helps at matched parameter count.
+
+### Results
+
+| Model | d_model | Params | Val Loss | Time |
+|---|---|---|---|---|
+| recurrent_4 (d=256) | 256 | 842K | **1.594** | 505s |
+| distinct_4 (d=128, from largedata) | 128 | 817K | 1.615 | 402s |
+| distinct_4 (d=256, same run) | 256 | 3,208K | 1.567 | 511s |
+
+**Matched-param comparison: recurrent wins by Δ=-0.021** (842K vs 817K params, 1.594 vs 1.615).
+
+### Per-iteration diagnostics (recurrent_4_d256)
+
+| Iteration | Val Loss | Activation RMS |
+|---|---|---|
+| 1 | 2.362 | 0.770 |
+| 2 | 1.760 | 1.634 |
+| 3 | 1.616 | 2.349 |
+| 4 | 1.594 | 3.074 |
+
+### Important caveats
+
+1. **Single seed.** The effect (0.021) is small enough that seed variance could explain it. Multi-seed verification needed.
+2. **Compute mismatch.** At d=256, the recurrent model does ~4× more FLOPs per token than distinct at d=128 (due to d² scaling). Wall-clock difference is only 25% (GPU not saturated), but the raw compute is higher.
+3. **Cross-run comparison.** The distinct_4_d128 baseline is from a different experiment run, introducing potential non-determinism.
+
+### Two-metric interpretation
+
+| Comparison | Winner | Δ | What it means |
+|---|---|---|---|
+| **Per-parameter** (842K rec vs 817K dist) | Recurrent | -0.021 | Sharing makes better use of params |
+| **Per-FLOP** (same d=256, same compute) | Distinct | +0.027 | More unique weights exploit same compute better |
+
+**Practical implication:** If limited by memory/storage (e.g., phone deployment), recurrence wins. If limited by compute, distinct wins.
+
+### Status: PROVISIONAL
+
+This result is encouraging but unconfirmed. The matched-param advantage needs multi-seed verification before Pathway 1 can be declared confirmed at this scale.
+
+## Next steps
+
+1. **Multi-seed verification (IMMEDIATE):** Run 3 seeds of both recurrent_4_d256 and distinct_4_d128 in the same experiment to get confidence intervals.
+2. **Iteration scaling:** Try 8/16 iterations at d=256. Activation RMS growth is steeper at d=256 (~2× first step, then ~1.4× per step) — at what iteration count does it become problematic?
+3. **Composition with Pathway 3:** Add local CE loss per iteration (the proven lateral mechanism applied to temporal iterations).
 
 ## Artifacts
 
 - Report JSON: `experiments/tinyshakespeare/artifacts/recurrent_depth_lm/report.json`
 - Report JSON (8 iterations): `experiments/tinyshakespeare/artifacts/recurrent_depth_lm/report_8iter.json`
 - Report JSON (900K control): `experiments/tinyshakespeare/artifacts/recurrent_depth_lm/report_largedata.json`
+- Report JSON (width-scaling): `experiments/tinyshakespeare/artifacts/recurrent_depth_lm/report_wide.json`
 - Log: `runs/recurrent_depth_run.log`
 - Log (8 iterations): `runs/recurrent_depth_8iter_run.log`
 - Log (900K control): `runs/recurrent_depth_largedata_run.log`
+- Log (width-scaling): `runs/recurrent_depth_wide_run.log`
 - Script: `runs/recurrent_depth_lm.py`
