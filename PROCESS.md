@@ -100,6 +100,12 @@ Every experiment climbs this ladder before scaling:
 
 This ladder is non-negotiable.
 
+### GPU escalation
+
+- **Earn longer runs.** First show the mechanism works in minutes on the smallest honest setup that can demonstrate it.
+- Do not jump to multi-hour or multi-seed runs to prove something that has not yet worked in a short single-seed run.
+- Each increase in steps, model size, dataset size, or seed count must answer a question that a cheaper shorter run cannot.
+
 ### Report-first experiment protocol
 
 Every experiment starts by writing the report first in `research/questions/<question>/README.md`, even if many sections begin as placeholders.
@@ -118,13 +124,14 @@ The point of writing first is to force explicit hypotheses and surface hidden as
 
 Fill in results, next steps, and reasons for deferral as the experiment proceeds, not only at the end.
 
-**Before launching a GPU experiment, verify measurement coverage:** Check that the experiment script actually produces ALL measurements listed in the pre-registration section of the question README. A pre-registered measurement that isn't implemented in the script is invisible until the experiment finishes and you realize the data wasn't collected — wasting the entire run. Cross-reference the README's "required measurements" against the script's output fields. If there's a gap, fix the script first.
+**Before launching a GPU experiment, verify measurement coverage:** Check that the experiment script actually produces ALL measurements listed in the pre-registration section of the question README. A pre-registered measurement that isn't implemented in the script is invisible until the experiment finishes and you realize the data wasn't collected — wasting the entire run. Cross-reference the README's "required measurements" against the script's output fields. If there's a gap, fix the script first. Also record why this exact step count and seed count are necessary, and what shorter cheaper run would fail to answer.
 
 ### Before starting a new experiment
 
 Before committing to an experiment, answer these questions:
 
 - **Which ROADMAP pathway does this advance?** If you can't name one, stop.
+- **Am I comparing legitimate alternatives?** If one side of the comparison violates a non-negotiable architectural constraint, it is not a real option. Compare constrained designs against real alternatives, not against impossible ones.
 - What question am I trying to answer?
 - What is the cheapest experiment that could teach me something about it?
 - What result would INCREASE confidence in this pathway?
