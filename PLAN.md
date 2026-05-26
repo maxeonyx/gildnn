@@ -8,7 +8,7 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 **Warmup→detach RUNNING** (PID 20952, launched 10:13 NZST). ~6 runs × 26 min. ETA ~12:50 NZST.
 - Monitor: `Get-Content "experiments/wikitext_103/artifacts/warmup_detach/run.jsonl" -Tail 3`
-- Seed 42 complete (both conditions). Seed 43 warm12_detach in progress (step 5K/20K as of 11:10).
+- Seeds 42-43 warm12 complete. Seed 43 warm15_detach in progress (step 10K/20K as of 11:41). Seed 44 both variants remaining.
 
 **Daily report 2026-05-26:** NOT YET WRITTEN. Due after 4pm NZST.
 
@@ -50,10 +50,10 @@ Tests: "Is lateral gradient needed CONTINUOUSLY or just for bootstrapping?"
 | 42 | warm12_detach | 1.7977 | -0.14 | +0.033 | No recovery |
 | 42 | warm15_detach | 1.7863 | 0.26 | +0.021 (>0.010) | Temporary head start only |
 | 43 | warm12_detach | 1.7925 | 0.03 | +0.037 | No recovery |
-| 43 | warm15_detach | *running* | — | — | — |
+| 43 | warm15_detach | 1.7771 | 0.44 | +0.021 (>0.010) | Partial but insufficient (R<0.5) |
 
 Baselines (from bridge_detach per seed): seed 42 full=1.7650 det=1.7936; seed 43 full=1.7558 det=1.7935.
-Both seeds concordant: drifted back toward detached → **Scenario A (gradient needed continuously) confirmed (2/3 seeds).**
+Both seeds concordant: drifted back toward detached → **Scenario A (gradient needed continuously) confirmed (2/3 seeds).** warm15 shows more resistance (R=0.26, 0.44) than warm12 (R=-0.14, 0.03) but still fails the R≥0.5 threshold.
 
 Pre-registration and interpretation framework: `research/questions/local-learning/README.md` lines 477-530.
 
