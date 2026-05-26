@@ -15,7 +15,7 @@ from jaxtyping import Float, Int
 from torch import Tensor, nn
 from torch.nn import functional as F
 
-from core.fixed_window_char import load_dataset, set_seed
+from core.fixed_window_char import set_seed
 
 DEFAULT_SEED = 42
 SHORT_CONTEXT = 4
@@ -37,7 +37,7 @@ class WindowDataset:
     short_inputs: Int[Tensor, "examples short_context"]
     mid_inputs: Int[Tensor, "examples mid_context"]
     long_inputs: Int[Tensor, "examples long_context"]
-    targets: Int[Tensor, "examples"]
+    targets_multi: Int[Tensor, "examples target_offsets"]
     vocab_size: int
 
 
@@ -67,7 +67,7 @@ def dataset_to_device(dataset: WindowDataset, device: torch.device) -> WindowDat
         short_inputs=dataset.short_inputs.to(device),
         mid_inputs=dataset.mid_inputs.to(device),
         long_inputs=dataset.long_inputs.to(device),
-        targets=dataset.targets.to(device),
+        targets_multi=dataset.targets_multi.to(device),
         vocab_size=dataset.vocab_size,
     )
 
@@ -79,6 +79,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--conditions", type=str, default=",".join(ALL_CONDITIONS))
     parser.add_argument("--long-d-model", type=int, default=64)
     parser.add_argument("--long-n-layers", type=int, default=1)
+    parser.add_argument("--long-target-offset", type=int, default=0)
     return parser.parse_args()
 
 
@@ -114,25 +115,113 @@ def resolve_long_block_config(args: argparse.Namespace) -> LongBlockConfig:
     return LongBlockConfig(d_model=args.long_d_model, n_layers=args.long_n_layers)
 
 
-def load_window_dataset() -> tuple[WindowDataset, WindowDataset]:
-    (train_long_inputs, train_targets), (val_long_inputs, val_targets), vocab_size = load_dataset(
-        context_size=LONG_CONTEXT,
-        train_characters=TRAIN_CHARACTERS,
+def resolve_long_target_offset(args: argparse.Namespace) -> int:
+    if args.long_target_offset < 0:
+        raise ValueError(f"long_target_offset must be non-negative, got {args.long_target_offset}")
+    return args.long_target_offset
+
+
+def _resolve_text_file() -> Path:
+    return Path(__file__).resolve().parent.parent / "experiments" / "corpora.ignore" / "tinyshakespeare_input.txt"
+
+
+def _choose_validation_text(
+    text: str,
+    *,
+    train_text: str,
+    val_characters: int,
+) -> str:
+    start = len(train_text)
+    stop = start + val_characters
+    candidate = text[start:stop]
+    if len(candidate) < val_characters:
+        raise ValueError(
+            f"Need validation slice of {val_characters} characters, got {len(candidate)}."
+        )
+    if set(candidate).issubset(set(train_text)):
+        return candidate
+
+    max_start = len(text) - val_characters
+    for candidate_start in range(start + 1, max_start + 1):
+        candidate_stop = candidate_start + val_characters
+        candidate = text[candidate_start:candidate_stop]
+        if set(candidate).issubset(set(train_text)):
+            return candidate
+
+    missing = sorted(set(text[start : max_start + val_characters]) - set(train_text))
+    raise ValueError(
+        "Could not find a validation slice whose characters are all present in the training slice. "
+        f"Missing training vocabulary coverage for: {missing}"
+    )
+
+
+def _encode_window_dataset(
+    text: str,
+    *,
+    max_offset: int,
+    stoi: dict[str, int] | None = None,
+) -> tuple[Tensor, Tensor, int]:
+    required_characters = LONG_CONTEXT + max_offset + 1
+    if len(text) < required_characters:
+        raise ValueError(
+            f"Text split must be at least {required_characters} characters long, got {len(text)}."
+        )
+
+    if stoi is None:
+        vocab = sorted(set(text))
+        stoi = {char: index for index, char in enumerate(vocab)}
+    encoded = torch.tensor([stoi[char] for char in text], dtype=torch.long)
+
+    inputs = []
+    targets_multi = []
+    for start in range(len(encoded) - LONG_CONTEXT - max_offset):
+        stop = start + LONG_CONTEXT
+        target_stop = stop + max_offset + 1
+        inputs.append(encoded[start:stop])
+        targets_multi.append(encoded[stop:target_stop])
+
+    input_tensor = torch.stack(inputs)
+    targets_multi_tensor = torch.stack(targets_multi)
+    return input_tensor, targets_multi_tensor, len(stoi)
+
+
+def load_window_dataset(*, max_offset: int) -> tuple[WindowDataset, WindowDataset]:
+    raw_text = _resolve_text_file().read_text(encoding="utf-8")
+    required_characters = TRAIN_CHARACTERS + VAL_CHARACTERS
+    if len(raw_text) < required_characters:
+        raise ValueError(
+            f"Need at least {required_characters} characters, got {len(raw_text)}."
+        )
+
+    train_text = raw_text[:TRAIN_CHARACTERS]
+    val_text = _choose_validation_text(
+        raw_text,
+        train_text=train_text,
         val_characters=VAL_CHARACTERS,
     )
+    train_long_inputs, train_targets_multi, vocab_size = _encode_window_dataset(train_text, max_offset=max_offset)
+    train_vocab = sorted(set(train_text))
+    stoi = {char: index for index, char in enumerate(train_vocab)}
+    missing_val_chars = sorted(set(val_text) - set(train_text))
+    if missing_val_chars:
+        raise ValueError(
+            f"Validation text contains characters absent from training text: {missing_val_chars}"
+        )
+    val_long_inputs, val_targets_multi, _ = _encode_window_dataset(val_text, max_offset=max_offset, stoi=stoi)
+
     return (
         WindowDataset(
             short_inputs=train_long_inputs[:, -SHORT_CONTEXT:],
             mid_inputs=train_long_inputs[:, -MID_CONTEXT:],
             long_inputs=train_long_inputs,
-            targets=train_targets,
+            targets_multi=train_targets_multi,
             vocab_size=vocab_size,
         ),
         WindowDataset(
             short_inputs=val_long_inputs[:, -SHORT_CONTEXT:],
             mid_inputs=val_long_inputs[:, -MID_CONTEXT:],
             long_inputs=val_long_inputs,
-            targets=val_targets,
+            targets_multi=val_targets_multi,
             vocab_size=vocab_size,
         ),
     )
@@ -144,12 +233,12 @@ def sample_batch(
     batch_size: int,
     device: torch.device,
 ) -> tuple[Tensor, Tensor, Tensor, Tensor]:
-    indices = torch.randint(0, dataset.targets.shape[0], (batch_size,), device=device)
+    indices = torch.randint(0, dataset.targets_multi.shape[0], (batch_size,), device=device)
     short_inputs = dataset.short_inputs[indices]
     mid_inputs = dataset.mid_inputs[indices]
     long_inputs = dataset.long_inputs[indices]
-    targets = dataset.targets[indices]
-    return short_inputs, mid_inputs, long_inputs, targets
+    targets_multi = dataset.targets_multi[indices]
+    return short_inputs, mid_inputs, long_inputs, targets_multi
 
 
 def autocast_context(device: torch.device):
@@ -384,18 +473,26 @@ def make_optimizer(model: nn.Module, device: torch.device) -> torch.optim.Optimi
     return torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE, fused=fused)
 
 
-def warm_up_cuda(train_dataset: WindowDataset, device: torch.device, long_block_config: LongBlockConfig) -> None:
+def warm_up_cuda(
+    train_dataset: WindowDataset,
+    device: torch.device,
+    long_block_config: LongBlockConfig,
+    *,
+    long_target_offset: int,
+) -> None:
     if device.type != "cuda":
         return
 
     set_seed(DEFAULT_SEED)
     model = build_model("two_blocks", train_dataset.vocab_size, long_block_config).to(device)
     optimizer = make_optimizer(model, device)
-    short_inputs, mid_inputs, long_inputs, targets = sample_batch(
+    short_inputs, mid_inputs, long_inputs, targets_multi = sample_batch(
         train_dataset,
         batch_size=BATCH_SIZE,
         device=device,
     )
+    next_targets = targets_multi[:, 0]
+    long_targets = targets_multi[:, long_target_offset]
 
     model.train()
     with autocast_context(device):
@@ -406,9 +503,9 @@ def warm_up_cuda(train_dataset: WindowDataset, device: torch.device, long_block_
             mid_last_hidden=mid_last_hidden,
             long_last_hidden=long_last_hidden,
         )
-        output_loss, _ = next_char_metrics(output_logits, targets)
-        mid_loss, _ = next_char_metrics(mid_local_logits, targets)
-        long_loss, _ = next_char_metrics(long_local_logits, targets)
+        output_loss, _ = next_char_metrics(output_logits, next_targets)
+        mid_loss, _ = next_char_metrics(mid_local_logits, next_targets)
+        long_loss, _ = next_char_metrics(long_local_logits, long_targets)
         total_loss = output_loss + mid_loss + long_loss
 
     optimizer.zero_grad(set_to_none=True)
@@ -438,6 +535,7 @@ def train_condition(
     seed: int,
     device: torch.device,
     long_block_config: LongBlockConfig,
+    long_target_offset: int,
 ) -> ConditionResult:
     set_seed(seed)
     model = build_model(condition_name, train_dataset.vocab_size, long_block_config).to(device)
@@ -446,11 +544,13 @@ def train_condition(
 
     for step in range(1, TRAINING_STEPS + 1):
         model.train()
-        short_inputs, mid_inputs, long_inputs, targets = sample_batch(
+        short_inputs, mid_inputs, long_inputs, targets_multi = sample_batch(
             train_dataset,
             batch_size=BATCH_SIZE,
             device=device,
         )
+        next_targets = targets_multi[:, 0]
+        long_targets = targets_multi[:, long_target_offset]
 
         mid_loss_value = 0.0
         long_loss_value = 0.0
@@ -464,14 +564,14 @@ def train_condition(
         with autocast_context(device):
             if model.mid_block is not None:
                 mid_last_hidden, mid_local_logits = model.mid_block.last_hidden_and_local_logits(mid_inputs)
-                mid_loss, mid_accuracy = next_char_metrics(mid_local_logits, targets)
+                mid_loss, mid_accuracy = next_char_metrics(mid_local_logits, next_targets)
                 total_loss_terms.append(mid_loss)
                 mid_loss_value = mid_loss.item()
                 mid_acc_value = mid_accuracy.item()
 
             if model.long_block is not None:
                 long_last_hidden, long_local_logits = model.long_block.last_hidden_and_local_logits(long_inputs)
-                long_loss, long_accuracy = next_char_metrics(long_local_logits, targets)
+                long_loss, long_accuracy = next_char_metrics(long_local_logits, long_targets)
                 total_loss_terms.append(long_loss)
                 long_loss_value = long_loss.item()
                 long_acc_value = long_accuracy.item()
@@ -481,7 +581,7 @@ def train_condition(
                 mid_last_hidden=mid_last_hidden,
                 long_last_hidden=long_last_hidden,
             )
-            output_loss, output_accuracy = next_char_metrics(output_logits, targets)
+            output_loss, output_accuracy = next_char_metrics(output_logits, next_targets)
             total_loss_terms.insert(0, output_loss)
             total_loss = sum(total_loss_terms)
 
@@ -520,14 +620,14 @@ def evaluate_condition(
     model.eval()
     total_loss = 0.0
     total_correct = 0
-    total_examples = dataset.targets.shape[0]
+    total_examples = dataset.targets_multi.shape[0]
 
     for start in range(0, total_examples, batch_size):
         stop = min(start + batch_size, total_examples)
         short_inputs = dataset.short_inputs[start:stop]
         mid_inputs = dataset.mid_inputs[start:stop]
         long_inputs = dataset.long_inputs[start:stop]
-        targets = dataset.targets[start:stop]
+        targets = dataset.targets_multi[start:stop, 0]
 
         with autocast_context(device):
             mid_last_hidden = model.mid_block.encode_last_hidden(mid_inputs) if model.mid_block is not None else None
@@ -576,22 +676,29 @@ def main() -> None:
     requested_conditions = parse_condition_names(args.conditions)
     device = resolve_device(args.device)
     long_block_config = resolve_long_block_config(args)
+    long_target_offset = resolve_long_target_offset(args)
     set_seed(args.seed)
     if device.type == "cuda":
         torch.set_float32_matmul_precision("high")
         torch.backends.cuda.matmul.allow_tf32 = True
         torch.backends.cudnn.allow_tf32 = True
 
-    train_dataset, val_dataset = load_window_dataset()
+    train_dataset, val_dataset = load_window_dataset(max_offset=long_target_offset)
     train_dataset = dataset_to_device(train_dataset, device)
     val_dataset = dataset_to_device(val_dataset, device)
-    warm_up_cuda(train_dataset, device, long_block_config)
+    warm_up_cuda(
+        train_dataset,
+        device,
+        long_block_config,
+        long_target_offset=long_target_offset,
+    )
     print(
         "multi block lm "
-        f"device={device.type} seed={args.seed} train_examples={train_dataset.targets.shape[0]} "
-        f"val_examples={val_dataset.targets.shape[0]} vocab={train_dataset.vocab_size} "
+        f"device={device.type} seed={args.seed} train_examples={train_dataset.targets_multi.shape[0]} "
+        f"val_examples={val_dataset.targets_multi.shape[0]} vocab={train_dataset.vocab_size} "
         f"short_ctx={SHORT_CONTEXT} mid_ctx={MID_CONTEXT} long_ctx={LONG_CONTEXT} "
         f"long_d_model={long_block_config.d_model} long_n_layers={long_block_config.n_layers} "
+        f"long_target_offset={long_target_offset} "
         f"steps={TRAINING_STEPS} batch={BATCH_SIZE} lateral_scale={LATERAL_SCALE} "
         f"conditions={','.join(requested_conditions)}",
         flush=True,
@@ -605,6 +712,7 @@ def main() -> None:
             seed=args.seed,
             device=device,
             long_block_config=long_block_config,
+            long_target_offset=long_target_offset,
         )
         for condition_name in requested_conditions
     ]
