@@ -54,6 +54,21 @@ class ConditionResult:
     wall_seconds: float
 
 
+@dataclass(frozen=True)
+class ModelSize:
+    d_model: int
+    n_heads: int
+    ff_dim: int
+    n_layers: int
+
+
+def positive_int(value: str) -> int:
+    parsed = int(value)
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError(f"expected a positive integer, got {value}")
+    return parsed
+
+
 def set_seed(seed: int) -> None:
     random.seed(seed)
     torch.manual_seed(seed)
@@ -67,11 +82,25 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--device", choices=("cpu", "cuda"), default=None)
     parser.add_argument("--conditions", type=str, default=",".join(ALL_CONDITIONS))
     parser.add_argument("--steps", type=int, default=TRAINING_STEPS)
+    parser.add_argument("--batch-size", type=positive_int, default=BATCH_SIZE)
     parser.add_argument("--temperature", type=float, default=TEMPERATURE)
     parser.add_argument("--lateral-scale", type=float, default=1.0)
     parser.add_argument("--normalize", action="store_true")
     parser.add_argument("--local-loss", choices=("ce", "cosine", "l2"), default="ce")
+    parser.add_argument("--d-model", type=positive_int, default=D_MODEL)
+    parser.add_argument("--n-heads", type=positive_int, default=N_HEADS)
+    parser.add_argument("--ff-dim", type=positive_int, default=FF_DIM)
+    parser.add_argument("--n-layers", type=positive_int, default=N_LAYERS)
     return parser.parse_args()
+
+
+def resolve_model_size(args: argparse.Namespace) -> ModelSize:
+    return ModelSize(
+        d_model=args.d_model,
+        n_heads=args.n_heads,
+        ff_dim=args.ff_dim,
+        n_layers=args.n_layers,
+    )
 
 
 def parse_condition_names(raw_conditions: str) -> tuple[str, ...]:
@@ -325,33 +354,35 @@ class TiedReadoutModel(nn.Module):
         self,
         *,
         vocab_size: int,
+        model_size: ModelSize,
         use_mid: bool,
         use_long: bool,
         temperature: float,
         lateral_scale: float,
-    normalize: bool,
+        normalize: bool,
         local_loss: str,
     ) -> None:
         super().__init__()
+        self.model_size = model_size
         self.temperature = temperature
         self.lateral_scale = lateral_scale
         self.normalize = normalize
         self.local_loss = local_loss
-        self.token_embedding = nn.Embedding(vocab_size, D_MODEL)
+        self.token_embedding = nn.Embedding(vocab_size, model_size.d_model)
         self.output_block = SequenceEncoder(
             context_size=SHORT_CONTEXT,
-            d_model=D_MODEL,
-            n_heads=N_HEADS,
-            ff_dim=FF_DIM,
-            n_layers=N_LAYERS,
+            d_model=model_size.d_model,
+            n_heads=model_size.n_heads,
+            ff_dim=model_size.ff_dim,
+            n_layers=model_size.n_layers,
         )
         self.mid_block = (
             SequenceEncoder(
                 context_size=MID_CONTEXT,
-                d_model=D_MODEL,
-                n_heads=N_HEADS,
-                ff_dim=FF_DIM,
-                n_layers=N_LAYERS,
+                d_model=model_size.d_model,
+                n_heads=model_size.n_heads,
+                ff_dim=model_size.ff_dim,
+                n_layers=model_size.n_layers,
             )
             if use_mid
             else None
@@ -359,10 +390,10 @@ class TiedReadoutModel(nn.Module):
         self.long_block = (
             SequenceEncoder(
                 context_size=LONG_CONTEXT,
-                d_model=D_MODEL,
-                n_heads=N_HEADS,
-                ff_dim=FF_DIM,
-                n_layers=N_LAYERS,
+                d_model=model_size.d_model,
+                n_heads=model_size.n_heads,
+                ff_dim=model_size.ff_dim,
+                n_layers=model_size.n_layers,
             )
             if use_long
             else None
@@ -370,7 +401,7 @@ class TiedReadoutModel(nn.Module):
         self.reset_parameters()
 
     def reset_parameters(self) -> None:
-        nn.init.normal_(self.token_embedding.weight, mean=0.0, std=D_MODEL**-0.5)
+        nn.init.normal_(self.token_embedding.weight, mean=0.0, std=self.model_size.d_model**-0.5)
 
     def block_last_hidden(self, block: SequenceEncoder, inputs: Tensor) -> Tensor:
         hidden = block(inputs, self.token_embedding)[:, -1, :]
@@ -399,6 +430,7 @@ def build_model(
     condition_name: str,
     *,
     vocab_size: int,
+    model_size: ModelSize,
     temperature: float,
     lateral_scale: float,
     normalize: bool,
@@ -408,6 +440,7 @@ def build_model(
         case "block0_alone":
             return TiedReadoutModel(
                 vocab_size=vocab_size,
+                model_size=model_size,
                 use_mid=False,
                 use_long=False,
                 temperature=temperature,
@@ -418,6 +451,7 @@ def build_model(
         case "two_blocks":
             return TiedReadoutModel(
                 vocab_size=vocab_size,
+                model_size=model_size,
                 use_mid=True,
                 use_long=True,
                 temperature=temperature,
@@ -437,10 +471,12 @@ def warm_up_cuda(
     train_dataset: WindowDataset,
     *,
     device: torch.device,
+    model_size: ModelSize,
     temperature: float,
     lateral_scale: float,
     normalize: bool,
     local_loss: str,
+    batch_size: int,
 ) -> None:
     if device.type != "cuda":
         return
@@ -449,13 +485,14 @@ def warm_up_cuda(
     model = build_model(
         "two_blocks",
         vocab_size=train_dataset.vocab_size,
+        model_size=model_size,
         temperature=temperature,
         lateral_scale=lateral_scale,
         normalize=normalize,
         local_loss=local_loss,
     ).to(device)
     optimizer = make_optimizer(model, device)
-    short_inputs, mid_inputs, long_inputs, targets = sample_batch(train_dataset, batch_size=BATCH_SIZE, device=device)
+    short_inputs, mid_inputs, long_inputs, targets = sample_batch(train_dataset, batch_size=batch_size, device=device)
 
     model.train()
     with autocast_context(device):
@@ -527,16 +564,19 @@ def train_condition(
     *,
     seed: int,
     device: torch.device,
+    model_size: ModelSize,
     temperature: float,
     lateral_scale: float,
     normalize: bool,
     local_loss: str,
     training_steps: int,
+    batch_size: int,
 ) -> ConditionResult:
     set_seed(seed)
     model = build_model(
         condition_name,
         vocab_size=train_dataset.vocab_size,
+        model_size=model_size,
         temperature=temperature,
         lateral_scale=lateral_scale,
         normalize=normalize,
@@ -547,7 +587,7 @@ def train_condition(
 
     for step in range(1, training_steps + 1):
         model.train()
-        short_inputs, mid_inputs, long_inputs, targets = sample_batch(train_dataset, batch_size=BATCH_SIZE, device=device)
+        short_inputs, mid_inputs, long_inputs, targets = sample_batch(train_dataset, batch_size=batch_size, device=device)
 
         with autocast_context(device):
             total_loss_terms: list[Tensor] = []
@@ -636,6 +676,7 @@ def print_results_table(results: list[ConditionResult]) -> None:
 def main() -> None:
     args = parse_args()
     requested_conditions = parse_condition_names(args.conditions)
+    model_size = resolve_model_size(args)
     device = resolve_device(args.device)
     set_seed(args.seed)
     if device.type == "cuda":
@@ -649,18 +690,20 @@ def main() -> None:
     warm_up_cuda(
         train_dataset,
         device=device,
+        model_size=model_size,
         temperature=args.temperature,
         lateral_scale=args.lateral_scale,
         normalize=args.normalize,
         local_loss=args.local_loss,
+        batch_size=args.batch_size,
     )
     print(
         "tied readout lm "
         f"device={device.type} seed={args.seed} train_examples={train_dataset.targets.shape[0]} "
         f"val_examples={val_dataset.targets.shape[0]} vocab={train_dataset.vocab_size} "
         f"short_ctx={SHORT_CONTEXT} mid_ctx={MID_CONTEXT} long_ctx={LONG_CONTEXT} "
-        f"d_model={D_MODEL} n_heads={N_HEADS} ff_dim={FF_DIM} n_layers={N_LAYERS} "
-        f"steps={args.steps} batch={BATCH_SIZE} temperature={args.temperature:.4f} lateral_scale={args.lateral_scale:.4f} normalize={args.normalize} local_loss={args.local_loss} "
+        f"d_model={model_size.d_model} n_heads={model_size.n_heads} ff_dim={model_size.ff_dim} n_layers={model_size.n_layers} "
+        f"steps={args.steps} batch={args.batch_size} temperature={args.temperature:.4f} lateral_scale={args.lateral_scale:.4f} normalize={args.normalize} local_loss={args.local_loss} "
         f"conditions={','.join(requested_conditions)}",
         flush=True,
     )
@@ -672,11 +715,13 @@ def main() -> None:
             val_dataset,
             seed=args.seed,
             device=device,
+            model_size=model_size,
             temperature=args.temperature,
             lateral_scale=args.lateral_scale,
             normalize=args.normalize,
             local_loss=args.local_loss,
             training_steps=args.steps,
+            batch_size=args.batch_size,
         )
         for condition_name in requested_conditions
     ]
