@@ -10,15 +10,13 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 **The fundamental question (Pathway 1) has never been tested at the RNN's sweet spot.** We've been hobbling the RNN to match the transformer's interface.
 
-**What must change:**
-1. Implement truncated BPTT: forward through entire long sequence (1000+ tokens), backprop through K steps (32-64)
-2. Test whether the architecture leverages temporal structure at realistic sequence lengths
-3. Re-evaluate stale lateral / recurrence negatives — those were all with 4-char windows and may be artifacts
-4. Correct comparison: transformer at 128-256 token attention vs RNN at thousands of tokens, matched params
+**The direction:** Test the architecture at its natural sweet spot — long sequences where hidden state accumulates temporal structure. Truncated BPTT is the expected training mechanism (forward through full sequence, backprop through a limited window). The RNN advantage over transformers should show up here if it exists.
 
-**This is the priority.** Pathway 5 (halting/dynamic depth) work is paused. Grammar experiment is paused. The next experiment must be long-sequence RNN unrolling with truncated BPTT.
+Previous negatives about recurrence/stale laterals were all tested with 4-char windows. They may be artifacts of having no temporal structure to leverage.
 
-**d=512 run:** Crashed at step 15000/20000 (no checkpoint saved). Do NOT restart it — wrong priority.
+**This is the priority.** Pathway 5 (halting/dynamic depth) and grammar work are paused.
+
+**d=512 run:** Crashed at step 15000/20000 (no checkpoint saved). Do NOT restart — wrong priority.
 
 **GPU: FREE** (crash killed all processes, lock file stale).
 
@@ -43,19 +41,13 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 **~3 days remain in timebox. GPU: FREE.**
 
-### THE PRIORITY: Long-sequence truncated BPTT experiment
+### THE PRIORITY: Test the architecture with long sequences
 
-Design and run an experiment that:
-1. Processes sequences of 1000+ tokens (character-level, WikiText-103)
-2. Uses truncated BPTT (backprop through K=32-64 steps, forward through full sequence)
-3. Tests whether recurrent hidden state accumulates useful temporal information
-4. Compares against transformer baseline at matched params (transformer gets 128-256 token attention window)
-
-This is Pathway 1 (Wide Recurrent vs Deep Transformer) tested properly for the first time.
+The architecture is an RNN. Its advantage over transformers is that it can process arbitrarily long sequences without quadratic cost. We have never tested this. All prior experiments used tiny context windows (4 chars). This is Pathway 1 tested properly for the first time.
 
 ### After that: re-evaluate recurrence/lateral negatives
 
-If long-sequence RNN works, revisit stale laterals and multi-rate at realistic sequence lengths. The previous negatives may be artifacts of 4-char windows.
+The previous negatives (stale laterals, multi-rate, sequential regime) may be artifacts of 4-char windows. Revisit at realistic sequence lengths if the long-sequence direction works.
 
 ### Paused (valid work, lower priority now)
 
@@ -82,7 +74,7 @@ If long-sequence RNN works, revisit stale laterals and multi-rate at realistic s
 | 1 (Recurrent Depth) | VALIDATED | Shared-weight iteration works. Capstone generation demonstrates at scale. |
 | 3 (Local Learning) | VALIDATED | Window-based + fresh lateral works. Co-training self-organizes. |
 | 5 (Dynamic Depth) | **RESOLVED** | Regression halt head works. Calibrated. Integrated. Generates readable text. |
-| 8 (Multi-Rate) | CLOSED | Sequential regime incompatible; CE-trained laterals position-specific |
+| 8 (Multi-Rate) | CLOSED (at 4-char context) | Sequential regime incompatible; CE-trained laterals position-specific. **May need re-evaluation at long sequences.** |
 
 ---
 
