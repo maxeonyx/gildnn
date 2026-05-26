@@ -85,6 +85,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--train-characters", type=positive_int, default=TRAIN_CHARACTERS)
     parser.add_argument("--val-characters", type=positive_int, default=VAL_CHARACTERS)
     parser.add_argument("--learning-rate", type=float, default=LEARNING_RATE)
+    parser.add_argument("--recurrent-iterations", type=positive_int, default=RECURRENT_ITERATIONS)
     parser.add_argument("--sanity-check-only", action="store_true")
     parser.add_argument("--no-lock", action="store_true")
     parser.add_argument("--report-path", type=Path, default=artifact_dir / "report.json")
@@ -367,7 +368,7 @@ def main() -> None:
     if args.learning_rate <= 0.0:
         raise ValueError(f"learning_rate must be positive, got {args.learning_rate}")
 
-    config = ExperimentConfig()
+    config = ExperimentConfig(recurrent_iterations=args.recurrent_iterations)
     device = resolve_device(args.device)
     if device.type == "cuda":
         torch.set_float32_matmul_precision("high")
