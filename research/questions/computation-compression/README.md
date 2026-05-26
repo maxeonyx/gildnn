@@ -101,6 +101,22 @@ The model already CAN exit early at depth 4 for most tokens without significant 
 
 This reframes Pathway 4: the halt head already exploits most of the available slack. The remaining opportunity is: can training be modified so that depth-2 produces what depth-4 currently produces? That's a harder question — and the prior negative result for KL distillation suggests it may not work via simple distillation.
 
+### Halt head calibration quality (Pathway 5 evidence)
+
+The halt head's predictions correlate strongly with actual gains at early depths where the decisions matter most:
+
+| Transition | Predicted gain (mean +/- std) | Actual gain (mean) | Correlation |
+|---|---|---|---|
+| 1→2 | 2.99 +/- 2.50 | 3.04 | **0.919** |
+| 2→3 | 0.40 +/- 0.56 | 0.44 | **0.662** |
+| 3→4 | 0.11 +/- 0.12 | 0.12 | 0.269 |
+| 4→5 | 0.05 +/- 0.06 | 0.06 | 0.190 |
+| 5→6 | 0.02 +/- 0.04 | 0.03 | 0.127 |
+
+At epsilon=0.05 (depth 2 threshold): tokens classified as "easy" have actual gain 0.034; tokens classified as "hard" have actual gain 0.491. The halt head makes correct decisions.
+
+The high-std predictions show the halt head genuinely differentiates between tokens, not just applying a constant threshold. This is strong Pathway 5 evidence: the mechanism is structurally sensitive to per-token difficulty.
+
 ---
 
 ## Next steps
