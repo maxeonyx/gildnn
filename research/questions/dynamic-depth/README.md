@@ -579,6 +579,83 @@ Running now. If Pearson continues rising and ε=0.02 overtakes fixed-6, the prob
 
 ---
 
+## Follow-up: d=256, 50K steps
+
+**Artifacts:** `experiments/tinyshakespeare/artifacts/halting_regression_d256_50k/report.json`
+
+### 20K vs 50K
+
+|              | 20K       | 50K       |
+|---|---|---|
+| Val loss | 1.693 | 1.521 |
+| Oracle best | 1.516 | 1.347 |
+| Oracle gap | 0.177 | 0.174 |
+| Pearson d1 | 0.458 | 0.561 |
+| ε=0.02 speed | 1.226 | 1.198 |
+| ε=0.02 oracle | 1.672 | 1.593 |
+| ε=0.02 orc_ef | 33.6% | 33.4% |
+| Mean gain d1 | 0.867 | 1.131 |
+
+The surprising part is the combination: the halt head got **much better** at ranking the remaining gain (Pearson 0.458→0.561), but the practical ε=0.02 operating point got **slightly worse**.
+
+### 50K epsilon sweep
+
+| ε | speedup | loss_hit | oracle_eff |
+|---|---|---|---|
+| 0.001 | 1.10 | 0.01 | 0.21 |
+| 0.005 | 1.12 | 0.01 | 0.23 |
+| 0.01 | 1.14 | 0.01 | 0.26 |
+| 0.02 | 1.20 | 0.01 | 0.33 |
+| 0.05 | 1.40 | 0.03 | 0.54 |
+| 0.10 | 1.72 | 0.06 | 0.76 |
+| 0.20 | 2.21 | 0.12 | 0.92 |
+| 0.50 | 3.36 | 0.29 | 1.09 |
+
+### Fixed-depth comparison
+
+At 50K, the most relevant fixed baseline is still depth-6: **1.33× speedup at 0.02 loss hit**. Dynamic halting does **not** beat it at ε=0.02, but it **does** beat it at ε=0.05: **1.40× vs 1.33×**, at **0.03 vs 0.02** loss hit.
+
+### Interpretation
+
+**The halt head scales well. The strict-budget economics do not.**
+
+- **Prediction quality improved substantially**: Pearson at depth 1 rose from **0.458** to **0.561**, nearly matching the d=128 result (**0.572**).
+- **But the oracle opportunity at tight thresholds shrank**: the ε=0.02 oracle speedup fell from **1.672×** to **1.593×**.
+- The reason is visible in the oracle gains: **mean gain at depth 1 grew from 0.867 to 1.131**. The better-trained model gets more real value from each recurrent step.
+- That makes **ε=0.02 relatively tighter**. More tokens genuinely need another step, so even a perfect policy would halt fewer of them.
+
+This resolves the apparent contradiction. The halt head is not failing to learn the ranking. The underlying model changed so that there is **less headroom at a strict threshold**.
+
+There is still a calibration puzzle. The d=128 model reached **60% oracle efficiency** at similar shallow-depth Pearson (**0.572**), while d=256 at 50K reaches only **33%** with Pearson **0.561**. That is strong evidence that the d=256 head has **good ranking but poor conversion of that ranking into usable absolute gain thresholds** — i.e. a calibration mismatch, likely over-predicting gains and therefore halting too conservatively.
+
+### Conclusion
+
+**Mechanism proven:** the regression halt head scales to d=256 in the sense that it learns a strong per-depth gain ranking.
+
+**What does not work at this training level:** strict-budget economics at **ε=0.02**. The model is too good at using its later steps, so the oracle ceiling itself tightens.
+
+**What does work:** at a looser threshold (**ε=0.05**), learned halting **beats fixed-depth-6**. So the adaptive mechanism is still practically useful — just not at the original tight operating point.
+
+### Decision branches after 50K result
+
+The actual outcome does **not** fit any pre-defined branch cleanly.
+
+- **Branch 1 criterion partly met:** Pearson ≥ 0.50 ✓
+- **But Branch 1 decision criterion failed:** ε=0.02 does **not** beat fixed-depth-6 ✗
+- **Not Branch 3 either:** Pearson clearly improved, so this is **not** a plateau/fundamental decoding limit
+- **Branch 2 diagnosis was wrong:** the halt head is **not** obviously undersized, because d=256 now matches d=128's ranking quality
+
+The real diagnosis is different from all three branches:
+
+1. **Calibration mismatch** — the head seems better at ranking than at mapping gain estimates onto an absolute ε threshold
+2. **Diminishing oracle headroom at tight thresholds** — the better-trained model makes each step more valuable, so ε=0.02 becomes a harsher target
+
+### Updated next step
+
+**Calibration experiment next.** The discriminating question is whether a cheap post-training recalibration of the predicted gains can move the ε=0.02 frontier materially upward. If yes, calibration is the main bottleneck. If not, the tight-threshold limit is fundamentally about reduced oracle headroom rather than decision quality.
+
+---
+
 ## What this means for the vision
 
 **Vision requirement served:** "Support dynamic computation — variable effort per token at inference (think longer on hard tokens, skip easy ones)."
