@@ -530,6 +530,14 @@ Use `runs/active.lock` to record the active large run. **The experiment scripts 
 - **Do NOT use `-RedirectStandardOutput`/`-RedirectStandardError` with `Start-Process -WindowStyle Hidden`.** This causes the child process to hang when stdout buffers fill (the hidden window has no console to flush to). Instead: let stdout go to the hidden window's console (effectively discarded) and rely on the experiment's own JSONL log file for monitoring.
 - **Corpus loading takes ~90 seconds** (WikiText-103 raw is 538M chars). The log file won't appear until after loading completes. Don't assume the process is dead during this period — check CPU/memory via `Get-Process`.
 
+**Checkpointing requirement:**
+
+Any training run expected to take more than ~20 minutes MUST save periodic checkpoints (at minimum every 10-15 minutes of wall time). The RTX 3090 handles both display and CUDA — TDR crashes from display topology changes (monitor hot-unplug, RDP connect) can kill the process at any time. A 50-minute run with no checkpoints means 50 minutes of lost work on crash. Save checkpoints; resume from them if interrupted.
+
+**Cleanup on direction change:**
+
+When switching research directions, clean up artifacts from the old direction — stale checkpoints, intermediate logs, temporary experiment directories. Don't leave gigabytes of dead weight accumulating. The codebase should stay small (per AGENTS.md).
+
 **torch.compile vs CUDA graphs:**
 
 - **Default: use `--no-compile`** (which activates the `ClosedLoopPredictionGraphTrainer` CUDA graph path). This starts fast and trains fast.
