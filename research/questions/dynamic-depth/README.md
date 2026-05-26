@@ -407,9 +407,35 @@ At the same loss budget (0.015 nats), fixed depth-6 gives 1.33× speedup while t
 
 ### Next step: falsification run
 
-Running 30K steps (same setup) to definitively rule out undertraining. If AUROC at evaluation still doesn't yield a policy that beats fixed depth-6, abandon binary BCE and switch to:
+~~Running 30K steps (same setup) to definitively rule out undertraining.~~
 
-**Marginal improvement regression** — predict `remaining_gain = ℓ(d) - ℓ(N)` as a continuous value. Halt when predicted remaining gain < ε. This preserves severity information and matches the actual deployment decision.
+**DONE (2026-05-27):** 30K run confirms undertraining is NOT the issue.
+
+| Metric | 10K steps | 30K steps | Change |
+|---|---|---|---|
+| Best eval AUROC | 0.693 | 0.698 | +0.005 |
+| Best tradeoff speedup | 1.027× | 1.035× | +0.008× |
+| Oracle efficiency | 4.7% | 6.1% | +1.4% |
+| Fixed depth-6 speedup | 1.33× | 1.33× | — |
+| Fixed depth-6 loss hit | 0.015 | 0.013 | — |
+
+**Conclusion: longer training doesn't rescue binary BCE halting.** AUROC saturates at ~0.69-0.70 regardless of training duration. The learned halt remains strictly dominated by fixed depth-6 on both speedup and loss.
+
+### What this means for Pathway 5
+
+Binary "safe-to-stop-now?" supervised halting is a dead end at this formulation. The halt head learns real signal (AUROC ~0.70 vs 0.50 random) but the discrimination isn't sharp enough to beat a trivial baseline.
+
+**However:** the oracle opportunity (1.58× speedup) is real and substantial. The question is whether a DIFFERENT halt head formulation can capture it.
+
+### Next approach: marginal improvement regression
+
+Instead of binary BCE, predict the **continuous remaining gain**: `g(i,d) = ℓ(i,d) - ℓ(i,N)`. Halt when predicted remaining gain < ε.
+
+Why this should be better:
+1. Preserves severity information — "barely above threshold" and "catastrophically above threshold" are not the same class
+2. The halt decision becomes: "is my predicted remaining improvement < ε?" — directly matching deployment
+3. Regression loss penalizes proportionally to error magnitude, providing stronger gradient for hard cases
+4. No class imbalance issue — regression is continuous
 
 > **Purpose:** Determine whether a jointly-trained halt head can learn to predict oracle depth, given that post-hoc probing failed (3.4% above baseline).
 
