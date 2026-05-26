@@ -175,6 +175,35 @@ def next_char_metrics(logits: Tensor, targets: Tensor) -> tuple[Tensor, Tensor]:
     return loss, accuracy
 
 
+def summed_cross_entropy(logits: Tensor, targets: Tensor, *, batch_size: int) -> Tensor:
+    return F.cross_entropy(logits, targets, reduction="sum") / batch_size
+
+
+def aggregated_interior_local_loss(
+    hidden: Tensor,
+    *,
+    embedding: nn.Embedding,
+    targets: Tensor,
+    temperature: float,
+    normalize: bool,
+    local_loss: str,
+    batch_size: int,
+    num_positions: int,
+) -> Tensor:
+    if local_loss == "ce":
+        logits = tied_logits(hidden, embedding, temperature=temperature, normalize=normalize)
+        return F.cross_entropy(logits, targets, reduction="sum") / batch_size
+
+    target_embeddings = F.normalize(embedding.weight[targets].float(), dim=-1).to(embedding.weight.dtype)
+    if local_loss == "cosine":
+        cosine_terms = F.cosine_similarity(hidden.float(), target_embeddings.float(), dim=-1)
+        return hidden.new_tensor(float(num_positions)) - cosine_terms.sum().to(hidden.dtype) / batch_size
+    if local_loss == "l2":
+        squared_error = (hidden.float() - target_embeddings.float()).pow(2).sum()
+        return squared_error.to(hidden.dtype) / (batch_size * hidden.shape[-1])
+    raise ValueError(f"Unsupported local_loss: {local_loss}")
+
+
 def sequence_encoder_hidden(
     encoder: SequenceEncoder,
     token_embedding: nn.Embedding,
@@ -324,6 +353,42 @@ def iter_positions(seq_length: int) -> range:
     return range(SHORT_CONTEXT - 1, seq_length - 1)
 
 
+def extract_windows_and_targets(sequence_batch: Tensor) -> tuple[Tensor, Tensor]:
+    windows = sequence_batch.unfold(1, SHORT_CONTEXT, 1)[:, :-1, :].contiguous()
+    targets = sequence_batch[:, SHORT_CONTEXT:].contiguous()
+    return windows, targets
+
+
+@torch.no_grad()
+def precompute_state_biases(
+    model: RecurrentLateralModel,
+    windows: Tensor,
+    *,
+    reset_interval: int | None,
+    device: torch.device,
+) -> Tensor | None:
+    if model.recurrent_block is None:
+        return None
+
+    batch_size, num_positions, _ = windows.shape
+    state = zero_state(
+        batch_size=batch_size,
+        d_model=model.model_size.d_model,
+        device=device,
+        dtype=model.token_embedding.weight.dtype,
+    )
+    state_biases: list[Tensor] = []
+
+    with autocast_context(device):
+        for position_index in range(num_positions):
+            if should_reset_state(position_index, reset_interval):
+                state = torch.zeros_like(state)
+            state_biases.append(state)
+            _, state = model.recurrent_hidden(windows[:, position_index, :], state)
+
+    return torch.stack(state_biases, dim=1)
+
+
 def run_sequence_batch_train(
     model: RecurrentLateralModel,
     sequence_batch: Tensor,
@@ -331,59 +396,42 @@ def run_sequence_batch_train(
     reset_interval: int | None,
     device: torch.device,
 ) -> TrainMetrics:
-    batch_size, seq_length = sequence_batch.shape
-    state = zero_state(
-        batch_size=batch_size,
-        d_model=model.model_size.d_model,
-        device=device,
-        dtype=model.token_embedding.weight.dtype,
-    )
-    total_loss: Tensor | None = None
-    total_block0_loss = 0.0
-    total_block0_accuracy = 0.0
-    total_recurrent_loss = 0.0
-    positions_processed = 0
+    batch_size = sequence_batch.shape[0]
+    windows, targets = extract_windows_and_targets(sequence_batch)
+    num_positions = windows.shape[1]
+    flat_windows = windows.view(batch_size * num_positions, SHORT_CONTEXT)
+    flat_targets = targets.view(batch_size * num_positions)
+    state_biases = precompute_state_biases(model, windows, reset_interval=reset_interval, device=device)
 
     with autocast_context(device):
-        for position_index, position in enumerate(iter_positions(seq_length)):
-            if should_reset_state(position_index, reset_interval):
-                state = torch.zeros_like(state)
-
-            window = sequence_batch[:, position - SHORT_CONTEXT + 1 : position + 1]
-            targets = sequence_batch[:, position + 1]
-            output_hidden = model.output_hidden(window)
-            recurrent_hidden = None
-            recurrent_loss_value = 0.0
-
-            if model.recurrent_block is not None:
-                recurrent_hidden, state = model.recurrent_hidden(window, state)
-                recurrent_loss = interior_local_loss(
-                    recurrent_hidden,
-                    embedding=model.token_embedding,
-                    targets=targets,
-                    temperature=model.temperature,
-                    normalize=model.normalize,
-                    local_loss=model.local_loss,
-                )
-                recurrent_loss_value = recurrent_loss.item()
-            logits = model.output_logits(output_hidden, recurrent_hidden)
-            block0_loss, block0_accuracy = next_char_metrics(logits, targets)
-            position_loss = block0_loss if model.recurrent_block is None else block0_loss + recurrent_loss
-            total_loss = position_loss if total_loss is None else total_loss + position_loss
-
-            total_block0_loss += block0_loss.item()
-            total_block0_accuracy += block0_accuracy.item()
-            total_recurrent_loss += recurrent_loss_value
-            positions_processed += 1
-
-    if total_loss is None:
-        raise ValueError("No positions were processed. Increase seq_length.")
+        output_hidden = model.output_hidden(flat_windows)
+        recurrent_hidden = None
+        recurrent_loss: Tensor | None = None
+        if model.recurrent_block is not None:
+            if state_biases is None:
+                raise ValueError("state_biases missing for recurrent condition")
+            flat_state_biases = state_biases.view(batch_size * num_positions, model.model_size.d_model)
+            recurrent_hidden, _ = model.recurrent_hidden(flat_windows, flat_state_biases)
+            recurrent_loss = aggregated_interior_local_loss(
+                recurrent_hidden,
+                embedding=model.token_embedding,
+                targets=flat_targets,
+                temperature=model.temperature,
+                normalize=model.normalize,
+                local_loss=model.local_loss,
+                batch_size=batch_size,
+                num_positions=num_positions,
+            )
+        logits = model.output_logits(output_hidden, recurrent_hidden)
+        block0_loss = summed_cross_entropy(logits, flat_targets, batch_size=batch_size)
+        block0_accuracy = (logits.argmax(dim=-1) == flat_targets).float().mean()
+        total_loss = block0_loss if recurrent_loss is None else block0_loss + recurrent_loss
 
     return TrainMetrics(
         total_loss=total_loss,
-        mean_block0_loss=total_block0_loss / positions_processed,
-        mean_block0_accuracy=total_block0_accuracy / positions_processed,
-        mean_recurrent_loss=total_recurrent_loss / positions_processed,
+        mean_block0_loss=block0_loss.item() / num_positions,
+        mean_block0_accuracy=block0_accuracy.item(),
+        mean_recurrent_loss=0.0 if recurrent_loss is None else recurrent_loss.item() / num_positions,
     )
 
 
@@ -404,34 +452,33 @@ def evaluate_condition(
 
     for batch_start in range(0, dataset.sequences.shape[0], batch_size):
         sequence_batch = dataset.sequences[batch_start : batch_start + batch_size]
-        state = zero_state(
-            batch_size=sequence_batch.shape[0],
-            d_model=model.model_size.d_model,
-            device=device,
-            dtype=model.token_embedding.weight.dtype,
-        )
+        windows, targets = extract_windows_and_targets(sequence_batch)
+        num_positions = windows.shape[1]
+        state_biases = precompute_state_biases(model, windows, reset_interval=reset_interval, device=device)
+        valid_position_mask = torch.arange(num_positions, device=device) >= burn_in
+        if not valid_position_mask.any():
+            continue
+
+        valid_windows = windows[:, valid_position_mask, :]
+        valid_targets = targets[:, valid_position_mask]
+        flat_windows = valid_windows.reshape(-1, SHORT_CONTEXT)
+        flat_targets = valid_targets.reshape(-1)
 
         with autocast_context(device):
-            for position_index, position in enumerate(iter_positions(sequence_batch.shape[1])):
-                if should_reset_state(position_index, reset_interval):
-                    state = torch.zeros_like(state)
+            output_hidden = model.output_hidden(flat_windows)
+            recurrent_hidden = None
+            if model.recurrent_block is not None:
+                if state_biases is None:
+                    raise ValueError("state_biases missing for recurrent condition")
+                valid_state_biases = state_biases[:, valid_position_mask, :]
+                flat_state_biases = valid_state_biases.reshape(-1, model.model_size.d_model)
+                recurrent_hidden, _ = model.recurrent_hidden(flat_windows, flat_state_biases)
 
-                window = sequence_batch[:, position - SHORT_CONTEXT + 1 : position + 1]
-                targets = sequence_batch[:, position + 1]
-                output_hidden = model.output_hidden(window)
-                recurrent_hidden = None
-
-                if model.recurrent_block is not None:
-                    recurrent_hidden, state = model.recurrent_hidden(window, state)
-
-                if position_index < burn_in:
-                    continue
-
-                logits = model.output_logits(output_hidden, recurrent_hidden)
-                loss, _ = next_char_metrics(logits, targets)
-                total_loss += loss.item() * targets.shape[0]
-                total_correct += (logits.argmax(dim=-1) == targets).sum().item()
-                total_examples += targets.shape[0]
+            logits = model.output_logits(output_hidden, recurrent_hidden)
+            loss, _ = next_char_metrics(logits, flat_targets)
+            total_loss += loss.item() * flat_targets.shape[0]
+            total_correct += (logits.argmax(dim=-1) == flat_targets).sum().item()
+            total_examples += flat_targets.shape[0]
 
     if total_examples == 0:
         raise ValueError("Burn-in masked every evaluation position. Reduce --burn-in or increase --seq-length.")
