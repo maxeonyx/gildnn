@@ -5,12 +5,13 @@ import { join } from "path"
 /**
  * Watches for new dictation files and injects a notification into the active session.
  *
- * Uses two mechanisms:
- * 1. file.watcher.updated events (unreliable on Windows)
- * 2. Polling after each tool call via tool.execute.after (reliable fallback)
- *
  * When a new .md file appears in dictations/, this plugin sends a noReply message
  * into the current session so the agent sees it on its next turn.
+ *
+ * NOTE: Do NOT try to use the file.watcher.updated event for this. The Windows file
+ * watcher never fires for externally-created files (tested 2026-05-26, 5 runs, 0 fires).
+ * The event hook is correctly wired (generic `event` handler, not a named key) but the
+ * underlying OS watcher simply doesn't emit. Use tool.execute.after polling instead.
  */
 export const DictationNotifier: Plugin = async ({ client, directory }) => {
   const dictationsDir = join(directory, "dictations")
@@ -74,16 +75,7 @@ export const DictationNotifier: Plugin = async ({ client, directory }) => {
   }
 
   return {
-    // Primary: file watcher events (works on Linux/macOS, unreliable on Windows)
-    event: async ({ event }) => {
-      if (event.type !== "file.watcher.updated") return
-      const { file, event: fileEvent } = event.properties
-      if (fileEvent !== "add" && fileEvent !== "change") return
-      if (!file.includes("dictations") || !file.endsWith(".md")) return
-      await checkForNewDictations()
-    },
-
-    // Fallback: check after each tool call (reliable on all platforms)
+    // Poll dictations/ after each tool call — reliable on all platforms
     "tool.execute.after": async (input) => {
       await checkForNewDictations(input.sessionID)
     },
