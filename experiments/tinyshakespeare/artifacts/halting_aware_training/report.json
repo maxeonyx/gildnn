@@ -1,0 +1,250 @@
+{
+  "seed": 42,
+  "device": "cuda",
+  "sanity_check_only": false,
+  "config": {
+    "context_size": 128,
+    "d_model": 128,
+    "n_heads": 4,
+    "ff_dim": 512,
+    "recurrent_iterations": 8,
+    "temperature": 0.07,
+    "dropout": 0.1
+  },
+  "train_characters": 900000,
+  "val_characters": 20000,
+  "steps": 10000,
+  "batch_size": 64,
+  "eval_batch_size": 2048,
+  "learning_rate": 0.0003,
+  "halt_lambda": 0.1,
+  "halt_warmup_fraction": 0.1,
+  "delta": 0.01,
+  "training": {
+    "final_train_loss": 1.803385,
+    "final_lm_loss": 1.727881,
+    "final_halt_loss": 0.755047,
+    "final_halt_lambda": 0.1,
+    "halt_positive_rate_ema": [
+      0.14358,
+      0.294221,
+      0.380383,
+      0.438267,
+      0.479964,
+      0.5449,
+      0.612619
+    ],
+    "wall_seconds": 420.525535
+  },
+  "evaluation": {
+    "full_depth_val_loss": 1.877632,
+    "oracle": {
+      "mean_loss_per_depth": [
+        3.394549,
+        2.368614,
+        2.086514,
+        1.971447,
+        1.918213,
+        1.892493,
+        1.881026,
+        1.877632
+      ],
+      "oracle_best_loss": 1.683643,
+      "oracle_depth_histogram": [
+        1276,
+        2139,
+        1886,
+        1640,
+        1363,
+        1298,
+        1289,
+        8981
+      ],
+      "no_regret_depth_histogram": [
+        2645,
+        3037,
+        1849,
+        1316,
+        1051,
+        1104,
+        1460,
+        7410
+      ],
+      "mean_no_regret_depth": 5.077949,
+      "oracle_speedup": 1.575439,
+      "fraction_harmed_by_full_depth": 0.548058,
+      "total_examples": 19872
+    },
+    "halt_auroc_per_depth": [
+      0.693278,
+      0.66237,
+      0.668761,
+      0.664844,
+      0.653937,
+      0.641968,
+      0.604604
+    ],
+    "threshold_sweep": [
+      {
+        "threshold": 0.05,
+        "avg_depth": 1.010064,
+        "val_loss": 3.366525,
+        "loss_hit_vs_full_depth": 1.488892,
+        "learned_speedup": 7.920287,
+        "oracle_efficiency": 12.026096
+      },
+      {
+        "threshold": 0.1,
+        "avg_depth": 1.029036,
+        "val_loss": 3.329495,
+        "loss_hit_vs_full_depth": 1.451862,
+        "learned_speedup": 7.774268,
+        "oracle_efficiency": 11.772343
+      },
+      {
+        "threshold": 0.15,
+        "avg_depth": 1.053794,
+        "val_loss": 3.292069,
+        "loss_hit_vs_full_depth": 1.414437,
+        "learned_speedup": 7.591615,
+        "oracle_efficiency": 11.454928
+      },
+      {
+        "threshold": 0.2,
+        "avg_depth": 1.101399,
+        "val_loss": 3.238887,
+        "loss_hit_vs_full_depth": 1.361254,
+        "learned_speedup": 7.26349,
+        "oracle_efficiency": 10.884712
+      },
+      {
+        "threshold": 0.25,
+        "avg_depth": 1.202798,
+        "val_loss": 3.157763,
+        "loss_hit_vs_full_depth": 1.28013,
+        "learned_speedup": 6.651159,
+        "oracle_efficiency": 9.820601
+      },
+      {
+        "threshold": 0.3,
+        "avg_depth": 1.366043,
+        "val_loss": 3.057742,
+        "loss_hit_vs_full_depth": 1.18011,
+        "learned_speedup": 5.856333,
+        "oracle_efficiency": 8.43935
+      },
+      {
+        "threshold": 0.35,
+        "avg_depth": 1.619968,
+        "val_loss": 2.926895,
+        "loss_hit_vs_full_depth": 1.049263,
+        "learned_speedup": 4.93837,
+        "oracle_efficiency": 6.844111
+      },
+      {
+        "threshold": 0.4,
+        "avg_depth": 1.941928,
+        "val_loss": 2.800071,
+        "loss_hit_vs_full_depth": 0.922439,
+        "learned_speedup": 4.119616,
+        "oracle_efficiency": 5.421279
+      },
+      {
+        "threshold": 0.45,
+        "avg_depth": 2.376107,
+        "val_loss": 2.654129,
+        "loss_hit_vs_full_depth": 0.776496,
+        "learned_speedup": 3.366852,
+        "oracle_efficiency": 4.113122
+      },
+      {
+        "threshold": 0.5,
+        "avg_depth": 3.083635,
+        "val_loss": 2.482866,
+        "loss_hit_vs_full_depth": 0.605234,
+        "learned_speedup": 2.59434,
+        "oracle_efficiency": 2.77065
+      },
+      {
+        "threshold": 0.55,
+        "avg_depth": 4.246981,
+        "val_loss": 2.296005,
+        "loss_hit_vs_full_depth": 0.418372,
+        "learned_speedup": 1.883691,
+        "oracle_efficiency": 1.535681
+      },
+      {
+        "threshold": 0.6,
+        "avg_depth": 5.62032,
+        "val_loss": 2.123916,
+        "loss_hit_vs_full_depth": 0.246284,
+        "learned_speedup": 1.423407,
+        "oracle_efficiency": 0.735797
+      },
+      {
+        "threshold": 0.65,
+        "avg_depth": 6.704761,
+        "val_loss": 1.995397,
+        "loss_hit_vs_full_depth": 0.117765,
+        "learned_speedup": 1.193182,
+        "oracle_efficiency": 0.335712
+      },
+      {
+        "threshold": 0.7,
+        "avg_depth": 7.364785,
+        "val_loss": 1.928248,
+        "loss_hit_vs_full_depth": 0.050616,
+        "learned_speedup": 1.08625,
+        "oracle_efficiency": 0.149886
+      },
+      {
+        "threshold": 0.75,
+        "avg_depth": 7.668428,
+        "val_loss": 1.901386,
+        "loss_hit_vs_full_depth": 0.023754,
+        "learned_speedup": 1.043239,
+        "oracle_efficiency": 0.07514
+      },
+      {
+        "threshold": 0.8,
+        "avg_depth": 7.790811,
+        "val_loss": 1.893085,
+        "loss_hit_vs_full_depth": 0.015452,
+        "learned_speedup": 1.026851,
+        "oracle_efficiency": 0.046661
+      },
+      {
+        "threshold": 0.85,
+        "avg_depth": 7.852808,
+        "val_loss": 1.889318,
+        "loss_hit_vs_full_depth": 0.011686,
+        "learned_speedup": 1.018744,
+        "oracle_efficiency": 0.032573
+      },
+      {
+        "threshold": 0.9,
+        "avg_depth": 7.930455,
+        "val_loss": 1.880719,
+        "loss_hit_vs_full_depth": 0.003086,
+        "learned_speedup": 1.008769,
+        "oracle_efficiency": 0.015239
+      },
+      {
+        "threshold": 0.95,
+        "avg_depth": 8.0,
+        "val_loss": 1.877632,
+        "loss_hit_vs_full_depth": 0.0,
+        "learned_speedup": 1.0,
+        "oracle_efficiency": 0.0
+      }
+    ],
+    "best_tradeoff": {
+      "threshold": 0.8,
+      "avg_depth": 7.790811,
+      "val_loss": 1.893085,
+      "loss_hit_vs_full_depth": 0.015452,
+      "learned_speedup": 1.026851,
+      "oracle_efficiency": 0.046661
+    }
+  }
+}

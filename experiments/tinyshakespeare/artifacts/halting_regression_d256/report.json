@@ -1,0 +1,216 @@
+{
+  "seed": 42,
+  "device": "cuda",
+  "sanity_check_only": false,
+  "config": {
+    "context_size": 128,
+    "d_model": 256,
+    "n_heads": 4,
+    "ff_dim": 1024,
+    "recurrent_iterations": 8,
+    "temperature": 0.07,
+    "dropout": 0.1
+  },
+  "train_characters": 900000,
+  "val_characters": 20000,
+  "steps": 20000,
+  "batch_size": 64,
+  "eval_batch_size": 2048,
+  "learning_rate": 0.0003,
+  "halt_lambda": 0.1,
+  "halt_warmup_fraction": 0.1,
+  "epsilon_sweep": [
+    0.001,
+    0.005,
+    0.01,
+    0.02,
+    0.05,
+    0.1,
+    0.2,
+    0.5
+  ],
+  "training": {
+    "final_train_loss": 1.352534,
+    "final_lm_loss": 1.331653,
+    "final_halt_loss": 0.208805,
+    "final_halt_lambda": 0.1,
+    "running_gain_pearson": [
+      0.404054,
+      0.249822,
+      0.17642,
+      0.115184,
+      0.064392,
+      0.030655,
+      0.011301
+    ],
+    "wall_seconds": 852.079824
+  },
+  "evaluation": {
+    "full_depth_val_loss": 1.692864,
+    "oracle": {
+      "mean_loss_per_depth": [
+        2.560211,
+        2.032408,
+        1.85932,
+        1.773691,
+        1.729197,
+        1.707883,
+        1.697362,
+        1.692864
+      ],
+      "mean_gain_per_depth": [
+        0.867348,
+        0.339544,
+        0.166456,
+        0.080828,
+        0.036333,
+        0.015019,
+        0.004498
+      ],
+      "oracle_best_loss": 1.515916,
+      "oracle_depth_histogram": [
+        2149,
+        2082,
+        1512,
+        1099,
+        1060,
+        1099,
+        1443,
+        9428
+      ],
+      "fraction_harmed_by_full_depth": 0.525564,
+      "total_examples": 19872
+    },
+    "gain_pearson_per_depth": [
+      0.458034,
+      0.319114,
+      0.2303,
+      0.158364,
+      0.107575,
+      0.067424,
+      0.034497
+    ],
+    "fixed_depth_baselines": [
+      {
+        "depth": 4,
+        "avg_depth": 4.0,
+        "val_loss": 1.773691,
+        "loss_hit_vs_full_depth": 0.080828,
+        "learned_speedup": 2.0
+      },
+      {
+        "depth": 5,
+        "avg_depth": 5.0,
+        "val_loss": 1.729197,
+        "loss_hit_vs_full_depth": 0.036333,
+        "learned_speedup": 1.6
+      },
+      {
+        "depth": 6,
+        "avg_depth": 6.0,
+        "val_loss": 1.707883,
+        "loss_hit_vs_full_depth": 0.015019,
+        "learned_speedup": 1.333333
+      },
+      {
+        "depth": 7,
+        "avg_depth": 7.0,
+        "val_loss": 1.697362,
+        "loss_hit_vs_full_depth": 0.004498,
+        "learned_speedup": 1.142857
+      }
+    ],
+    "epsilon_sweep": [
+      {
+        "epsilon": 0.001,
+        "avg_depth": 7.280646,
+        "val_loss": 1.698491,
+        "loss_hit_vs_full_depth": 0.005627,
+        "learned_speedup": 1.098804,
+        "oracle_efficiency": 0.18716,
+        "oracle_avg_depth": 5.23591,
+        "oracle_speedup": 1.52791
+      },
+      {
+        "epsilon": 0.005,
+        "avg_depth": 7.14689,
+        "val_loss": 1.699371,
+        "loss_hit_vs_full_depth": 0.006508,
+        "learned_speedup": 1.119368,
+        "oracle_efficiency": 0.212009,
+        "oracle_avg_depth": 5.118257,
+        "oracle_speedup": 1.563032
+      },
+      {
+        "epsilon": 0.01,
+        "avg_depth": 6.958736,
+        "val_loss": 1.70035,
+        "loss_hit_vs_full_depth": 0.007487,
+        "learned_speedup": 1.149634,
+        "oracle_efficiency": 0.248102,
+        "oracle_avg_depth": 4.990288,
+        "oracle_speedup": 1.603114
+      },
+      {
+        "epsilon": 0.02,
+        "avg_depth": 6.525866,
+        "val_loss": 1.703318,
+        "loss_hit_vs_full_depth": 0.010455,
+        "learned_speedup": 1.225891,
+        "oracle_efficiency": 0.336268,
+        "oracle_avg_depth": 4.785377,
+        "oracle_speedup": 1.67176
+      },
+      {
+        "epsilon": 0.05,
+        "avg_depth": 5.453351,
+        "val_loss": 1.716714,
+        "loss_hit_vs_full_depth": 0.023851,
+        "learned_speedup": 1.466988,
+        "oracle_efficiency": 0.55279,
+        "oracle_avg_depth": 4.336554,
+        "oracle_speedup": 1.844783
+      },
+      {
+        "epsilon": 0.1,
+        "avg_depth": 4.437651,
+        "val_loss": 1.744975,
+        "loss_hit_vs_full_depth": 0.052111,
+        "learned_speedup": 1.802755,
+        "oracle_efficiency": 0.738442,
+        "oracle_avg_depth": 3.833082,
+        "oracle_speedup": 2.087094
+      },
+      {
+        "epsilon": 0.2,
+        "avg_depth": 3.397293,
+        "val_loss": 1.801757,
+        "loss_hit_vs_full_depth": 0.108893,
+        "learned_speedup": 2.354816,
+        "oracle_efficiency": 0.913546,
+        "oracle_avg_depth": 3.22187,
+        "oracle_speedup": 2.48303
+      },
+      {
+        "epsilon": 0.5,
+        "avg_depth": 2.14221,
+        "val_loss": 1.966616,
+        "loss_hit_vs_full_depth": 0.273752,
+        "learned_speedup": 3.734461,
+        "oracle_efficiency": 1.110215,
+        "oracle_avg_depth": 2.310135,
+        "oracle_speedup": 3.463001
+      }
+    ],
+    "best_tradeoff": {
+      "epsilon": 0.02,
+      "avg_depth": 6.525866,
+      "val_loss": 1.703318,
+      "loss_hit_vs_full_depth": 0.010455,
+      "learned_speedup": 1.225891,
+      "oracle_efficiency": 0.336268,
+      "oracle_avg_depth": 4.785377,
+      "oracle_speedup": 1.67176
+    }
+  }
+}

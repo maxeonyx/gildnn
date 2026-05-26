@@ -1,0 +1,50 @@
+{"stage": "run_started", "seed": 42, "device": "cuda", "sanity_check_only": false, "steps": 20000, "batch_size": 128, "eval_batch_size": 2048, "learning_rate": 0.0003, "train_characters": 900000, "val_characters": 20000, "config": {"context_size": 128, "d_model": 256, "n_heads": 4, "ff_dim": 1024, "recurrent_iterations": 4, "temperature": 0.07, "dropout": 0.1}}
+{"stage": "dataset_loaded", "train_examples": 899872, "val_examples": 19872, "vocab_size": 65}
+{"stage": "train_progress", "step": 1000, "steps": 20000, "train_loss": 2.048639}
+{"stage": "train_progress", "step": 2000, "steps": 20000, "train_loss": 1.948842}
+{"stage": "run_started", "seed": 42, "device": "cuda", "sanity_check_only": false, "steps": 20000, "batch_size": 128, "eval_batch_size": 2048, "learning_rate": 0.0003, "train_characters": 900000, "val_characters": 20000, "config": {"context_size": 128, "d_model": 256, "n_heads": 4, "ff_dim": 1024, "recurrent_iterations": 4, "temperature": 0.07, "dropout": 0.1}}
+{"stage": "dataset_loaded", "train_examples": 899872, "val_examples": 19872, "vocab_size": 65}
+{"stage": "train_progress", "step": 1000, "steps": 20000, "train_loss": 2.050939}
+{"stage": "train_progress", "step": 2000, "steps": 20000, "train_loss": 1.951361}
+{"stage": "train_progress", "step": 3000, "steps": 20000, "train_loss": 2.060179}
+{"stage": "train_progress", "step": 4000, "steps": 20000, "train_loss": 1.72016}
+{"stage": "train_progress", "step": 5000, "steps": 20000, "train_loss": 1.764344}
+{"stage": "train_progress", "step": 6000, "steps": 20000, "train_loss": 1.864701}
+{"stage": "train_progress", "step": 7000, "steps": 20000, "train_loss": 1.660948}
+{"stage": "train_progress", "step": 8000, "steps": 20000, "train_loss": 1.800579}
+{"stage": "train_progress", "step": 9000, "steps": 20000, "train_loss": 1.510148}
+{"stage": "train_progress", "step": 10000, "steps": 20000, "train_loss": 2.052798}
+{"stage": "train_progress", "step": 11000, "steps": 20000, "train_loss": 1.586663}
+{"stage": "train_progress", "step": 12000, "steps": 20000, "train_loss": 1.627301}
+{"stage": "train_progress", "step": 13000, "steps": 20000, "train_loss": 1.628968}
+{"stage": "train_progress", "step": 14000, "steps": 20000, "train_loss": 1.693279}
+{"stage": "train_progress", "step": 15000, "steps": 20000, "train_loss": 1.524675}
+{"stage": "train_progress", "step": 16000, "steps": 20000, "train_loss": 1.582347}
+{"stage": "train_progress", "step": 17000, "steps": 20000, "train_loss": 1.418592}
+{"stage": "train_progress", "step": 18000, "steps": 20000, "train_loss": 1.540406}
+{"stage": "train_progress", "step": 19000, "steps": 20000, "train_loss": 1.485586}
+{"stage": "train_progress", "step": 20000, "steps": 20000, "train_loss": 1.566332}
+{"stage": "run_completed", "report_path": "C:\\Users\\maxeo\\gildnn\\experiments\\tinyshakespeare\\artifacts\\oracle_depth_analysis\\report.json", "oracle_metrics": {"mean_loss_per_depth": [2.374559, 1.728587, 1.58424, 1.558441], "oracle_best_loss": 1.395862, "oracle_depth_histogram": [2548, 3278, 3089, 10957], "no_regret_depth_histogram": [3906, 3206, 3242, 9518], "oracle_speedup_delta_0_01": 1.367747, "fraction_harmed_by_full_depth": 0.448621}}
+{"stage": "run_started", "seed": 42, "device": "cuda", "sanity_check_only": false, "steps": 20000, "batch_size": 128, "eval_batch_size": 2048, "learning_rate": 0.0003, "train_characters": 900000, "val_characters": 20000, "config": {"context_size": 128, "d_model": 256, "n_heads": 4, "ff_dim": 1024, "recurrent_iterations": 8, "temperature": 0.07, "dropout": 0.1}}
+{"stage": "dataset_loaded", "train_examples": 899872, "val_examples": 19872, "vocab_size": 65}
+{"stage": "train_progress", "step": 1000, "steps": 20000, "train_loss": 2.111582}
+{"stage": "train_progress", "step": 2000, "steps": 20000, "train_loss": 2.055059}
+{"stage": "train_progress", "step": 3000, "steps": 20000, "train_loss": 2.106306}
+{"stage": "train_progress", "step": 4000, "steps": 20000, "train_loss": 1.98794}
+{"stage": "train_progress", "step": 5000, "steps": 20000, "train_loss": 1.994802}
+{"stage": "train_progress", "step": 6000, "steps": 20000, "train_loss": 1.701391}
+{"stage": "train_progress", "step": 7000, "steps": 20000, "train_loss": 1.794729}
+{"stage": "train_progress", "step": 8000, "steps": 20000, "train_loss": 1.681405}
+{"stage": "train_progress", "step": 9000, "steps": 20000, "train_loss": 1.940854}
+{"stage": "train_progress", "step": 10000, "steps": 20000, "train_loss": 1.64795}
+{"stage": "train_progress", "step": 11000, "steps": 20000, "train_loss": 1.502981}
+{"stage": "train_progress", "step": 12000, "steps": 20000, "train_loss": 1.636041}
+{"stage": "train_progress", "step": 13000, "steps": 20000, "train_loss": 1.5593}
+{"stage": "train_progress", "step": 14000, "steps": 20000, "train_loss": 1.543393}
+{"stage": "train_progress", "step": 15000, "steps": 20000, "train_loss": 1.651478}
+{"stage": "train_progress", "step": 16000, "steps": 20000, "train_loss": 1.571581}
+{"stage": "train_progress", "step": 17000, "steps": 20000, "train_loss": 1.64179}
+{"stage": "train_progress", "step": 18000, "steps": 20000, "train_loss": 1.810492}
+{"stage": "train_progress", "step": 19000, "steps": 20000, "train_loss": 1.526385}
+{"stage": "train_progress", "step": 20000, "steps": 20000, "train_loss": 1.524536}
+{"stage": "run_completed", "report_path": "C:\\Users\\maxeo\\gildnn\\experiments\\tinyshakespeare\\artifacts\\oracle_depth_analysis\\report.json", "oracle_metrics": {"mean_loss_per_depth": [2.747419, 2.042706, 1.79826, 1.682723, 1.627641, 1.597386, 1.582208, 1.578108], "oracle_best_loss": 1.39497, "oracle_depth_histogram": [1441, 1715, 1893, 1366, 1284, 1384, 1521, 9268], "no_regret_depth_histogram": [3112, 2420, 1665, 1397, 1244, 1247, 1797, 6990], "oracle_speedup_delta_0_01": 1.578145, "fraction_harmed_by_full_depth": 0.533615}}

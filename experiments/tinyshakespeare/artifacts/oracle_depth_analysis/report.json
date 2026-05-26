@@ -1,0 +1,62 @@
+{
+  "seed": 42,
+  "device": "cuda",
+  "sanity_check_only": false,
+  "config": {
+    "context_size": 128,
+    "d_model": 256,
+    "n_heads": 4,
+    "ff_dim": 1024,
+    "recurrent_iterations": 8,
+    "temperature": 0.07,
+    "dropout": 0.1
+  },
+  "train_characters": 900000,
+  "val_characters": 20000,
+  "steps": 20000,
+  "batch_size": 128,
+  "eval_batch_size": 2048,
+  "learning_rate": 0.0003,
+  "delta": 0.01,
+  "training": {
+    "final_train_loss": 1.524536,
+    "wall_seconds": 931.690728
+  },
+  "oracle_metrics": {
+    "mean_loss_per_depth": [
+      2.747419,
+      2.042706,
+      1.79826,
+      1.682723,
+      1.627641,
+      1.597386,
+      1.582208,
+      1.578108
+    ],
+    "oracle_best_loss": 1.39497,
+    "oracle_depth_histogram": [
+      1441,
+      1715,
+      1893,
+      1366,
+      1284,
+      1384,
+      1521,
+      9268
+    ],
+    "no_regret_depth_histogram": [
+      3112,
+      2420,
+      1665,
+      1397,
+      1244,
+      1247,
+      1797,
+      6990
+    ],
+    "mean_no_regret_depth": 5.069243,
+    "oracle_speedup_delta_0_01": 1.578145,
+    "fraction_harmed_by_full_depth": 0.533615,
+    "total_examples": 19872
+  }
+}
