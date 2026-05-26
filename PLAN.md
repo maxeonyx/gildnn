@@ -4,18 +4,22 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current operational state (2026-05-27, 08:30 NZST)
+## Current operational state (2026-05-27, 09:10 NZST)
 
 **GPU: BUSY** — d=512 capstone training (PID 18932/6364, `experiments/capstone_d512/`)
 - Config: d=512, ctx=256, iter=8, n_heads=8, ff=2048, WikiText-103, 20K steps
 - Parameters: 5,881,537 (2.7× larger than d=256)
-- Progress at step 1000: val_loss=2.33, avg_depth=7.18 (expected early)
-- Estimated finish: ~09:30 NZST (~70 min total)
+- Progress at step 11000: val_loss=1.74, avg_depth=6.79
+- Estimated finish: ~09:46 NZST
 - **Question:** Does halting depth variation increase with model size? Does text quality become sentence-level coherent?
 
 **Capstone d=256: COMPLETE.** Full report: `research/questions/capstone-generation/README.md`
 
-**Daily report 2026-05-27:** NOT YET WRITTEN (due after 4pm). Today's content: Pathway 5 resolution + capstone generation + d=512 scale-up.
+**Pathway 4 opportunity: MEASURED.** Per-depth analysis shows 95% of quality achieved by depth 4 (only 0.056 nats lost vs full depth 8). Report: `research/questions/computation-compression/README.md`
+
+**Grammar experiment: INFRASTRUCTURE READY + REPORT-FIRST DONE.** Question README: `research/questions/grammar-depth/README.md`
+
+**Daily report 2026-05-27:** NOT YET WRITTEN (due after 4pm). Today's content: d=512 scale-up + grammar experiment + Pathway 4 measurement.
 
 ---
 
@@ -47,9 +51,9 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 **A. Scale to d=512 or more steps** — ALREADY RUNNING.
 
-**B. Pathway 4 (Active Compression)** — Can the recurrent depth model learn to frontload computation (make early depths more informative)? Would enlarge the oracle ceiling. Natural successor experiment.
+**B. Pathway 4 (Active Compression)** — Opportunity confirmed: only 0.056 nats lost by stopping at depth 4. Cheapest test: explicit self-prediction head at depth 2 predicting depth 8's output. Does it improve depth-2 quality? See `research/questions/computation-compression/README.md`.
 
-**C. Synthetic grammar task** — ✅ READY TO RUN. Infrastructure built:
+**C. Synthetic grammar task** — ✅ READY TO RUN. Infrastructure built + report-first done.
   - Data: `data/grammar/` (typed recursive brackets, 2M chars, max depth 5) + `data/grammar-flat/` (flat control)
   - Training: `runs/grammar_train.py` (d=64, ctx=64, iter=8, 5K steps default)
   - Analysis: `experiments/grammar_depth/analyze_depth.py` (teacher-forced depth-by-nesting table)
@@ -87,11 +91,14 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 - `VISION.md` — stakeholder requirements (DO NOT EDIT)
 - `ROADMAP.md` — research pathways (DO NOT EDIT)
 - `PROCESS.md` — experiment discipline and loop
-- `research/questions/capstone-generation/README.md` — **NEW** capstone result
+- `research/questions/capstone-generation/README.md` — capstone result
+- `research/questions/grammar-depth/README.md` — grammar experiment design (report-first)
+- `research/questions/computation-compression/README.md` — Pathway 4 opportunity measurement
 - `research/questions/dynamic-depth/README.md` — full Pathway 5 write-up
 - `core/tied_readout.py` — validated multi-rate lateral architecture
 - `core/recurrent_depth.py` — validated recurrent depth + halting architecture
 - `core/generation.py` — text generation with halting annotations
 - `runs/capstone_train.py` — WikiText-103 training script
+- `runs/grammar_train.py` — grammar training script
 - `runs/generate_text.py` — generation CLI
 - `research/daily/2026-05-26.md` — yesterday's report
