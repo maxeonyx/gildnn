@@ -62,6 +62,20 @@ class ModelSize:
     n_layers: int
 
 
+@dataclass(frozen=True)
+class Corpus:
+    train_text: str
+    val_text: str
+    stoi: dict[str, int]
+    itos: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class TrainedCondition:
+    result: ConditionResult
+    model: TiedReadoutModel
+
+
 def positive_int(value: str) -> int:
     parsed = int(value)
     if parsed <= 0:
@@ -91,6 +105,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--n-heads", type=positive_int, default=N_HEADS)
     parser.add_argument("--ff-dim", type=positive_int, default=FF_DIM)
     parser.add_argument("--n-layers", type=positive_int, default=N_LAYERS)
+    parser.add_argument("--generate", action="store_true")
+    parser.add_argument("--prompt", type=str, default=None)
+    parser.add_argument("--sample-temperature", type=float, default=0.8)
     return parser.parse_args()
 
 
@@ -147,6 +164,10 @@ def resolve_text_file() -> Path:
     return Path(__file__).resolve().parent.parent / "experiments" / "corpora.ignore" / "tinyshakespeare_input.txt"
 
 
+def load_corpus_text() -> str:
+    return resolve_text_file().read_text(encoding="utf-8")
+
+
 def choose_validation_text(text: str, *, train_text: str, val_characters: int) -> str:
     start = len(train_text)
     stop = start + val_characters
@@ -190,8 +211,8 @@ def encode_window_dataset(text: str, *, stoi: dict[str, int] | None = None) -> t
     return torch.stack(inputs), torch.tensor(targets, dtype=torch.long), len(stoi)
 
 
-def load_window_dataset() -> tuple[WindowDataset, WindowDataset]:
-    raw_text = resolve_text_file().read_text(encoding="utf-8")
+def load_window_dataset() -> tuple[WindowDataset, WindowDataset, Corpus]:
+    raw_text = load_corpus_text()
     required_characters = TRAIN_CHARACTERS + VAL_CHARACTERS
     if len(raw_text) < required_characters:
         raise ValueError(f"Need at least {required_characters} characters, got {len(raw_text)}.")
@@ -201,6 +222,7 @@ def load_window_dataset() -> tuple[WindowDataset, WindowDataset]:
     train_long_inputs, train_targets, vocab_size = encode_window_dataset(train_text)
     train_vocab = sorted(set(train_text))
     stoi = {char: index for index, char in enumerate(train_vocab)}
+    itos = tuple(train_vocab)
     missing_val_chars = sorted(set(val_text) - set(train_text))
     if missing_val_chars:
         raise ValueError(f"Validation text contains characters absent from training text: {missing_val_chars}")
@@ -221,6 +243,7 @@ def load_window_dataset() -> tuple[WindowDataset, WindowDataset]:
             targets=val_targets,
             vocab_size=vocab_size,
         ),
+        Corpus(train_text=train_text, val_text=val_text, stoi=stoi, itos=itos),
     )
 
 
@@ -467,6 +490,93 @@ def make_optimizer(model: nn.Module, device: torch.device) -> torch.optim.Optimi
     return torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE, fused=device.type == "cuda")
 
 
+def sample_from_logits(logits: Tensor, *, sample_temperature: float) -> Tensor:
+    if sample_temperature <= 0.0:
+        raise ValueError(f"sample_temperature must be positive, got {sample_temperature}")
+    probabilities = F.softmax(logits.float() / sample_temperature, dim=-1)
+    return torch.multinomial(probabilities, num_samples=1).squeeze(-1)
+
+
+def encode_prompt(prompt: str, *, stoi: dict[str, int]) -> list[int]:
+    missing_characters = sorted(set(prompt) - set(stoi))
+    if missing_characters:
+        raise ValueError(f"Prompt contains characters absent from training vocabulary: {missing_characters}")
+    return [stoi[char] for char in prompt]
+
+
+def prompt_context_size(condition_name: str) -> int:
+    match condition_name:
+        case "block0_alone":
+            return SHORT_CONTEXT
+        case "two_blocks":
+            return LONG_CONTEXT
+        case _:
+            raise ValueError(f"Unsupported condition: {condition_name}")
+
+
+def resolve_prompt(prompt: str | None, *, corpus: Corpus, condition_name: str) -> str:
+    resolved_prompt = prompt if prompt is not None else corpus.val_text[:LONG_CONTEXT]
+    required_context = prompt_context_size(condition_name)
+    if len(resolved_prompt) < required_context:
+        raise ValueError(
+            f"Prompt must be at least {required_context} characters for {condition_name}, got {len(resolved_prompt)}"
+        )
+    return resolved_prompt
+
+
+@torch.inference_mode()
+def generate_text(
+    model: TiedReadoutModel,
+    *,
+    prompt: str,
+    corpus: Corpus,
+    sample_temperature: float,
+    device: torch.device,
+    generated_characters: int = 500,
+) -> str:
+    model.eval()
+    token_buffer = encode_prompt(prompt, stoi=corpus.stoi)
+
+    normalized_embeddings = None
+    if model.normalize:
+        normalized_embeddings = F.normalize(model.token_embedding.weight.float(), dim=-1).to(model.token_embedding.weight.dtype)
+
+    for _ in range(generated_characters):
+        short_inputs = torch.tensor([token_buffer[-SHORT_CONTEXT:]], dtype=torch.long, device=device)
+        mid_inputs = None
+        long_inputs = None
+        if model.mid_block is not None:
+            mid_inputs = torch.tensor([token_buffer[-MID_CONTEXT:]], dtype=torch.long, device=device)
+        if model.long_block is not None:
+            long_inputs = torch.tensor([token_buffer[-LONG_CONTEXT:]], dtype=torch.long, device=device)
+
+        with autocast_context(device):
+            combined_hidden = model.block_last_hidden(model.output_block, short_inputs)
+            if mid_inputs is not None and model.mid_block is not None:
+                mid_hidden = model.block_last_hidden(model.mid_block, mid_inputs).detach()
+                combined_hidden = combined_hidden + model.lateral_scale * mid_hidden
+            if long_inputs is not None and model.long_block is not None:
+                long_hidden = model.block_last_hidden(model.long_block, long_inputs).detach()
+                combined_hidden = combined_hidden + model.lateral_scale * long_hidden
+
+            if model.normalize:
+                logits = F.linear(combined_hidden, normalized_embeddings) / model.temperature
+            else:
+                logits = F.linear(combined_hidden, model.token_embedding.weight) / model.temperature
+
+        next_token = sample_from_logits(logits.squeeze(0), sample_temperature=sample_temperature)
+        token_buffer.append(int(next_token.item()))
+
+    return "".join(corpus.itos[token] for token in token_buffer[-generated_characters:])
+
+
+def print_generated_text(*, condition_name: str, prompt: str, generated_text: str) -> None:
+    print(f"\n[{condition_name}] prompt", flush=True)
+    print(prompt, flush=True)
+    print(f"\n[{condition_name}] generated_text", flush=True)
+    print(generated_text, flush=True)
+
+
 def warm_up_cuda(
     train_dataset: WindowDataset,
     *,
@@ -571,7 +681,7 @@ def train_condition(
     local_loss: str,
     training_steps: int,
     batch_size: int,
-) -> ConditionResult:
+) -> TrainedCondition:
     set_seed(seed)
     model = build_model(
         condition_name,
@@ -646,12 +756,15 @@ def train_condition(
         f"val_accuracy={evaluation.val_accuracy:.4%} wall_seconds={wall_seconds:.2f}",
         flush=True,
     )
-    return ConditionResult(
-        name=condition_name,
-        val_loss=evaluation.val_loss,
-        val_accuracy=evaluation.val_accuracy,
-        delta_from_baseline=0.0,
-        wall_seconds=wall_seconds,
+    return TrainedCondition(
+        result=ConditionResult(
+            name=condition_name,
+            val_loss=evaluation.val_loss,
+            val_accuracy=evaluation.val_accuracy,
+            delta_from_baseline=0.0,
+            wall_seconds=wall_seconds,
+        ),
+        model=model,
     )
 
 
@@ -684,7 +797,7 @@ def main() -> None:
         torch.backends.cuda.matmul.allow_tf32 = True
         torch.backends.cudnn.allow_tf32 = True
 
-    train_dataset, val_dataset = load_window_dataset()
+    train_dataset, val_dataset, corpus = load_window_dataset()
     train_dataset = dataset_to_device(train_dataset, device)
     val_dataset = dataset_to_device(val_dataset, device)
     warm_up_cuda(
@@ -704,11 +817,12 @@ def main() -> None:
         f"short_ctx={SHORT_CONTEXT} mid_ctx={MID_CONTEXT} long_ctx={LONG_CONTEXT} "
         f"d_model={model_size.d_model} n_heads={model_size.n_heads} ff_dim={model_size.ff_dim} n_layers={model_size.n_layers} "
         f"steps={args.steps} batch={args.batch_size} temperature={args.temperature:.4f} lateral_scale={args.lateral_scale:.4f} normalize={args.normalize} local_loss={args.local_loss} "
+        f"generate={args.generate} sample_temperature={args.sample_temperature:.4f} "
         f"conditions={','.join(requested_conditions)}",
         flush=True,
     )
 
-    results = [
+    trained_conditions = [
         train_condition(
             condition_name,
             train_dataset,
@@ -725,6 +839,25 @@ def main() -> None:
         )
         for condition_name in requested_conditions
     ]
+
+    for trained_condition in trained_conditions:
+        if not args.generate:
+            continue
+        prompt = resolve_prompt(args.prompt, corpus=corpus, condition_name=trained_condition.result.name)
+        generated_text = generate_text(
+            trained_condition.model,
+            prompt=prompt,
+            corpus=corpus,
+            sample_temperature=args.sample_temperature,
+            device=device,
+        )
+        print_generated_text(
+            condition_name=trained_condition.result.name,
+            prompt=prompt,
+            generated_text=generated_text,
+        )
+
+    results = [trained_condition.result for trained_condition in trained_conditions]
 
     baseline_loss = next((result.val_loss for result in results if result.name == "block0_alone"), None)
     adjusted_results = [
