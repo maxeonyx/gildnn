@@ -293,3 +293,106 @@ If pursuing dynamic depth, prefer deeper models (8+ iterations) where the opport
 ### Next step
 
 **Halting-aware training at depth-8** — train a d=256, 8-iteration model with a per-depth confidence head from the start. Use the oracle measurement to set expectations. The d=72 result suggests ~2× speedup is achievable if the halt head can learn the pattern.
+
+---
+
+## Oracle measurement at d=256, 8 iterations (2026-05-27)
+
+**Script:** `runs/oracle_depth_analysis.py --recurrent-iterations 8` | **Status: IN PROGRESS**
+
+Tests whether the larger oracle opportunity from d=72/depth-8 (1.96×) persists at d=256 with 8 iterations. Sanity check (10 steps) showed 1.83× even untrained — confirming the pattern holds.
+
+Results will be added when training completes (~16-18 min).
+
+---
+
+## Halting-aware training: experiment design (pre-registered 2026-05-27)
+
+> **Purpose:** Determine whether a jointly-trained halt head can learn to predict oracle depth, given that post-hoc probing failed (3.4% above baseline).
+
+### Why joint training is necessary
+
+The predictability probe (above) showed that a frozen model's features are barely predictive of halting decisions. This means the model doesn't naturally develop depth-indicative features. Joint training creates gradient pressure for the model to encode "am I done?" information in its hidden state.
+
+### Architecture
+
+**Base model:** SharedRecurrentCore (d_model=128, 4 heads, ff_dim=512, 8 iterations, ctx=128, TinyShakespeare)
+
+Smaller than the d=256 measurement model — this is the cheapest honest test of the mechanism.
+
+**Halt head** (shared across all depths):
+```
+input:  h_d[:, -1, :]          [batch, 128]     (last-position hidden state at depth d)
+        LayerNorm(128)
+        concat d/N scalar       [batch, 129]     (normalized depth index)
+        Linear(129, 64) + GELU
+        Linear(64, 1)           [batch, 1]       (halt logit)
+output: sigmoid → halt probability p_d
+```
+
+The head is shared across depths and receives the depth index explicitly. This is simpler than separate heads and allows generalization across depths.
+
+### Training objective
+
+**Supervised oracle labels** (not REINFORCE — too many confounds for a first test):
+
+```
+y_{i,d} = 1[ℓ_{i,d} ≤ ℓ_{i,N} + δ]    (δ = 0.01 nats)
+```
+
+where ℓ_{i,d} is the per-example CE loss using hidden state at depth d.
+
+**Total loss:**
+```
+L = L_LM + λ · L_halt
+
+L_LM   = mean CE at full depth (depth N)
+L_halt = (1/(N-1)) Σ_{d=1}^{N-1} BCEWithLogits(s_{i,d}, y_{i,d})
+```
+
+- Depth N excluded from halt loss (trivially "stop here")
+- λ warmup: 0 → 0.1 linearly over first 10% of training
+- Per-depth pos_weight from running average of class balance (prevents collapse to "always continue")
+- Labels are **detached** — no gradient flows through oracle label construction
+
+**Gradient flow:** Halt loss gradients DO flow into the shared model (through h_d). This is the key difference from post-hoc probing — the model is incentivized to make its states halt-predictive.
+
+### Training protocol
+
+- Steps: 10,000
+- Batch size: 64
+- Always run all 8 iterations during training (oracle labels require full-depth losses)
+- Log per-depth: halt positive rate, BCE loss, running AUROC
+- No actual halting during training
+
+### Evaluation protocol
+
+After training, on validation set:
+
+1. **Threshold sweep:** For τ ∈ {0.05, 0.10, ..., 0.95}, halt at first depth where p_d ≥ τ
+2. **Per threshold, report:**
+   - Average depth used
+   - Val loss achieved (using the halted depth's hidden state)
+   - Learned speedup = N / avg_depth
+3. **Oracle efficiency** = (learned_speedup - 1) / (oracle_speedup - 1)
+4. **Threshold-free metric:** AUROC per depth for "safe to stop now?" classification
+
+### Success bar (minimum to continue)
+
+| Metric | Threshold |
+|---|---|
+| AUROC at ≥1 early/mid depth | > 0.70 |
+| Best threshold: avg depth | ≤ 6.5 (of 8) |
+| Best threshold: val loss hit | ≤ 0.02 nats vs full depth |
+| Clearly better than post-hoc probe | Yes (by visual inspection of AUROC) |
+
+### Failure bar (stop condition)
+
+- AUROC ≤ 0.60 at all depths, AND
+- No useful frontier point in threshold sweep (either no depth reduction, or obvious loss damage > 0.05 nats)
+
+If failure: conclude that simple supervised joint halt training doesn't make halt-predictive features emerge. Consider alternatives: marginal improvement regression, or auxiliary halting loss formulations.
+
+### Expected runtime
+
+~20-45 min on RTX 3090 (d=128, 8 iterations, 10K steps). Affordable as a single pilot run.
