@@ -4,26 +4,29 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current operational state (2026-05-27, 06:50 NZST)
+## Current operational state (2026-05-27, 07:35 NZST)
 
-**GPU: FREE.**
+**GPU: BUSY** — capstone training (PID 17016/23076, `experiments/capstone_generation/`)
+- Config: d=256, ctx=256, iter=8, WikiText-103, 20K steps
+- Progress at step 1000: loss=2.22, avg_depth=6.68/8 (halting already active)
+- Estimated finish: ~08:15 NZST
 
-**Pathway 5: RESOLVED this session.** Full arc:
-- Oracle measurements → binary BCE halt head (FAIL) → regression MSE halt head (SUCCESS at d=128)
-- Scale-up to d=256/50K: Pearson scales (0.561) but strict-threshold speedup doesn't (calibration mismatch)
-- Calibration experiment: affine post-hoc fix → ε=0.02 speedup jumps from 1.30 to 1.39, beating fixed-6
-- **Integrated into `core/recurrent_depth.py`** — tested, all 5 piece tests pass
+**Direction chosen: E (Capstone Generation)** — scale the recurrent depth model to produce readable text with visible halting behavior. Connects to Pathways 1+5.
 
-**Daily report 2026-05-27:** NOT YET WRITTEN (due after 4pm). Today's report covers the full Pathway 5 resolution — the most significant experimental arc of the project so far.
+**Daily report 2026-05-27:** NOT YET WRITTEN (due after 4pm). Today's report covers Pathway 5 resolution + capstone launch.
 
 ---
 
 ## What's next
 
-1. ~~Integration~~ **DONE** — `core/recurrent_depth.py` with `SharedRecurrentCore`, `HaltHead`, `RecurrentDepthLM`, calibration support
-2. **Choose next research direction** — see "Open directions" below
-3. **Daily report** (after 4pm)
-4. **Process note:** Consider making `--save-checkpoint` default for future experiment runs (calibration experiment was initially blocked by missing checkpoint)
+1. ~~Integration~~ **DONE**
+2. ~~Choose direction~~ **DONE** — Capstone Generation (option E)
+3. ~~Generation infrastructure~~ **DONE** — `core/generation.py`, `runs/generate_text.py`
+4. ~~--save-checkpoint default~~ **DONE** — now defaults to True
+5. **ACTIVE: Capstone training** — WikiText-103, d=256, 20K steps
+6. **After training:** Generate samples with halting annotations, write capstone report
+7. **If text quality insufficient:** Scale to d=512 or more steps
+8. **Daily report** (after 4pm)
 
 ---
 
