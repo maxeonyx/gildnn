@@ -577,6 +577,40 @@ At d=256, learned halting does **not** dominate fixed-depth baselines. It fills 
 
 Running now. If Pearson continues rising and ε=0.02 overtakes fixed-6, the problem is purely training budget. If it plateaus, the halt head architecture may need scaling (e.g. larger probe, more layers).
 
+---
+
+## What this means for the vision
+
+**Vision requirement served:** "Support dynamic computation — variable effort per token at inference (think longer on hard tokens, skip easy ones)."
+
+**What we've proven:** A regression halt head (predict remaining loss gain) can learn to allocate depth per-token, achieving 60% of oracle efficiency at d=128 with only 10K training steps. The mechanism is simple (2-layer MLP, shared across depths, ~130 extra params) and trains jointly with no instability.
+
+**What remains unproven:** Whether this scales to the model sizes that matter for the final architecture. The d=256 run is the discriminating test.
+
+### Decision branches after 50K result
+
+**If Pearson ≥ 0.50 and ε=0.02 beats fixed-6 (speedup > 1.33× at loss ≤ 0.015):**
+- Diagnosis: purely a convergence/training-budget issue at larger scale.
+- Action: integrate into `core/` as a first-class feature. The halt head becomes part of `SharedRecurrentCore`.
+- Next pathway connection: combine with Pathway 4 (computation compression) — if the model learns to be *ready* earlier via self-prediction, and also *knows* it's ready via the halt head, you get both active compression and passive early-exit.
+
+**If Pearson improves (0.45→0.48) but still doesn't dominate fixed-depth:**
+- Diagnosis: mechanism works but the halt head architecture is undersized for d=256.
+- Action: keep experimental. Try a 3-layer halt head (Linear→GELU→Linear→GELU→Linear) or increase hidden dim. The question becomes architectural, not fundamental.
+- Integration: premature — the design isn't stable.
+
+**If Pearson plateaus (stays ~0.45):**
+- Diagnosis: the 2-layer halt head fundamentally can't decode d=256 features well enough.
+- Action: the d=128 result stands as proof-of-concept. Integration at d=128 is still valid but less exciting.
+- Broader implication: dynamic depth may need to compose with Pathway 4's computation compression to be practical at larger scales — the model needs to *actively* prepare halt-predictive features, not just hope the probe finds them.
+
+### Integration criteria (what would warrant promotion to `core/`)
+
+1. ε=0.02 must beat fixed-depth at the target model size (currently d=256)
+2. No training instability — halt loss should decrease monotonically after warmup
+3. Minimal parameter overhead (currently ~0.1% — this is fine)
+4. The halt head design must be stable (no more architecture changes needed)
+
 > **Purpose:** Determine whether a jointly-trained halt head can learn to predict oracle depth, given that post-hoc probing failed (3.4% above baseline).
 
 ### Why joint training is necessary
