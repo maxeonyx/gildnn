@@ -5,13 +5,17 @@ import { join } from "path"
 /**
  * Watches for new dictation files and injects a notification into the active session.
  *
+ * Uses two mechanisms:
+ * 1. file.watcher.updated events (unreliable on Windows)
+ * 2. Polling after each tool call via tool.execute.after (reliable fallback)
+ *
  * When a new .md file appears in dictations/, this plugin sends a noReply message
- * into the current session so the agent sees it on its next turn. The agent cannot
- * miss it — it appears as a user message in the conversation.
+ * into the current session so the agent sees it on its next turn.
  */
 export const DictationNotifier: Plugin = async ({ client, directory }) => {
   const dictationsDir = join(directory, "dictations")
   const knownFiles = new Set<string>()
+  let notifying = false
 
   // Seed with existing files so we only notify on genuinely new ones
   try {
@@ -22,30 +26,41 @@ export const DictationNotifier: Plugin = async ({ client, directory }) => {
     // dictations/ doesn't exist yet — that's fine
   }
 
-  return {
-    "file.watcher.updated": async (input) => {
-      // Check if the update is a new dictation file
-      const path: string = (input as any).path ?? ""
-      if (!path.includes("dictations") || !path.endsWith(".md")) return
+  async function checkForNewDictations(sessionID?: string) {
+    if (notifying) return
+    let newFiles: string[] = []
+    try {
+      const files = await readdir(dictationsDir)
+      for (const f of files) {
+        if (f.endsWith(".md") && !knownFiles.has(f)) {
+          knownFiles.add(f)
+          newFiles.push(f)
+        }
+      }
+    } catch {
+      return
+    }
+    if (newFiles.length === 0) return
 
-      const filename = path.split(/[\\/]/).pop()!
-      if (knownFiles.has(filename)) return
-      knownFiles.add(filename)
-
-      // Find the active session to inject into
+    notifying = true
+    try {
       const sessions = await client.session.list()
       if (!sessions.data || sessions.data.length === 0) return
 
-      // Inject into all active sessions — the agent will see it on next turn
-      for (const session of sessions.data) {
+      const targets = sessionID
+        ? sessions.data.filter(s => s.id === sessionID)
+        : sessions.data
+
+      for (const session of targets) {
         try {
+          const fileList = newFiles.map(f => `dictations/${f}`).join(", ")
           await client.session.prompt({
             path: { id: session.id },
             body: {
               noReply: true,
               parts: [{
                 type: "text",
-                text: `[DICTATION NOTIFICATION] New dictation file: dictations/${filename} — Max has written new instructions. Read it immediately before continuing other work.`,
+                text: `[DICTATION NOTIFICATION] New dictation file(s): ${fileList} — Max has written new instructions. Read immediately before continuing other work.`,
               }],
             },
           })
@@ -53,6 +68,24 @@ export const DictationNotifier: Plugin = async ({ client, directory }) => {
           // Session might not be active — that's fine
         }
       }
+    } finally {
+      notifying = false
+    }
+  }
+
+  return {
+    // Primary: file watcher events (works on Linux/macOS, unreliable on Windows)
+    event: async ({ event }) => {
+      if (event.type !== "file.watcher.updated") return
+      const { file, event: fileEvent } = event.properties
+      if (fileEvent !== "add" && fileEvent !== "change") return
+      if (!file.includes("dictations") || !file.endsWith(".md")) return
+      await checkForNewDictations()
+    },
+
+    // Fallback: check after each tool call (reliable on all platforms)
+    "tool.execute.after": async (input) => {
+      await checkForNewDictations(input.sessionID)
     },
   }
 }

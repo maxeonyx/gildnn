@@ -138,9 +138,18 @@ Evidence in question READMEs must be **embedded inline** in the markdown (tables
 
 ## Dictation notification
 
-New dictations are detected automatically by the `.opencode/plugins/dictation-notifier.ts` plugin. When a new `.md` file appears in `dictations/`, a message is injected into the active session that the agent will see on its next turn. No polling required — the agent cannot miss it.
+New dictations may appear at any time — Max dictates via a separate support session that runs alongside the loop. The dictation-notifier plugin is supposed to inject a notification but is currently untested/broken. Dictations get picked up when:
+1. The loop restarts (opencode process ends for any reason and loop.ps1 relaunches)
+2. A handover cycle starts (agent picks up fresh context)
+3. The agent checks the dictations directory as part of its normal workflow
 
-When you see a `[DICTATION NOTIFICATION]` message, read the dictation file immediately — it contains Max's instructions and takes priority over current work.
+Loop restart is NOT the same as handover. Loop restart can happen at any time due to external factors (crash, timeout, compaction). Handover is a deliberate agent action at a natural stopping point. They are completely unrelated mechanisms.
+
+When you notice a new dictation, read it immediately — it contains Max's instructions and takes priority over current work.
+
+## Support session
+
+A separate OpenCode session (the "support session") runs alongside the loop agent. It monitors the loop, writes dictations on Max's behalf, and may modify files in the repo independently (especially `dictations/` and `AGENTS.md`). If you notice unexpected file changes, this is likely the cause — not a conflict.
 
 **Don't interrupt the desktop** when launching background processes. Always use `-WindowStyle Hidden` on `Start-Process`. Never use `-NoNewWindow` (which inherits the parent console and can steal focus).
 
