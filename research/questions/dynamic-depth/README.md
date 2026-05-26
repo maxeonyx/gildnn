@@ -361,7 +361,55 @@ With 1.58× oracle ceiling, a learned halt head achieving even 50% oracle effici
 
 ---
 
-## Halting-aware training: experiment design (pre-registered 2026-05-27)
+## Halting-aware training: pilot results (2026-05-27)
+
+**Script:** `runs/halting_aware_training.py` | **Artifacts:** `experiments/tinyshakespeare/artifacts/halting_aware_training/`
+
+Trained d=128, 8-iteration model with jointly-trained halt head (10K steps, ~7 min). The halt head predicts "safe to stop now?" at each depth using oracle labels.
+
+### Key result: PRACTICAL FAILURE
+
+The learned halt head **does worse than a trivial fixed-depth baseline**.
+
+| Policy | Avg depth | Val loss hit | Speedup |
+|---|---|---|---|
+| Always depth 8 (baseline) | 8.00 | 0.000 | 1.00× |
+| **Fixed depth 6 (trivial)** | **6.00** | **0.015** | **1.33×** |
+| Learned halt (τ=0.80) | 7.79 | 0.015 | 1.03× |
+| Oracle | 5.08 | 0.000 (by definition) | 1.58× |
+
+At the same loss budget (0.015 nats), fixed depth-6 gives 1.33× speedup while the learned halt gives only 1.03×. The adaptive policy adds complexity for no benefit.
+
+### What the halt head DID learn
+
+- **AUROC per depth:** [0.693, 0.662, 0.669, 0.665, 0.654, 0.642, 0.605]
+- Best AUROC (depth 1): 0.693 — above random (0.5) but below the 0.70 threshold
+- The head learned real token-specific signal (not just the depth prior)
+- But discrimination is too weak for useful halting
+
+### Against pre-registered criteria
+
+| Criterion | Required | Actual | Verdict |
+|---|---|---|---|
+| AUROC > 0.70 at ≥1 depth | > 0.70 | 0.693 | ❌ Marginal miss |
+| Avg depth ≤ 6.5 | ≤ 6.5 | 7.79 | ❌ Clear miss |
+| Val loss hit ≤ 0.02 | ≤ 0.02 | 0.015 | ✓ (but only because barely halting) |
+| Better than post-hoc | Yes | Probably yes | ✓ (AUROC metric vs accuracy not directly comparable) |
+| **Does NOT meet failure bar** | AUROC ≤ 0.60 everywhere | 0.693 at d1 | Not formal failure |
+
+### Diagnosis
+
+1. **The objective formulation is likely wrong** — binary BCE "safe-to-stop-now?" doesn't encode the cost asymmetry of halting. A shallow false positive is catastrophic (loss explodes); a deep false negative just wastes one iteration.
+
+2. **Training was still improving** — AUROC climbed from 0.60→0.66 during training, eval AUROC 0.693 slightly higher than final training metric. Undertraining is possible but unlikely to close the gap to beating fixed depth-6.
+
+3. **Model capacity is not the bottleneck** — the signal exists (AUROC > 0.5), it's just not being turned into a useful policy.
+
+### Next step: falsification run
+
+Running 30K steps (same setup) to definitively rule out undertraining. If AUROC at evaluation still doesn't yield a policy that beats fixed depth-6, abandon binary BCE and switch to:
+
+**Marginal improvement regression** — predict `remaining_gain = ℓ(d) - ℓ(N)` as a continuous value. Halt when predicted remaining gain < ε. This preserves severity information and matches the actual deployment decision.
 
 > **Purpose:** Determine whether a jointly-trained halt head can learn to predict oracle depth, given that post-hoc probing failed (3.4% above baseline).
 
