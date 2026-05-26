@@ -4,13 +4,13 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current operational state (2026-05-27, 00:05 NZST)
+## Current operational state (2026-05-27, 00:20 NZST)
 
-**GPU: BUSY.** Running `runs/recurrent_depth_lm.py` (PID 11360). Log: `runs/recurrent_depth_run.log`. Expected ~15-25 min.
+**GPU: FREE.** Experiment completed.
 
-**Experiment:** Pathway 1 — 4-layer distinct vs 4-iteration recurrent, d=128, ctx=128, 20K steps. Tests the fundamental thesis: can shared-weight recurrence match distinct-layer depth?
+**Key result:** Recurrent-4 BEATS distinct-4: val_loss 1.6315 vs 1.7234 (Δ = -0.092), with 3.6× fewer params and 20% faster training. Weight sharing acts as regularization at this data scale.
 
-**Daily report 2026-05-26:** WRITTEN (updated with inference caching result). See `research/daily/2026-05-26.md`.
+**Daily report 2026-05-26:** WRITTEN (will need 2026-05-27 later). See `research/daily/2026-05-26.md`.
 
 **Integration:** `core/tied_readout.py` now contains the validated model architecture (commit `103deca`).
 
@@ -266,9 +266,10 @@ This FULLY closes multi-rate for Pathway 8 with local CE objectives. Any form of
 | **Recurrent lateral (stale)** | **3→1** | **Stale laterals: NEUTRAL at best (Δ=+0.017 with scale=0.2, 4800 steps)** | **Detached state doesn't learn useful communication. Fixed-window approach still best for info asymmetry.** |
 | **Multi-rate buffer (sequential)** | **8→3** | **Sequential regime fails: Δ=0.00 at ctx32, Δ=+0.04 at ctx128** | **Sequential training incompatible with laterals — near-constant signal from overlapping windows. Window-based training required.** |
 | **Inference-time caching** | **8** | **Immediate collapse: K=2 gives Δ=+0.43** | **CE-trained blocks produce prediction-specific output, useless for any other position. Multi-rate fundamentally incompatible with CE local objective.** |
+| **Recurrent depth (4 iter vs 4 distinct)** | **1** | **Recurrent WINS: 1.6315 vs 1.7234 (Δ=-0.092)** | **Weight sharing = regularization at this scale. 3.6× fewer params, 20% faster. Stable through 4 iterations.** |
 
 ---
 
 ## The agent's working loop
 
-Follow PROCESS.md. Current position: **MULTI-RATE FULLY CLOSED (training AND inference caching both fail).** CE local objective produces prediction-specific state, incompatible with any temporal reuse. Only working config: window-based + fresh per-position. Next: integrate into core/, then choose new pathway direction.
+Follow PROCESS.md. Current position: **PATHWAY 1 CONFIRMED at this scale.** Recurrent depth beats distinct layers (1.63 vs 1.72). Multi-rate (Pathway 8) fully closed. Integration done. Next: iteration scaling (8, 16 iters), width scaling, or composition with Pathway 3 (local learning + recurrence).
