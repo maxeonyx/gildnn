@@ -39,7 +39,7 @@ EVAL_BATCH_SIZE = 256
 SEQ_LENGTH = 128
 BURN_IN = 32
 TEMPERATURE = 1.0
-ALL_CONDITIONS = ("block0_alone", "recurrent_lateral", "reset_32", "reset_128")
+ALL_CONDITIONS = ("block0_alone", "no_persistence", "recurrent_lateral", "reset_32", "reset_128")
 
 
 @dataclass(frozen=True)
@@ -226,6 +226,8 @@ def reset_interval_for_condition(condition_name: str) -> int | None:
     match condition_name:
         case "block0_alone":
             return None
+        case "no_persistence":
+            return 1
         case "recurrent_lateral":
             return None
         case "reset_32":
