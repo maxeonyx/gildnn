@@ -298,11 +298,66 @@ If pursuing dynamic depth, prefer deeper models (8+ iterations) where the opport
 
 ## Oracle measurement at d=256, 8 iterations (2026-05-27)
 
-**Script:** `runs/oracle_depth_analysis.py --recurrent-iterations 8` | **Status: IN PROGRESS**
+**Script:** `runs/oracle_depth_analysis.py --recurrent-iterations 8` | **Artifacts:** `experiments/tinyshakespeare/artifacts/oracle_depth_analysis/`
 
-Tests whether the larger oracle opportunity from d=72/depth-8 (1.96×) persists at d=256 with 8 iterations. Sanity check (10 steps) showed 1.83× even untrained — confirming the pattern holds.
+Tests whether the larger oracle opportunity from d=72/depth-8 (1.96×) persists at d=256 with 8 iterations.
 
-Results will be added when training completes (~16-18 min).
+### Mean loss by depth (val)
+
+| Depth | Mean loss | Δ from depth-8 |
+|---|---|---|
+| 1 | 2.747 | +1.169 |
+| 2 | 2.043 | +0.465 |
+| 3 | 1.798 | +0.220 |
+| 4 | 1.683 | +0.105 |
+| 5 | 1.628 | +0.050 |
+| 6 | 1.597 | +0.019 |
+| 7 | 1.582 | +0.004 |
+| 8 | 1.578 | — |
+
+### Oracle-best vs depth-8
+
+| Split | Depth-8 loss | Oracle-best | Improvement | Tokens harmed by depth-8 |
+|---|---|---|---|---|
+| Val (19872 pos) | 1.578 | 1.395 | **0.183 nats (11.6%)** | **53.4%** |
+
+### Oracle depth histogram (val)
+
+```
+d1: ████████       7.3%   (1441)
+d2: █████████      8.6%   (1715)
+d3: ██████████     9.5%   (1893)
+d4: ███████        6.9%   (1366)
+d5: ██████         6.5%   (1284)
+d6: ███████        7.0%   (1384)
+d7: ████████       7.7%   (1521)
+d8: ████████████████████████████████████████████████  46.6%  (9268)
+```
+
+Flatter distribution than depth-4 (which had 55% at max depth). At depth-8, 46.6% truly need the full depth, while 53.4% are optimally served by some d < 8.
+
+### No-regret shallowest depth (δ=0.01)
+
+Mean optimal depth: **5.07**
+
+**Oracle speedup: 1.578×**
+
+At δ=0.01: 15.7% can safely stop at depth 1, 35.2% truly need depth 8.
+
+### Cross-scale comparison
+
+| Metric | d=72, depth-8 | d=256, depth-4 | d=256, depth-8 |
+|---|---|---|---|
+| Oracle speedup | 1.96× | 1.37× | **1.58×** |
+| Oracle-best improvement | 0.285 nats | 0.163 nats | 0.183 nats |
+| Tokens harmed by full depth | 71.5% | 44.9% | 53.4% |
+| Tokens needing full depth | 28.5% | 55.1% | 46.6% |
+
+The d=256/depth-8 model sits between the other two. More iterations always gives more headroom, but larger models (d=256 vs d=72) seem to use their depth more efficiently (less waste). The 1.58× result confirms dynamic depth is worth pursuing at practical model sizes.
+
+### Implication for halting experiment
+
+With 1.58× oracle ceiling, a learned halt head achieving even 50% oracle efficiency would give ~1.29× speedup at ≤0.02 nats loss. Getting to 70% efficiency would give ~1.4× — meaningful compute savings for no quality loss.
 
 ---
 
