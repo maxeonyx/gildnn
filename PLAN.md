@@ -4,17 +4,18 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current operational state (2026-05-27, 05:30 NZST)
+## Current operational state (2026-05-27, 05:55 NZST)
 
-**GPU: BUSY.** Scale-up experiment running (PID 12060, d=256/8-iter/20K steps, ETA ~05:50).
+**GPU: BUSY.** Extended training run (PID 16340, d=256/8-iter/50K steps, ETA ~06:35).
 
 **Active run:**
-- Script: `runs/halting_regression.py --d-model 256 --steps 20000`
-- Log: `experiments/tinyshakespeare/artifacts/halting_regression_d256/run.jsonl`
-- Report: `experiments/tinyshakespeare/artifacts/halting_regression_d256/report.json`
+- Script: `runs/halting_regression.py --d-model 256 --steps 50000`
+- Log: `experiments/tinyshakespeare/artifacts/halting_regression_d256_50k/run.jsonl`
+- Report: `experiments/tinyshakespeare/artifacts/halting_regression_d256_50k/report.json`
 - Lock: `runs/active.lock`
+- Purpose: Determine if d=256 halt head convergence improves with more training (20K steps gave 33.6% oracle efficiency vs d=128's 60.4% at 10K)
 
-**Key discovery this session:** Regression halt head (predict remaining gain as continuous value) dramatically outperforms binary classification (predict safe/not-safe). Same model, same architecture, same training time — only the loss matters. 55.7% oracle efficiency at d=128/8-iter/10K steps.
+**d=256/20K result (just completed):** Mixed. Mechanism works at aggressive ε (1.47× at 0.024 loss) but doesn't beat fixed-depth baselines at conservative ε. Eval Pearson 0.458 (vs 0.572 at d=128). Still climbing at 20K — hence the 50K follow-up.
 
 **Daily report 2026-05-27:** NOT YET WRITTEN (due after 4pm).
 
