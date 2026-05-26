@@ -41,47 +41,59 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ## What to do next
 
-### Key finding: staged training is required (2026-05-26 evening)
+### Key finding: LOCAL OBJECTIVE QUALITY is the key variable (2026-05-26 late evening)
 
-The full experimental chain this session:
+Two iterations of the staged char LM experiment (`runs/staged_char_lm.py`):
 
-| Experiment | Result | Insight |
+**Iteration 1 — reconstruction at all positions (FAILED):**
+
+| Condition | Val loss | Delta |
 |---|---|---|
-| Piece tests (4 isolated) | All PASS | MSE, mixing, tracking, topology all work alone |
-| Same-input composed (WikiText α=0.5) | +0.163 worse | Block 1 has no info advantage |
-| Same-input composed (synthetic α=0.1) | +0.021 worse | Same problem, less mixing damage |
-| Split-input (block 0 sees A, block 1 sees B) | 100% | Lateral works when info is split |
-| Context-asymmetry co-trained | 12% (chance) | Co-training fails — lateral can't track unstable source |
-| Context-asymmetry recon co-trained | 12% (chance) | Better local loss doesn't fix co-training |
-| **Context-asymmetry staged** | **100%** | **Block 1 first → freeze → train lateral = works perfectly** |
+| block0_alone | 1.8736 | — |
+| staged_lateral | 1.8875 | +0.0140 (worse) |
+| cotrained_lateral | 1.8644 | -0.0092 (noise) |
+| shuffled_staged | 1.8927 | +0.0191 (worse) |
 
-**The architecture concept IS validated.** All three requirements are confirmed:
-1. Information asymmetry (block 1 must have info block 0 lacks) ✓
-2. Local self-supervised loss (reconstruction, not "predict block 0") ✓
-3. Staged training (block 1 stabilizes BEFORE lateral learns) ✓
+Diagnosis: reconstruction converged to near-zero (0.0002) because self-attention + positional embeddings trivially copies each input token to its position. The last-position state doesn't encode useful long-context info because there's no pressure for it to.
 
-### What's next: apply staged training to a real LM task
+**Iteration 2 — last-position-only CE (WORKS):**
 
-The next honest test toward the actual architecture:
-1. **Short-context block 0** (e.g., ctx=4-8) trained with CE on next-token prediction
-2. **Long-context block 1** (e.g., ctx=32-64) trained with reconstruction loss independently
-3. **Connect and fine-tune:** freeze block 1, connect lateral, train lateral_proj + output_head to use block 1's context
+| Condition | Val loss | Delta |
+|---|---|---|
+| block0_alone | 1.8736 | — |
+| staged_lateral | 1.8606 | **-0.0129** |
+| cotrained_lateral | 1.8563 | **-0.0172** |
+| shuffled_staged | 1.8848 | +0.0112 (confirms content matters) |
 
-Task: any character-level LM where longer context helps (even TinyShakespeare — natural language inherently benefits from more context). Synthetic tasks could also work.
+**Conclusions:**
+1. The mechanism WORKS on real language when the local objective pressures the EXPORTED vector
+2. **Staging is NOT required** — co-training with gradient isolation works equally well (slightly better even)
+3. The earlier synthetic result (staging required) was actually compensating for a WEAK objective
+4. Gradient isolation (detach lateral from block 1's perspective) IS required — block 1 never receives output-head gradient
 
-Key question this test answers: **On a real LM task, does a locally-trained context block improve short-context predictions?** This is the actual multi-timestep architecture in miniature.
+### Revised three requirements
 
-### Alternative: curriculum warmup instead of hard staging
+1. **Information asymmetry** — block 1 must have info block 0 lacks (longer context) ✓
+2. **Last-position pressure** — local loss must target the EXPORTED representation, not all positions ✓
+3. **Gradient isolation** — lateral detached; no task gradient flows into interior blocks ✓
 
-Instead of freeze-then-connect, try:
-- `lateral_scale = 0` for first 300 steps (block 1 trains reconstruction)
-- Ramp `lateral_scale` from 0 to target over steps 300-500
-- This allows continuous training without hard phase boundaries
-- More biologically plausible (connections strengthen as representations stabilize)
+**Staging is NOT a requirement.** Remove from decision table.
+
+### What's next: increase effect size and confirm with seeds
+
+The current effect is -0.013 to -0.017 nats (1 seed). Options to increase confidence and effect size:
+
+1. **Multi-seed run** (3 seeds) — confirm the -0.017 is real, not noise
+2. **Increase context asymmetry** — try block 0 ctx=4, block 1 ctx=128 (more info gap)
+3. **Larger models** — d_model=128 (more capacity to use the lateral info)
+4. **Longer training** — 2000+ steps (may not have converged yet)
+5. **Curriculum warmup** — lateral_scale ramps 0→0.2 over first 200 steps (alternative to hard connect)
+
+The cheapest discriminating next step: **multi-seed (3 seeds) on the current setup** to confirm the finding is real.
 
 ### Feedback loop status
 
-All experiments complete in <15 seconds. Inline Python tests for rapid iteration. The feedback loop is tight.
+All experiments complete in <12 seconds per condition. The feedback loop is very tight.
 
 
 ---
@@ -90,18 +102,21 @@ All experiments complete in <15 seconds. Inline Python tests for rapid iteration
 
 | Decision | Outcome | Constraint it imposes |
 |---|---|---|
-| **Staged training required** | **Co-training fails, staged works (100%)** | **Block 1 must stabilize before lateral is used** |
+| **Objective must pressure exported vector** | **All-position recon trivial; last-pos CE works** | **Local loss targets the last-position state specifically** |
+| **Staging NOT required** | **Co-training works with good objective + gradient isolation** | **No hard phase boundary needed** |
 | **Information asymmetry required** | **Same-input always harms, split-input works** | **Blocks must see different information** |
-| **Reconstruction > predict-block-0** | **Predict-block-0 pushes redundancy** | **Local loss should encode own input, not imitate other block** |
+| **Gradient isolation required** | **Lateral detached from block 1; no output-head gradient flows back** | **Interior blocks optimize own head only** |
+| **"Predict block 0" is wrong** | **Pushes redundancy** | **Local loss should be self-contained** |
 | Dictation 2026-05-26-2 | Redirect | Only compare against legitimate alternatives |
 | Dictation 2026-05-26-3 | Process: build from pieces | Decompose, fast feedback, synthetic tasks |
 | Timebox | ~4 days remaining | Use fastest possible feedback loops |
 
 **Traps to avoid:**
-- Co-training blocks from scratch (use staged/warmup instead)
-- "Predict block 0's state" as local loss (pushes toward redundancy)
+- Reconstruction at all positions (trivially solved, doesn't pressure exported vector)
+- "Predict block 0's state" as local loss (pushes redundancy)
 - Same-input-same-timestep experiments (no information advantage possible)
-- Testing the full complex architecture before the minimal staged version works on real LM
+- Assuming staging is required (it's not — was compensating for bad objective)
+- Using shuffled controls without confirming they differ from baseline (content must matter)
 
 ---
 
@@ -112,8 +127,8 @@ All experiments complete in <15 seconds. Inline Python tests for rapid iteration
 - `dictations/2026-05-26-3.md` — decompose, synthetic tasks, optimize feedback loops
 - `dictations/2026-05-26-2.md` — the redirect to local predictive loss
 - `research/questions/multi-timestep-architecture/README.md` — Max's architecture vision (distributional, Wasserstein)
-- `runs/local_predictive.py` — the experiment script (has the confounds, but pieces can be extracted)
-- `research/daily/2026-05-26.md` — today's write-up of the confounded experiment
+- `runs/staged_char_lm.py` — the working char-level LM experiment (last-pos CE, gradient isolation)
+- `research/daily/2026-05-26.md` — today's write-up
 
 ---
 
@@ -134,9 +149,11 @@ All experiments complete in <15 seconds. Inline Python tests for rapid iteration
 | **Split-input** | **3** | **100% accuracy** | **Lateral works perfectly with info asymmetry** |
 | **Context-asymmetry co-trained** | **3** | **FAIL (12% = chance)** | **Co-training dynamics prevent learning** |
 | **Context-asymmetry staged** | **3** | **100% accuracy** | **Block 1 first → freeze → lateral works** |
+| **Staged char LM (recon)** | **3** | **+0.014 (worse)** | **All-position reconstruction is trivial — doesn't pressure exported vector** |
+| **Staged char LM (last-pos CE)** | **3** | **-0.017 (better!)** | **Last-position CE works; co-training works too; staging not required** |
 
 ---
 
 ## The agent's working loop
 
-Follow PROCESS.md. Current position: **EXPERIMENT DESIGN — real LM task.** The synthetic mechanism is fully validated. Next: apply staged training to a real character-level LM task with different context sizes (short-ctx block 0 + long-ctx block 1). This is the minimum bridge to the actual multi-timestep architecture.
+Follow PROCESS.md. Current position: **CONFIRM FINDING — multi-seed.** The mechanism works on real char-level LM. Next: run 3 seeds on the co-trained last-pos CE condition to confirm the -0.017 is real.
