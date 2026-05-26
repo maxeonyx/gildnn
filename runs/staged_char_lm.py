@@ -7,11 +7,12 @@ from time import perf_counter
 import torch
 from jaxtyping import Float, Int
 from torch import Tensor, nn
+from typing import Callable
 from torch.nn import functional as F
 
 from core.fixed_window_char import load_dataset, set_seed
 
-SEED = 42
+DEFAULT_SEED = 42
 SHORT_CONTEXT = 8
 LONG_CONTEXT = 64
 TRAIN_CHARACTERS = 80_000
@@ -23,6 +24,7 @@ BATCH_SIZE = 256
 LEARNING_RATE = 3e-3
 LATERAL_SCALE = 0.2
 PRINT_INTERVAL = 100
+ALL_CONDITIONS = ("block0_alone", "staged_lateral", "cotrained_lateral", "shuffled_staged")
 
 
 @dataclass(frozen=True)
@@ -46,6 +48,22 @@ class ConditionResult:
     val_accuracy: float
     delta_from_baseline: float
     wall_seconds: float
+
+
+def parse_condition_names(raw_conditions: str) -> tuple[str, ...]:
+    requested_conditions = tuple(condition.strip() for condition in raw_conditions.split(",") if condition.strip())
+    if len(requested_conditions) == 0:
+        raise ValueError("conditions must contain at least one condition name")
+
+    invalid_conditions = [condition for condition in requested_conditions if condition not in ALL_CONDITIONS]
+    if invalid_conditions:
+        raise ValueError(
+            "Unknown conditions requested: "
+            + ", ".join(invalid_conditions)
+            + ". Valid conditions are: "
+            + ", ".join(ALL_CONDITIONS)
+        )
+    return requested_conditions
 
 
 class CausalSelfAttention(nn.Module):
@@ -228,6 +246,7 @@ class StagedLateralModel(nn.Module):
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
     parser.add_argument("--phase1-steps", type=int, default=PHASE1_STEPS)
     parser.add_argument("--phase2-steps", type=int, default=PHASE2_STEPS)
     parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
@@ -241,12 +260,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--n-heads", type=int, default=2)
     parser.add_argument("--lateral-scale", type=float, default=LATERAL_SCALE)
     parser.add_argument("--print-interval", type=int, default=PRINT_INTERVAL)
+    parser.add_argument("--conditions", type=str, default=",".join(ALL_CONDITIONS))
     parser.add_argument("--device", choices=("cpu", "cuda"), default=None)
     return parser.parse_args()
 
 
 def validate_args(args: argparse.Namespace) -> None:
     errors: list[str] = []
+    if args.seed < 0:
+        errors.append(f"seed must be non-negative, got {args.seed}")
     if args.phase1_steps <= 0:
         errors.append(f"phase1_steps must be positive, got {args.phase1_steps}")
     if args.phase2_steps <= 0:
@@ -281,6 +303,8 @@ def validate_args(args: argparse.Namespace) -> None:
         errors.append(f"print_interval must be positive, got {args.print_interval}")
     if errors:
         raise ValueError("Argument validation failed:\n- " + "\n- ".join(errors))
+
+    parse_condition_names(args.conditions)
 
 
 def resolve_device(requested_device: str | None) -> torch.device:
@@ -406,7 +430,7 @@ def evaluate_lateral(
 
 
 def train_block0_alone(dataset: WindowDataset, val_dataset: WindowDataset, args: argparse.Namespace, device: torch.device) -> ConditionResult:
-    set_seed(SEED)
+    set_seed(args.seed)
     model = Block0Model(
         vocab_size=dataset.vocab_size,
         d_model=args.d_model,
@@ -450,7 +474,7 @@ def train_cotrained_lateral(
     args: argparse.Namespace,
     device: torch.device,
 ) -> ConditionResult:
-    set_seed(SEED)
+    set_seed(args.seed)
     model = StagedLateralModel(
         vocab_size=dataset.vocab_size,
         d_model=args.d_model,
@@ -578,7 +602,7 @@ def train_staged_condition(
     device: torch.device,
     shuffle_lateral: bool,
 ) -> ConditionResult:
-    set_seed(SEED)
+    set_seed(args.seed)
     model = StagedLateralModel(
         vocab_size=dataset.vocab_size,
         d_model=args.d_model,
@@ -644,8 +668,9 @@ def print_results_table(results: list[ConditionResult]) -> None:
 def main() -> None:
     args = parse_args()
     validate_args(args)
+    requested_conditions = parse_condition_names(args.conditions)
     device = resolve_device(args.device)
-    set_seed(SEED)
+    set_seed(args.seed)
     if device.type == "cuda":
         torch.set_float32_matmul_precision("high")
 
@@ -658,17 +683,17 @@ def main() -> None:
 
     print(
         "staged char lm "
-        f"device={device.type} seed={SEED} train_examples={train_dataset.targets.shape[0]} "
+        f"device={device.type} seed={args.seed} train_examples={train_dataset.targets.shape[0]} "
         f"val_examples={val_dataset.targets.shape[0]} vocab={train_dataset.vocab_size} "
         f"short_ctx={args.short_ctx} long_ctx={args.long_ctx} "
         f"phase1_steps={args.phase1_steps} phase2_steps={args.phase2_steps} batch={args.batch_size} "
-        f"lateral_scale={args.lateral_scale}",
+        f"lateral_scale={args.lateral_scale} conditions={','.join(requested_conditions)}",
         flush=True,
     )
 
-    results = [
-        train_block0_alone(train_dataset, val_dataset, args, device),
-        train_staged_condition(
+    condition_runners: dict[str, Callable[[], ConditionResult]] = {
+        "block0_alone": lambda: train_block0_alone(train_dataset, val_dataset, args, device),
+        "staged_lateral": lambda: train_staged_condition(
             condition_name="staged_lateral",
             dataset=train_dataset,
             val_dataset=val_dataset,
@@ -676,8 +701,8 @@ def main() -> None:
             device=device,
             shuffle_lateral=False,
         ),
-        train_cotrained_lateral(train_dataset, val_dataset, args, device),
-        train_staged_condition(
+        "cotrained_lateral": lambda: train_cotrained_lateral(train_dataset, val_dataset, args, device),
+        "shuffled_staged": lambda: train_staged_condition(
             condition_name="shuffled_staged",
             dataset=train_dataset,
             val_dataset=val_dataset,
@@ -685,7 +710,8 @@ def main() -> None:
             device=device,
             shuffle_lateral=True,
         ),
-    ]
+    }
+    results = [condition_runners[condition_name]() for condition_name in requested_conditions]
 
     baseline_loss = next(result.val_loss for result in results if result.name == "block0_alone")
     adjusted_results = [
