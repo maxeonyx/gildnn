@@ -62,15 +62,17 @@ def load_checkpoint(checkpoint_path: Path, *, device: torch.device) -> dict[str,
 
 
 def build_model_from_checkpoint(checkpoint: dict[str, object], *, device: torch.device) -> RecurrentDepthLM:
-    config_payload = checkpoint["config"]
+    # Support both checkpoint formats (halting_regression vs capstone_train)
+    config_payload = checkpoint.get("config") or checkpoint.get("model_config")
     if not isinstance(config_payload, dict):
         raise TypeError(f"Expected checkpoint config dict, got {type(config_payload).__name__}")
+    iterations = int(config_payload.get("recurrent_iterations") or config_payload.get("iterations"))
     config = RecurrentDepthConfig(
         context_size=int(config_payload["context_size"]),
         d_model=int(config_payload["d_model"]),
         n_heads=int(config_payload["n_heads"]),
         ff_dim=int(config_payload["ff_dim"]),
-        iterations=int(config_payload["recurrent_iterations"]),
+        iterations=iterations,
         temperature=float(config_payload["temperature"]),
         dropout=float(config_payload.get("dropout", 0.0)),
     )
@@ -148,16 +150,27 @@ def main() -> None:
     checkpoint = load_checkpoint(args.checkpoint, device=device)
     model = build_model_from_checkpoint(checkpoint, device=device)
     calibration = load_calibration(args.calibration_report, checkpoint_path=args.checkpoint)
-    dataset = build_vocab_from_corpus(
-        corpus_path=args.corpus_path,
-        train_characters=int(checkpoint["train_characters"]),
-        context_size=model.config.context_size,
-    )
+
+    # Build vocab: prefer checkpoint-embedded mappings, fall back to corpus rebuild
+    if "char_to_idx" in checkpoint and "idx_to_char" in checkpoint:
+        stoi = checkpoint["char_to_idx"]
+        # idx_to_char may have string keys from JSON serialization
+        raw_itos = checkpoint["idx_to_char"]
+        itos = {int(k): v for k, v in raw_itos.items()} if isinstance(next(iter(raw_itos.keys())), str) else raw_itos
+    else:
+        dataset = build_vocab_from_corpus(
+            corpus_path=args.corpus_path,
+            train_characters=int(checkpoint["train_characters"]),
+            context_size=model.config.context_size,
+        )
+        stoi = dataset.stoi
+        itos = dataset.itos
+
     result = generate_with_halting(
         model,
         prompt=args.prompt,
-        stoi=dataset.stoi,
-        itos=dataset.itos,
+        stoi=stoi,
+        itos=itos,
         length=args.length,
         threshold=args.threshold,
         temperature=args.temperature,
