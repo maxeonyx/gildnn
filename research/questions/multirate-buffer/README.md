@@ -147,7 +147,7 @@ This explains all three observations at once:
 4. **"Multi-rate" at inference may still be possible via caching**, but that would be an inference optimization layered on top of a window-trained mechanism, not a sequential-training solution.
 5. **This combines with the negative result in [`research/questions/recurrent-lateral/README.md`](../recurrent-lateral/README.md): all tested forms of temporal reuse fail without temporal credit assignment.** Recurrent stale laterals fail; buffered stale laterals fail; the common pattern is that reused temporal state is not being trained to communicate useful position-specific information.
 
-This closes the "context buffer in sequential mode" idea for Pathway 8. Combined with the [recurrent-lateral negative result](../recurrent-lateral/README.md), the pattern is clear: every tested form of temporal reuse of a locally-trained block's output fails. The common cause is lack of temporal credit assignment — the slow block has no gradient signal telling it what would be useful for block 0 in the future. The one thing that works is fresh per-position computation with independent sampling. Multi-rate as an inference-time caching strategy (train window-based, cache at inference) remains untested.
+This closes the "context buffer in sequential mode" idea for Pathway 8. Combined with the [recurrent-lateral negative result](../recurrent-lateral/README.md) and the inference-time caching test (appendix below), the pattern is clear: every tested form of temporal reuse of a locally-trained block's output fails. The common cause is that CE-trained blocks produce prediction-specific states, not general context summaries — making their output useless for any position other than the one they were computed for. Multi-rate as conceived (blocks at different rates, reusing output between firings) is fundamentally incompatible with this local learning approach.
 
 ## What this settles
 
@@ -156,6 +156,28 @@ This closes the "context buffer in sequential mode" idea for Pathway 8. Combined
 
 ## What this does not settle
 
-- Whether a window-based training regime plus inference-time caching can approximate multi-rate compute without sacrificing the useful lateral signal.
+- Whether a different local objective (one producing general context summaries rather than prediction-specific states) could support caching.
 - Whether temporal reuse could work with temporal credit assignment.
-- Whether chunked or buffered schemes could work if the slow block processed genuinely new accumulated context at firing time rather than near-duplicate adjacent windows.
+
+---
+
+## Appendix: Inference-time caching test (post-training)
+
+A follow-up test removed training as a confound entirely: take a model trained with the WORKING approach (window-based, fresh at every position), then at eval time only, vary how often the slow block is recomputed.
+
+Script: `runs/tied_readout_lm.py --eval-cache-intervals 1,2,4,8,16,32`
+
+| Cache K | val_loss | Δ from K=1 | Slow block passes |
+|---:|---:|---:|---:|
+| 1 | 1.6618 | — | 19872 |
+| 2 | 2.0918 | +0.4300 | 9936 |
+| 4 | 2.4155 | +0.7536 | 4968 |
+| 8 | 2.5797 | +0.9179 | 2484 |
+| 16 | 2.6828 | +1.0209 | 1242 |
+| 32 | 2.6989 | +1.0370 | 621 |
+
+**Immediate collapse.** Even K=2 (reuse for one extra position) causes +0.43 degradation.
+
+Age-bucket analysis (K=2): age 0 = 1.6779, age 1 = 2.5024. The slow block's output is hyper-specialized to ONE prediction position.
+
+**Architectural insight:** The lateral mechanism works BECAUSE the slow block produces prediction-specific output (trained with CE on the exact next char). That same specificity makes temporal reuse fundamentally impossible — the output for position t is useless for position t+1. This isn't a training problem or a scale problem; it's inherent to the CE local objective producing position-specific rather than general-context representations.

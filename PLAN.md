@@ -208,6 +208,21 @@ Remaining options:
 
 **Recommendation:** Option 2 (integrate) is highest priority per AGENTS.md rule "Integrate before experimenting." The fixed-window architecture works reliably; it should be in `core/` before starting new experiments.
 
+### Inference-time caching test — IMMEDIATE COLLAPSE (2026-05-26 night)
+
+Even the "inference only" version doesn't work. Trained the model normally (window-based, fresh), then at eval varied slow-block cache interval K:
+
+| K | val_loss | Δ from K=1 |
+|---|---|---|
+| 1 | 1.6618 | — |
+| 2 | 2.0918 | +0.43 |
+| 4 | 2.4155 | +0.75 |
+| 8 | 2.5797 | +0.92 |
+
+**Architectural insight:** CE local objective produces prediction-specific output (tuned to predict ONE specific next char). This output is useless for any other position. Multi-rate is fundamentally incompatible with CE-trained laterals — not because of training dynamics, but because of what the objective produces.
+
+This FULLY closes multi-rate for Pathway 8 with local CE objectives. Any form of temporal reuse (training or inference) fails immediately.
+
 ---
 
 ## Key references
@@ -248,9 +263,10 @@ Remaining options:
 | **Co-train 4800 steps** | **3** | **two_blocks: 1.6435** | **BEATS pretrain+freeze. No staging needed, just more steps.** |
 | **Recurrent lateral (stale)** | **3→1** | **Stale laterals: NEUTRAL at best (Δ=+0.017 with scale=0.2, 4800 steps)** | **Detached state doesn't learn useful communication. Fixed-window approach still best for info asymmetry.** |
 | **Multi-rate buffer (sequential)** | **8→3** | **Sequential regime fails: Δ=0.00 at ctx32, Δ=+0.04 at ctx128** | **Sequential training incompatible with laterals — near-constant signal from overlapping windows. Window-based training required.** |
+| **Inference-time caching** | **8** | **Immediate collapse: K=2 gives Δ=+0.43** | **CE-trained blocks produce prediction-specific output, useless for any other position. Multi-rate fundamentally incompatible with CE local objective.** |
 
 ---
 
 ## The agent's working loop
 
-Follow PROCESS.md. Current position: **MULTI-RATE BUFFER TESTED — SEQUENTIAL REGIME INCOMPATIBLE WITH LATERALS.** All forms of temporal reuse fail. Only working approach: window-based training with fresh per-position computation (tied_readout_lm.py). Next: integrate the working mechanism into core/, then decide new direction.
+Follow PROCESS.md. Current position: **MULTI-RATE FULLY CLOSED (training AND inference caching both fail).** CE local objective produces prediction-specific state, incompatible with any temporal reuse. Only working config: window-based + fresh per-position. Next: integrate into core/, then choose new pathway direction.
