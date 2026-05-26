@@ -61,10 +61,47 @@ Interesting: for ~9% of tokens, the final iteration makes things WORSE. These ar
 
 ## What this does NOT settle
 
-- Whether explicit self-prediction can compress computation (needs its own experiment)
-- Whether the halt head can be made more aggressive (needs lower halt_weight or curriculum)
+- Whether explicit self-prediction can compress computation (needs its own experiment — but see prior negative result below)
+- Whether the halt head can be made more aggressive (→ **answered below: yes, dramatically**)
 - Whether predictive silencing emerges naturally (needs the multi-timestep architecture)
 - Whether this pattern holds at d=512 (pending d=512 completion)
+
+---
+
+## Halt threshold sweep (epsilon sensitivity)
+
+The halt head decides when to stop iterating based on predicted gain. The `epsilon` parameter is the threshold below which the predicted gain triggers early exit. Sweeping epsilon on the same d=256 checkpoint (2048 validation tokens, CPU):
+
+| Epsilon | Avg Depth | Val Loss | Delta (nats) | Compute Savings |
+|---|---|---|---|---|
+| full depth (no halt) | 8.00 | 1.6277 | — | 0% |
+| 0.000 (current) | 6.43 | 1.6321 | +0.004 | 19.6% |
+| 0.010 | 5.96 | 1.6363 | +0.009 | 25.5% |
+| 0.020 | 5.43 | 1.6424 | +0.015 | 32.1% |
+| **0.050** | **4.27** | **1.6611** | **+0.033** | **46.6%** |
+| 0.100 | 3.41 | 1.6936 | +0.066 | 57.4% |
+| 0.150 | 3.02 | 1.7200 | +0.092 | 62.2% |
+| 0.200 | 2.78 | 1.7470 | +0.119 | 65.3% |
+| 0.500 | 2.19 | 1.8711 | +0.243 | 72.6% |
+| 1.000 | 1.84 | 2.0343 | +0.407 | 77.0% |
+
+### Key findings
+
+1. **The halt head is already good at epsilon=0:** saves 19.6% compute for only +0.004 nats loss. The default operating point is nearly Pareto-optimal for high-quality mode.
+
+2. **The sweet spot is epsilon=0.05:** 46.6% compute savings (avg depth 4.27) for only +0.033 nats degradation. This is a much better operating point for inference-focused use.
+
+3. **Diminishing returns above epsilon=0.1:** going from 57% to 77% savings (epsilon 0.1→1.0) costs +0.34 nats — the easy tokens are already captured.
+
+4. **The curve is smooth and well-behaved:** no sudden quality cliffs. The halt head produces calibrated predictions across the full range.
+
+### Implication for Pathway 4
+
+The model already CAN exit early at depth 4 for most tokens without significant loss. The "compression opportunity" isn't blocked by the architecture — it's just a threshold tuning question. Active compression (making depth-4 ACTUALLY as good as depth-8, not just "good enough") would need to improve the underlying quality curve, not the halting mechanism.
+
+This reframes Pathway 4: the halt head already exploits most of the available slack. The remaining opportunity is: can training be modified so that depth-2 produces what depth-4 currently produces? That's a harder question — and the prior negative result for KL distillation suggests it may not work via simple distillation.
+
+---
 
 ## Next steps
 
