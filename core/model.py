@@ -478,6 +478,7 @@ class ParallelDiagonalModel(nn.Module):
         tied_weights: bool = False,
         token_mix_init: float = 0.5,
         block_mix_init: float = 0.9,
+        lateral_mix_init: float = 0.5,
         detach_lateral: bool = False,
         temporal_window: int = 0,
         temporal_window_mode: str = "history",
@@ -552,6 +553,7 @@ class ParallelDiagonalModel(nn.Module):
             ]
         )
         self.block_mixes = nn.ModuleList([MixAdd(init=block_mix_init) for _ in range(num_blocks)])
+        self.lateral_mixes = nn.ModuleList([MixAdd(init=lateral_mix_init) for _ in range(num_blocks)])
         self.readout_logits = (
             nn.Parameter(torch.zeros(num_blocks, dtype=torch.float32))
             if readout_mode == "all"
@@ -583,6 +585,7 @@ class ParallelDiagonalModel(nn.Module):
         return {
             "token": [mix.coefficient_value() for mix in self.token_mixes],
             "blocks": [mix.coefficient_value() for mix in self.block_mixes],
+            "laterals": [mix.coefficient_value() for mix in self.lateral_mixes],
             "rates": list(self.rates),
             "internal_steps": self.internal_steps,
             "temporal_window": self.temporal_window,
@@ -675,7 +678,7 @@ class ParallelDiagonalModel(nn.Module):
                                 else current_states[block_index - 1]
                             )
                         current_lower = self._maybe_detach_lateral(lateral_source)
-                        block_input = 0.5 * (state_input + current_lower)
+                        block_input = self.lateral_mixes[block_index](state_input, current_lower)
                         if block_index > 0 and self.window_proj is not None and temporal_history is not None:
                             lower_history = self._maybe_detach_lateral(temporal_history[block_index - 1])
                             aux = self.window_proj(

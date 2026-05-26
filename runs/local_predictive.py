@@ -52,6 +52,7 @@ class ConditionSpec:
     internal_steps: int
     rates: tuple[int, ...]
     use_local_predictive_loss: bool
+    lateral_mix_init: float = 0.5
 
 
 @dataclass(frozen=True)
@@ -72,6 +73,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--eval-samples", type=int, default=EVAL_SAMPLES)
     parser.add_argument("--seed", type=int, default=SEED)
     parser.add_argument("--lambda-local", type=float, default=LAMBDA_LOCAL)
+    parser.add_argument("--lateral-mix-init", type=float, default=0.5)
     parser.add_argument("--device", choices=("cpu", "cuda"), default=None)
     parser.add_argument("--sanity-check-only", action="store_true")
     parser.add_argument(
@@ -89,7 +91,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def condition_specs() -> tuple[ConditionSpec, ConditionSpec]:
+def condition_specs(*, lateral_mix_init: float) -> tuple[ConditionSpec, ConditionSpec]:
     return (
         ConditionSpec(
             key="baseline",
@@ -114,6 +116,7 @@ def condition_specs() -> tuple[ConditionSpec, ConditionSpec]:
             internal_steps=1,
             rates=(1, 1),
             use_local_predictive_loss=True,
+            lateral_mix_init=lateral_mix_init,
         ),
     )
 
@@ -131,7 +134,18 @@ def build_modules(*, spec: ConditionSpec, vocab_size: int, device: torch.device)
         token_injection=spec.token_injection,
         topology=spec.topology,
         detach_lateral=spec.detach_lateral,
+        lateral_mix_init=spec.lateral_mix_init,
     ).to(device)
+    # For the treatment: override block 0's lateral mix to start low (asymmetric gating).
+    # Block 0 should barely use block 1's output initially (protect from noise).
+    # Block 1 keeps its lateral_mix_init (needs to see block 0 to predict it).
+    if spec.use_local_predictive_loss and spec.num_blocks > 1 and spec.lateral_mix_init != 0.5:
+        import math
+        # Block 0's lateral: use the specified init (e.g. 0.1)
+        # Block 1's lateral: reset to 0.5 (so it can see block 0)
+        logit_half = math.log(0.5 / 0.5)  # = 0.0
+        with torch.no_grad():
+            model.lateral_mixes[1].alpha_logit.fill_(logit_half)
     prediction_head = None
     if spec.use_local_predictive_loss:
         prediction_head = nn.Linear(D_MODEL, D_MODEL).to(device)
@@ -182,6 +196,10 @@ def expected_zero_gradients(spec: ConditionSpec, *, lambda_local: float) -> set[
     if spec.token_injection == "block0" and spec.num_blocks > 1:
         for block_index in range(1, spec.num_blocks):
             expected.add(f"model.token_mixes.{block_index}.alpha_logit")
+    # Lateral mixes for blocks that never receive laterals
+    if spec.topology == "upward":
+        # Block 0 never receives a lateral in upward topology
+        expected.add("model.lateral_mixes.0.alpha_logit")
     # When lambda_local=0, interior blocks and prediction head get no gradient (control condition)
     if spec.use_local_predictive_loss and lambda_local == 0.0 and spec.num_blocks > 1:
         for block_index in range(1, spec.num_blocks):
@@ -190,6 +208,7 @@ def expected_zero_gradients(spec: ConditionSpec, *, lambda_local: float) -> set[
             expected.add(f"model.blocks.{block_index}.proj_out.weight")
             expected.add(f"model.blocks.{block_index}.proj_out.bias")
             expected.add(f"model.block_mixes.{block_index}.alpha_logit")
+            expected.add(f"model.lateral_mixes.{block_index}.alpha_logit")
         expected.add("prediction_head.weight")
         expected.add("prediction_head.bias")
     return expected
@@ -497,7 +516,7 @@ def main() -> int:
     val_inputs = corpus.val_inputs.to(device=device, dtype=torch.long)
     val_targets = corpus.val_targets.to(device=device, dtype=torch.long)
 
-    baseline_spec, treatment_spec = condition_specs()
+    baseline_spec, treatment_spec = condition_specs(lateral_mix_init=args.lateral_mix_init)
     append_log(
         args.log_path,
         {
@@ -511,6 +530,7 @@ def main() -> int:
             "learning_rate": args.learning_rate,
             "eval_samples": args.eval_samples,
             "lambda_local": args.lambda_local,
+            "lateral_mix_init": args.lateral_mix_init,
             "context_size": CONTEXT_SIZE,
             "device": str(device),
             "vocab_size": corpus.vocab_size,
@@ -547,6 +567,7 @@ def main() -> int:
             "eval_samples": args.eval_samples,
             "seed": args.seed,
             "lambda_local": args.lambda_local,
+            "lateral_mix_init": args.lateral_mix_init,
             "context_size": CONTEXT_SIZE,
             "d_model": D_MODEL,
             "feedforward_dim": FEEDFORWARD_DIM,

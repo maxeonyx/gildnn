@@ -1,0 +1,236 @@
+{
+  "config": {
+    "training_steps": 2000,
+    "eval_interval": 500,
+    "batch_size": 64,
+    "eval_batch_size": 512,
+    "learning_rate": 0.0003,
+    "eval_samples": 4096,
+    "seed": 42,
+    "lambda_local": 1.0,
+    "lateral_mix_init": 0.1,
+    "context_size": 128,
+    "d_model": 256,
+    "feedforward_dim": 512,
+    "train_path": "C:\\Users\\maxeo\\gildnn\\data\\wikitext-103-raw\\wiki.train.raw",
+    "val_path": "C:\\Users\\maxeo\\gildnn\\data\\wikitext-103-raw\\wiki.valid.raw",
+    "sanity_check_only": false
+  },
+  "results": {
+    "baseline": {
+      "condition": "baseline",
+      "label": "single_block_ce",
+      "config": {
+        "key": "baseline",
+        "label": "single_block_ce",
+        "num_blocks": 1,
+        "topology": "upward",
+        "readout_mode": "first",
+        "token_injection": "block0",
+        "detach_lateral": true,
+        "internal_steps": 1,
+        "rates": [
+          1
+        ],
+        "use_local_predictive_loss": false,
+        "lateral_mix_init": 0.5
+      },
+      "parameter_counts": {
+        "model_parameter_count": 2850423,
+        "prediction_head_parameter_count": 0,
+        "total_parameter_count": 2850423
+      },
+      "verification": {
+        "forward_pass_ok": true,
+        "backward_pass_ok": true,
+        "block_output_shape": [
+          2,
+          128,
+          256
+        ],
+        "dummy_total_loss": 8.668604,
+        "total_trainable_parameters": 11,
+        "nonzero_gradient_parameters": 10,
+        "gradient_norm_sum": 9.954035,
+        "expected_missing_gradient_parameters": [
+          "model.lateral_mixes.0.alpha_logit"
+        ],
+        "missing_gradient_parameters": [
+          "model.lateral_mixes.0.alpha_logit"
+        ]
+      },
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 8.567463,
+          "val_accuracy": 0.000244
+        },
+        {
+          "step": 500,
+          "val_loss": 2.611532,
+          "val_accuracy": 0.286865,
+          "training_ce_loss": 2.678438,
+          "training_local_loss": 0.0,
+          "training_total_loss": 2.678438
+        },
+        {
+          "step": 1000,
+          "val_loss": 2.432285,
+          "val_accuracy": 0.322266,
+          "training_ce_loss": 2.106518,
+          "training_local_loss": 0.0,
+          "training_total_loss": 2.106518
+        },
+        {
+          "step": 1500,
+          "val_loss": 2.353812,
+          "val_accuracy": 0.335449,
+          "training_ce_loss": 2.393568,
+          "training_local_loss": 0.0,
+          "training_total_loss": 2.393568
+        },
+        {
+          "step": 2000,
+          "val_loss": 2.303955,
+          "val_accuracy": 0.347656,
+          "training_ce_loss": 2.174587,
+          "training_local_loss": 0.0,
+          "training_total_loss": 2.174587
+        }
+      ],
+      "final_checkpoint": {
+        "step": 2000,
+        "val_loss": 2.303955,
+        "val_accuracy": 0.347656,
+        "training_ce_loss": 2.174587,
+        "training_local_loss": 0.0,
+        "training_total_loss": 2.174587
+      },
+      "best_checkpoint": {
+        "step": 2000,
+        "val_loss": 2.303955,
+        "val_accuracy": 0.347656,
+        "training_ce_loss": 2.174587,
+        "training_local_loss": 0.0,
+        "training_total_loss": 2.174587
+      },
+      "final_training_metrics": {
+        "ce_loss": 2.174587,
+        "local_loss": 0.0,
+        "total_loss": 2.174587
+      },
+      "wall_seconds": 432.019709
+    },
+    "treatment": {
+      "condition": "treatment",
+      "label": "two_block_local_predictive",
+      "config": {
+        "key": "treatment",
+        "label": "two_block_local_predictive",
+        "num_blocks": 2,
+        "topology": "top_down_to_first",
+        "readout_mode": "first",
+        "token_injection": "block0",
+        "detach_lateral": true,
+        "internal_steps": 1,
+        "rates": [
+          1,
+          1
+        ],
+        "use_local_predictive_loss": true,
+        "lateral_mix_init": 0.1
+      },
+      "parameter_counts": {
+        "model_parameter_count": 3113338,
+        "prediction_head_parameter_count": 65792,
+        "total_parameter_count": 3179130
+      },
+      "verification": {
+        "forward_pass_ok": true,
+        "backward_pass_ok": true,
+        "block_output_shape": [
+          2,
+          128,
+          256
+        ],
+        "dummy_total_loss": 8.56116,
+        "total_trainable_parameters": 20,
+        "nonzero_gradient_parameters": 19,
+        "gradient_norm_sum": 1.737405,
+        "expected_missing_gradient_parameters": [
+          "model.token_mixes.1.alpha_logit"
+        ],
+        "missing_gradient_parameters": [
+          "model.token_mixes.1.alpha_logit"
+        ]
+      },
+      "checkpoints": [
+        {
+          "step": 0,
+          "val_loss": 8.511226,
+          "val_accuracy": 0.0
+        },
+        {
+          "step": 500,
+          "val_loss": 3.144408,
+          "val_accuracy": 0.194092,
+          "training_ce_loss": 3.214103,
+          "training_local_loss": 0.007227,
+          "training_total_loss": 3.22133
+        },
+        {
+          "step": 1000,
+          "val_loss": 3.045639,
+          "val_accuracy": 0.19751,
+          "training_ce_loss": 2.867528,
+          "training_local_loss": 0.016039,
+          "training_total_loss": 2.883567
+        },
+        {
+          "step": 1500,
+          "val_loss": 6.899006,
+          "val_accuracy": 0.022461,
+          "training_ce_loss": 7.745754,
+          "training_local_loss": 6.12666,
+          "training_total_loss": 13.872415
+        },
+        {
+          "step": 2000,
+          "val_loss": 2060943568.0,
+          "val_accuracy": 0.194092,
+          "training_ce_loss": 1869878784.0,
+          "training_local_loss": 4.34316335741141e+17,
+          "training_total_loss": 4.34316335741141e+17
+        }
+      ],
+      "final_checkpoint": {
+        "step": 2000,
+        "val_loss": 2060943568.0,
+        "val_accuracy": 0.194092,
+        "training_ce_loss": 1869878784.0,
+        "training_local_loss": 4.34316335741141e+17,
+        "training_total_loss": 4.34316335741141e+17
+      },
+      "best_checkpoint": {
+        "step": 1000,
+        "val_loss": 3.045639,
+        "val_accuracy": 0.19751,
+        "training_ce_loss": 2.867528,
+        "training_local_loss": 0.016039,
+        "training_total_loss": 2.883567
+      },
+      "final_training_metrics": {
+        "ce_loss": 1869878784.0,
+        "local_loss": 4.34316335741141e+17,
+        "total_loss": 4.34316335741141e+17
+      },
+      "wall_seconds": 904.820145
+    }
+  },
+  "comparison": {
+    "baseline_final_val_loss": 2.303955,
+    "treatment_final_val_loss": 2060943568.0,
+    "treatment_minus_baseline": 2060943565.696045,
+    "treatment_beats_baseline": false
+  }
+}
