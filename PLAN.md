@@ -116,48 +116,37 @@ Key insights:
 
 **Architecture implication:** The multi-block architecture WORKS. The key variable is training budget, not architecture tricks. Give interior blocks enough optimization and they develop useful, complementary representations naturally.
 
-### Architecture validation COMPLETE — scale up next
+### Architecture validation + scale-up COMPLETE
 
-Tiny-scale validation of dictation 2026-05-26-5 architecture is done:
-
-| Piece | Result | Decision |
-|---|---|---|
-| A0: Tied readout | ✓ 1.7206 matches old baseline 1.71 | **Keep** |
-| A1: Normalized addition (no scale factor) | ✓ Δ=-0.088 (better than old -0.068!) | **Keep** |
-| A2: Embedding-space local loss | ✗ cosine +0.14 worse, L2 +0.05 worse | **Keep CE** |
-| A3: Noise on laterals | Deferred — no timescale in fixed-window setting | Needs recurrent arch |
-
-**Validated architecture for scale-up:**
+**Architecture (from dictation 2026-05-26-5):**
 - Shared normalized token embeddings (weight-tied readout)
 - Normalized block outputs (L2-norm before addition)
-- Addition-based lateral combination (no scale factor, no learned projection)
-- CE local loss for interior blocks (last-position, gradient isolation via .detach())
-- Temperature = 0.07 (controls logit sharpness with normalized vectors)
-- Script: `runs/tied_readout_lm.py --normalize --temperature 0.07`
+- Addition-based lateral combination (lateral_scale=0.2 needed even with normalization)
+- CE local loss for interior blocks (cosine/L2 worse)
+- Temperature = 0.07–0.10
 
-**Tiny-scale reference:** block0_alone=1.7522, two_blocks=1.6646, Δ=-0.088
+**Results at both scales:**
 
-### What's next: SCALE UP
+| Scale | block0_alone | two_blocks | Δ | Notes |
+|---|---|---|---|---|
+| Tiny (d=64, 1L, 4800 steps) | 1.7522 | 1.6646 | -0.088 | normalized, no scale needed |
+| **Large (d=128, 2L, 20K steps)** | **1.6342** | **1.5893** | **-0.045** | normalized, scale=0.2 needed |
 
-Does the normalized tied-readout architecture work at a more honest model size?
+Text generation confirms qualitative difference: two_blocks maintains play structure (speaker labels, dialogue rhythm), block0_alone drifts into non-words.
 
-**Design:**
-- d_model: 64 → 128
-- n_heads: 2 → 4
-- ff_dim: 128 → 256
-- n_layers: 1 → 2 per block
-- Context: same (4/32/128)
-- Training steps: 4800 → 20K (or until convergence)
-- Batch size: 256 (reduce if OOM)
-- Temperature: 0.07 (may need retuning at larger scale)
+Script: `runs/tied_readout_lm.py`
 
-**Success criterion:** two_blocks still meaningfully beats block0_alone. Effect should be at least as large as tiny scale (-0.088).
+### What's next
 
-**Secondary:** Generate sample text from the trained model.
+Options (choose one):
+1. **Longer context** — increase output block from 4→16 chars, interior to 64/256. Does the effect grow?
+2. **Integrate into core/** — clean reusable architecture. "Integrate before experimenting."
+3. **Move toward recurrent** — the vision's actual architecture: blocks fire at different rates, state persists
+4. **Test noise on laterals** — only meaningful with temporal structure (option 3)
 
 ### Feedback loop status
 
-Estimated ~5 minutes per condition at this scale (2x wider, 2x deeper, 4x longer training). Still one-session work.
+Large-scale runs take ~8 minutes per condition.
 
 
 ---
