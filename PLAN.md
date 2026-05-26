@@ -4,13 +4,15 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current operational state (2026-05-26, 17:00 NZST)
+## Current operational state (2026-05-27, 00:05 NZST)
 
-**GPU: FREE.** No active experiment.
+**GPU: BUSY.** Running `runs/recurrent_depth_lm.py` (PID 11360). Log: `runs/recurrent_depth_run.log`. Expected ~15-25 min.
 
-**Daily report 2026-05-26:** WRITTEN. See `research/daily/2026-05-26.md`.
+**Experiment:** Pathway 1 — 4-layer distinct vs 4-iteration recurrent, d=128, ctx=128, 20K steps. Tests the fundamental thesis: can shared-weight recurrence match distinct-layer depth?
 
-**New dictation 2026-05-26-3:** PROCESSED. Process corrections applied to PROCESS.md. Work direction updated in this file.
+**Daily report 2026-05-26:** WRITTEN (updated with inference caching result). See `research/daily/2026-05-26.md`.
+
+**Integration:** `core/tied_readout.py` now contains the validated model architecture (commit `103deca`).
 
 ---
 
