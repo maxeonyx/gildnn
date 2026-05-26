@@ -124,6 +124,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--val-characters", type=positive_int, default=VAL_CHARACTERS)
     parser.add_argument("--learning-rate", type=float, default=LEARNING_RATE)
     parser.add_argument("--recurrent-iterations", type=positive_int, default=RECURRENT_ITERATIONS)
+    parser.add_argument("--d-model", type=positive_int, default=128)
     parser.add_argument("--halt-lambda", type=float, default=HALT_LAMBDA)
     parser.add_argument("--halt-warmup-fraction", type=float, default=HALT_WARMUP_FRACTION)
     parser.add_argument("--sanity-check-only", action="store_true")
@@ -668,7 +669,7 @@ def main() -> None:
     if args.recurrent_iterations < 2:
         raise ValueError(f"recurrent_iterations must be at least 2, got {args.recurrent_iterations}")
 
-    config = ExperimentConfig(recurrent_iterations=args.recurrent_iterations)
+    config = ExperimentConfig(recurrent_iterations=args.recurrent_iterations, d_model=args.d_model, ff_dim=args.d_model * 4)
     device = resolve_device(args.device)
     if device.type == "cuda":
         torch.set_float32_matmul_precision("high")
