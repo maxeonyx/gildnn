@@ -4,26 +4,27 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current operational state (2026-05-27, 09:10 NZST)
+## ⚠️ PRIORITY REDIRECT: Long-sequence RNN testing (dictation 2026-05-27-1)
 
-**GPU: BUSY** — d=512 capstone training (PID 18932/6364, `experiments/capstone_d512/`)
-- Config: d=512, ctx=256, iter=8, n_heads=8, ff=2048, WikiText-103, 20K steps
-- Parameters: 5,881,537 (2.7× larger than d=256)
-- Progress at step 11000: val_loss=1.74, avg_depth=6.79
-- Estimated finish: ~09:46 NZST
-- **Question:** Does halting depth variation increase with model size? Does text quality become sentence-level coherent?
+**All experiments so far use wrong sequence lengths.** `SHORT_CONTEXT = 4` everywhere. The architecture is an RNN — per-step cost is O(weights × batch), independent of history length. We should be testing with **thousands of tokens**.
 
-**Capstone d=256: COMPLETE.** Full report: `research/questions/capstone-generation/README.md`
+**The fundamental question (Pathway 1) has never been tested at the RNN's sweet spot.** We've been hobbling the RNN to match the transformer's interface.
 
-**Pathway 4 opportunity: MEASURED.** Per-depth analysis shows 95% of quality achieved by depth 4 (only 0.056 nats lost vs full depth 8). Report: `research/questions/computation-compression/README.md`
+**What must change:**
+1. Implement truncated BPTT: forward through entire long sequence (1000+ tokens), backprop through K steps (32-64)
+2. Test whether the architecture leverages temporal structure at realistic sequence lengths
+3. Re-evaluate stale lateral / recurrence negatives — those were all with 4-char windows and may be artifacts
+4. Correct comparison: transformer at 128-256 token attention vs RNN at thousands of tokens, matched params
 
-**Grammar experiment: INFRASTRUCTURE READY + REPORT-FIRST DONE.** Question README: `research/questions/grammar-depth/README.md`
+**This is the priority.** Pathway 5 (halting/dynamic depth) work is paused. Grammar experiment is paused. The next experiment must be long-sequence RNN unrolling with truncated BPTT.
 
-**Daily report 2026-05-27:** NOT YET WRITTEN (due after 4pm). Today's content: d=512 scale-up + grammar experiment + Pathway 4 measurement.
+**d=512 run:** Crashed at step 15000/20000 (no checkpoint saved). Do NOT restart it — wrong priority.
+
+**GPU: FREE** (crash killed all processes, lock file stale).
 
 ---
 
-## What's done today
+## What's done (prior sessions, still valid)
 
 1. ~~Integration~~ **DONE** — `core/recurrent_depth.py`
 2. ~~Choose direction~~ **DONE** — Capstone Generation
@@ -40,28 +41,27 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ## What's next
 
-**GPU busy with d=512 until ~09:30. ~3 days remain.**
+**~3 days remain in timebox. GPU: FREE.**
 
-### Immediate
+### THE PRIORITY: Long-sequence truncated BPTT experiment
 
-- Wait for d=512 → generate samples → compare to d=256 → update capstone report
-- **Daily report** (after 4pm)
+Design and run an experiment that:
+1. Processes sequences of 1000+ tokens (character-level, WikiText-103)
+2. Uses truncated BPTT (backprop through K=32-64 steps, forward through full sequence)
+3. Tests whether recurrent hidden state accumulates useful temporal information
+4. Compares against transformer baseline at matched params (transformer gets 128-256 token attention window)
 
-### Options for remaining time (after d=512)
+This is Pathway 1 (Wide Recurrent vs Deep Transformer) tested properly for the first time.
 
-**A. Scale to d=512 or more steps** — ALREADY RUNNING.
+### After that: re-evaluate recurrence/lateral negatives
 
-**B. Pathway 4 (Active Compression)** — Opportunity confirmed: only 0.056 nats lost by stopping at depth 4. Cheapest test: explicit self-prediction head at depth 2 predicting depth 8's output. Does it improve depth-2 quality? See `research/questions/computation-compression/README.md`.
+If long-sequence RNN works, revisit stale laterals and multi-rate at realistic sequence lengths. The previous negatives may be artifacts of 4-char windows.
 
-**C. Synthetic grammar task** — ✅ READY TO RUN. Infrastructure built + report-first done.
-  - Data: `data/grammar/` (typed recursive brackets, 2M chars, max depth 5) + `data/grammar-flat/` (flat control)
-  - Training: `runs/grammar_train.py` (d=64, ctx=64, iter=8, 5K steps default)
-  - Analysis: `experiments/grammar_depth/analyze_depth.py` (teacher-forced depth-by-nesting table)
-  - **Hypothesis:** Closing delimiters at deeper nesting use more halting depth.
-  - **Baseline:** Flat control (same chars, depth-1 only)
-  - **Exit:** Closers show increasing halt depth with nesting depth AND flat control doesn't show same pattern.
+### Paused (valid work, lower priority now)
 
-**D. Process / cleanup** — Any remaining stale docs, missing baselines, or infrastructure improvements.
+- Grammar experiment (infrastructure ready, `runs/grammar_train.py`)
+- d=512 capstone (crashed, no checkpoint — would need full restart)
+- Pathway 4 active compression
 
 ---
 
