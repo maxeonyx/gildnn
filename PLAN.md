@@ -144,33 +144,21 @@ Options (choose one):
 3. **Move toward recurrent** — the vision's actual architecture: blocks fire at different rates, state persists
 4. **Test noise on laterals** — only meaningful with temporal structure (option 3)
 
-### Recurrent lateral experiment COMPLETE (2026-05-26, evening)
+### Recurrent lateral experiment — LATERAL TIMING BUG (dictation 2026-05-26-6)
 
 Script: `runs/recurrent_lateral_lm.py`. Sequential training with persistent state.
 
-**Key finding: Temporal persistence provides reliable lateral value (mean Δ = -0.058 ± 0.014, 3 seeds, all positive at 1200 steps).**
+**⚠️ EXPERIMENT IS WRONG.** Block 1's output at position t is fed to block 0 at position t (same timestep). This makes them sequential — just a deeper network. The vision requires STALE laterals: block 0 at position t gets block 1's output from position t-1. Both blocks fire concurrently.
 
-Multi-seed at 1200 steps:
-| Seed | block0_alone | recurrent_lateral | Δ |
-|---|---|---|---|
-| 42 | 1.691 | 1.639 | -0.052 |
-| 123 | 1.746 | 1.671 | -0.075 |
-| 7 | 1.691 | 1.643 | -0.049 |
+**Previous results (mean Δ=-0.058, 3 seeds) are INVALID.** They measured sequential depth, not parallel communication.
 
-**Critical caveat:** At 300 steps, the effect is NOISE (mean Δ ≈ 0). The recurrent block needs ~1000+ steps to develop useful state. Below that, initialization variance dominates.
-
-**"Ensemble effect" finding was wrong.** The earlier single-seed (42) no_persistence control showing -0.083 was noise. Multi-seed at 300 steps: mean +0.020 (not significant). A second block WITHOUT temporal state does not reliably help when both blocks see the same 4-char window. Information asymmetry (from temporal state OR longer context) IS required — original decision confirmed.
+**Fix needed:** Delay lateral by one position. Block 0 at position t receives block 1's recurrent_hidden from position t-1 (zeros at t=0). Then re-run multi-seed at 1200 steps to see if stale laterals still help.
 
 ### What's next (updated)
 
-Temporal persistence confirmed. Next direction: **multi-rate firing** (blocks fire at different rates). This is the actual vision and requires persistence to be meaningful. Options:
-1. **Multi-rate firing** — output block fires every position, interior block fires every K positions. State carries between firings.
-2. **Scale up** — test at d_model=128, 2 layers (as done for fixed-window). Confirm the effect persists at larger scale.
-3. **Longer sequences** — test seq_length=512 with adequate training budget.
-
-### Feedback loop status
-
-Sequential training at 1200 steps: ~170s per condition (recurrent), ~10s per condition (baseline). Total for a 2-condition 3-seed run: ~9 min.
+1. **FIX lateral timing** — implement one-position delay in the experiment script
+2. **Re-run multi-seed at 1200 steps** — confirm whether stale laterals still provide value
+3. Then proceed to multi-rate firing (which requires this fix as a prerequisite anyway)
 
 ---
 
@@ -210,10 +198,10 @@ Sequential training at 1200 steps: ~170s per condition (recurrent), ~10s per con
 | **Multi-block (32+128)** | **3** | **two_blocks ≈ one_mid** | **Blocks redundant at this scale; long block underfits (capacity mismatch)** |
 | **Pretrain+freeze ablation** | **3** | **two_blocks: -0.199** | **Interior blocks need more training; pretrained blocks are COMPLEMENTARY** |
 | **Co-train 4800 steps** | **3** | **two_blocks: 1.6435** | **BEATS pretrain+freeze. No staging needed, just more steps.** |
-| **Recurrent lateral** | **3→1** | **Mean Δ=-0.058 ± 0.014, 3 seeds at 1200 steps** | **Temporal persistence confirmed; "ensemble" was noise from undertrained 300-step runs** |
+| **Recurrent lateral** | **3→1** | **INVALID — lateral timing bug** | **Was measuring sequential depth, not parallel communication. Needs re-run with one-position delay.** |
 
 ---
 
 ## The agent's working loop
 
-Follow PROCESS.md. Current position: **RECURRENT LATERAL CONFIRMED (3 seeds).** Temporal persistence reliably provides lateral value. Next: multi-rate firing (the actual vision).
+Follow PROCESS.md. Current position: **RECURRENT LATERAL HAS TIMING BUG (dictation 2026-05-26-6).** Fix lateral delay, re-run, then proceed to multi-rate.

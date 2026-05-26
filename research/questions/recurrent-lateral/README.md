@@ -4,6 +4,14 @@
 
 **Dictation:** [2026-05-26-5](../../../dictations/2026-05-26-5.md) — "sequential dependencies across time steps only"
 
+**Status: ⚠️ RESULTS INVALID — lateral timing bug (dictation 2026-05-26-6)**
+
+The experiment fed block 1's output to block 0 at the **same timestep** (position t → position t). This makes the blocks sequential — just a deeper network. The vision requires STALE laterals: block 0 at position t receives block 1's output from position t-1, so both blocks can fire concurrently.
+
+The results below measured "extra sequential depth," NOT "parallel communication via stale state." They need to be re-run with the one-position lateral delay.
+
+---
+
 **Prior result:** Multi-block architecture validated with fixed-window information asymmetry. Interior blocks see more context (32/128 chars) than the output block (4 chars) and contribute useful lateral predictions via normalized addition. Effect: -0.045 to -0.088 nats depending on scale.
 
 ---
@@ -30,6 +38,8 @@ More fundamentally: the vision describes an architecture where blocks fire at di
 
 ## Architecture
 
+**⚠️ BUG: The "lateral" line below is wrong. It should be h_{t-1} (stale), not h_t (same-timestep).**
+
 ```
 For each position t in sequential text:
 
@@ -48,7 +58,10 @@ Block 1 (recurrent interior):
     3. next state: s_t = normalize(h_t)
   loss: local CE (same as validated)
   lateral: h_t added (detached, scaled) to block 0's hidden before readout
+         ^^^ BUG: should be h_{t-1}, not h_t. As implemented, blocks are sequential.
 ```
+
+**Correct design (to be implemented):** Block 0 at position t receives block 1's `h_{t-1}` (output from previous position). At position 0, lateral is zeros. Both blocks fire in parallel — neither waits for the other.
 
 **Design choices (addressing adversarial review):**
 
