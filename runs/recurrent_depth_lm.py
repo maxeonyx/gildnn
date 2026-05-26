@@ -108,6 +108,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--steps", type=positive_int, default=TRAINING_STEPS)
     parser.add_argument("--batch-size", type=positive_int, default=TRAIN_BATCH_SIZE)
     parser.add_argument("--eval-batch-size", type=positive_int, default=EVAL_BATCH_SIZE)
+    parser.add_argument("--train-characters", type=positive_int, default=100_000)
+    parser.add_argument("--val-characters", type=positive_int, default=20_000)
     parser.add_argument("--learning-rate", type=float, default=LEARNING_RATE)
     parser.add_argument("--distinct-layers", type=positive_int, default=DISTINCT_LAYERS)
     parser.add_argument("--recurrent-iterations", type=positive_int, default=RECURRENT_ITERATIONS)
@@ -552,7 +554,11 @@ def main() -> None:
         },
     )
 
-    train_dataset, val_dataset, vocab_size = load_dataset(context_size=config.context_size)
+    train_dataset, val_dataset, vocab_size = load_dataset(
+        context_size=config.context_size,
+        train_characters=args.train_characters,
+        val_characters=args.val_characters,
+    )
     train_dataset = dataset_to_device(train_dataset, device)
     val_dataset = dataset_to_device(val_dataset, device)
 
