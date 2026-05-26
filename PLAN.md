@@ -79,31 +79,32 @@ Diagnosis: reconstruction converged to near-zero (0.0002) because self-attention
 
 **Staging is NOT a requirement.** Remove from decision table.
 
-### What's next: multi-block experiment
+### Multi-block result (2026-05-26, 18:30)
 
-**DONE:**
-- ✅ Multi-seed (3 seeds, ctx 4/128): mean Δ = -0.037, all seeds positive
-- ✅ Increased asymmetry (ctx 4/128 vs ctx 8/64): effect grows (-0.023 vs -0.017)
+| Condition | val_loss | Δ |
+|---|---|---|
+| block0_alone (ctx=4) | 1.8561 | — |
+| one_block_mid (ctx=32) | 1.8189 | **-0.037** |
+| one_block_long (ctx=128) | 1.8458 | **-0.010** |
+| two_blocks (32+128) | 1.8198 | **-0.036** |
 
-**The mechanism is confirmed on real language.** Effect scales with info asymmetry. Co-training > staging.
+**Finding: blocks are redundant at this scale.** `two_blocks ≈ one_block_mid`. The long block (128) helps much less than mid (32).
 
-**NEXT:** Does adding a **second** interior block with a different context length provide additional benefit?
+**Why:** The 128-char block is underfitting — its local CE is still ~1.88 vs mid's ~1.77. Same d_model=64 can handle 32 tokens but struggles with 128. Also: laterals are summed into one 64-d channel (no bandwidth increase), and both blocks optimize the same target (no specialization pressure).
 
-Design: block 0 (ctx=4, CE), block 1 (ctx=32, local last-pos CE), block 2 (ctx=128, local last-pos CE). Both block 1 and block 2 send lateral to block 0. Compare:
-1. block0 alone
-2. block0 + block1 (ctx=32)
-3. block0 + block2 (ctx=128)
-4. block0 + block1 + block2 (both — the multi-timestep architecture)
+**This is NOT "architecture doesn't scale."** It's a specific bottleneck: capacity mismatch + no specialization mechanism.
 
-If (4) > max(2,3): the blocks are complementary, not redundant. This is the multi-timestep architecture working.
+**Design insight:** Interior blocks processing longer contexts need proportional capacity. And multiple laterals need either a wider receiving channel or a mechanism to specialize their contributions.
 
-If (4) ≈ max(2,3): diminishing returns from additional blocks. The info asymmetry saturates at one block.
+### What's next: disambiguate the bottleneck
 
-Script: extend `runs/staged_char_lm.py` or write a new `runs/multi_block_lm.py`.
+The cheapest discriminating test: **give the long block more capacity** (e.g., d_model=128 or 2 layers) and rerun. If `one_block_long` with more capacity matches `one_block_mid`, then the issue is purely capacity and the architecture vision is intact.
+
+Alternative: pretrain/freeze ablation — train each interior block to convergence on its local task, freeze, then test readout. Separates "long block learned poorly" from "long-range info is genuinely redundant."
 
 ### Feedback loop status
 
-All experiments complete in <12 seconds per condition. The feedback loop is very tight.
+All experiments complete in <16 seconds per condition on GPU. The feedback loop is very tight.
 
 
 ---
@@ -163,9 +164,10 @@ All experiments complete in <12 seconds per condition. The feedback loop is very
 | **Staged char LM (last-pos CE)** | **3** | **-0.017 (better!)** | **Last-position CE works; co-training works too; staging not required** |
 | **Asymmetry scaling** | **3** | **ctx 4/128: -0.023** | **Effect grows with more info asymmetry** |
 | **3-seed confirmation** | **3** | **mean -0.037 ± 0.028** | **All 3 seeds positive; mechanism confirmed on real language** |
+| **Multi-block (32+128)** | **3** | **two_blocks ≈ one_mid** | **Blocks redundant at this scale; long block underfits (capacity mismatch)** |
 
 ---
 
 ## The agent's working loop
 
-Follow PROCESS.md. Current position: **MULTI-BLOCK EXPERIMENT.** Single interior block confirmed (3 seeds, effect scales with asymmetry). Next: test whether multiple interior blocks at different context lengths are complementary.
+Follow PROCESS.md. Current position: **DISAMBIGUATE MULTI-BLOCK BOTTLENECK.** Multi-block test shows redundancy. Need to determine: is it capacity (long block too small for 128 ctx) or redundancy (long-range info doesn't add value)?
