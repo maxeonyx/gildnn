@@ -4,23 +4,23 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current operational state (2026-05-27, 02:00 NZST)
+## Current operational state (2026-05-27, 03:00 NZST)
 
-**GPU: BUSY.** Running MULTI-SEED VERIFICATION (PID 22800). 3 seeds × 2 configs (d=256 and d=128) at 900K chars. Log: `runs/multiseed_verify_output.log`. Expected ~87 min total.
+**GPU: FREE.** Multi-seed verification complete (PID 22800 finished).
 
-**This session's results (4 experiments completed):**
-1. **8-iter scaling:** recurrent_8 val_loss=1.615 vs distinct_8=1.787 (Δ grows to -0.172). Stability perfect.
-2. **Larger-data REVERSAL:** On 900K chars, distinct_4 (817K params) val_loss=1.615, recurrent_4 (224K params) val_loss=1.684. **DISTINCT WINS by +0.069.** Advantage was ENTIRELY regularization.
-3. **Width-scaling COMPLETE:** recurrent_4_d256 (842K params) val_loss=1.594, distinct_4_d256 (3.2M params) val_loss=1.567.
-4. **PROVISIONAL: Matched-param comparison:** recurrent_4_d256 (842K) = 1.594 vs distinct_4_d128 (817K) = 1.615. **Recurrent wins by Δ=-0.021.** But single-seed, so unconfirmed.
+**This session's results (PATHWAY 1 RESOLUTION):**
+1. **8-iter scaling:** recurrent_8 val=1.615 vs distinct_8=1.787 (Δ=-0.172). Stability perfect.
+2. **Larger-data REVERSAL:** On 900K chars, distinct_4 (817K) val=1.615, recurrent_4 (224K) val=1.684. **Advantage was entirely regularization.**
+3. **Width-scaling:** recurrent_4_d256 (842K) val=1.594 vs distinct_4_d256 (3.2M) val=1.567.
+4. **MULTI-SEED VERIFICATION (3 seeds):**
+   - recurrent_4_d256 (842K): mean=1.600, std=0.004
+   - distinct_4_d128 (817K): mean=1.610, std=0.007
+   - **Mean Δ = -0.011 (recurrent slightly better), NOT statistically significant (p≈0.11)**
+   - Per-seed: -0.015, -0.019, +0.001
 
-**Pathway 1 status:** Provisionally confirmed. At matched params with sufficient data, recurrence appears to provide genuine inductive bias. BUT: effect is small (0.021), single-seed, and there's a compute mismatch confound (d=256 does ~4× FLOPs vs d=128). Multi-seed verification running now.
+**Pathway 1 conclusion: INCONCLUSIVE / WEAK POSITIVE.** At matched params, recurrence shows a small noisy hint of advantage (~0.011 nats), but it's not established evidence. Per-FLOP, distinct still wins. The dramatic original advantage (-0.092) was entirely overfitting. Weight sharing is a good regularizer, possibly a marginal inductive bias at this scale.
 
-**Two-metric result:**
-- Per-parameter (842K rec vs 817K dist): recurrent wins by Δ=-0.021
-- Per-FLOP (same d=256): distinct wins by Δ=+0.027
-
-**Daily report 2026-05-27:** NOT YET WRITTEN (it's only 02:00).
+**Daily report 2026-05-27:** NOT YET WRITTEN (it's only 03:00).
 
 **Integration:** `core/tied_readout.py` contains validated model architecture.
 
@@ -295,9 +295,11 @@ This FULLY closes multi-rate for Pathway 8 with local CE objectives. Any form of
 | **Multi-rate buffer (sequential)** | **8→3** | **Sequential regime fails: Δ=0.00 at ctx32, Δ=+0.04 at ctx128** | **Sequential training incompatible with laterals — near-constant signal from overlapping windows. Window-based training required.** |
 | **Inference-time caching** | **8** | **Immediate collapse: K=2 gives Δ=+0.43** | **CE-trained blocks produce prediction-specific output, useless for any other position. Multi-rate fundamentally incompatible with CE local objective.** |
 | **Recurrent depth (4 iter vs 4 distinct)** | **1** | **Recurrent WINS: 1.6315 vs 1.7234 (Δ=-0.092)** | **Weight sharing = regularization at this scale. 3.6× fewer params, 20% faster. Stable through 4 iterations.** |
+| **Recurrent depth (900K data control)** | **1** | **REVERSAL: distinct 1.615 vs recurrent 1.684 (Δ=+0.069)** | **Original advantage was entirely overfitting. With sufficient data, distinct's extra capacity wins.** |
+| **Recurrent depth (width-scaled, 3 seeds)** | **1** | **INCONCLUSIVE: mean Δ=-0.011, p≈0.11** | **At matched params (~840K), effect is small and not statistically significant. Per-FLOP, distinct wins. Pathway 1 not confirmed.** |
 
 ---
 
 ## The agent's working loop
 
-Follow PROCESS.md. Current position: **PATHWAY 1 CONFIRMED at this scale.** Recurrent depth beats distinct layers (1.63 vs 1.72). Multi-rate (Pathway 8) fully closed. Integration done. Next: iteration scaling (8, 16 iters), width scaling, or composition with Pathway 3 (local learning + recurrence).
+Follow PROCESS.md. Current position: **PATHWAY 1 RESOLVED (inconclusive at this scale).** Multi-seed shows Δ=-0.011±0.011, not significant. The next productive direction is **Pathway 3 composition** — add per-iteration CE loss to the recurrent model, testing whether local learning amplifies the recurrent advantage. OR redirect to proven Pathway 3 with distinct layers and focus on scaling/improving that.
