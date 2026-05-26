@@ -4,17 +4,18 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current operational state (2026-05-27, 01:00 NZST)
+## Current operational state (2026-05-27, 01:30 NZST)
 
-**GPU: BUSY.** Running larger-data experiment (PID 11788). 4 distinct vs 4 recurrent on 900K training chars (9× more data). Log: `runs/recurrent_depth_largedata_run.log`. Report: `experiments/tinyshakespeare/artifacts/recurrent_depth_lm/report_largedata.json`. Expected ~25 min.
+**GPU: BUSY.** Running WIDTH-SCALING experiment (PID 16392). d_model=256, n_heads=8, ff_dim=1024, 4 iters/layers, 900K train data. Log: `runs/recurrent_depth_wide_run.log`. Report: `experiments/tinyshakespeare/artifacts/recurrent_depth_lm/report_wide.json`. Expected ~90 min total (two conditions).
 
-**Session results so far:**
-1. 8-iter scaling COMPLETE: recurrent_8 val_loss=1.615, distinct_8 val_loss=1.787. Gap GROWS from -0.092 (N=4) to -0.172 (N=8). Stability perfect. Documented in README.
-2. Larger-data experiment launched to test whether advantage is purely regularization.
+**This session's results (3 experiments completed):**
+1. **8-iter scaling:** recurrent_8 val_loss=1.615 vs distinct_8=1.787 (Δ grows to -0.172). Stability perfect.
+2. **Larger-data REVERSAL:** On 900K chars, distinct_4 (817K params) val_loss=1.615, recurrent_4 (224K params) val_loss=1.684. **DISTINCT WINS by +0.069.** Advantage was ENTIRELY regularization.
+3. **Width-scaling (running):** recurrent_4 at d=256 (~841K params) vs distinct_4 at d=256 (~3.2M params). The key comparison is recurrent_4_d256 vs the already-computed distinct_4_d128 (both ~817K params).
 
-**Key question being answered right now:** Does the recurrent advantage persist when there's enough data that the distinct model can't easily overfit?
+**The decisive question:** At matched params (~817K) and sufficient data (900K chars), does recurrence provide genuine inductive bias, or only regularization?
 
-**Daily report 2026-05-27:** NOT YET WRITTEN (it's only 01:00).
+**Daily report 2026-05-27:** NOT YET WRITTEN (it's only 01:30).
 
 **Integration:** `core/tied_readout.py` contains validated model architecture.
 
