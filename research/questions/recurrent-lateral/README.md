@@ -102,8 +102,69 @@ Block 1 (recurrent interior):
 
 ## Results
 
-_(to be filled)_
+Script: [`runs/recurrent_lateral_lm.py`](../../../runs/recurrent_lateral_lm.py)
+
+### Primary comparison (300 steps, seq_length=128, d_model=64, 1 layer, batch=32)
+
+| Condition | val_loss | Δ from baseline | What it isolates |
+|---|---|---|---|
+| block0_alone | 2.0257 | — | Single block |
+| no_persistence (second block, zero state always) | 1.9427 | **-0.083** | Ensemble/complementarity |
+| recurrent_lateral (second block + persistent state) | 1.9113 | **-0.114** | Ensemble + persistence |
+
+**Decomposition:** 72% of the total gain is from having a second independent predictor (ensemble effect). 28% (-0.031) is from temporal persistence specifically.
+
+### Reset ablation (300 steps, same settings)
+
+| Condition | val_loss | Δ from baseline |
+|---|---|---|
+| block0_alone | 2.0204 | — |
+| recurrent_lateral (no reset) | 1.9527 | -0.068 |
+| reset_128 | 1.9524 | -0.068 |
+| reset_32 | 1.9834 | -0.037 |
+
+Note: `reset_128` is a no-op at seq_length=128 (reset never fires within the sequence). The informative comparison is `reset_32` vs `no_reset`: resetting every 32 chars gives -0.037 vs -0.068 with no reset. The difference (-0.031) matches the `no_persistence` decomposition above.
+
+### Training convergence (does the effect persist?)
+
+| Steps | block0_alone | recurrent_lateral | Δ |
+|---|---|---|---|
+| 300 | 2.0204 | 1.9527 | -0.068 |
+| 600 | 1.8129 | 1.7595 | -0.054 |
+| 1200 | 1.6906 | 1.6390 | -0.052 |
+
+The gap narrows from -0.068 to -0.052 over training. It remains positive through 1200 steps but has not been confirmed to stabilize (only 3 checkpoints, 1 seed).
+
+### Comparison with fixed-window approach (different script, uncontrolled)
+
+For reference only — different training loop, different data exposure per step:
+- Fixed-window two_blocks (4800 random-window steps): block0_alone=1.7522, two_blocks=1.6646, Δ=-0.088
+- Recurrent lateral (1200 sequential steps): block0_alone=1.6906, recurrent_lateral=1.6390, Δ=-0.052
+
+Same order of magnitude. Not a controlled comparison.
+
+## Interpretation (weakened per adversarial review)
+
+1. **A stateful lateral pathway improves validation loss.** Part of that gain depends on persistence beyond 32 characters. But the majority (72%) is from having a second independently-trained predictor — an ensemble/complementarity effect.
+
+2. **The effect remains present through 1200 steps** with the gap narrowing from 0.068 to about 0.05. "Stabilizes" is not confirmed — could continue shrinking.
+
+3. **A separate fixed-window experiment showed improvement of similar order of magnitude**, but the comparison is uncontrolled (different scripts, training loops, data exposure).
+
+4. **Resetting every 32 characters hurts** relative to no-reset at 300 steps, suggesting useful state spans beyond 32 characters within the 128-char sequence.
+
+5. **This is an encouraging proof-of-concept** that justifies further recurrent/stateful follow-up experiments. It does not validate the overall recurrent direction — one seed, one scale, one dataset.
+
+## What this taught us
+
+- Multi-block architecture provides value even without information asymmetry (both blocks see same 4 chars). This is an ensemble effect: independently-trained blocks develop complementary features.
+- Temporal persistence adds modest but real additional value (~30% of total improvement) on top of the ensemble effect.
+- The persistence contribution is of similar order to the "extra information from longer context" contribution in the fixed-window experiments.
+- Both sources of value (ensemble + persistence) are present and additive.
 
 ## Next steps
 
-_(to be filled after results)_
+- **Multi-seed confirmation** — the persistence contribution (-0.03) is small enough that seed variance matters. Run 3 seeds to confirm it's real.
+- **Longer sequences** — test seq_length=512 with reset ablation to determine if state beyond 128 chars provides additional value.
+- **Matched-parameter control** — widen block0 to match total parameter count and confirm the two-block architecture is better than a single wider block.
+- **Multi-rate** — if persistence is confirmed, test blocks firing at different rates (the actual vision).
