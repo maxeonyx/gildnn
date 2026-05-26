@@ -4,21 +4,15 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current operational state (2026-05-27, 06:05 NZST)
+## Current operational state (2026-05-27, 06:49 NZST)
 
-**GPU: BUSY.** Extended training run (PID 16340, d=256/8-iter/50K steps, ETA ~06:35).
+**GPU: FREE.**
 
-**Active run:**
-- Script: `runs/halting_regression.py --d-model 256 --steps 50000`
-- Log: `experiments/tinyshakespeare/artifacts/halting_regression_d256_50k/run.jsonl`
-- Report: `experiments/tinyshakespeare/artifacts/halting_regression_d256_50k/report.json`
-- Lock: `runs/active.lock`
-- At step 22K/50K as of 06:04 — Pearson 0.409, LM loss 1.40, both improving steadily
-- Purpose: Determine if d=256 halt head convergence improves with more training (20K steps gave 33.6% oracle efficiency vs d=128's 60.4% at 10K)
-
-**Integration design (pre-computed):** If 50K passes criteria, create `core/recurrent_depth.py` with `SharedRecurrentCore`, `HaltHead`, `RecurrentDepthLM` — parallel model class to `TiedReadoutModel`, NOT a generic halting framework. Reuse existing primitives (`CausalSelfAttention`, `FeedForward`, `normalize_hidden`, `tied_logits`). Do NOT pull training/eval machinery into core/.
-
-**Piece tests:** ALL PASS (verified 06:04). Core healthy for integration.
+**Pathway 5 conclusion (this session):**
+- 50K run COMPLETED: Pearson 0.561, ε=0.02 speedup 1.20 (doesn't beat fixed-6 at tight threshold)
+- Key finding: prediction quality scales (Pearson matches d=128) but oracle headroom shrinks with training
+- Calibration experiment CONFIRMED: affine calibration boosts ε=0.02 speedup from 1.30→1.39, beating fixed-6
+- **Integration warranted:** mechanism proven + calibration fix identified + prediction scales
 
 **Daily report 2026-05-27:** NOT YET WRITTEN (due after 4pm).
 
@@ -26,10 +20,9 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ## What's next
 
-1. **Check d=256 scale-up results** — does regression halting improve at larger scale? (Oracle ceiling is 1.58× there)
-2. **If yes:** Integration into `core/` as a first-class architecture feature
-3. **Daily report** (after 4pm): Pathway 1 resolution → direction switch → oracle → binary fail → regression success → scale-up
-4. **Open question:** What does learned halting mean for the vision? The model can learn "am I done?" — this connects to adaptive computation and efficient inference
+1. **Integration into `core/`** — create `core/recurrent_depth.py` with `SharedRecurrentCore`, `HaltHead`, `RecurrentDepthLM`. Include optional calibration parameters for inference. Training/eval machinery stays in `runs/`.
+2. **Daily report** (after 4pm): Full Pathway 5 arc — oracle → binary fail → regression success → scale-up → calibration fix
+3. **After integration:** What's the next research direction? Pathway 4 (active compression) is the natural successor — model learning to be "ready" earlier would enlarge the oracle ceiling
 
 ---
 
