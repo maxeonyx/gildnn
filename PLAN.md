@@ -116,32 +116,29 @@ Key insights:
 
 **Architecture implication:** The multi-block architecture WORKS. The key variable is training budget, not architecture tricks. Give interior blocks enough optimization and they develop useful, complementary representations naturally.
 
-### What's next: SCALE-UP EXPERIMENT
+### What's next: NEW ARCHITECTURE (dictation 2026-05-26-5)
 
-The mechanism is validated at tiny scale. **The remaining uncertainty: does it survive a more honest model size?**
+Dictation redirected: Max described the actual architecture he wants. Different geometry from what we validated — needs piece-by-piece testing at tiny scale before scaling up.
 
-**Design:**
-- Model: d_model=128, 4 heads, ff_dim=256, 2 layers per block
-- Block 0 (output): ctx=16, CE loss
-- Block 1 (mid): ctx=64, local last-pos CE
-- Block 2 (long): ctx=256, local last-pos CE
-- Training: 20K steps (or until convergence — monitor for plateau)
-- Data: TinyShakespeare (still fast loading, instant feedback loop)
-- Batch size: 128 (reduced for memory with longer contexts)
+**Architecture change (from dictation):**
+- **Weight-tied dot-product readout** — no output projection, logits = dot(output, embeddings) / temp
+- **Addition as combination** — lateral contributions added in shared embedding space (IS the Bayesian product)
+- **Embedding-space local loss** — cosine or L2 between block output and target embedding (not CE through projection)
+- **Noise on laterals** — forces timescale separation (most speculative piece)
 
-**Conditions:**
-1. block0_alone (baseline transformer, ctx=16)
-2. two_blocks (multi-block with lateral communication)
+**Validation order (tiny scale, ~70s each):**
+1. A0: Single-block tied-readout baseline (verify trains sanely)
+2. A1: Multi-block with addition-based combination (core redirect)
+3. A2: Embedding-space local loss (cosine/L2 vs CE)
+4. A3: Noise on laterals (last — most speculative)
 
-**Success:** two_blocks meaningfully beats block0_alone (Δ > noise). Effect should be larger than at tiny scale because there's more capacity to use the lateral info.
+**Decision gate:** If tied readout or additive combination is clearly broken at tiny scale, stop and debug. If they work, proceed to A2/A3. Scale up only the best surviving variant.
 
-**Secondary deliverable:** Once trained, generate text interactively to show Max what the model produces. The vision says "type at it, see what it generates."
-
-**Minimal integration only:** Don't refactor into core/ first. Write a clean script for this experiment. Integrate after if results are good.
+**Why not scale old architecture first:** Max redirected the target architecture. Scaling the old one answers "does a surrogate scale?" which is lower-value now.
 
 ### Feedback loop status
 
-Scale-up will take 5-10 minutes per condition (estimate). Still fast enough for one decisive experiment in a session.
+Tiny-scale experiments take ~70 seconds. Full sequence (A0–A3) < 10 minutes if all work.
 
 
 ---
