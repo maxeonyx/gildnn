@@ -513,10 +513,69 @@ This opens the door to:
 
 ### Remaining questions
 
-1. **Does this scale?** Test at d=256, 8 iterations, 20K steps
+1. ~~**Does this scale?** Test at d=256, 8 iterations, 20K steps~~ → See scale-up below. Answer: "partially — needs more training"
 2. **Does it generalize?** Would the halt head work on unseen data distributions?
 3. **Can you actually HALT during inference?** Currently we compute all depths and choose — real early exit requires stopping the forward pass, which needs architecture changes for batched execution
-4. **Would longer training help further?** The Pearson was still climbing (0.476 training vs 0.572 eval)
+4. **Would longer training help at d=256?** Pearson still climbing at 20K steps. 50K step run in progress.
+
+---
+
+## Scale-up: d=256, 8-iter, 20K steps (2026-05-27)
+
+**Script:** `runs/halting_regression.py --d-model 256 --steps 20000` | **Artifacts:** `experiments/tinyshakespeare/artifacts/halting_regression_d256/`
+
+### Result: mechanism works but is less efficient at larger scale
+
+| Metric | d=128 (10K) | d=256 (20K) |
+|---|---|---|
+| Eval Pearson depth 1 | **0.572** | 0.458 |
+| Oracle speedup | 1.58× | **1.67×** |
+| ε=0.02 speedup | **1.38×** | 1.23× |
+| ε=0.02 oracle efficiency | **60.4%** | 33.6% |
+| ε=0.05 speedup | 1.57× | **1.47×** |
+| ε=0.05 oracle efficiency | 72.9% | 55.3% |
+| Wall time | ~10 min | 14 min |
+
+### Epsilon sweep at d=256
+
+| ε | Avg depth | Val loss hit | Speedup | Oracle eff. |
+|---|---|---|---|---|
+| 0.001 | 7.28 | 0.006 | 1.10× | 18.7% |
+| 0.005 | 7.15 | 0.007 | 1.12× | 21.2% |
+| 0.01 | 6.96 | 0.007 | 1.15× | 24.8% |
+| 0.02 | 6.53 | 0.010 | 1.23× | 33.6% |
+| 0.05 | 5.45 | 0.024 | 1.47× | 55.3% |
+| 0.10 | 4.44 | 0.052 | 1.80× | 73.8% |
+| 0.20 | 3.40 | 0.109 | 2.35× | 91.4% |
+
+### Pareto comparison vs fixed-depth baselines (d=256)
+
+| Policy | Speedup | Loss hit |
+|---|---|---|
+| Fixed depth 7 | 1.14× | 0.004 |
+| Learned ε=0.01 | 1.15× | 0.007 |
+| Learned ε=0.02 | 1.23× | 0.010 |
+| **Fixed depth 6** | **1.33×** | **0.015** |
+| Learned ε=0.05 | 1.47× | 0.024 |
+| Fixed depth 5 | 1.60× | 0.036 |
+| Learned ε=0.10 | 1.80× | 0.052 |
+| Fixed depth 4 | 2.00× | 0.081 |
+
+At d=256, learned halting does **not** dominate fixed-depth baselines. It fills in intermediate tradeoff points (smoother speed-quality curve) but doesn't strictly beat any fixed-depth operating point.
+
+### Interpretation
+
+**Not a scaling failure, but a convergence issue.** Evidence:
+- Training Pearson was still climbing at 20K (0.404, never plateaued)
+- The mechanism works at aggressive ε (1.47× at 0.024 loss)
+- Oracle opportunity is actually LARGER at d=256 (1.67× vs 1.58×)
+- The head seems to learn coarse "easy vs hard" ranking before fine calibration
+
+**Hypothesis:** d=256 needs proportionally more training for the halt head to converge. The larger model's hidden state lives in a higher-dimensional space, and the linear probe needs more optimization to decode it accurately.
+
+### Follow-up: 50K steps at d=256
+
+Running now. If Pearson continues rising and ε=0.02 overtakes fixed-6, the problem is purely training budget. If it plateaus, the halt head architecture may need scaling (e.g. larger probe, more layers).
 
 > **Purpose:** Determine whether a jointly-trained halt head can learn to predict oracle depth, given that post-hoc probing failed (3.4% above baseline).
 
