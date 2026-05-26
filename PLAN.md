@@ -4,13 +4,18 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current operational state (2026-05-27, 08:20 NZST)
+## Current operational state (2026-05-27, 08:30 NZST)
 
-**GPU: FREE.**
+**GPU: BUSY** — d=512 capstone training (PID 18932/6364, `experiments/capstone_d512/`)
+- Config: d=512, ctx=256, iter=8, n_heads=8, ff=2048, WikiText-103, 20K steps
+- Parameters: 5,881,537 (2.7× larger than d=256)
+- Progress at step 1000: val_loss=2.33, avg_depth=7.18 (expected early)
+- Estimated finish: ~09:30 NZST (~70 min total)
+- **Question:** Does halting depth variation increase with model size? Does text quality become sentence-level coherent?
 
-**Capstone generation: COMPLETE.** d=256 on WikiText-103, 20K steps, val_loss 1.62. Generates Wikipedia-like text with interpretable halting patterns (mean depth 5.6/8 = 30% compute savings). Full report: `research/questions/capstone-generation/README.md`.
+**Capstone d=256: COMPLETE.** Full report: `research/questions/capstone-generation/README.md`
 
-**Daily report 2026-05-27:** NOT YET WRITTEN (due after 4pm). Today's content: Pathway 5 resolution + capstone generation.
+**Daily report 2026-05-27:** NOT YET WRITTEN (due after 4pm). Today's content: Pathway 5 resolution + capstone generation + d=512 scale-up.
 
 ---
 
@@ -20,11 +25,12 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 2. ~~Choose direction~~ **DONE** — Capstone Generation
 3. ~~Generation infrastructure~~ **DONE** — `core/generation.py`, `runs/generate_text.py`
 4. ~~--save-checkpoint default~~ **DONE**
-5. ~~Capstone training~~ **DONE** — 20K steps, 35 min, val_loss 1.62
+5. ~~Capstone training d=256~~ **DONE** — 20K steps, 35 min, val_loss 1.62
 6. ~~Generation samples~~ **DONE** — halting patterns confirmed interpretable
 7. ~~Speed comparison~~ **DONE** — 10% real-time speedup (memory-bound regime)
 8. ~~Capstone report~~ **DONE** — `research/questions/capstone-generation/README.md`
-9. ~~Fix report-path bug~~ **DONE** — capstone_train.py now handles directory paths
+9. ~~Fix bugs~~ **DONE** — checkpoint format compat, report-path dir handling, main() def
+10. **ACTIVE: d=512 scale-up** — launched, ETA 09:30
 
 ---
 
