@@ -45,11 +45,17 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ### Options for remaining time (after d=512)
 
-**A. Scale to d=512 or more steps** — the capstone text is word-level coherent but not sentence-level. A bigger model or more training would produce genuinely interesting text for interactive use. Cost: 2-4 hours at d=512, or ~25 min for 50K more steps at d=256.
+**A. Scale to d=512 or more steps** — ALREADY RUNNING.
 
 **B. Pathway 4 (Active Compression)** — Can the recurrent depth model learn to frontload computation (make early depths more informative)? Would enlarge the oracle ceiling. Natural successor experiment.
 
-**C. Synthetic task validation** — dictation 2026-05-26-3 says "run whatever architecture across multiple datasets and tasks." Test the recurrent depth model on a CFG/grammar task where depth allocation might be even more interpretable (strict nesting → depth should correlate with nesting level).
+**C. Synthetic grammar task** — ✅ READY TO RUN. Infrastructure built:
+  - Data: `data/grammar/` (typed recursive brackets, 2M chars, max depth 5) + `data/grammar-flat/` (flat control)
+  - Training: `runs/grammar_train.py` (d=64, ctx=64, iter=8, 5K steps default)
+  - Analysis: `experiments/grammar_depth/analyze_depth.py` (teacher-forced depth-by-nesting table)
+  - **Hypothesis:** Closing delimiters at deeper nesting use more halting depth.
+  - **Baseline:** Flat control (same chars, depth-1 only)
+  - **Exit:** Closers show increasing halt depth with nesting depth AND flat control doesn't show same pattern.
 
 **D. Process / cleanup** — Any remaining stale docs, missing baselines, or infrastructure improvements.
 
