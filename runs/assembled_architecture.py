@@ -70,6 +70,13 @@ class BatchLossSummary:
     valid_positions: tuple[int, ...]
 
 
+@dataclass(frozen=True)
+class CrossHorizonAnalysisSummary:
+    horizons: tuple[int, ...]
+    loss_matrix: tuple[tuple[float, ...], ...]
+    valid_positions: tuple[tuple[int, ...], ...]
+
+
 def positive_int(value: str) -> int:
     parsed = int(value)
     if parsed <= 0:
@@ -238,6 +245,62 @@ def compute_chunk_loss(
         valid_positions.append(int(targets.numel()))
     total_loss = torch.stack(block_losses).sum()
     return total_loss, block_losses, valid_positions, next_carry_state
+
+
+@torch.inference_mode()
+def cross_horizon_analysis(
+    model: ParallelDiagonalModel,
+    batch_tokens: Int[Tensor, "batch seq"],
+    bptt_chunk: int,
+) -> CrossHorizonAnalysisSummary:
+    was_training = model.training
+    model.eval()
+    horizons = tuple(int(rate) for rate in model.rates)
+    carry_state: ParallelDiagonalCarryState | None = None
+    loss_sums = [[0.0 for _ in horizons] for _ in model.rates]
+    valid_position_sums = [[0 for _ in horizons] for _ in model.rates]
+    for start in range(0, batch_tokens.shape[1], bptt_chunk):
+        stop = min(start + bptt_chunk, batch_tokens.shape[1])
+        chunk_tokens = batch_tokens[:, start:stop]
+        if chunk_tokens.shape[1] <= max(horizons):
+            continue
+        _, state, carry_state = model.forward_with_state_and_carry(chunk_tokens, carry_state=carry_state)
+        for block_index, block_hidden in enumerate(state.block_outputs):
+            for horizon_index, horizon in enumerate(horizons):
+                hidden = block_hidden[:, :-horizon, :]
+                targets = chunk_tokens[:, horizon:]
+                logits = tied_logits(hidden, model.token_embedding, temperature=TEMPERATURE, normalize=NORMALIZE)
+                loss = F.cross_entropy(logits.reshape(-1, logits.shape[-1]), targets.reshape(-1))
+                valid_positions = int(targets.numel())
+                loss_sums[block_index][horizon_index] += loss.item() * valid_positions
+                valid_position_sums[block_index][horizon_index] += valid_positions
+        carry_state = carry_state.detach()
+    if was_training:
+        model.train()
+    if any(valid_positions == 0 for row in valid_position_sums for valid_positions in row):
+        raise RuntimeError(f"Cross-horizon analysis had zero valid positions: {valid_position_sums}")
+    return CrossHorizonAnalysisSummary(
+        horizons=horizons,
+        loss_matrix=tuple(
+            tuple(loss_sum / valid_positions for loss_sum, valid_positions in zip(loss_row, valid_row, strict=True))
+            for loss_row, valid_row in zip(loss_sums, valid_position_sums, strict=True)
+        ),
+        valid_positions=tuple(tuple(row) for row in valid_position_sums),
+    )
+
+
+def format_cross_horizon_matrix(summary: CrossHorizonAnalysisSummary) -> str:
+    column_width = 10
+    header = "block/h".ljust(column_width) + " ".join(
+        f"{horizon}-ahead".rjust(column_width) for horizon in summary.horizons
+    )
+    rows = [header]
+    for block_index, losses in enumerate(summary.loss_matrix):
+        row = f"block {block_index}".ljust(column_width) + " ".join(
+            f"{loss:.4f}".rjust(column_width) for loss in losses
+        )
+        rows.append(row)
+    return "\n".join(rows)
 
 
 def block_parameter_groups(model: ParallelDiagonalModel) -> list[tuple[nn.Parameter, ...]]:
@@ -488,6 +551,7 @@ def main() -> int:
     set_seed(args.seed)
     data = prepare_tinyshakespeare_data(repo_root=repo_root, seq_len=seq_len)
     tbptt_sequences = build_tbptt_sequences(data.train_encoded, seq_len=seq_len)
+    val_tbptt_sequences = build_tbptt_sequences(data.val_encoded, seq_len=seq_len)
 
     model = ParallelDiagonalModel(
         vocab_size=data.corpus.vocab_size,
@@ -561,6 +625,7 @@ def main() -> int:
     tbptt_rng = torch.Generator(device="cpu")
     tbptt_rng.manual_seed(args.seed)
     fixed_batch_tokens = fixed_tbptt_batch(tbptt_sequences, batch_size=batch_size, device=device)
+    fixed_val_batch_tokens = fixed_tbptt_batch(val_tbptt_sequences, batch_size=batch_size, device=device)
     initial_sanity_summary = evaluate_tbptt_batch_loss(model, batch_tokens=fixed_batch_tokens, bptt_chunk=args.bptt_chunk)
     append_log(
         args.log_path,
@@ -610,6 +675,10 @@ def main() -> int:
     wall_seconds = round(perf_counter() - started_at, 6)
     git_status_short = current_git_status_short()
     success_by_block = losses_went_down(initial_sanity_summary, final_sanity_summary)
+    cross_horizon_summary = cross_horizon_analysis(model, fixed_val_batch_tokens, args.bptt_chunk)
+    cross_horizon_matrix_text = format_cross_horizon_matrix(cross_horizon_summary)
+    print("Cross-horizon loss matrix:")
+    print(cross_horizon_matrix_text)
     report = {
         "config": {
             "sanity_check_only": args.sanity_check_only,
@@ -646,6 +715,7 @@ def main() -> int:
             "val_tokens": int(data.val_encoded.numel()),
             "vocab_size": data.corpus.vocab_size,
             "tbptt_sequences": int(tbptt_sequences.shape[0]),
+            "val_tbptt_sequences": int(val_tbptt_sequences.shape[0]),
         },
         "model": {
             "parameter_count": parameter_count,
@@ -661,6 +731,23 @@ def main() -> int:
             "loss_went_down_by_block": success_by_block,
             "early_stopped": early_stopped,
             "wall_seconds": wall_seconds,
+            "cross_horizon_analysis": {
+                "horizons": list(cross_horizon_summary.horizons),
+                "loss_matrix": [
+                    [round(loss, 6) for loss in row]
+                    for row in cross_horizon_summary.loss_matrix
+                ],
+                "valid_positions": [list(row) for row in cross_horizon_summary.valid_positions],
+                "best_horizon_by_block": [
+                    cross_horizon_summary.horizons[min(range(len(row)), key=row.__getitem__)]
+                    for row in cross_horizon_summary.loss_matrix
+                ],
+                "best_block_by_horizon": [
+                    min(range(len(cross_horizon_summary.loss_matrix)), key=lambda block_index: cross_horizon_summary.loss_matrix[block_index][horizon_index])
+                    for horizon_index in range(len(cross_horizon_summary.horizons))
+                ],
+                "matrix_text": cross_horizon_matrix_text,
+            },
         },
         "checkpoints": checkpoints,
     }
@@ -673,6 +760,11 @@ def main() -> int:
             "final_step": final_step,
             "final_sanity_total_loss": round(final_sanity_summary.total_loss, 6),
             "loss_went_down_by_block": success_by_block,
+            "cross_horizon_horizons": list(cross_horizon_summary.horizons),
+            "cross_horizon_loss_matrix": [
+                [round(loss, 6) for loss in row]
+                for row in cross_horizon_summary.loss_matrix
+            ],
             "early_stopped": early_stopped,
             "wall_seconds": wall_seconds,
         },
