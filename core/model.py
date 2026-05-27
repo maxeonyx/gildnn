@@ -4,6 +4,7 @@ import math
 from dataclasses import dataclass
 
 import torch
+from torch.nn import functional as F
 from einops import rearrange, repeat
 from jaxtyping import Float, Int
 from torch import Tensor, nn
@@ -791,6 +792,9 @@ class ParallelDiagonalModel(nn.Module):
                     next_states[block_index] = block_mix(block_input, block_delta)
                 current_states = next_states
             previous_states = current_states
+            # Normalize block states to prevent exponential growth from lateral accumulation.
+            # Consistent with normalized readout — direction is the information carrier.
+            previous_states = [F.normalize(s.float(), dim=-1).to(s.dtype) for s in previous_states]
             if temporal_history is not None:
                 for block_index, (state, rate) in enumerate(zip(previous_states, self.rates, strict=True)):
                     if time_index % rate != 0:

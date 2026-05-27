@@ -43,7 +43,7 @@ SANITY_CHECK_SEQ_LEN = 1024
 DEFAULT_BPTT_CHUNK = 128
 DEFAULT_D_MODEL = 96
 DEFAULT_FEEDFORWARD_DIM = 192
-DEFAULT_LEARNING_RATE = 1e-3
+DEFAULT_LEARNING_RATE = 3e-4
 SANITY_CHECK_LEARNING_RATE = 1e-3
 DEFAULT_GRAD_CLIP_NORM = 1.0
 DEFAULT_EVAL_INTERVAL = 20
@@ -271,7 +271,28 @@ def tbptt_training_step(
             carry_state=carry_state,
         )
         if not torch.isfinite(chunk_loss):
-            raise RuntimeError("Assembled architecture training diverged: loss is NaN or Inf.")
+            # Diagnostic: what does the state look like at crash?
+            diag_parts = [f"chunk_start={start}", f"chunk_size={chunk_tokens.shape[1]}"]
+            if carry_state is not None:
+                for bi, ps in enumerate(carry_state.previous_states):
+                    diag_parts.append(f"block{bi}_state_norm={ps.norm().item():.4f}")
+            for bi, bl in enumerate(chunk_block_losses):
+                diag_parts.append(f"block{bi}_loss={bl.item() if torch.isfinite(bl) else 'NaN/Inf'}")
+            raise RuntimeError(
+                f"Assembled architecture training diverged: loss is NaN or Inf. "
+                f"Diagnostics: {', '.join(diag_parts)}"
+            )
+        # Check carry state health after each chunk — detect drift before it becomes NaN.
+        if carry_state is not None:
+            max_norm = max(ps.norm().item() for ps in carry_state.previous_states)
+            if max_norm > 1e4 or not torch.isfinite(torch.tensor(max_norm)):
+                diag = [f"chunk_start={start}", f"max_carry_norm={max_norm:.2f}"]
+                for bi, ps in enumerate(carry_state.previous_states):
+                    diag.append(f"block{bi}_norm={ps.norm().item():.4f}")
+                raise RuntimeError(
+                    f"Carry state norm exploding. "
+                    f"Diagnostics: {', '.join(diag)}"
+                )
         (chunk_loss / total_chunks).backward()
         total_loss = total_loss + chunk_loss.detach()
         for index, (block_loss, valid_positions) in enumerate(zip(chunk_block_losses, chunk_valid_positions, strict=True)):
