@@ -193,6 +193,26 @@ How exactly do two distributions get combined into the stream state + surprise +
 
 The combining function is shared/tied across all positions and timesteps. It could be fixed (analytical, like product of Gaussians) or learned (with tied weights). Not decided — this is the key remaining design question.
 
+### Experimentally tested (2026-05-27): stream closure
+
+Piece tests in [`experiments/predictive_processing/`](../../experiments/predictive_processing/) tested three candidate "rightward operators" for how the stream evolves after a prediction is compared to the actual:
+
+| Operator | Valid stream? | Silences on perfect prediction? | Stable under bad prediction? |
+|---|---|---|---|
+| Raw W₂ residual (μ_A-μ_P, σ_A-σ_P) | ❌ σ goes negative | ✅ exact zero | ❌ degenerate |
+| Pass-through actual (stream unchanged) | ✅ always | ❌ no silencing | ✅ always stable |
+| Precision-weighted residual | ✅ always | ✅ exact zero | ❌ explodes (mean energy →∞) |
+
+**Key finding:** The W₂ residual decomposition is the correct ANALYSIS TOOL (for computing loss and understanding what was predicted vs surprising). But it CANNOT be the stream itself — it produces invalid distributions under chaining.
+
+**Architectural implication:** The stream carries ACTUAL distributions (always valid). The surprise is a side-channel quantity computed for:
+1. The local loss (W₂² between prediction and actual)
+2. Routing decisions (what goes up to the next block)
+
+The combining function at a node takes (lateral arrival, block output) and produces a new stream state. The surprise is DERIVED from the comparison, not injected back INTO the stream.
+
+This resolves the "what flows where" question differently than originally framed: the stream itself is NOT the surprise. The stream is the lateral residual flow (always valid, always a proper distribution). Blocks READ from the stream, PREDICT the stream, and the LOSS is the mismatch — but the stream continues regardless.
+
 ### Open: covariance structure
 
 In theory we want rotated ellipsoids (full covariance), not just axis-aligned. But full covariance Wasserstein requires O(d³) matrix square root.
