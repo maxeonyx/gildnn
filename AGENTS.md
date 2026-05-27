@@ -169,8 +169,6 @@ A separate OpenCode session (the "support session") runs alongside the loop agen
 
 **Don't rewrite dictations.** Capture Max's exact words. Only correct obvious speech-to-text errors. Do not paraphrase, add em-dashes, restructure sentences, or polish the language. The dictations are a record of what Max said, not a cleaned-up version.
 
-**Don't interrupt the desktop** when launching background processes. Always use `-WindowStyle Hidden` on `Start-Process`. Never use `-NoNewWindow` (which inherits the parent console and can steal focus).
-
 ## Handover protocol
 
 When picking up after a handover:
