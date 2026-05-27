@@ -1,0 +1,146 @@
+{
+  "config": {
+    "mode": "chunk-reset",
+    "sanity_check_only": false,
+    "steps": 400,
+    "batch_size": 16,
+    "seq_len": 2048,
+    "bptt_chunk": 128,
+    "embed_dim": 64,
+    "hidden_dim": 208,
+    "learning_rate": 0.003,
+    "effective_learning_rate": 0.003,
+    "seed": 42,
+    "train_characters": 100000,
+    "val_characters": 20000
+  },
+  "environment": {
+    "git_sha": "fb7afe43245270fe82c83070e0a5b93f1c8b9cce",
+    "git_working_tree_clean": false,
+    "git_status_short": [
+      "?? runs/rnn_tbptt_carry.json",
+      "?? runs/rnn_tbptt_carry.jsonl",
+      "?? runs/rnn_tbptt_reset.jsonl"
+    ],
+    "python_version": "3.12.12 (main, Feb 12 2026, 00:40:26) [MSC v.1944 64 bit (AMD64)]",
+    "torch_version": "2.11.0+cu128",
+    "device": "cuda",
+    "cuda_device_name": "NVIDIA GeForce RTX 3090"
+  },
+  "dataset": {
+    "source_path": "C:\\Users\\maxeo\\gildnn\\experiments\\corpora.ignore\\tinyshakespeare_input.txt",
+    "train_tokens": 100000,
+    "val_tokens": 20000,
+    "vocab_size": 62,
+    "tbptt_sequences": 48
+  },
+  "model": {
+    "parameter_count": 187902
+  },
+  "results": {
+    "final_step": 400,
+    "final_train_loss": 0.813542,
+    "final_sanity_batch_loss": 0.851422,
+    "final_val_loss": 1.854497,
+    "early_stopped": false,
+    "wall_seconds": 74.709536
+  },
+  "checkpoints": [
+    {
+      "step": 25,
+      "train_loss": 2.407101,
+      "sanity_batch_loss": 2.378065,
+      "val_loss": 2.387885
+    },
+    {
+      "step": 50,
+      "train_loss": 1.985953,
+      "sanity_batch_loss": 2.018392,
+      "val_loss": 2.029638
+    },
+    {
+      "step": 75,
+      "train_loss": 1.788821,
+      "sanity_batch_loss": 1.779508,
+      "val_loss": 1.821117
+    },
+    {
+      "step": 100,
+      "train_loss": 1.626045,
+      "sanity_batch_loss": 1.627433,
+      "val_loss": 1.701835
+    },
+    {
+      "step": 125,
+      "train_loss": 1.518137,
+      "sanity_batch_loss": 1.533681,
+      "val_loss": 1.644899
+    },
+    {
+      "step": 150,
+      "train_loss": 1.431819,
+      "sanity_batch_loss": 1.444077,
+      "val_loss": 1.615594
+    },
+    {
+      "step": 175,
+      "train_loss": 1.372112,
+      "sanity_batch_loss": 1.361901,
+      "val_loss": 1.599201
+    },
+    {
+      "step": 200,
+      "train_loss": 1.279677,
+      "sanity_batch_loss": 1.289346,
+      "val_loss": 1.595314
+    },
+    {
+      "step": 225,
+      "train_loss": 1.220372,
+      "sanity_batch_loss": 1.23559,
+      "val_loss": 1.613698
+    },
+    {
+      "step": 250,
+      "train_loss": 1.136476,
+      "sanity_batch_loss": 1.169318,
+      "val_loss": 1.624979
+    },
+    {
+      "step": 275,
+      "train_loss": 1.096198,
+      "sanity_batch_loss": 1.117879,
+      "val_loss": 1.653937
+    },
+    {
+      "step": 300,
+      "train_loss": 1.0126,
+      "sanity_batch_loss": 1.04911,
+      "val_loss": 1.684895
+    },
+    {
+      "step": 325,
+      "train_loss": 0.960221,
+      "sanity_batch_loss": 0.988737,
+      "val_loss": 1.724967
+    },
+    {
+      "step": 350,
+      "train_loss": 0.883347,
+      "sanity_batch_loss": 0.943741,
+      "val_loss": 1.767477
+    },
+    {
+      "step": 375,
+      "train_loss": 0.917969,
+      "sanity_batch_loss": 0.88753,
+      "val_loss": 1.813913
+    },
+    {
+      "step": 400,
+      "train_loss": 0.813542,
+      "sanity_batch_loss": 0.851422,
+      "val_loss": 1.854497
+    }
+  ]
+}
