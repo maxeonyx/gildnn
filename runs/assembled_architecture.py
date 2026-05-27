@@ -49,7 +49,7 @@ DEFAULT_WEIGHT_DECAY = 0.01
 DEFAULT_EVAL_INTERVAL = 20
 SANITY_CHECK_EVAL_INTERVAL = 10
 DEFAULT_SEED = 42
-TEMPERATURE = 0.5
+TEMPERATURE = 0.07
 NORMALIZE = True
 LATERAL_SCALE = 0.2
 BLOCK_RATES = (1, 2, 4)
@@ -105,6 +105,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--device", choices=("cpu", "cuda"), default=None)
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
     parser.add_argument("--sanity-check-only", action="store_true")
+    parser.add_argument("--global-backprop", action="store_true", help="Allow gradient flow through lateral connections (default: local-only)")
     parser.add_argument("--no-lock", action="store_true")
     parser.add_argument("--report-path", type=Path, default=artifact_dir / "report.json")
     parser.add_argument("--log-path", type=Path, default=artifact_dir / "run.jsonl")
@@ -561,7 +562,7 @@ def main() -> int:
         num_blocks=3,
         rates=BLOCK_RATES,
         topology="upward",
-        detach_lateral=True,
+        detach_lateral=not args.global_backprop,
         lateral_scale=LATERAL_SCALE,
     ).to(device)
     with torch.no_grad():
@@ -599,6 +600,8 @@ def main() -> int:
             "fixed_embeddings": True,
             "separate_optimizers": True,
             "frozen_unused_readout": True,
+            "global_backprop": args.global_backprop,
+            "detach_lateral": not args.global_backprop,
         },
     )
     append_log(
