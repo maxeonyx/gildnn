@@ -4,42 +4,26 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current state (2026-05-27, 14:15 NZST)
+## Current state (2026-05-27, 15:00 NZST)
 
-**Assembly sanity check: PASSED.** All 3 blocks' local losses decrease independently.
+**Architecture correctness: DONE.** Per dictations 8-9:
+- Fixed embeddings (random unit vectors, not learned)
+- Separate optimizer per block (truly independent learners)
+- Sanity check passed with new setup (commit `6250ccd`)
+
 **Stability fix: DONE.** Per-timestep L2 normalization prevents hidden state explosion.
-**Training stability: CONFIRMED.** Ran 120+ steps without crash (killed by timeout, not error).
-
-Per-block losses at step 120 (stable run):
-- Block 0 (rate 1, next-token): 8.59 → 6.91
-- Block 1 (rate 2, 2-ahead): 5.05 → 3.34
-- Block 2 (rate 4, 4-ahead): 4.57 → 3.27
-
-Script: `runs/assembled_architecture.py` (commit `7aee143`)
 
 **~3 days remain in timebox. GPU: FREE.**
 
 ---
 
-## ⚠️ PRIORITY: Separate optimizers + fixed embeddings (dictations 2026-05-27-8, 2026-05-27-9)
+## ✅ DONE: Separate optimizers + fixed embeddings (dictations 2026-05-27-8, 2026-05-27-9)
 
-**Blocks are separate networks with separate optimizers.** Each block gets its own loss and its own optimizer. They are independent learners that communicate only via stale (detached) laterals.
+Implemented and verified in commit `6250ccd`. Sanity check passed — all 3 block losses decrease.
 
-**Fixed embeddings eliminate gradient coupling entirely.** The embedding table is initialized as random unit vectors and NOT learned. This makes blocks truly independent — no shared parameters at all. Learned embeddings are an optimization for later, once the architecture is proven.
-
-### What needs to change
-
-1. **Fixed embedding** — initialize as random unit vectors, `requires_grad=False`
-2. **Separate optimizer per block** — each block's FFN + mix params get their own AdamW
-3. **Separate backward per block** — one `block_loss.backward()` per block (no retain_graph needed since no shared params)
-4. **No embedding optimizer** — embedding is fixed
-
-### Why this simplifies everything
-
-- No shared parameters between blocks → no gradient coupling → no design question about who trains what
-- Each block is a fully independent learner that sees stale lateral info from neighbors
-- The tied readout (dot product against fixed embeddings) still works — it just uses fixed reference vectors instead of learned ones
-- Block independence is now architecturally enforced, not just hoped for via detach_lateral
+- Fixed embedding = random unit vectors, `requires_grad=False`
+- One AdamW per block (FFN + mix params)
+- No shared trainable parameters between blocks
 
 ---
 
@@ -61,17 +45,19 @@ Script: `runs/assembled_architecture.py` (commit `7aee143`)
 
 ## What's next
 
-### 1. Implement separate optimizers per block (dictation 2026-05-27-8) — HIGHEST PRIORITY
+### 1. Run assembly for real (~10-15 min) — IN PROGRESS
 
-See details above. This is an architectural correction, not a new feature.
+Now that the architecture is correct, run at full scale and answer: **does the higher block learn something different from the lower block?**
 
-### 2. Re-run training with separate optimizers and check per-block learning
+Pathway connection: Pathway 3 (Local Learning) + Pathway 8 (Multi-Rate Processing)
+- Evidence for: blocks converge to different loss levels, representation probing shows distinct features
+- Evidence against: all blocks converge to same representation despite different objectives
 
-After fixing the optimizer coupling, run the assembly again. The key question remains: **does the higher block learn something different?**
+Metrics: per-block loss curves (script already produces these). For stronger evidence, would need probing/similarity analysis as a follow-up.
 
-### 3. Valid comparisons (per dictation 2026-05-27-6)
+### 2. Valid comparisons (per dictation 2026-05-27-6)
 
-Once training is stable and architecturally correct:
+Once training is confirmed stable and blocks diverge:
 - Noise on laterals → timescale separation?
 - Global backprop vs local-only → blocks still learn differently?
 - CUDA graph integration → expected speedup?
@@ -80,11 +66,14 @@ Once training is stable and architecturally correct:
 
 ## Architecture (validated hyperparams)
 
-- Shared normalized token embeddings (weight-tied readout)
+- **Fixed** normalized token embeddings (random unit vectors, not learned)
+- Weight-tied readout (dot product against fixed embedding vectors)
 - Normalized block outputs (L2-norm before readout)
 - Addition-based lateral combination (lateral_scale=0.2)
+- Per-timestep L2-norm on hidden states (stability fix)
 - CE local loss for all blocks (cosine/L2 worse — tested earlier)
 - Temperature = 0.07
+- Separate optimizer per block (AdamW, no shared params)
 
 ---
 
