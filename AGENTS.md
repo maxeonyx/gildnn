@@ -138,10 +138,12 @@ Evidence in question READMEs must be **embedded inline** in the markdown (tables
 
 ## Dictation notification
 
-New dictations may appear at any time — Max dictates via a separate support session that runs alongside the loop. The dictation-notifier plugin is supposed to inject a notification but is currently untested/broken. Dictations get picked up when:
-1. The loop restarts (opencode process ends for any reason and loop.ps1 relaunches)
-2. A handover cycle starts (agent picks up fresh context)
-3. The agent checks the dictations directory as part of its normal workflow
+New dictations may appear at any time — Max dictates via a separate support session that runs alongside the loop. The dictation-notifier plugin injects a `[DICTATION NOTIFICATION]` after every tool call when new files appear in `dictations/`. Dictations get picked up:
+1. **Immediately** via the plugin notification (fires on NEW files only)
+2. On loop restart (opencode process ends for any reason and loop.ps1 relaunches)
+3. On handover cycle start (agent picks up fresh context)
+
+**⚠️ Edits to existing dictation files do NOT trigger the notification.** Only new file creation does. If the support session edits an existing dictation, it must create a NEW dictation file referencing the edit — otherwise you won't see the changes until next restart/handover.
 
 Loop restart is NOT the same as handover. Loop restart can happen at any time due to external factors (crash, timeout, compaction). Handover is a deliberate agent action at a natural stopping point. They are completely unrelated mechanisms.
 
