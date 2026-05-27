@@ -80,6 +80,22 @@ class MultiRateForwardTrace:
 @dataclass(frozen=True)
 class ParallelDiagonalForwardState:
     block_outputs: list[Float[Tensor, "batch context d_model"]]
+    carry_state: "ParallelDiagonalCarryState | None" = None
+
+
+@dataclass(frozen=True)
+class ParallelDiagonalCarryState:
+    previous_states: list[Float[Tensor, "batch d_model"]]
+    temporal_history: list[Float[Tensor, "batch window d_model"]] | None = None
+
+    def detach(self) -> "ParallelDiagonalCarryState":
+        detached_history = None
+        if self.temporal_history is not None:
+            detached_history = [history.detach() for history in self.temporal_history]
+        return ParallelDiagonalCarryState(
+            previous_states=[state.detach() for state in self.previous_states],
+            temporal_history=detached_history,
+        )
 
 
 class MixAdd(nn.Module):
@@ -479,6 +495,7 @@ class ParallelDiagonalModel(nn.Module):
         token_mix_init: float = 0.5,
         block_mix_init: float = 0.9,
         lateral_mix_init: float = 0.5,
+        lateral_scale: float | None = None,
         detach_lateral: bool = False,
         temporal_window: int = 0,
         temporal_window_mode: str = "history",
@@ -497,6 +514,8 @@ class ParallelDiagonalModel(nn.Module):
             )
         if any(rate <= 0 for rate in resolved_rates):
             raise ValueError(f"ParallelDiagonalModel rates must be positive, got {resolved_rates}.")
+        if lateral_scale is not None and lateral_scale < 0.0:
+            raise ValueError(f"ParallelDiagonalModel lateral_scale must be non-negative, got {lateral_scale}.")
         if temporal_window < 0:
             raise ValueError(
                 f"ParallelDiagonalModel temporal_window must be non-negative, got {temporal_window}."
@@ -539,6 +558,7 @@ class ParallelDiagonalModel(nn.Module):
         self.readout_mode = readout_mode
         self.token_injection = token_injection
         self.topology = topology
+        self.lateral_scale = lateral_scale
         self.detach_lateral = detach_lateral
         self.temporal_window = temporal_window
         self.temporal_window_mode = temporal_window_mode
@@ -593,6 +613,7 @@ class ParallelDiagonalModel(nn.Module):
             "readout_mode": self.readout_mode,
             "token_injection": self.token_injection,
             "topology": self.topology,
+            "lateral_scale": self.lateral_scale,
             "readout_weights": readout_weights,
         }
 
@@ -619,32 +640,107 @@ class ParallelDiagonalModel(nn.Module):
         )
         return (stacked_states * rearrange(readout_weights, "blocks -> 1 blocks 1")).sum(dim=1)
 
+    def _zero_carry_state(
+        self,
+        *,
+        batch_size: int,
+        device: torch.device,
+        dtype: torch.dtype,
+    ) -> ParallelDiagonalCarryState:
+        temporal_history = None
+        if self.temporal_window > 0:
+            temporal_history = [
+                torch.zeros(
+                    batch_size,
+                    self.temporal_window,
+                    self.d_model,
+                    device=device,
+                    dtype=dtype,
+                )
+                for _ in range(self.num_blocks)
+            ]
+        return ParallelDiagonalCarryState(
+            previous_states=[
+                torch.zeros(batch_size, self.d_model, device=device, dtype=dtype)
+                for _ in range(self.num_blocks)
+            ],
+            temporal_history=temporal_history,
+        )
+
+    def _resolve_carry_state(
+        self,
+        *,
+        carry_state: ParallelDiagonalCarryState | None,
+        batch_size: int,
+        device: torch.device,
+        dtype: torch.dtype,
+    ) -> ParallelDiagonalCarryState:
+        if carry_state is None:
+            return self._zero_carry_state(batch_size=batch_size, device=device, dtype=dtype)
+        if len(carry_state.previous_states) != self.num_blocks:
+            raise ValueError(
+                f"ParallelDiagonalModel carry_state.previous_states must have length {self.num_blocks}, "
+                f"got {len(carry_state.previous_states)}."
+            )
+        for index, state in enumerate(carry_state.previous_states):
+            if tuple(state.shape) != (batch_size, self.d_model):
+                raise ValueError(
+                    "ParallelDiagonalModel carry_state previous state shape mismatch for "
+                    f"block {index}: expected {(batch_size, self.d_model)}, got {tuple(state.shape)}."
+                )
+            if state.device != device:
+                raise ValueError(
+                    f"ParallelDiagonalModel carry_state device mismatch for block {index}: expected {device}, got {state.device}."
+                )
+            if state.dtype != dtype:
+                raise ValueError(
+                    f"ParallelDiagonalModel carry_state dtype mismatch for block {index}: expected {dtype}, got {state.dtype}."
+                )
+        if self.temporal_window == 0:
+            if carry_state.temporal_history is not None:
+                raise ValueError("ParallelDiagonalModel temporal_history must be None when temporal_window=0.")
+            return carry_state
+        if carry_state.temporal_history is None:
+            raise ValueError("ParallelDiagonalModel carry_state.temporal_history is required when temporal_window > 0.")
+        if len(carry_state.temporal_history) != self.num_blocks:
+            raise ValueError(
+                f"ParallelDiagonalModel carry_state.temporal_history must have length {self.num_blocks}, "
+                f"got {len(carry_state.temporal_history)}."
+            )
+        for index, history in enumerate(carry_state.temporal_history):
+            expected_shape = (batch_size, self.temporal_window, self.d_model)
+            if tuple(history.shape) != expected_shape:
+                raise ValueError(
+                    "ParallelDiagonalModel carry_state temporal history shape mismatch for "
+                    f"block {index}: expected {expected_shape}, got {tuple(history.shape)}."
+                )
+            if history.device != device:
+                raise ValueError(
+                    f"ParallelDiagonalModel carry_state temporal history device mismatch for block {index}: expected {device}, got {history.device}."
+                )
+            if history.dtype != dtype:
+                raise ValueError(
+                    f"ParallelDiagonalModel carry_state temporal history dtype mismatch for block {index}: expected {dtype}, got {history.dtype}."
+                )
+        return carry_state
+
     def _forward_impl(
         self,
         tokens: Int[Tensor, "batch context"],
         *,
         return_state: bool,
-    ) -> tuple[Float[Tensor, "batch vocab"], ParallelDiagonalForwardState | None]:
+        carry_state: ParallelDiagonalCarryState | None = None,
+    ) -> tuple[Float[Tensor, "batch vocab"], ParallelDiagonalForwardState | None, ParallelDiagonalCarryState]:
         embeddings = self.embedded_tokens(tokens)
         batch_size = tokens.shape[0]
-        previous_states = [
-            torch.zeros(batch_size, self.d_model, device=tokens.device, dtype=embeddings.dtype)
-            for _ in range(self.num_blocks)
-        ]
-        temporal_history = (
-            [
-                torch.zeros(
-                    batch_size,
-                    self.temporal_window,
-                    self.d_model,
-                    device=tokens.device,
-                    dtype=embeddings.dtype,
-                )
-                for _ in range(self.num_blocks)
-            ]
-            if self.temporal_window > 0
-            else None
+        resolved_carry_state = self._resolve_carry_state(
+            carry_state=carry_state,
+            batch_size=batch_size,
+            device=tokens.device,
+            dtype=embeddings.dtype,
         )
+        previous_states = list(resolved_carry_state.previous_states)
+        temporal_history = None if resolved_carry_state.temporal_history is None else list(resolved_carry_state.temporal_history)
         block_output_history = [[] for _ in range(self.num_blocks)] if return_state else None
 
         for time_index in range(self.context_size):
@@ -678,7 +774,10 @@ class ParallelDiagonalModel(nn.Module):
                                 else current_states[block_index - 1]
                             )
                         current_lower = self._maybe_detach_lateral(lateral_source)
-                        block_input = self.lateral_mixes[block_index](state_input, current_lower)
+                        if self.lateral_scale is None:
+                            block_input = self.lateral_mixes[block_index](state_input, current_lower)
+                        else:
+                            block_input = state_input + (self.lateral_scale * current_lower)
                         if block_index > 0 and self.window_proj is not None and temporal_history is not None:
                             lower_history = self._maybe_detach_lateral(temporal_history[block_index - 1])
                             aux = self.window_proj(
@@ -710,22 +809,37 @@ class ParallelDiagonalModel(nn.Module):
                 for block_index, state in enumerate(previous_states):
                     block_output_history[block_index].append(state)
 
+        next_carry_state = ParallelDiagonalCarryState(
+            previous_states=previous_states,
+            temporal_history=temporal_history,
+        )
         logits = self.output(self._readout_state(previous_states))
         if block_output_history is None:
-            return logits, None
+            return logits, None, next_carry_state
         return logits, ParallelDiagonalForwardState(
-            block_outputs=[torch.stack(history, dim=1) for history in block_output_history]
-        )
+            block_outputs=[torch.stack(history, dim=1) for history in block_output_history],
+            carry_state=next_carry_state,
+        ), next_carry_state
 
     def forward(self, tokens: Int[Tensor, "batch context"]) -> Float[Tensor, "batch vocab"]:
-        logits, _ = self._forward_impl(tokens, return_state=False)
+        logits, _, _ = self._forward_impl(tokens, return_state=False)
         return logits
 
     def forward_with_state(
         self,
         tokens: Int[Tensor, "batch context"],
     ) -> tuple[Float[Tensor, "batch vocab"], ParallelDiagonalForwardState]:
-        logits, state = self._forward_impl(tokens, return_state=True)
+        logits, state, _ = self._forward_impl(tokens, return_state=True)
         if state is None:
             raise RuntimeError("State missing.")
         return logits, state
+
+    def forward_with_state_and_carry(
+        self,
+        tokens: Int[Tensor, "batch context"],
+        carry_state: ParallelDiagonalCarryState | None = None,
+    ) -> tuple[Float[Tensor, "batch vocab"], ParallelDiagonalForwardState, ParallelDiagonalCarryState]:
+        logits, state, next_carry_state = self._forward_impl(tokens, return_state=True, carry_state=carry_state)
+        if state is None:
+            raise RuntimeError("State missing.")
+        return logits, state, next_carry_state
