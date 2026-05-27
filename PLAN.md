@@ -4,12 +4,12 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current state (2026-05-27, 19:00 NZST)
+## Current state (2026-05-27, 19:30 NZST)
 
 **COURSE CORRECTION per dictation 2026-05-27-10.** Stop refining "blocks predict token CE." Start implementing predictive processing: blocks predict EACH OTHER's distributions. Test pieces in isolation — don't train.
 
-**Architecture prerequisites: DONE.** Local learning validated, separate optimizers, fixed embeddings.
-**Daily report: NEEDS UPDATE** with course correction note.
+**Piece tests: ALL DONE.** Every piece of the predictive processing architecture validated independently.
+**Daily report: NEEDS UPDATE** with piece test results (append to existing).
 
 **~3 days remain in timebox. GPU: FREE.**
 
@@ -31,44 +31,42 @@ Max explicitly says: "Don't train a full model. Don't even train. Just do the te
 
 ## What's next: piece tests for predictive processing
 
-Per the theoretical design in `research/questions/multi-timestep-architecture/README.md`, the pieces are:
+All pieces validated ✅:
 
-### Piece 1: Wasserstein loss on diagonal Gaussians
+### ✅ Piece 1: Wasserstein loss on diagonal Gaussians
+W₂² = ||μ₁-μ₂||² + ||σ₁-σ₂||². All metric properties pass. Autograd correct. Script: `experiments/predictive_processing/01_wasserstein_diag_gaussian.py`
 
-The formula: W₂² = ||μ₁ - μ₂||² + ||σ₁ - σ₂||²
+### ✅ Piece 2: Combining function candidates
+W₂ residual decomposition is the clear winner for analysis. PoE is fusion-only, not a decomposition. Script: `experiments/predictive_processing/02_combiner_candidate_sweep.py`
 
-Test: sample random diagonal Gaussians, compute W₂², verify metric properties (symmetric, triangle inequality, zero iff same, differentiable).
+### ✅ Piece 3: Up/down decomposition
+W₂ residual: exact reconstruction, zero-on-identity, strong loss correlation, monotonic sweeps. Script: `experiments/predictive_processing/03_up_down_decomposition.py`
 
-This is trivial but worth writing down as executable code.
+### ✅ Piece 4: Stream chain dynamics
+Key finding: **surprise cannot BE the stream** (W₂ residual produces invalid Gaussians under chaining). The stream carries ACTUAL distributions. Surprise is a side-channel metric. Script: `experiments/predictive_processing/04_stream_chain_dynamics.py`
 
-### Piece 2: The combining function (THE open question)
+### ✅ Piece 5: W₂² learning convergence
+A small MLP learns to predict distributions via W₂² loss. Converges cleanly. Gradients well-behaved. W₂² = MSE on (μ,σ) numerically identical. Script: `experiments/predictive_processing/05_w2_learning_convergence.py`
 
-Given two distributions (block prediction + lateral arrival), produce:
-- The stream state at this node
-- Surprisal signal (goes rightward/up)
-- Prior/context signal (goes leftward/down)
+---
 
-Candidates:
-- Product of experts (precisions add)
-- Bayesian update (one is prior, one is likelihood)
-- Learned decomposition with conservation constraint
+## NEXT: Assemble minimal predictive processing model
 
-Test: sample many random pairs, apply operation, verify:
-- Information conservation (up + down = original information)
-- Surprisal is genuinely "what wasn't predicted"
-- The operation is symmetric / has right asymmetry
+The pieces work independently. The next step is to wire them into the simplest possible predictive processing model:
 
-### Piece 3: Up/down signal decomposition
+**Minimal design (2 blocks, no multi-rate yet):**
+1. Block 0: reads token input, produces a distribution (μ, σ) — its representation of the current token
+2. Block 1: receives Block 0's distribution from the PREVIOUS timestep (stale lateral)
+3. Block 1's loss: W₂²(Block 1's prediction of what Block 0 will produce, Block 0's actual output)
+4. Block 0's loss: could be token-level CE (it's the interface to the world) OR something else
 
-Given prediction P and actual A, decompose into what was predicted vs what was surprising.
+**Open design questions (need resolution before implementing):**
+- What is Block 0's loss? It needs SOME grounding to the world (tokens). CE on token logits is simplest.
+- Does Block 1 also predict tokens, or ONLY predict Block 0's distribution?
+- How does the combining function work at each node? (Not needed for this 2-block test — just pass the distributions directly via stale laterals)
+- Should this be tested with synthetic data first, or go straight to TinyShakespeare?
 
-Test: can you reconstruct A from (what-was-predicted, what-wasn't-predicted)? Is there a clean decomposition?
-
-### Piece 4: Block producing a distribution
-
-A block reads a stream state (which is ALSO a distribution) and outputs a distribution. What's the minimal block that does this?
-
-Test: random input distributions → block → output distribution. Does the output have sensible properties?
+**Suggested approach:** Start with the simplest version. Block 0 predicts tokens (CE loss). Block 1 predicts Block 0's output distribution (W₂² loss). Run on TinyShakespeare. See if Block 1 learns anything useful.
 
 ---
 
