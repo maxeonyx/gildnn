@@ -183,15 +183,32 @@ No external bottleneck constraint (MMD, KL penalty) needed — the distributiona
 
 If blocks maintain state across timesteps (mix previous output into themselves), a well-trained block that predicts accurately produces low surprisal → less flows rightward → the stream downstream goes quiet. This IS computation compression emerging from the architecture — no explicit self-prediction loss needed. The better the block's model, the less downstream processing is required.
 
-### Open: the combining function
+### Open: the combining function → PARTIALLY RESOLVED
 
-How exactly do two distributions get combined into the stream state + surprise + prior? Options:
-- Product of experts (multiply, precisions add) for Gaussians
-- Bayesian update (one is prior, one is likelihood)
-- Learned decomposition with conservation constraint
-- Something else entirely
+**Dictation 2026-05-27-11 clarifies:** The stream ACCUMULATES predictions. "The stream carries the actual at step 1. But then it carries the actual t1 + prediction (based on t0). The stream accumulates — it's not just raw actuals passing through." This brings it "back toward Bayesian for the combining function (prior × likelihood → posterior), operating on distribution parameters."
 
-The combining function is shared/tied across all positions and timesteps. It could be fixed (analytical, like product of Gaussians) or learned (with tied weights). Not decided — this is the key remaining design question.
+**Piece test 06 validates:** Tempered diagonal-Gaussian Product of Experts with process noise:
+
+```
+τ_stream = 1/σ_stream², τ_pred = 1/σ_pred²
+τ_new = τ_stream + λ·τ_pred        (tempering: λ ∈ (0,1])
+μ_new = (τ_stream·μ_stream + λ·τ_pred·μ_pred) / τ_new
+σ_new = 1/√τ_new
+σ_propagated = √(σ_new² + q²)      (process noise prevents collapse)
+```
+
+Properties validated:
+- Output always valid (σ > 0) ✅
+- Precision-weighted mean (lower-σ input gets more weight) ✅
+- Pure PoE without noise collapses (σ→0) as expected ✅
+- PoE + process noise converges to stable nonzero σ fixed point ✅
+- Perfect prediction gives zero surprise ✅
+- Surprise monotonic with mismatch ✅
+
+**Still open:**
+- What values of λ and q are appropriate? (Learnable? Fixed? Annealed?)
+- Does the combining function need to be learned or can it stay analytical?
+- How does right-to-left flow interact with combining?
 
 ### Experimentally tested (2026-05-27): stream closure
 
@@ -205,13 +222,13 @@ Piece tests in [`experiments/predictive_processing/`](../../experiments/predicti
 
 **Key finding:** The W₂ residual decomposition is the correct ANALYSIS TOOL (for computing loss and understanding what was predicted vs surprising). But it CANNOT be the stream itself — it produces invalid distributions under chaining.
 
-**Architectural implication:** The stream carries ACTUAL distributions (always valid). The surprise is a side-channel quantity computed for:
+**Architectural implication (REVISED per dictation 11):** The stream carries actual distributions AND accumulates predictions. The earlier conclusion that "the stream is just passthrough actual" was testing the wrong framing — it assumed the stream should be REPLACED by the surprise, rather than ENRICHED by folding in predictions.
+
+Correct framing: at each node, the stream state is the POSTERIOR — combine(incoming lateral, prediction from block). This uses the tempered PoE validated in piece test 06. The surprise is a side-channel quantity for:
 1. The local loss (W₂² between prediction and actual)
 2. Routing decisions (what goes up to the next block)
 
-The combining function at a node takes (lateral arrival, block output) and produces a new stream state. The surprise is DERIVED from the comparison, not injected back INTO the stream.
-
-This resolves the "what flows where" question differently than originally framed: the stream itself is NOT the surprise. The stream is the lateral residual flow (always valid, always a proper distribution). Blocks READ from the stream, PREDICT the stream, and the LOSS is the mismatch — but the stream continues regardless.
+The stream itself gets richer over time as predictions are folded in.
 
 ### Open: covariance structure
 
