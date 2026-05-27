@@ -99,7 +99,7 @@ Tests whether folding Block 1's predictions into the stream (via tempered PoE) h
 
 Design: `research/questions/stream-combining/README.md`
 Phase A complete (eval 2.507). Phase B in progress (step 150/800, already beating copy).
-Expected completion: ~1:30pm NZST.
+Expected completion: ~2:00pm NZST (Phase B ~37min + Phase C 3×~37min).
 
 ## Remaining timebox sequence (~2 days)
 
