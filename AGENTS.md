@@ -165,6 +165,8 @@ When you notice a new dictation, read it immediately — it contains Max's instr
 
 A separate OpenCode session (the "support session") runs alongside the loop agent. It monitors the loop, writes dictations on Max's behalf, and may modify files in the repo independently (especially `dictations/` and `AGENTS.md`). If you notice unexpected file changes, this is likely the cause — not a conflict.
 
+**Dictation drafting process:** When Max is thinking out loud, the support session drafts the dictation content but does NOT create/commit the file until Max confirms he's done thinking. This avoids creating a file (triggering the notification) and then needing to edit it (which won't trigger a second notification). One creation, one notification, complete content.
+
 **Don't interrupt the desktop** when launching background processes. Always use `-WindowStyle Hidden` on `Start-Process`. Never use `-NoNewWindow` (which inherits the parent console and can steal focus).
 
 ## Handover protocol
