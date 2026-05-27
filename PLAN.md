@@ -4,15 +4,13 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current state (2026-05-28, 10:32 NZST)
+## Current state (2026-05-28, 11:21 NZST)
 
-**2-block prediction experiment running.** Block 1 at step 550/800 in Phase B — eval loss 0.003254 vs copy baseline 0.004852 = **33% better**. Still improving. No-recurrence ablation follows (~800 more steps after Phase B).
+**3-block stream combining experiment running** (PID 6728). Tests whether folding Block 1's predictions into the stream helps Block 2.
 
-**3-block combining script ready.** `runs/stream_combining.py` committed + CPU sanity-checked. Random control confirms combining needs informative predictions (not just smoothing). Waiting for GPU.
+**2-block prediction experiment COMPLETE.** Key finding: prediction works (37% better than copy), but recurrence doesn't help — static transform matches/beats recurrence.
 
-**Piece test 06 done.** Bayesian combining (tempered PoE + process noise) validated.
-
-**~2 days remain in timebox. GPU: BUSY (predictive_processing, PID 14980).**
+**~2 days remain in timebox. GPU: BUSY (stream_combining, PID 6728).**
 
 ---
 
@@ -77,27 +75,32 @@ A small MLP learns to predict distributions via W₂² loss. Converges cleanly. 
 
 ---
 
-## IN PROGRESS: 2-block prediction experiment (GPU active)
+## ✅ DONE: 2-block prediction experiment
 
-**Running now** (PID 14980, `runs/active.lock` present). Phase B step 550/800, then no-recurrence ablation (800 steps).
+**Complete.** Report: `experiments/tinyshakespeare/artifacts/predictive_processing/report.json`
 
-Results so far:
-- Phase A: Block 0 CE 5.35 → 2.51 ✅
-- Phase B: Block 1 MSE steadily beating copy baseline (0.003254 vs 0.004852 = **33% better** at step 550)
-- Still improving — trend is clear
+Results:
+- Phase A: Block 0 CE 5.38 → 2.51 ✅
+- Phase B: Block 1 eval MSE = **0.003038** vs copy baseline 0.004852 = **37% better than copy** ✅
+- No-recurrence ablation: eval MSE = **0.003027** — **marginally BETTER than recurrence** (0.4% difference = noise)
 
-**Key question remaining:** Does the no-recurrence ablation perform worse? That proves recurrence enables temporal prediction (not just learning a static transform).
+**Key finding:** Prediction works (both versions beat copy by 37-38%). But recurrence provides ZERO benefit for 1-step-ahead prediction at this scale. The model learns a static transform of the previous activation, not temporal prediction.
 
-## READY TO LAUNCH: 3-block stream combining experiment
+**Implications:**
+- Combining experiment is unaffected — static predictions still enrich the stream
+- Multi-rate is where recurrence SHOULD matter (predicting 2+ steps ahead requires temporal context)
+- For the combined architecture: recurrence may only become load-bearing at longer prediction horizons or larger scale
 
-Script: `runs/stream_combining.py` (committed, sanity-checked on CPU)
-Config: 200 Block 0 steps, 800 Block 1 steps, 800 Block 2 steps, lambda=0.5
+## IN PROGRESS: 3-block stream combining experiment (GPU active)
 
-Tests whether folding Block 1's predictions into the stream helps Block 2. Design: `research/questions/stream-combining/README.md`
+**Running now** (PID 6728, `runs/active.lock` present). Config: 200 Block 0 steps, 800 Block 1 steps, 800 Block 2 steps, lambda=0.5.
 
-CPU sanity check showed combined (0.002073) 45% better than passthrough (0.003774) — very promising signal, but need full GPU run to confirm.
+Tests whether folding Block 1's predictions into the stream (via tempered PoE) helps Block 2. Three conditions: combined, passthrough, random.
 
-**Launch immediately after 2-block experiment finishes** (once `runs/active.lock` is cleared).
+Design: `research/questions/stream-combining/README.md`
+CPU sanity check: combined (0.002073) 45% better than passthrough (0.003774) — very promising.
+
+Expected completion: ~90 minutes from 11:21 NZST (3 phases × ~30 min each).
 
 ## ✅ DONE: Bayesian combining piece test
 
@@ -118,6 +121,8 @@ Piece test 06 validates tempered PoE + process noise. All 26 checks pass. Script
 | Fixed random embeddings work | Training runs | ❓ — may change with distributional stream |
 | Multi-rate processing works | Assembly sanity check | ✅ — multi-timescale is core |
 | Per-timestep normalization needed | Stability fix | ❓ — may not apply to distributional stream |
+| Prediction beats copy by 37% | 2-block experiment report.json | ✅ — mechanism validated |
+| Recurrence doesn't help 1-step prediction | No-recurrence ablation matches/beats | ✅ — static transform sufficient at this scale |
 
 ---
 
