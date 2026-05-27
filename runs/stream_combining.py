@@ -474,6 +474,21 @@ def build_combined_sequence(
     return combine_streams(block0_sequence, block1_prediction, lambda_weight=lambda_weight)
 
 
+def build_random_combined_sequence(
+    block0_sequence: Float[Tensor, "batch seq d_model"],
+    *,
+    lambda_weight: float,
+    rng_seed: int,
+) -> Float[Tensor, "batch seq d_model"]:
+    """Combine block0 output with RANDOM unit-sphere vectors (not learned predictions)."""
+    generator = torch.Generator(device="cpu")
+    generator.manual_seed(rng_seed)
+    random_predictions = torch.randn(block0_sequence.shape, generator=generator, dtype=torch.float32)
+    random_predictions = random_predictions.to(device=block0_sequence.device, dtype=block0_sequence.dtype)
+    random_predictions = F.normalize(random_predictions.float(), dim=-1).to(block0_sequence.dtype)
+    return combine_streams(block0_sequence, random_predictions, lambda_weight=lambda_weight)
+
+
 @torch.inference_mode()
 def evaluate_block0_loss(
     block0: TokenPredictorBlock,
@@ -820,7 +835,9 @@ def main() -> int:
     block1 = RepresentationPredictorBlock(d_model=args.d_model).to(device)
     block2_combined = RepresentationPredictorBlock(d_model=args.d_model).to(device)
     block2_passthrough = RepresentationPredictorBlock(d_model=args.d_model).to(device)
+    block2_random = RepresentationPredictorBlock(d_model=args.d_model).to(device)
     block2_passthrough.load_state_dict(copy.deepcopy(block2_combined.state_dict()))
+    block2_random.load_state_dict(copy.deepcopy(block2_combined.state_dict()))
 
     block0_optimizer = torch.optim.AdamW(
         trainable_parameters(block0),
@@ -845,6 +862,13 @@ def main() -> int:
     )
     block2_passthrough_optimizer = torch.optim.AdamW(
         trainable_parameters(block2_passthrough),
+        lr=block2_lr,
+        betas=(0.9, 0.999),
+        weight_decay=DEFAULT_WEIGHT_DECAY,
+        capturable=device.type == "cuda",
+    )
+    block2_random_optimizer = torch.optim.AdamW(
+        trainable_parameters(block2_random),
         lr=block2_lr,
         betas=(0.9, 0.999),
         weight_decay=DEFAULT_WEIGHT_DECAY,
@@ -895,6 +919,7 @@ def main() -> int:
             "block1_parameters": count_parameters(block1),
             "block2_combined_parameters": count_parameters(block2_combined),
             "block2_passthrough_parameters": count_parameters(block2_passthrough),
+            "block2_random_parameters": count_parameters(block2_random),
         },
     )
 
@@ -957,6 +982,13 @@ def main() -> int:
             lambda_weight=args.lambda_weight,
             use_recurrence=True,
         )
+        phase_c_random_eval_target = build_random_combined_sequence(
+            phase_c_passthrough_eval_target,
+            lambda_weight=args.lambda_weight,
+            rng_seed=args.seed + 2,
+        )
+    phase_c_random_target_rng = torch.Generator(device="cpu")
+    phase_c_random_target_rng.manual_seed(args.seed + 2)
 
     phase_started_at = perf_counter()
     phase_c_combined_summary, phase_c_combined_metrics = train_predictor(
@@ -1010,6 +1042,31 @@ def main() -> int:
     )
     phase_c_passthrough_wall_seconds = round(perf_counter() - phase_started_at, 6)
 
+    phase_started_at = perf_counter()
+    phase_c_random_summary, phase_c_random_metrics = train_predictor(
+        block2_random,
+        block2_random_optimizer,
+        train_sequences=train_sequences,
+        eval_target_sequence=phase_c_random_eval_target,
+        build_target_sequence=lambda batch_tokens: build_random_combined_sequence(
+            collect_block0_representations(block0, batch_tokens, bptt_chunk=args.bptt_chunk),
+            lambda_weight=args.lambda_weight,
+            rng_seed=int(torch.randint(0, 2**31, (), generator=phase_c_random_target_rng).item()),
+        ),
+        steps=block2_steps,
+        batch_size=batch_size,
+        bptt_chunk=args.bptt_chunk,
+        device=device,
+        eval_interval=block2_eval_interval,
+        grad_clip_norm=DEFAULT_GRAD_CLIP_NORM,
+        sanity_check_only=args.sanity_check_only,
+        seed=args.seed + 2,
+        log_path=args.log_path,
+        checkpoint_stage="phase_c_random_checkpoint",
+        use_recurrence=True,
+    )
+    phase_c_random_wall_seconds = round(perf_counter() - phase_started_at, 6)
+
     summary_lines = [
         "Stream combining results:",
         f"  Phase A Block 0 CE: {phase_a_summary.final_eval_loss:.6f} (initial {phase_a_summary.initial_eval_loss:.6f})",
@@ -1019,7 +1076,10 @@ def main() -> int:
         f"  Phase C combined copy baseline MSE: {phase_c_combined_metrics.copy_baseline:.6f}",
         f"  Phase C passthrough MSE: {phase_c_passthrough_metrics.mse:.6f}",
         f"  Phase C passthrough copy baseline MSE: {phase_c_passthrough_metrics.copy_baseline:.6f}",
+        f"  Phase C random MSE: {phase_c_random_metrics.mse:.6f}",
+        f"  Phase C random copy baseline MSE: {phase_c_random_metrics.copy_baseline:.6f}",
         f"  Combined beats passthrough: {phase_c_combined_metrics.mse < phase_c_passthrough_metrics.mse}",
+        f"  Combined beats random: {phase_c_combined_metrics.mse < phase_c_random_metrics.mse}",
     ]
     print("\n".join(summary_lines))
 
@@ -1067,6 +1127,7 @@ def main() -> int:
             "block1_parameters": count_parameters(block1),
             "block2_combined_parameters": count_parameters(block2_combined),
             "block2_passthrough_parameters": count_parameters(block2_passthrough),
+            "block2_random_parameters": count_parameters(block2_random),
         },
         "results": {
             "phase_a": {
@@ -1110,10 +1171,23 @@ def main() -> int:
                 "wall_seconds": phase_c_passthrough_wall_seconds,
                 "checkpoints": phase_checkpoints_to_payload(phase_c_passthrough_summary.checkpoints),
             },
+            "phase_c_random": {
+                "initial_eval_mse": phase_c_random_summary.initial_eval_loss,
+                "final_train_mse": phase_c_random_summary.final_train_loss,
+                "final_eval_mse": phase_c_random_metrics.mse,
+                "copy_baseline": phase_c_random_metrics.copy_baseline,
+                "random_baseline": phase_c_random_metrics.random_baseline,
+                "beats_copy": phase_c_random_metrics.beats_copy,
+                "loss_went_down": phase_c_random_metrics.mse < phase_c_random_summary.initial_eval_loss,
+                "wall_seconds": phase_c_random_wall_seconds,
+                "checkpoints": phase_checkpoints_to_payload(phase_c_random_summary.checkpoints),
+            },
             "combined_vs_passthrough": {
                 "combined_final_eval_mse": phase_c_combined_metrics.mse,
                 "passthrough_final_eval_mse": phase_c_passthrough_metrics.mse,
+                "random_final_eval_mse": phase_c_random_metrics.mse,
                 "combined_better": phase_c_combined_metrics.mse < phase_c_passthrough_metrics.mse,
+                "combined_better_than_random": phase_c_combined_metrics.mse < phase_c_random_metrics.mse,
             },
         },
     }
@@ -1130,7 +1204,10 @@ def main() -> int:
             "phase_c_combined_copy_baseline": round(phase_c_combined_metrics.copy_baseline, 6),
             "phase_c_passthrough_final_eval_mse": round(phase_c_passthrough_metrics.mse, 6),
             "phase_c_passthrough_copy_baseline": round(phase_c_passthrough_metrics.copy_baseline, 6),
+            "phase_c_random_final_eval_mse": round(phase_c_random_metrics.mse, 6),
+            "phase_c_random_copy_baseline": round(phase_c_random_metrics.copy_baseline, 6),
             "combined_better": phase_c_combined_metrics.mse < phase_c_passthrough_metrics.mse,
+            "combined_better_than_random": phase_c_combined_metrics.mse < phase_c_random_metrics.mse,
         },
     )
     return 0
