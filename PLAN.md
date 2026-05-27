@@ -4,18 +4,42 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current state (2026-05-27, 13:30 NZST)
+## Current state (2026-05-27, 14:15 NZST)
 
-**Assembly sanity check: PASSED.** All 3 blocks' local losses decrease independently in 23 seconds. The architecture is not broken.
+**Assembly sanity check: PASSED.** All 3 blocks' local losses decrease independently.
+**Stability fix: DONE.** Per-timestep L2 normalization prevents hidden state explosion.
+**Training stability: CONFIRMED.** Ran 120+ steps without crash (killed by timeout, not error).
 
-- Block 0 (rate 1, next-token): 8.54 → 8.20
-- Block 1 (rate 2, 2-ahead): 5.19 → 3.65
-- Block 2 (rate 4, 4-ahead): 4.80 → 3.57
+Per-block losses at step 120 (stable run):
+- Block 0 (rate 1, next-token): 8.59 → 6.91
+- Block 1 (rate 2, 2-ahead): 5.05 → 3.34
+- Block 2 (rate 4, 4-ahead): 4.57 → 3.27
 
-Script: `runs/assembled_architecture.py` (commit `65f4118`)
-Config: `ParallelDiagonalModel(num_blocks=3, rates=(1,2,4), topology="upward", detach_lateral=True)`, temperature=0.07, normalize=True, lateral_scale=0.2
+Script: `runs/assembled_architecture.py` (commit `7aee143`)
 
 **~3 days remain in timebox. GPU: FREE.**
+
+---
+
+## ⚠️ PRIORITY: Separate optimizers + fixed embeddings (dictations 2026-05-27-8, 2026-05-27-9)
+
+**Blocks are separate networks with separate optimizers.** Each block gets its own loss and its own optimizer. They are independent learners that communicate only via stale (detached) laterals.
+
+**Fixed embeddings eliminate gradient coupling entirely.** The embedding table is initialized as random unit vectors and NOT learned. This makes blocks truly independent — no shared parameters at all. Learned embeddings are an optimization for later, once the architecture is proven.
+
+### What needs to change
+
+1. **Fixed embedding** — initialize as random unit vectors, `requires_grad=False`
+2. **Separate optimizer per block** — each block's FFN + mix params get their own AdamW
+3. **Separate backward per block** — one `block_loss.backward()` per block (no retain_graph needed since no shared params)
+4. **No embedding optimizer** — embedding is fixed
+
+### Why this simplifies everything
+
+- No shared parameters between blocks → no gradient coupling → no design question about who trains what
+- Each block is a fully independent learner that sees stale lateral info from neighbors
+- The tied readout (dot product against fixed embeddings) still works — it just uses fixed reference vectors instead of learned ones
+- Block independence is now architecturally enforced, not just hoped for via detach_lateral
 
 ---
 
@@ -37,28 +61,20 @@ Config: `ParallelDiagonalModel(num_blocks=3, rates=(1,2,4), topology="upward", d
 
 ## What's next
 
-### 1. Run the assembly for real (10-15 min)
+### 1. Implement separate optimizers per block (dictation 2026-05-27-8) — HIGHEST PRIORITY
 
-The sanity check proved it doesn't explode. Now train longer and answer the KEY scientific question: **does the higher block learn something different?**
+See details above. This is an architectural correction, not a new feature.
 
-Metrics to watch:
-- Per-block loss curves — do they diverge or converge?
-- Representation similarity between blocks (cosine of hidden states)
-- Does block 2 (rate 4) develop more abstract/smoother representations?
+### 2. Re-run training with separate optimizers and check per-block learning
 
-### 2. Valid comparisons (per dictation 2026-05-27-6)
+After fixing the optimizer coupling, run the assembly again. The key question remains: **does the higher block learn something different?**
 
-Once the assembly is running well, these are the faithful A/B tests:
+### 3. Valid comparisons (per dictation 2026-05-27-6)
+
+Once training is stable and architecturally correct:
 - Noise on laterals → timescale separation?
 - Global backprop vs local-only → blocks still learn differently?
 - CUDA graph integration → expected speedup?
-- Single block + far-lower-rate observer → observer learns?
-
-### 3. Remaining assembly pieces (if time permits)
-
-- CUDA graphs for TBPTT (complex — GraphTrainer assumes fixed-window, TBPTT has variable control flow)
-- Dynamic depth integration
-- Noise injection
 
 ---
 
