@@ -107,3 +107,9 @@ Temperature 0.07 was validated with LEARNED embeddings. With FIXED RANDOM embedd
 - `core/tied_readout.py` — weight-tied readout + local loss functions
 - `runs/assembled_architecture.py` — the assembled training script
 - `PROCESS.md` — experiment discipline (updated with valid-experiment criteria)
+
+---
+
+## Deferred: codebase cleanup
+
+`runs/` has ~30 dead experiment scripts, all superseded by `assembled_architecture.py`. Git preserves history. Delete them at the next natural stopping point (between experiment threads). Only `assembled_architecture.py` and `generate_text.py` (template for generation) are potentially relevant.
