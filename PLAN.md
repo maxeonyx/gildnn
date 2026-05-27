@@ -4,13 +4,15 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current state (2026-05-28, 09:50 NZST)
+## Current state (2026-05-28, 10:30 NZST)
 
-**Assembly script implemented and sanity-checked.** `runs/predictive_processing.py` committed. Sanity check shows both blocks learn; Block 1 doesn't beat copy baseline yet at 60 steps/128 seq — full run needed.
+**2-block prediction experiment running.** Block 1 consistently beating copy baseline (26% better at step 350/800). Trend still improving. No-recurrence ablation will follow.
 
-**New dictations 11-14 read.** Key implications below.
+**3-block combining script ready.** `runs/stream_combining.py` committed. CPU sanity check shows 45% advantage for combined stream. Waiting for GPU.
 
-**~2 days remain in timebox. GPU: FREE.**
+**Piece test 06 done.** Bayesian combining (tempered PoE + process noise) validated.
+
+**~2 days remain in timebox. GPU: BUSY (predictive_processing).**
 
 ---
 
@@ -75,26 +77,35 @@ A small MLP learns to predict distributions via W₂² loss. Converges cleanly. 
 
 ---
 
-## NEXT: Run the full assembly experiment + Bayesian combining piece test
+## IN PROGRESS: 2-block prediction experiment (GPU active)
 
-### Immediate: Run full assembly experiment
+**Running now** (PID 14980, `runs/active.lock` present). Phase B step 350/800, then no-recurrence ablation (800 steps).
 
-Script: `runs/predictive_processing.py` (no --sanity-check-only)
-Config: 200 Block 0 steps, 800 Block 1 steps, batch_size 8, seq_len 2048, bptt_chunk 128
-Expected duration: ~10-20 minutes
-Key question: Does Block 1 beat the copy baseline at longer sequences and more training?
+Results so far:
+- Phase A: Block 0 CE 5.35 → 2.51 ✅
+- Phase B: Block 1 MSE steadily beating copy baseline (0.00357 vs 0.00485 = **26% better** at step 350)
+- Still improving — trend is clear
 
-Sanity check finding: at seq=128/60 steps, Block 1 MSE (0.004) didn't beat copy (0.003). Consecutive representations are very similar — the copy baseline is hard. Full run might differ because longer sequences have more variation.
+**Key question remaining:** Does the no-recurrence ablation perform worse? That proves recurrence enables temporal prediction (not just learning a static transform).
 
-### After assembly: Bayesian combining piece test (per dictation 11)
+## READY TO LAUNCH: 3-block stream combining experiment
 
-The stream accumulates predictions. Test: given prior distribution P and likelihood L (from a prediction), compute posterior = combine(P, L). Properties to verify:
-- Posterior is a valid distribution
-- Chaining is stable (repeated combining doesn't explode/collapse)
-- Zero-surprise case: combine(P, P) ≈ P (folding in a perfect prediction shouldn't change the stream much)
-- Surprise magnitude correlates with how much the stream changes
+Script: `runs/stream_combining.py` (committed, sanity-checked on CPU)
+Config: 200 Block 0 steps, 800 Block 1 steps, 800 Block 2 steps, lambda=0.5
 
-This tests the mechanism from dictation 11 that piece test 04 missed.
+Tests whether folding Block 1's predictions into the stream helps Block 2. Design: `research/questions/stream-combining/README.md`
+
+CPU sanity check showed combined (0.002073) 45% better than passthrough (0.003774) — very promising signal, but need full GPU run to confirm.
+
+**Launch immediately after 2-block experiment finishes** (once `runs/active.lock` is cleared).
+
+## ✅ DONE: Bayesian combining piece test
+
+Piece test 06 validates tempered PoE + process noise. All 26 checks pass. Script: `experiments/predictive_processing/06_bayesian_combining.py`
+
+## TODO: Code deduplication
+
+`runs/stream_combining.py` duplicates ~300 lines from `runs/predictive_processing.py` (blocks, data utils, training helpers). Should extract shared pieces to `core/` once both experiments are stable. Not urgent — both run independently.
 
 ---
 
