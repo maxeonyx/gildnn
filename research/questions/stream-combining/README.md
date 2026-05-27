@@ -112,3 +112,17 @@ Where:
 2. ~~Implement 3-block equal-rate experiment~~ — done (`runs/stream_combining.py`)
 3. **Launch on GPU** (immediately after 2-block experiment finishes)
 4. If H1+H2 confirmed on GPU: add rates 1/2/4 (separate experiment)
+
+---
+
+## Multi-rate extension design (for after equal-rate confirms)
+
+Key design decisions (from theory analysis):
+
+**Prediction target:** Each block predicts the stream value AT ITS NEXT FIRING TIME. Block 1 (rate 2) predicts A0 at t+2. Block 2 (rate 4) predicts C1 at t+4. This couples rate and horizon — which is the point (higher blocks forced onto longer timescales).
+
+**Combining semantics:** Combine ONLY WHEN DUE. A prediction from Block 1 at time t is stored until t+2, then combined with the arriving actual. Between firings, C1_t = A0_t (no stale prediction contaminating intermediate steps).
+
+**Required control:** All-rate-1 with horizon-matched targets [+1, +2, +4]. This isolates the effect of multi-rate firing from the effect of predicting further ahead. Without this control, can't distinguish timescale separation from horizon difficulty.
+
+**What to measure:** Per-block loss vs copy baseline at its own horizon. Whether higher-block representations vary more slowly over time (temporal autocorrelation). Whether B2 benefits more from combined stream when multi-rate (predictions more valuable when blocks are further apart).
