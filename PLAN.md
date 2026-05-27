@@ -55,11 +55,24 @@ Pathway connection: Pathway 3 (Local Learning) + Pathway 8 (Multi-Rate Processin
 
 Metrics: per-block loss curves (script already produces these). For stronger evidence, would need probing/similarity analysis as a follow-up.
 
-### 2. Valid comparisons (per dictation 2026-05-27-6)
+### 2. Fix temperature → re-run (quick)
 
-Once training is confirmed stable and blocks diverge:
+Temperature 0.07 is wrong for fixed embeddings (see note above). Change to 0.5, sanity-check, re-run. Block 0 should start near uniform and learn faster.
+
+### 3. Local-only vs full-backprop A/B (Pathway 3: Local Learning)
+
+**The most discriminating next test.** Same architecture, one change: `detach_lateral=True` (current) vs `detach_lateral=False` (full gradient through laterals).
+
+- Hypothesis: most learning signal is already captured by local objectives; full backprop helps little
+- Success for local learning: block losses within ~0.05-0.1 nats of full-backprop control
+- Success for architecture: upper blocks are load-bearing (ablation hurts by >0.05 nats)
+- Failure: full-backprop dramatically outperforms local-only → local learning thesis weakens
+
+Explicitly listed in dictation 2026-05-27-6 as a valid one-change comparison.
+
+### 4. Further valid comparisons (per dictation 2026-05-27-6)
+
 - Noise on laterals → timescale separation?
-- Global backprop vs local-only → blocks still learn differently?
 - CUDA graph integration → expected speedup?
 
 ---
