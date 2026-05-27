@@ -88,7 +88,9 @@ Where:
 
 ## Status
 
-**Script ready, awaiting GPU.** Implementation: `runs/stream_combining.py`. CPU sanity check passes all three conditions. Waiting for 2-block experiment to finish (GPU busy).
+**Running on GPU** (PID 6728, started 2026-05-28 11:21 NZST). Implementation: `runs/stream_combining.py`. Phase A complete (Block 0 eval 2.507), Phase B in progress (Block 1 prediction, step 150/800, already beating copy). Phase C (three Block 2 conditions) will follow.
+
+Log: `experiments/tinyshakespeare/artifacts/stream_combining/run.jsonl`
 
 ---
 

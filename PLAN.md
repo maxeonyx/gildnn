@@ -93,22 +93,27 @@ Results:
 
 ## IN PROGRESS: 3-block stream combining experiment (GPU active)
 
-**Running now** (PID 6728, `runs/active.lock` present). Config: 200 Block 0 steps, 800 Block 1 steps, 800 Block 2 steps, lambda=0.5.
+**Running now** (PID 6728, `runs/active.lock` present). Config: 200 Block 0 steps, 800 Block 1 steps, 800 Block 2 steps × 3 conditions, lambda=0.5.
 
 Tests whether folding Block 1's predictions into the stream (via tempered PoE) helps Block 2. Three conditions: combined, passthrough, random.
 
 Design: `research/questions/stream-combining/README.md`
-CPU sanity check: combined (0.002073) 45% better than passthrough (0.003774) — very promising.
+Phase A complete (eval 2.507). Phase B in progress (step 150/800, already beating copy).
+Expected completion: ~1:30pm NZST.
 
-Expected completion: ~90 minutes from 11:21 NZST (3 phases × ~30 min each).
+## Remaining timebox sequence (~2 days)
+
+1. **Finish combining** (running now) → analyze results
+2. **Horizon sweep** (4 runs, ~2.5 hours) → does recurrence help at horizon 2 or 4? Design: `research/questions/horizon-sweep/README.md`
+3. **Reports** (daily + weekly, due after 4pm Thursday)
+4. **Multi-rate** (conditional on combining positive) → rates 1/2/4 with horizon-matched control
+5. **One confirmation seed** if anything is clearly positive
+
+Strategy: breadth first (answer more questions), then one depth step. Code dedup deferred until after key experiments.
 
 ## ✅ DONE: Bayesian combining piece test
 
 Piece test 06 validates tempered PoE + process noise. All 26 checks pass. Script: `experiments/predictive_processing/06_bayesian_combining.py`
-
-## TODO: Code deduplication
-
-`runs/stream_combining.py` duplicates ~300 lines from `runs/predictive_processing.py` (blocks, data utils, training helpers). Should extract shared pieces to `core/` once both experiments are stable. Not urgent — both run independently.
 
 ---
 
