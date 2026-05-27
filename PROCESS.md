@@ -87,6 +87,25 @@ When a new dictation appears:
 
 This is not a one-time task. Every new dictation is a potential course correction. Treat it as authoritative over all derived files.
 
+### What counts as a valid experiment
+
+**Only Max's architecture.** Every experiment must test a piece of or the full assembled design. Max's architecture: multi-block grid, stale laterals (one-timestep delay), per-block local predictive loss (higher blocks predict further ahead), weight-tied normalized readout, noise on laterals, multi-rate blocks, long sequences with TBPTT. If an experiment doesn't test a faithful piece of this design, don't run it.
+
+**Per-block loss is the metric.** Not global CE. The questions: is each block's local loss going down? Is the higher block learning different representations? Does multi-rate create timescale separation? Good global CE is meaningless if one block is doing all the work.
+
+**Valid comparisons change ONE thing from something that works.** Examples:
+- Working model → inject noise on laterals. Still works? Helps timescale separation?
+- Single block → add a far-lower-rate observer. Does the observer learn?
+- Same model with vs without CUDA graphs. Expected speedup?
+- All blocks connected with global backprop vs local learning only. What changes?
+- Different loss variants for "predict further ahead" — CE, cosine, distributional?
+
+**Building up by testing faithful pieces (not broken intermediate models):**
+- Bad: flat GRU → multi-block with global CE → add local loss later (each intermediate is broken/meaningless)
+- Good: "single block with tied readout learns? (30s) → second block predicts further ahead? (30s) → different representations? → wire together → add noise → train for real" (each step is faithful)
+
+**Proven pieces are the default starting point.** CUDA graph training, dynamic depth/halting, weight-tied readout, normalized embeddings, recurrent depth, stale laterals. New experiments ADD to this stack; they don't start from scratch.
+
 ### The ladder
 
 Every experiment climbs this ladder before scaling:
@@ -150,8 +169,9 @@ Fill in results, next steps, and reasons for deferral as the experiment proceeds
 
 Before committing to an experiment, answer these questions:
 
+- **Is this testing Max's architecture?** If not, stop. See "What counts as a valid experiment" above.
 - **Which ROADMAP pathway does this advance?** If you can't name one, stop.
-- **Am I comparing legitimate alternatives?** If one side of the comparison violates a non-negotiable architectural constraint, it is not a real option. Compare constrained designs against real alternatives, not against impossible ones.
+- **Am I comparing legitimate alternatives?** Change ONE thing from something that works. Both sides must be faithful to the final design.
 - What question am I trying to answer?
 - What is the cheapest experiment that could teach me something about it?
 - What result would INCREASE confidence in this pathway?

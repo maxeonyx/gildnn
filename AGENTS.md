@@ -104,6 +104,20 @@ Evidence in question READMEs must be **embedded inline** in the markdown (tables
 
 ## Core rules
 
+**Only train Max's architecture.** Do not train standard models (flat GRU, vanilla transformer, multi-block with global CE only). Those tell us nothing about whether Max's design works. Max's architecture is: multi-block grid, stale laterals, per-block local predictive loss (higher blocks predict further ahead), weight-tied normalized readout, noise on laterals for information hierarchy, multi-rate blocks, long sequences with TBPTT. If an experiment doesn't test a faithful piece of this design, don't run it.
+
+**Sanity check = 30 seconds.** "Does this piece learn at all? Is the loss going down? Is the architecture not completely broken?" That's all. NOT training to convergence and analyzing the result. NOT comparing against a standard baseline.
+
+**Per-block loss is the metric.** Stop looking at global cross-entropy. The questions that matter: is each block's local loss going down? Is the higher block learning different representations than the lower block? Does the multi-rate structure create timescale separation? Good global CE is meaningless if one block is doing all the work.
+
+**Proven pieces are the default baseline.** CUDA graph training, dynamic depth/halting, weight-tied readout, normalized embeddings, recurrent depth, stale laterals — these are ALL validated. Every experiment starts from this stack. A new experiment ADDS a piece; it doesn't start from scratch.
+
+**Build up with faithful pieces, not broken intermediate models.** Bad: test flat GRU → multi-block with global CE → add local loss later. Good: "single block with tied readout learns? (30s) → second block predicts further ahead? (30s) → different representations? → wire together with stale laterals → add noise → train for real." Each step tests something faithful to the final design.
+
+**Valid comparisons change ONE thing.** Take something that works, change one thing, see what happens. Noise on laterals. Observer block. CUDA graphs. Global vs local backprop. Different loss variants. All faithful to the final design; none involves training a broken model.
+
+**Cumulative progress, not regression.** Don't regress across eight dimensions to advance one. Build more sophisticated things into the core. Proven pieces stay in. New experiments add; they don't subtract.
+
 **Every experiment must connect to a ROADMAP pathway.** Before running any experiment, name which pathway it advances and what the exit condition is. If you can't, stop and redirect. Do NOT amplify marginal signals — the correct response to a 0.01 nat improvement is "interesting, what does this teach us?" not "how do I make this bigger?" See PROCESS.md for the full experiment loop with exit conditions.
 
 **Check the time on every session start.** If it's after 4pm and no daily report exists for today in `research/daily/`, write it before starting new work. If it's after 4pm Thursday and no weekly report exists for this week in `research/weekly/`, write that too. See `research/AGENTS.md` for the report process.
@@ -125,8 +139,6 @@ Evidence in question READMEs must be **embedded inline** in the markdown (tables
 **Rewrite, don't append.** Every file has a job. When information becomes stale, remove it. Files should shrink over time as things become clear, not grow.
 
 **Open questions stay open.** Do not state architectural decisions as settled unless they have been experimentally verified. If it's not confirmed, mark it as an open question.
-
-**Isolation before composition.** Do not combine speculative mechanisms early just because they seem like they should fit together. Run the individual pieces thoroughly in isolation first. In particular, "predictive chain" is an agent-coined simplification for one experiment family, not the project goal itself.
 
 **Don't interrupt the desktop.** No popups, notifications, or focus-stealing windows. Max may be doing other things.
 
