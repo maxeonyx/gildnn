@@ -4,16 +4,14 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current state (2026-05-27, 15:00 NZST)
+## Current state (2026-05-27, 15:57 NZST)
 
-**Architecture correctness: DONE.** Per dictations 8-9:
-- Fixed embeddings (random unit vectors, not learned)
-- Separate optimizer per block (truly independent learners)
-- Sanity check passed with new setup (commit `6250ccd`)
+**Architecture correctness: DONE.** Fixed embeddings + separate optimizers (commit `6250ccd`).
+**Stability fix: DONE.** Per-timestep L2 normalization (commit `7aee143`).
+**Temperature investigation: DONE.** τ=0.07 is correct — τ=0.5 worsens learning. See note below.
+**Daily report: WRITTEN.** `research/daily/2026-05-27.md`
 
-**Stability fix: DONE.** Per-timestep L2 normalization prevents hidden state explosion.
-
-**~3 days remain in timebox. GPU: FREE.**
+**~3 days remain in timebox. GPU: BUSY (global-backprop run, PID 924).**
 
 ---
 
@@ -45,34 +43,29 @@ Implemented and verified in commit `6250ccd`. Sanity check passed — all 3 bloc
 
 ## What's next
 
-### 1. Run assembly for real (~10-15 min) — IN PROGRESS
+### 1. ⏳ Local-vs-global A/B test — IN PROGRESS (PID 924, started 15:56 NZST)
 
-Now that the architecture is correct, run at full scale and answer: **does the higher block learn something different from the lower block?**
+Global-backprop condition (B) running. Same as local-only but with `--global-backprop` (detach_lateral=False).
 
-Pathway connection: Pathway 3 (Local Learning) + Pathway 8 (Multi-Rate Processing)
-- Evidence for: blocks converge to different loss levels, representation probing shows distinct features
-- Evidence against: all blocks converge to same representation despite different objectives
+**Local-only results (A, already have, 200 steps τ=0.07):**
+- Block 0: 5.19 → 3.85
+- Block 1: 5.14 → 3.29
+- Block 2: 5.09 → 3.27
 
-Metrics: per-block loss curves (script already produces these). For stronger evidence, would need probing/similarity analysis as a follow-up.
+**When B finishes:** Compare per-block losses. If gap < 0.1 nats → local learning works. If gap > 0.3 → locality costs something real. Cross-horizon matrix will show specialization.
 
-### 2. Fix temperature → re-run (quick)
+Log file: `experiments/tinyshakespeare/artifacts/assembled_architecture/run.jsonl` (look for the latest `run_restarted` marker, then the `global_backprop: true` entry)
 
-Temperature 0.07 is wrong for fixed embeddings (see note above). Change to 0.5, sanity-check, re-run. Block 0 should start near uniform and learn faster.
+### 2. Temperature comparison data (completed)
 
-### 3. Local-only vs full-backprop A/B (Pathway 3: Local Learning)
+τ=0.5 run (200 steps): Block 0→3.87, Block 1→3.75, Block 2→3.74. All worse than τ=0.07. Cross-horizon showed NO specialization (all rows flat). Confirms τ=0.07 is better — sharper gradients drive faster/deeper learning.
 
-**The most discriminating next test.** Same architecture, one change: `detach_lateral=True` (current) vs `detach_lateral=False` (full gradient through laterals).
+### 3. After A/B: noise on laterals
 
-- Hypothesis: most learning signal is already captured by local objectives; full backprop helps little
-- Success for local learning: block losses within ~0.05-0.1 nats of full-backprop control
-- Success for architecture: upper blocks are load-bearing (ablation hurts by >0.05 nats)
-- Failure: full-backprop dramatically outperforms local-only → local learning thesis weakens
-
-Explicitly listed in dictation 2026-05-27-6 as a valid one-change comparison.
+Once local-vs-global is settled: add noise injection to laterals and check if it promotes timescale separation. Single change from the working assembly.
 
 ### 4. Further valid comparisons (per dictation 2026-05-27-6)
 
-- Noise on laterals → timescale separation?
 - CUDA graph integration → expected speedup?
 
 ---
