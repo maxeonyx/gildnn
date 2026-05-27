@@ -52,21 +52,46 @@ A small MLP learns to predict distributions via W₂² loss. Converges cleanly. 
 
 ## NEXT: Assemble minimal predictive processing model
 
-The pieces work independently. The next step is to wire them into the simplest possible predictive processing model:
+The pieces work independently. The next step is the minimal predictive processing assembly.
 
-**Minimal design (2 blocks, no multi-rate yet):**
-1. Block 0: reads token input, produces a distribution (μ, σ) — its representation of the current token
-2. Block 1: receives Block 0's distribution from the PREVIOUS timestep (stale lateral)
-3. Block 1's loss: W₂²(Block 1's prediction of what Block 0 will produce, Block 0's actual output)
-4. Block 0's loss: could be token-level CE (it's the interface to the world) OR something else
+### Implementation spec (designed, ready to implement)
 
-**Open design questions (need resolution before implementing):**
-- What is Block 0's loss? It needs SOME grounding to the world (tokens). CE on token logits is simplest.
-- Does Block 1 also predict tokens, or ONLY predict Block 0's distribution?
-- How does the combining function work at each node? (Not needed for this 2-block test — just pass the distributions directly via stale laterals)
-- Should this be tested with synthetic data first, or go straight to TinyShakespeare?
+**New script:** `runs/predictive_processing.py` (do NOT modify assembled_architecture.py)
 
-**Suggested approach:** Start with the simplest version. Block 0 predicts tokens (CE loss). Block 1 predicts Block 0's output distribution (W₂² loss). Run on TinyShakespeare. See if Block 1 learns anything useful.
+**2 blocks, staged training:**
+
+1. **Train Block 0 alone** with CE loss (same as current — it learns a token representation)
+2. **Freeze Block 0**
+3. **Train Block 1** to predict Block 0's current output from Block 0's previous output + Block 1's recurrence
+
+**Block 0:**
+- Input: current token embedding (fixed random unit vector)
+- Output: μ₀ (point vector, since σ is fixed = 1.0)
+- Loss: CE via tied readout (like current architecture)
+- This is already proven to work (from earlier runs)
+
+**Block 1:**
+- Input: Block 0's μ at t-1 (stale lateral) + Block 1's own previous output (recurrence)
+- Output: predicted μ̂₀,t
+- Loss: W₂² = ||μ̂₀,t - μ₀,t||² (with σ fixed, this reduces to MSE on the representations)
+- Separate optimizer
+
+**Measurements (critical for convincing Max):**
+- Block 0 CE loss (should decrease — learns tokens)
+- Block 1 W₂² loss (should decrease — learns to predict Block 0)
+- **Copy baseline:** Block 1 just copies Block 0's t-1 output unchanged
+- **Random baseline:** Block 1 outputs random
+- **No-recurrence ablation:** Block 1 without its own previous state — if recurrence helps, Block 1 is learning temporal patterns beyond just copying
+- **Shuffled-sequence control:** same sequences with token order randomized — if gain disappears, it's real temporal prediction
+
+**Success:** Block 1 W₂² < copy baseline AND no-recurrence is worse AND shuffled-sequence kills the gain.
+**Failure:** Block 1 W₂² ≈ copy baseline — it's just learning to copy, not predict.
+
+**Key insight:** With fixed σ=1.0, W₂² reduces to MSE on μ. This is honest — we're testing whether a block can TEMPORALLY PREDICT another block's representation. The distributional story (learned σ, real uncertainty) comes later once this basic mechanism works.
+
+**Reuse from existing code:** data loading, TBPTT pattern, fixed embeddings, tied readout — all from core/. Don't reinvent.
+
+**Expected: ~30 min to implement, ~5 min to train Block 0, ~5 min to train Block 1.**
 
 ---
 
