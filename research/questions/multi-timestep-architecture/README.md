@@ -259,3 +259,27 @@ However: neural networks often learn their own internal basis regardless. The ex
 5. Can this compose with multi-rate (different positions process at different speeds)?
 6. What does right-to-left flow look like? Does it use the same combining function?
 7. With stride > 1, does the extra processing time (more block applications before next token) substitute for deeper blocks?
+8. At what prediction horizon does recurrence become load-bearing? (See experimental evidence below)
+
+---
+
+## Experimental evidence: prediction mechanism (2026-05-28)
+
+### 2-block prediction test
+
+Report: `experiments/tinyshakespeare/artifacts/predictive_processing/report.json`
+
+Block 0 trained for CE (200 steps), frozen. Block 1 predicts Block 0's next output via MSE. TinyShakespeare, d_model=96, seq_len=2048.
+
+| Variant | Final eval MSE | vs Copy baseline (0.00485) |
+|---|---|---|
+| Block 1 (with recurrence) | 0.003038 | 37% better |
+| Block 1 (no recurrence) | 0.003027 | 38% better |
+
+**Recurrence provides no measurable benefit at horizon 1.** Both converge to essentially the same loss (Δ=0.000011, single seed, well within noise). The prediction mechanism works via a learned static transform of the previous representation.
+
+**Most likely explanation:** Block 0's representation (trained for next-char CE) already encodes temporal context. So the mapping A0_t → A0_{t+1} is approximately Markov in representation space. Block 1 doesn't need its own temporal memory because Block 0 already compressed the relevant history.
+
+**What this doesn't prove:** that recurrence is unnecessary in the full architecture. Longer prediction horizons, multi-rate firing, or co-training (rather than frozen teacher) may all make recurrence load-bearing.
+
+**Next discriminative test:** Horizon sweep at +1, +2, +4, +8 with recurrent vs non-recurrent Block 1. This isolates when the mapping ceases to be approximately Markov.
