@@ -4,36 +4,40 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## ⚠️ PRIORITY REDIRECT: Long-sequence RNN testing (dictation 2026-05-27-1)
+## ⚠️ PRIORITY REDIRECT: Assemble the actual architecture (dictation 2026-05-27-2)
 
-**All experiments so far use wrong sequence lengths.** `SHORT_CONTEXT = 4` everywhere. The architecture is an RNN — per-step cost is O(weights × batch), independent of history length. We should be testing with **thousands of tokens**.
+**Stop training models that aren't Max's.** A flat GRU with TBPTT is not his model. A standard transformer is not his model. Testing those tells us nothing about whether his design works.
 
-**The fundamental question (Pathway 1) has never been tested at the RNN's sweet spot.** We've been hobbling the RNN to match the transformer's interface.
+**Assemble the pieces now.** The individual pieces have been poked at for days. Put them together. If a piece turns out broken during assembly, fix it then. Stop endlessly testing pieces in isolation against standard baselines.
 
-**The direction:** Test the architecture at its natural sweet spot — long sequences where hidden state accumulates temporal structure. Truncated BPTT is the expected training mechanism (forward through full sequence, backprop through a limited window). The RNN advantage over transformers should show up here if it exists.
+**What "sanity check a piece" means:** Does it learn at all? Is the loss going down? Is the architecture not completely broken? That takes 30-60 seconds. NOT training to convergence and analyzing the result.
 
-Previous negatives about recurrence/stale laterals were all tested with 4-char windows. They may be artifacts of having no temporal structure to leverage.
+### Max's architecture (from dictation)
 
-**This is the priority.** Pathway 5 (halting/dynamic depth) and grammar work are paused.
+1. Multi-block grid — `ParallelDiagonalModel` in `core/model.py` ✅
+2. Blocks as temporal edges — stale laterals with one-timestep delay ✅
+3. Stale laterals — `detach_lateral=True`, topology="upward" ✅
+4. Noise creating information hierarchy — ❌ NOT IMPLEMENTED
+5. Higher blocks predict further ahead with local predictive loss — ❌ KEY MISSING PIECE
+6. Distributional stream with weight-tied readout as combining mechanism — partially (tied readout exists, distributional stream doesn't)
 
-**d=512 run:** Crashed at step 15000/20000 (no checkpoint saved). Do NOT restart — wrong priority.
+### What "assembly" means concretely
 
-**GPU: FREE** (crash killed all processes, lock file stale).
+Use `ParallelDiagonalModel(num_blocks=3, rates=(1,2,4), topology="upward", detach_lateral=True)` with:
+- Per-block local loss: block i at rate R predicts R tokens ahead using `tied_logits`
+- Long-context sequential training with TBPTT (ctx=128+ minimum, seq=2048)
+- Optionally: noise injection per block level (higher blocks see more noise → forced to be robust)
+
+The TBPTT infrastructure just built (`runs/rnn_tbptt.py`) is useful for the training loop — it just needs to drive `ParallelDiagonalModel` instead of a flat GRU.
 
 ---
 
-## What's done (prior sessions, still valid)
+## What's done this session
 
-1. ~~Integration~~ **DONE** — `core/recurrent_depth.py`
-2. ~~Choose direction~~ **DONE** — Capstone Generation
-3. ~~Generation infrastructure~~ **DONE** — `core/generation.py`, `runs/generate_text.py`
-4. ~~--save-checkpoint default~~ **DONE**
-5. ~~Capstone training d=256~~ **DONE** — 20K steps, 35 min, val_loss 1.62
-6. ~~Generation samples~~ **DONE** — halting patterns confirmed interpretable
-7. ~~Speed comparison~~ **DONE** — 10% real-time speedup (memory-bound regime)
-8. ~~Capstone report~~ **DONE** — `research/questions/capstone-generation/README.md`
-9. ~~Fix bugs~~ **DONE** — checkpoint format compat, report-path dir handling, main() def
-10. **ACTIVE: d=512 scale-up** — launched, ETA 09:30
+1. ~~GRU TBPTT experiment (Rung 1 on TinyShakespeare)~~ **DONE** — state carry provides zero benefit
+2. ~~Reset-sweep evaluation~~ **DONE** — confirms no useful state beyond 128 tokens for flat GRU
+3. ~~WikiText-103 script built~~ **DONE** — `runs/rnn_tbptt_wiki.py` (sanity-checked but NOT run — redirected by dictation)
+4. ~~Rung 1 results documented~~ **DONE** — `research/questions/long-sequence-rnn/README.md`
 
 ---
 
@@ -41,19 +45,16 @@ Previous negatives about recurrence/stale laterals were all tested with 4-char w
 
 **~3 days remain in timebox. GPU: FREE.**
 
-### THE PRIORITY: Test the architecture with long sequences
+### THE PRIORITY: Assemble and train Max's architecture at long sequences
 
-The architecture is an RNN. Its advantage over transformers is that it can process arbitrarily long sequences without quadratic cost. We have never tested this. All prior experiments used tiny context windows (4 chars). This is Pathway 1 tested properly for the first time.
+Build a training script that:
+1. Uses `ParallelDiagonalModel` (multi-block grid, stale laterals, rates)
+2. Trains with TBPTT on long sequences (reuse infrastructure from `runs/rnn_tbptt.py`)
+3. Gives each block a local CE loss predicting `rate` steps ahead
+4. Quick sanity check (30-60 seconds): does loss go down?
+5. If yes: scale up and run properly
 
-### After that: re-evaluate recurrence/lateral negatives
-
-The previous negatives (stale laterals, multi-rate, sequential regime) may be artifacts of 4-char windows. Revisit at realistic sequence lengths if the long-sequence direction works.
-
-### Paused (valid work, lower priority now)
-
-- Grammar experiment (infrastructure ready, `runs/grammar_train.py`)
-- d=512 capstone (crashed, no checkpoint — would need full restart)
-- Pathway 4 active compression
+### After: noise injection, distributional stream (if time permits)
 
 ---
 
@@ -74,7 +75,7 @@ The previous negatives (stale laterals, multi-rate, sequential regime) may be ar
 | 1 (Recurrent Depth) | VALIDATED | Shared-weight iteration works. Capstone generation demonstrates at scale. |
 | 3 (Local Learning) | VALIDATED | Window-based + fresh lateral works. Co-training self-organizes. |
 | 5 (Dynamic Depth) | **RESOLVED** | Regression halt head works. Calibrated. Integrated. Generates readable text. |
-| 8 (Multi-Rate) | CLOSED (at 4-char context) | Sequential regime incompatible; CE-trained laterals position-specific. **May need re-evaluation at long sequences.** |
+| 8 (Multi-Rate) | CLOSED (at 4-char context) | Sequential regime incompatible at ctx=4. **May work at long sequences (re-evaluate during assembly).** |
 
 ---
 
@@ -83,14 +84,9 @@ The previous negatives (stale laterals, multi-rate, sequential regime) may be ar
 - `VISION.md` — stakeholder requirements (DO NOT EDIT)
 - `ROADMAP.md` — research pathways (DO NOT EDIT)
 - `PROCESS.md` — experiment discipline and loop
-- `research/questions/capstone-generation/README.md` — capstone result
-- `research/questions/grammar-depth/README.md` — grammar experiment design (report-first)
-- `research/questions/computation-compression/README.md` — Pathway 4 opportunity measurement
-- `research/questions/dynamic-depth/README.md` — full Pathway 5 write-up
-- `core/tied_readout.py` — validated multi-rate lateral architecture
-- `core/recurrent_depth.py` — validated recurrent depth + halting architecture
-- `core/generation.py` — text generation with halting annotations
-- `runs/capstone_train.py` — WikiText-103 training script
-- `runs/grammar_train.py` — grammar training script
-- `runs/generate_text.py` — generation CLI
-- `research/daily/2026-05-26.md` — yesterday's report
+- `dictations/2026-05-27-2.md` — THE directive: assemble now
+- `dictations/2026-05-27-1.md` — use long sequences, TBPTT
+- `core/model.py` — `ParallelDiagonalModel` (the grid architecture)
+- `core/tied_readout.py` — weight-tied readout + local loss
+- `runs/rnn_tbptt.py` — TBPTT training infrastructure (reusable)
+- `research/questions/long-sequence-rnn/README.md` — Rung 1 flat-GRU results (negative)
