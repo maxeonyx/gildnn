@@ -111,8 +111,57 @@ Existing code that can be reused:
 
 ## Results
 
-_Placeholder — to be filled after experiment runs._
+### Rung 1: TinyShakespeare, 188K-param GRU
+
+**Training comparison (best validation loss):**
+
+| Mode | Best val_loss | At step | Training tokens seen |
+|---|---|---|---|
+| TBPTT carry (400 steps) | 1.596 | 175 | 5.7M |
+| Chunk-reset (400 steps) | 1.595 | 200 | 6.6M |
+| Window (6400 steps, token-matched) | 1.591 | 425 | 0.9M |
+
+All three modes reach the same best validation loss (~1.59). State-carrying provides **zero benefit** over chunk-reset. The window baseline reaches the same floor with 6× fewer tokens processed.
+
+**Reset-sweep evaluation (hidden state reset every N tokens):**
+
+| Mode | N=1 | N=8 | N=32 | N=128 | N=512 | N=2048 | full |
+|---|---|---|---|---|---|---|---|
+| TBPTT carry | 3.153 | 1.938 | 1.679 | 1.616 | 1.602 | 1.597 | 1.596 |
+| Chunk-reset | 2.653 | 1.767 | 1.637 | 1.603 | 1.597 | 1.595 | 1.595 |
+| Window (200 steps only) | 2.676 | 1.831 | 1.755 | 1.735 | 1.730 | 1.729 | 1.729 |
+
+Key observations:
+- Both TBPTT and chunk-reset models benefit significantly from short-range state (N=1→128: ~1.5 nats improvement).
+- **Almost no benefit beyond 128 tokens** (N=128→full: 0.020 nats for TBPTT, 0.008 nats for chunk-reset).
+- The gradient horizon is 128 (bptt_chunk=128). Neither model learns to use state beyond that.
+- The TBPTT model is MORE dependent on state (worse at N=1: 3.15 vs 2.65) — it expects context but doesn't exploit long-range context any better.
+- Window model not at its peak (only trained 200 steps here; needs 425+ for best val) — this comparison is about TBPTT vs chunk-reset.
+
+### Interpretation
+
+**H1 is NOT confirmed on TinyShakespeare.** Training with TBPTT (state carry) provides no benefit over chunk-reset (same training but state cleared every 128 tokens). The GRU hidden state provides useful SHORT-range context (~128 tokens) but does not accumulate useful LONG-range temporal structure.
+
+Possible reasons:
+1. TinyShakespeare (100K chars) has no genuine long-range structure beyond ~128 characters
+2. The model (188K params) is too small to represent complex long-range dependencies
+3. Truncated BPTT with chunk=128 can't teach the model to use information beyond 128 (gradient doesn't reach)
+4. The GRU architecture may be fundamentally limited in long-range information propagation (forgetting gate)
+
+This does NOT kill the direction — it's the expected "try a harder task" case. WikiText-103 has real article-level coherence.
 
 ## Next steps
 
-_Placeholder — depends on which exit condition is met._
+Per exit conditions: "H1 not confirmed → try on WikiText-103 (rung 2); or the direction is weak."
+
+### Rung 2: WikiText-103
+
+WikiText-103 has 100M+ characters with genuine article-level coherence (paragraphs reference earlier paragraphs, consistent topics across thousands of tokens). This is where long-range state SHOULD help if it helps anywhere.
+
+Changes from Rung 1:
+- **Dataset:** WikiText-103 (already supported by `core/dataset.py`)
+- **Model size:** Scale to ~2.86M params (matching transformer baseline) to have capacity for long-range patterns
+- **Article boundaries:** Reset state at article boundaries so we don't blur cross-article dependencies
+- **Longer gradient horizon?** Consider bptt_chunk=256 or 512 to give gradient more reach
+
+Key question: does the reset-sweep result change on a corpus with real long-range structure? If not, the GRU architecture itself may be the limiting factor (forgetting gate kills information too quickly).
