@@ -103,9 +103,9 @@ Expected completion: ~2:00pm NZST (Phase B ~37min + Phase C 3×~37min).
 
 ## Remaining timebox sequence (~2 days)
 
-1. **Finish combining** (running now) → analyze results
-2. **Horizon sweep** (4 runs, ~2.5 hours) → does recurrence help at horizon 2 or 4? Design: `research/questions/horizon-sweep/README.md`
-3. **Reports** (daily + weekly, due after 4pm Thursday)
+1. **Finish combining** (running now, ~2:00pm) → analyze results, update README
+2. **Horizon sweep** — IMPLEMENTED and ready to run (`runs/horizon_sweep.py`). Launch `--horizon 2` then `--horizon 4`. Each takes ~79 min (200 Phase A + 2×800 Phase B). Total ~2.6 hours.
+3. **Reports** (daily + weekly, due after 4pm Thursday) — can write while horizon sweep runs
 4. **Multi-rate** (conditional on combining positive) → rates 1/2/4 with horizon-matched control
 5. **One confirmation seed** if anything is clearly positive
 
