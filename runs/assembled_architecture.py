@@ -14,7 +14,7 @@ if __package__ in (None, ""):
 
 import torch
 from jaxtyping import Float, Int
-from torch import Tensor
+from torch import Tensor, nn
 from torch.nn import functional as F
 
 from core.dataset import CorpusData, RandomWindowCharDataset, load_corpus
@@ -22,7 +22,6 @@ from core.fixed_window_char import set_seed
 from core.model import ParallelDiagonalCarryState, ParallelDiagonalModel, count_parameters
 from core.run_utils import (
     append_log,
-    build_optimizer,
     log_run_restarted,
     prepare_output_paths,
     redirect_sanity_check_paths,
@@ -46,6 +45,7 @@ DEFAULT_FEEDFORWARD_DIM = 192
 DEFAULT_LEARNING_RATE = 3e-4
 SANITY_CHECK_LEARNING_RATE = 1e-3
 DEFAULT_GRAD_CLIP_NORM = 1.0
+DEFAULT_WEIGHT_DECAY = 0.01
 DEFAULT_EVAL_INTERVAL = 20
 SANITY_CHECK_EVAL_INTERVAL = 10
 DEFAULT_SEED = 42
@@ -240,15 +240,94 @@ def compute_chunk_loss(
     return total_loss, block_losses, valid_positions, next_carry_state
 
 
+def block_parameter_groups(model: ParallelDiagonalModel) -> list[tuple[nn.Parameter, ...]]:
+    if model.window_proj is not None:
+        raise ValueError("Separate block optimizers do not support shared window_proj parameters.")
+    if model.token_injection != "block0":
+        raise ValueError(
+            "Separate block optimizers in this script require token_injection='block0' so shared token inputs are owned by block 0."
+        )
+
+    groups: list[tuple[nn.Parameter, ...]] = []
+    seen_parameter_ids: dict[int, int] = {}
+    for block_index, (block, token_mix, block_mix, lateral_mix) in enumerate(
+        zip(model.blocks, model.token_mixes, model.block_mixes, model.lateral_mixes, strict=True)
+    ):
+        modules: list[nn.Module] = [block, token_mix, block_mix, lateral_mix]
+        if block_index == 0:
+            modules.append(model.position_embedding)
+
+        group_parameters: list[nn.Parameter] = []
+        local_seen: set[int] = set()
+        for module in modules:
+            for parameter in module.parameters():
+                if not parameter.requires_grad:
+                    continue
+                parameter_id = id(parameter)
+                if parameter_id in local_seen:
+                    continue
+                owner = seen_parameter_ids.get(parameter_id)
+                if owner is not None:
+                    raise ValueError(
+                        f"Parameter sharing across block optimizer groups is unsupported: parameter already assigned to block {owner}, encountered again in block {block_index}."
+                    )
+                seen_parameter_ids[parameter_id] = block_index
+                local_seen.add(parameter_id)
+                group_parameters.append(parameter)
+        groups.append(tuple(group_parameters))
+
+    unassigned_trainable_parameters = [
+        name
+        for name, parameter in model.named_parameters()
+        if parameter.requires_grad and id(parameter) not in seen_parameter_ids
+    ]
+    if len(unassigned_trainable_parameters) > 0:
+        raise ValueError(
+            "Separate block optimizers require all trainable parameters to belong to exactly one block group. "
+            f"Unassigned trainable parameters: {unassigned_trainable_parameters}"
+        )
+
+    return groups
+
+
+def build_block_optimizers(
+    model: ParallelDiagonalModel,
+    *,
+    device: torch.device,
+    learning_rate: float,
+    weight_decay: float = DEFAULT_WEIGHT_DECAY,
+) -> tuple[list[torch.optim.AdamW], list[tuple[nn.Parameter, ...]]]:
+    parameter_groups = block_parameter_groups(model)
+    optimizers: list[torch.optim.AdamW] = []
+    for block_index, parameters in enumerate(parameter_groups):
+        if len(parameters) == 0:
+            raise ValueError(f"Block {block_index} has no trainable parameters for its optimizer.")
+        optimizer_kwargs = {
+            "lr": learning_rate,
+            "betas": (0.9, 0.999),
+            "weight_decay": weight_decay,
+        }
+        if device.type == "cuda":
+            optimizer_kwargs["capturable"] = True
+        optimizers.append(torch.optim.AdamW(parameters, **optimizer_kwargs))
+    return optimizers, parameter_groups
+
+
 def tbptt_training_step(
     model: ParallelDiagonalModel,
-    optimizer: torch.optim.Optimizer,
+    block_optimizers: list[torch.optim.Optimizer],
     *,
+    block_parameter_groups: list[tuple[nn.Parameter, ...]],
     batch_tokens: Int[Tensor, "batch seq"],
     bptt_chunk: int,
     grad_clip_norm: float,
 ) -> BatchLossSummary:
-    optimizer.zero_grad(set_to_none=True)
+    if len(block_optimizers) != len(model.rates) or len(block_parameter_groups) != len(model.rates):
+        raise ValueError(
+            f"Expected one optimizer and one parameter group per block, got optimizers={len(block_optimizers)}, groups={len(block_parameter_groups)}, blocks={len(model.rates)}."
+        )
+    for optimizer in block_optimizers:
+        optimizer.zero_grad(set_to_none=True)
     carry_state: ParallelDiagonalCarryState | None = None
     total_loss = torch.zeros((), device=batch_tokens.device)
     block_loss_sums = [torch.zeros((), device=batch_tokens.device) for _ in model.rates]
@@ -299,8 +378,10 @@ def tbptt_training_step(
             block_loss_sums[index] = block_loss_sums[index] + block_loss.detach() * valid_positions
             valid_position_sums[index] += valid_positions
         carry_state = carry_state.detach()
-    torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip_norm)
-    optimizer.step()
+    for parameters in block_parameter_groups:
+        torch.nn.utils.clip_grad_norm_(parameters, grad_clip_norm)
+    for optimizer in block_optimizers:
+        optimizer.step()
     if any(valid_positions == 0 for valid_positions in valid_position_sums):
         raise RuntimeError(f"Some block losses had zero valid positions: {valid_position_sums}")
     mean_block_losses = tuple(
@@ -419,11 +500,17 @@ def main() -> int:
         detach_lateral=True,
         lateral_scale=LATERAL_SCALE,
     ).to(device)
+    with torch.no_grad():
+        nn.init.normal_(model.token_embedding.weight)
+        model.token_embedding.weight.copy_(F.normalize(model.token_embedding.weight, dim=-1))
+    model.token_embedding.weight.requires_grad_(False)
+    model.output.requires_grad_(False)
+    if model.readout_logits is not None:
+        model.readout_logits.requires_grad_(False)
     parameter_count = count_parameters(model)
-    optimizer = build_optimizer(
+    block_optimizers, block_optimizer_parameter_groups = build_block_optimizers(
         model,
         device=device,
-        compile_model=False,
         learning_rate=learning_rate,
     )
 
@@ -445,6 +532,9 @@ def main() -> int:
             "normalize": NORMALIZE,
             "lateral_scale": LATERAL_SCALE,
             "rates": list(BLOCK_RATES),
+            "fixed_embeddings": True,
+            "separate_optimizers": True,
+            "frozen_unused_readout": True,
         },
     )
     append_log(
@@ -464,6 +554,7 @@ def main() -> int:
             "stage": "model_built",
             "parameter_count": parameter_count,
             "mix_coefficients": model.mix_coefficients(),
+            "block_optimizer_parameter_counts": [sum(parameter.numel() for parameter in parameters) for parameters in block_optimizer_parameter_groups],
         },
     )
 
@@ -494,7 +585,8 @@ def main() -> int:
             batch_tokens = sample_tbptt_batch(tbptt_sequences, batch_size=batch_size, device=device, rng=tbptt_rng)
         final_train_summary = tbptt_training_step(
             model,
-            optimizer,
+            block_optimizers,
+            block_parameter_groups=block_optimizer_parameter_groups,
             batch_tokens=batch_tokens,
             bptt_chunk=args.bptt_chunk,
             grad_clip_norm=DEFAULT_GRAD_CLIP_NORM,
@@ -530,6 +622,8 @@ def main() -> int:
             "learning_rate": args.lr,
             "effective_learning_rate": learning_rate,
             "seed": args.seed,
+            "fixed_embeddings": True,
+            "separate_optimizers": True,
             "train_characters": TRAIN_CHARACTERS,
             "val_characters": VAL_CHARACTERS,
             "temperature": TEMPERATURE,
