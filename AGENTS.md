@@ -167,6 +167,8 @@ A separate OpenCode session (the "support session") runs alongside the loop agen
 
 **Dictation drafting process:** When Max is thinking out loud, the support session drafts the dictation content but does NOT create/commit the file until Max confirms he's done thinking. This avoids creating a file (triggering the notification) and then needing to edit it (which won't trigger a second notification). One creation, one notification, complete content.
 
+**Don't rewrite dictations.** Capture Max's exact words. Only correct obvious speech-to-text errors. Do not paraphrase, add em-dashes, restructure sentences, or polish the language. The dictations are a record of what Max said, not a cleaned-up version.
+
 **Don't interrupt the desktop** when launching background processes. Always use `-WindowStyle Hidden` on `Start-Process`. Never use `-NoNewWindow` (which inherits the parent console and can steal focus).
 
 ## Handover protocol
