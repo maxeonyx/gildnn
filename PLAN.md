@@ -94,9 +94,10 @@ Temperature 0.07 was validated with LEARNED embeddings. With FIXED RANDOM embedd
 - Dot products between random unit vectors have std ≈ 1/√96 ≈ 0.102
 - Dividing by 0.07 gives logit std ≈ 1.46 → randomly peaked softmax
 - Expected initial CE ≈ 5.19 (vs uniform 4.13) — exactly what we observe
-- Block 0 wastes training steps just getting back to uniform before it can learn patterns
 
-**Next run should use temperature ≈ 0.5** (gives init CE ≈ 4.15, near-uniform). This is not changing the architecture — it's correcting a hyperparameter that was tuned for a different regime (learned embeddings).
+**However: τ=0.5 makes learning WORSE, not better.** The near-uniform init (good) comes with diffuse gradient geometry (bad). AdamW normalizes gradient scale, so the issue is gradient SHAPE not magnitude. τ=0.07's "random overconfidence" creates strong contrastive signal that accelerates learning. The model corrects from 5.19 → 3.85 in 200 steps — the high init is cosmetic, not harmful.
+
+**Conclusion: keep τ=0.07.** Revert from 0.5 for the next run.
 
 ---
 
