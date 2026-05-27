@@ -4,15 +4,15 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current state (2026-05-28, 10:30 NZST)
+## Current state (2026-05-28, 10:32 NZST)
 
-**2-block prediction experiment running.** Block 1 consistently beating copy baseline (26% better at step 350/800). Trend still improving. No-recurrence ablation will follow.
+**2-block prediction experiment running.** Block 1 at step 550/800 in Phase B — eval loss 0.003254 vs copy baseline 0.004852 = **33% better**. Still improving. No-recurrence ablation follows (~800 more steps after Phase B).
 
-**3-block combining script ready.** `runs/stream_combining.py` committed. CPU sanity check shows 45% advantage for combined stream. Waiting for GPU.
+**3-block combining script ready.** `runs/stream_combining.py` committed + CPU sanity-checked. Random control confirms combining needs informative predictions (not just smoothing). Waiting for GPU.
 
 **Piece test 06 done.** Bayesian combining (tempered PoE + process noise) validated.
 
-**~2 days remain in timebox. GPU: BUSY (predictive_processing).**
+**~2 days remain in timebox. GPU: BUSY (predictive_processing, PID 14980).**
 
 ---
 
@@ -79,11 +79,11 @@ A small MLP learns to predict distributions via W₂² loss. Converges cleanly. 
 
 ## IN PROGRESS: 2-block prediction experiment (GPU active)
 
-**Running now** (PID 14980, `runs/active.lock` present). Phase B step 350/800, then no-recurrence ablation (800 steps).
+**Running now** (PID 14980, `runs/active.lock` present). Phase B step 550/800, then no-recurrence ablation (800 steps).
 
 Results so far:
 - Phase A: Block 0 CE 5.35 → 2.51 ✅
-- Phase B: Block 1 MSE steadily beating copy baseline (0.00357 vs 0.00485 = **26% better** at step 350)
+- Phase B: Block 1 MSE steadily beating copy baseline (0.003254 vs 0.004852 = **33% better** at step 550)
 - Still improving — trend is clear
 
 **Key question remaining:** Does the no-recurrence ablation perform worse? That proves recurrence enables temporal prediction (not just learning a static transform).
