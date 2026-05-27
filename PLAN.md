@@ -4,14 +4,39 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current state (2026-05-27, 19:30 NZST)
+## Current state (2026-05-28, 09:50 NZST)
 
-**COURSE CORRECTION per dictation 2026-05-27-10.** Stop refining "blocks predict token CE." Start implementing predictive processing: blocks predict EACH OTHER's distributions. Test pieces in isolation — don't train.
+**Assembly script implemented and sanity-checked.** `runs/predictive_processing.py` committed. Sanity check shows both blocks learn; Block 1 doesn't beat copy baseline yet at 60 steps/128 seq — full run needed.
 
-**Piece tests: ALL DONE.** Every piece of the predictive processing architecture validated independently.
-**Daily report: NEEDS UPDATE** with piece test results (append to existing).
+**New dictations 11-14 read.** Key implications below.
 
-**~3 days remain in timebox. GPU: FREE.**
+**~2 days remain in timebox. GPU: FREE.**
+
+---
+
+## ⚠️ DICTATIONS 11-14 — implications
+
+### Dictation 11: Stream accumulation changes the combining function story
+
+The stream at a node ACCUMULATES predictions over time. It's not "passthrough actual." The stream at t=2 is combine(actual_t1, prediction_based_on_t0). This reframes piece test 04's conclusion — "passthrough is the only stable option" was testing the wrong question.
+
+**Real question:** "What does the stream become when you fold in a prediction?" → Bayesian combining (prior × likelihood → posterior) is back in play.
+
+**Impact on current work:** The 2-block assembly doesn't exercise the combining function (there's no Block 2 reading the combined stream). So the assembly is still valid as a prediction-mechanism test. But the NEXT piece test should be: Bayesian combining in distribution-parameter space.
+
+### Dictation 12: Model goal is high-level representations, not token prediction
+
+"The model isn't supposed to be good at predicting tokens. It's supposed to be good at building high-level representations."
+
+**Impact:** Block 0's CE loss is just GROUNDING (gives it a reason to produce meaningful representations). The point of the experiment is Block 1's ability to predict — that's what tests the predictive processing mechanism. Don't optimize Block 0's CE.
+
+### Dictation 13: Multi-rate ≠ halting (redaction)
+
+Multi-rate = how often each block fires across timesteps (temporal extent). Halting = how many recurrent iterations within a single timestep. Independent dimensions.
+
+### Dictation 14: Future direction — learned distribution family
+
+Not current work. But shows where this is heading: learned density evaluator, sampler, combiner, distance. For now: diagonal Gaussians with explicit params.
 
 ---
 
@@ -50,48 +75,26 @@ A small MLP learns to predict distributions via W₂² loss. Converges cleanly. 
 
 ---
 
-## NEXT: Assemble minimal predictive processing model
+## NEXT: Run the full assembly experiment + Bayesian combining piece test
 
-The pieces work independently. The next step is the minimal predictive processing assembly.
+### Immediate: Run full assembly experiment
 
-### Implementation spec (designed, ready to implement)
+Script: `runs/predictive_processing.py` (no --sanity-check-only)
+Config: 200 Block 0 steps, 800 Block 1 steps, batch_size 8, seq_len 2048, bptt_chunk 128
+Expected duration: ~10-20 minutes
+Key question: Does Block 1 beat the copy baseline at longer sequences and more training?
 
-**New script:** `runs/predictive_processing.py` (do NOT modify assembled_architecture.py)
+Sanity check finding: at seq=128/60 steps, Block 1 MSE (0.004) didn't beat copy (0.003). Consecutive representations are very similar — the copy baseline is hard. Full run might differ because longer sequences have more variation.
 
-**2 blocks, staged training:**
+### After assembly: Bayesian combining piece test (per dictation 11)
 
-1. **Train Block 0 alone** with CE loss (same as current — it learns a token representation)
-2. **Freeze Block 0**
-3. **Train Block 1** to predict Block 0's current output from Block 0's previous output + Block 1's recurrence
+The stream accumulates predictions. Test: given prior distribution P and likelihood L (from a prediction), compute posterior = combine(P, L). Properties to verify:
+- Posterior is a valid distribution
+- Chaining is stable (repeated combining doesn't explode/collapse)
+- Zero-surprise case: combine(P, P) ≈ P (folding in a perfect prediction shouldn't change the stream much)
+- Surprise magnitude correlates with how much the stream changes
 
-**Block 0:**
-- Input: current token embedding (fixed random unit vector)
-- Output: μ₀ (point vector, since σ is fixed = 1.0)
-- Loss: CE via tied readout (like current architecture)
-- This is already proven to work (from earlier runs)
-
-**Block 1:**
-- Input: Block 0's μ at t-1 (stale lateral) + Block 1's own previous output (recurrence)
-- Output: predicted μ̂₀,t
-- Loss: W₂² = ||μ̂₀,t - μ₀,t||² (with σ fixed, this reduces to MSE on the representations)
-- Separate optimizer
-
-**Measurements (critical for convincing Max):**
-- Block 0 CE loss (should decrease — learns tokens)
-- Block 1 W₂² loss (should decrease — learns to predict Block 0)
-- **Copy baseline:** Block 1 just copies Block 0's t-1 output unchanged
-- **Random baseline:** Block 1 outputs random
-- **No-recurrence ablation:** Block 1 without its own previous state — if recurrence helps, Block 1 is learning temporal patterns beyond just copying
-- **Shuffled-sequence control:** same sequences with token order randomized — if gain disappears, it's real temporal prediction
-
-**Success:** Block 1 W₂² < copy baseline AND no-recurrence is worse AND shuffled-sequence kills the gain.
-**Failure:** Block 1 W₂² ≈ copy baseline — it's just learning to copy, not predict.
-
-**Key insight:** With fixed σ=1.0, W₂² reduces to MSE on μ. This is honest — we're testing whether a block can TEMPORALLY PREDICT another block's representation. The distributional story (learned σ, real uncertainty) comes later once this basic mechanism works.
-
-**Reuse from existing code:** data loading, TBPTT pattern, fixed embeddings, tied readout — all from core/. Don't reinvent.
-
-**Expected: ~30 min to implement, ~5 min to train Block 0, ~5 min to train Block 1.**
+This tests the mechanism from dictation 11 that piece test 04 missed.
 
 ---
 
