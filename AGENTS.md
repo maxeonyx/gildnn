@@ -165,9 +165,13 @@ When you notice a new dictation, read it immediately — it contains Max's instr
 
 A separate OpenCode session (the "support session") runs alongside the loop agent. It monitors the loop, writes dictations on Max's behalf, and may modify files in the repo independently (especially `dictations/` and `AGENTS.md`). If you notice unexpected file changes, this is likely the cause — not a conflict.
 
-**Dictation drafting process:** When Max is thinking out loud, the support session drafts the dictation content but does NOT create/commit the file until Max confirms he's done thinking. This avoids creating a file (triggering the notification) and then needing to edit it (which won't trigger a second notification). One creation, one notification, complete content.
+**Dictation drafting process:** The support session drafts dictation content using Max's exact words, then shows Max the draft before committing. Do NOT create/commit the file until Max confirms. One creation, one notification, complete content.
 
 **Don't rewrite dictations.** Capture Max's exact words. Only correct obvious speech-to-text errors. Do not paraphrase, add em-dashes, restructure sentences, or polish the language. The dictations are a record of what Max said, not a cleaned-up version.
+
+**Don't add analysis or expansion into dictations.** If the support session wants to add interpretation, implications, or connections — draft it and get Max to say it back in his own words. The support session does NOT write new content into dictations. If Max doesn't echo it back, it doesn't go in.
+
+**Redactions:** If a dictation was published with incorrect content, publish a NEW dictation explicitly retracting the wrong parts. Edits to existing files don't trigger notifications.
 
 ## Handover protocol
 
