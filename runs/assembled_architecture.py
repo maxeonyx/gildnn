@@ -43,7 +43,7 @@ SANITY_CHECK_SEQ_LEN = 1024
 DEFAULT_BPTT_CHUNK = 128
 DEFAULT_D_MODEL = 96
 DEFAULT_FEEDFORWARD_DIM = 192
-DEFAULT_LEARNING_RATE = 3e-4
+DEFAULT_LEARNING_RATE = 1e-3
 SANITY_CHECK_LEARNING_RATE = 1e-3
 DEFAULT_GRAD_CLIP_NORM = 1.0
 DEFAULT_EVAL_INTERVAL = 20
@@ -253,6 +253,13 @@ def tbptt_training_step(
     total_loss = torch.zeros((), device=batch_tokens.device)
     block_loss_sums = [torch.zeros((), device=batch_tokens.device) for _ in model.rates]
     valid_position_sums = [0 for _ in model.rates]
+    # Pre-compute total chunks so we can average gradient across them.
+    # This makes gradient magnitude independent of seq_len/bptt_chunk.
+    total_chunks = sum(
+        1
+        for start in range(0, batch_tokens.shape[1], bptt_chunk)
+        if min(start + bptt_chunk, batch_tokens.shape[1]) - start > max(model.rates)
+    )
     for start in range(0, batch_tokens.shape[1], bptt_chunk):
         stop = min(start + bptt_chunk, batch_tokens.shape[1])
         chunk_tokens = batch_tokens[:, start:stop]
@@ -265,7 +272,7 @@ def tbptt_training_step(
         )
         if not torch.isfinite(chunk_loss):
             raise RuntimeError("Assembled architecture training diverged: loss is NaN or Inf.")
-        chunk_loss.backward()
+        (chunk_loss / total_chunks).backward()
         total_loss = total_loss + chunk_loss.detach()
         for index, (block_loss, valid_positions) in enumerate(zip(chunk_block_losses, chunk_valid_positions, strict=True)):
             block_loss_sums[index] = block_loss_sums[index] + block_loss.detach() * valid_positions
