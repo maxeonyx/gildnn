@@ -72,8 +72,18 @@ Once training is confirmed stable and blocks diverge:
 - Addition-based lateral combination (lateral_scale=0.2)
 - Per-timestep L2-norm on hidden states (stability fix)
 - CE local loss for all blocks (cosine/L2 worse — tested earlier)
-- Temperature = 0.07
+- Temperature = 0.07 (**⚠️ see note below**)
 - Separate optimizer per block (AdamW, no shared params)
+
+### ⚠️ Temperature note (discovered 2026-05-27)
+
+Temperature 0.07 was validated with LEARNED embeddings. With FIXED RANDOM embeddings in 96 dimensions:
+- Dot products between random unit vectors have std ≈ 1/√96 ≈ 0.102
+- Dividing by 0.07 gives logit std ≈ 1.46 → randomly peaked softmax
+- Expected initial CE ≈ 5.19 (vs uniform 4.13) — exactly what we observe
+- Block 0 wastes training steps just getting back to uniform before it can learn patterns
+
+**Next run should use temperature ≈ 0.5** (gives init CE ≈ 4.15, near-uniform). This is not changing the architecture — it's correcting a hyperparameter that was tuned for a different regime (learned embeddings).
 
 ---
 
