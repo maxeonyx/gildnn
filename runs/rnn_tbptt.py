@@ -97,7 +97,7 @@ def parse_args() -> argparse.Namespace:
     repo_root = Path(__file__).resolve().parents[1]
     artifact_dir = repo_root / "experiments" / "tinyshakespeare" / "artifacts" / "rnn_tbptt"
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", choices=("tbptt", "window"), required=True)
+    parser.add_argument("--mode", choices=("tbptt", "chunk-reset", "window"), required=True)
     parser.add_argument("--steps", type=positive_int, default=DEFAULT_STEPS)
     parser.add_argument("--batch-size", type=positive_int, default=DEFAULT_BATCH_SIZE)
     parser.add_argument("--seq-len", type=positive_int, default=DEFAULT_SEQ_LEN)
@@ -247,6 +247,7 @@ def tbptt_training_step(
     batch_targets: Tensor,
     bptt_chunk: int,
     grad_clip_norm: float,
+    carry_state: bool,
 ) -> float:
     optimizer.zero_grad(set_to_none=True)
     hidden_state: Tensor | None = None
@@ -262,7 +263,7 @@ def tbptt_training_step(
         chunk_loss.backward()
         total_loss = total_loss + chunk_loss.detach()
         total_tokens += chunk_targets.numel()
-        hidden_state = hidden_state.detach()
+        hidden_state = hidden_state.detach() if carry_state else None
     torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip_norm)
     optimizer.step()
     return (total_loss / total_tokens).item()
@@ -295,6 +296,7 @@ def evaluate_tbptt_batch_loss(
     batch_inputs: Tensor,
     batch_targets: Tensor,
     bptt_chunk: int,
+    carry_state: bool,
 ) -> float:
     was_training = model.training
     model.eval()
@@ -307,6 +309,7 @@ def evaluate_tbptt_batch_loss(
         chunk_targets = batch_targets[:, start:stop]
         total_loss += cross_entropy_all_positions(logits, chunk_targets, reduction="sum").item()
         total_tokens += chunk_targets.numel()
+        hidden_state = hidden_state if carry_state else None
     if was_training:
         model.train()
     return total_loss / total_tokens
@@ -470,7 +473,10 @@ def main() -> int:
     tbptt_rng = torch.Generator(device="cpu")
     tbptt_rng.manual_seed(args.seed)
 
-    if args.mode == "tbptt":
+    tbptt_like_mode = args.mode in ("tbptt", "chunk-reset")
+    carry_state = args.mode == "tbptt"
+
+    if tbptt_like_mode:
         fixed_batch_inputs, fixed_batch_targets = fixed_tbptt_batch(
             tbptt_inputs,
             tbptt_targets,
@@ -489,7 +495,7 @@ def main() -> int:
     final_step = 0
 
     for step in range(1, steps + 1):
-        if args.mode == "tbptt":
+        if tbptt_like_mode:
             if args.sanity_check_only:
                 batch_inputs = fixed_batch_inputs
                 batch_targets = fixed_batch_targets
@@ -508,6 +514,7 @@ def main() -> int:
                 batch_targets=batch_targets,
                 bptt_chunk=args.bptt_chunk,
                 grad_clip_norm=DEFAULT_GRAD_CLIP_NORM,
+                carry_state=carry_state,
             )
         else:
             if args.sanity_check_only:
@@ -527,12 +534,13 @@ def main() -> int:
         if not should_eval:
             continue
 
-        if args.mode == "tbptt":
+        if tbptt_like_mode:
             final_sanity_batch_loss = evaluate_tbptt_batch_loss(
                 model,
                 batch_inputs=fixed_batch_inputs,
                 batch_targets=fixed_batch_targets,
                 bptt_chunk=args.bptt_chunk,
+                carry_state=carry_state,
             )
         else:
             final_sanity_batch_loss = evaluate_window_batch_loss(
