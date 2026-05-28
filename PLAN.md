@@ -4,98 +4,126 @@ Working notes. Current state, what's been done, what's next. Updated every sessi
 
 ---
 
-## Current state (2026-05-28, 16:20 NZST)
+## Current state (2026-05-28, evening NZST)
 
-**⚠️ DICTATION 15: The model is a cellular automaton.** Blocks are 100% stateless feedforward. No GRU, no carry state, no temporal attention. Information propagates through the grid over many timesteps by bouncing between blocks. ParallelDiagonalModel must be deleted — it implements an RNN, which is wrong.
+**~1 day remains in timebox.** GPU may still be finishing H=4 sweep (irrelevant to current direction).
 
-**Piece tests are done. Build the real thing.**
-
-**~1.5 days remain in timebox. GPU: BUSY (H=4 horizon sweep finishing, PID 19988, irrelevant to new direction but let it complete).**
+**The task is clear: build the cellular automaton model and train it.**
 
 ---
 
-## ⚠️ DICTATION 15 — the architecture
+## ⚠️ ALIGNMENT SESSION (dictation 16) — what the next agent MUST know
+
+This section distills ALL dictations into clear direction. Read this, then build.
+
+### The architecture (dictation 15, confirmed by dictations 27-2, 27-8, 27-9, 27-10, 24-5)
 
 The model is a **cellular automaton / message-passing graph**:
 
-- Each **node** = a combining function
-- Each **vertical edge** (through time, in place) = a block — stateless feedforward
-- Each **lateral edge** (left-right) = propagation, which adds noise
+- **Nodes** = combining functions (tempered PoE / Bayesian-like update on distributions)
+- **Vertical edges** (through time, in place) = stateless feedforward blocks. NO GRU. NO internal state. NO carry. A block reads from the stream, computes, writes back one tick later.
+- **Lateral edges** (left-right across blocks) = propagation with noise added. The noise is what creates the information hierarchy.
 
-Information bounces around between blocks over time. Higher-level blocks have context from further back because lower block outputs get merged onto the stream and flow rightwards. Multiple timesteps per token. The noise on laterals creates the need for prediction and the information hierarchy.
+The stream carries **distributions** (not point vectors). Higher blocks have context from further back because lower-block outputs merge onto the stream and propagate rightward with delay. Multiple timesteps per token. Information bounces around over many timesteps.
 
-**Delete ParallelDiagonalModel.** It's an RNN with GRU and carry state — not Max's architecture. Start from scratch.
+**Each block is an independent network with its own optimizer and its own loss.** Blocks do NOT share gradients. Laterals are detached (stop gradient). The only coupling is through the stream content itself.
 
-**Stop toys.** No more 2-block experiments. No sequence lengths of 4 or 32. Build something that looks like the final model: many blocks, many timescales, optional steps per token, delayed propagation, long sequences.
+**Embeddings are fixed** (random unit vectors on a sphere). Learned embeddings are an optimization for later, not now.
 
----
+### What to build
 
-## What to build NOW
+One clean script. Not a framework. Not abstractions.
 
-A cellular automaton model:
-- Grid: [timesteps × blocks]. Many timesteps per token (configurable). Many blocks.
-- Nodes: combining function (tempered PoE, validated in piece test 06)
-- Vertical edges: stateless feedforward MLP/Linear (a "block")
-- Lateral edges: propagation with added noise (validated in piece test 07)
-- Grounding: bottom row reads token embeddings. CE loss on bottom block only.
-- Prediction: each block predicts the next arrival at its node (W₂² loss, validated in piece test 05)
-- Multi-rate: higher blocks fire less often (configurable rates per level)
-- Scale: train on TinyShakespeare (100K chars), long sequences (2048+), enough steps to see learning
+- Grid: [timesteps × blocks]. Many blocks (8-16). Many timesteps per token (configurable, 4-16).
+- Blocks: stateless feedforward (MLP). Each has its own optimizer.
+- Combining: at each node, combine the lateral arrival with the block's prediction (tempered PoE or similar validated in piece test 06).
+- Laterals: propagation with noise. Detached (stop gradient across blocks).
+- Loss: each block predicts the next lateral arrival at its node. Loss = W₂² (= MSE on distribution parameters). Block 0 additionally has CE loss for token prediction (grounding).
+- Multi-rate: higher blocks fire less often (configurable rates per level, e.g. [1,1,2,2,4,4,8,8]).
+- Training: TinyShakespeare, long sequences (2048+), TBPTT.
+- Scale: enough that the mechanism has room to work. Not a 2-block toy.
 
-This should be one clean script. Not a framework. Not abstractions. Just the grid computation, the losses, and training.
+### What Max has ALWAYS reacted negatively to (avoid these)
 
----
+1. **GRUs / stock RNN mechanisms.** "I kinda don't like the stock RNN models. They're from the past." (dictation 20-15). "I don't understand what you mean by state here. Stop thinking in terms of RNN." (dictation 24-5). "ParallelDiagonalModel is not a phrase I ever used." (dictation 28-15).
 
-## What's been validated (still useful for the new model)
+2. **Training models that aren't his model.** "I don't fucking care about training models that don't test the key things that I'm actually interested in." (dictation 27-2). A flat GRU is not his model. A transformer is not his model. Global CE on all blocks is not his model (that's just a transformer with extra steps).
 
-| Finding | Evidence | How it informs the new model |
+3. **Endless ablations and piece tests without assembly.** "The individual pieces have been poked at for days. Put them together." (dictation 27-2). "Stop toys." (dictation 28-15). "Two blocks doesn't test anything. Sequence lengths of four, of thirty-two don't test anything." (dictation 28-15).
+
+4. **Layer norm / batch norm.** "I find this personally quite disgusting." (dictation 21-1). Use mix-add, normalization after noise if needed, but avoid norms as architectural defaults.
+
+5. **Long runs with no visibility.** "We just had another mechanic go for many hours with no updates at all." (dictation 20-14). Always report before launching, always split long runs into phases.
+
+6. **Following the latest dictation as a stack-bump.** "Following the latest thing I say is not really what I want — I usually want dictations to add to the queue, not bump the stack." (dictation 22-1). HOWEVER: dictation 28-15 and 28-16 are explicit course corrections, not queue additions.
+
+7. **Reports that don't link back to goals or explain the architecture.** "There's completely missing parts of the narrative." (dictation 20-1). Reports need theory, architecture explanation, connection to goals.
+
+8. **Eager mode PyTorch without thought.** torch.compile for stable paths (dictation 22-7). But don't let this block building the model — eager is fine for now, compile later.
+
+9. **Small sequences / hobbled architecture.** "We've been hobbling the RNN to match the transformer's interface." (dictation 27-1). Use LONG sequences. The architecture needs them.
+
+10. **Treating everything as experiments without theory.** "You're treating it all about experiments. Sometimes it's about concept clarification." (dictation 20-15). "I'm concerned we're not doing enough analysis, enough exploration of the theoretical ideas before we commit to experiments." (dictation 20-16).
+
+### What Max responds positively to
+
+- **Multi-rate giving inductive bias.** "Better validation loss for fewer compute steps from multi-rate async is pretty cool. Getting slower results means we've got stuff to work on." (dictation 22-10).
+- **Wall-clock speedup proofs.** "The only point of async is to get wall clock time speed up." (dictation 22-3).
+- **His architecture actually working.** The local-learning-is-strictly-better result. The combining-works result.
+- **Clean small codebase.** "Keep the codebase small."
+- **Process improvements that give him visibility.**
+- **Theory-first, then experiment.**
+- **Fixed embeddings, separate optimizers, stop gradients** — all simplifications that make blocks truly independent.
+
+### Key architectural principles (non-negotiable)
+
+1. Blocks are **stateless feedforward**. No hidden state. No GRU. No LSTM.
+2. Blocks are **independent**. Separate optimizers. Detached laterals. No shared gradients.
+3. The stream carries **distributions**. Not point vectors.
+4. **Noise on laterals** creates the information hierarchy. Distant blocks can't rely on precise token info.
+5. **Multiple timesteps per token.** The mechanism only works with many timesteps.
+6. **Long sequences.** 2048+ tokens. TBPTT.
+7. **Multi-rate.** Higher blocks fire less often.
+8. **Local predictive loss.** Each block predicts the next lateral arrival. W₂² loss.
+9. **CE grounding.** Block 0 (output-facing) predicts tokens via dot-product against fixed embeddings.
+
+### What's been validated (use these)
+
+| Component | Status | Evidence |
 |---|---|---|
-| W₂² = MSE on (μ,σ) | Piece test 01, 05 | Use as prediction loss directly |
-| Tempered PoE combining | Piece test 06 (26/26 checks) | Use as the node combining function |
-| Stream carries actual distributions | Piece test 04 | Nodes carry distributions, surprise is side-channel |
-| Noise on laterals forces prediction | Piece test 07 | Lateral propagation adds noise — this IS the mechanism |
-| Prediction beats copy 37-43% | 2-block, 3-block experiments | Feedforward prediction works (consistent with stateless blocks!) |
-| Recurrence doesn't help | H=1, H=2, H=4 sweep | **EXPECTED** — blocks are stateless. The null confirms the design. |
-| Combining modestly helps | 3-block stream combining (Case A) | Combined stream is more useful than raw — combining works |
-| Local learning strictly better | A/B test: detach=True wins | Blocks must be independent — consistent with cellular automaton |
+| W₂² = MSE on (μ,σ) | Validated | Piece test 01, 05 |
+| Tempered PoE combining | Validated | Piece test 06 (26/26 checks) |
+| Stream carries distributions | Validated | Piece test 04 |
+| Noise forces prediction advantage | Validated | Piece test 07 |
+| Feedforward prediction works | Validated | Horizon sweep H=1, H=2 (recurrence null) |
+| Combining helps over passthrough | Validated | Stream combining experiment (42% vs 37%) |
+| Local learning > global backprop | Validated | A/B detach test (−0.215 nats) |
+| Separate optimizers + fixed embeddings | Validated | 27-May training (genuine learning vs gradient interference) |
 
----
+### What to DELETE
 
-## What was wrong (delete/ignore)
-
-- `core/model.py` — ParallelDiagonalModel. RNN with GRU. **Delete.**
-- All framing around "when does recurrence become load-bearing" — blocks are stateless, recurrence is wrong concept
-- The "horizon sweep" tested GRU vs feedforward inside blocks. Answer: feedforward. Which is just... the design.
-- Multi-rate as "forcing mechanism for recurrence" — no. Multi-rate creates temporal hierarchy in the GRID, not memory in blocks.
+- `core/model.py` — ParallelDiagonalModel (RNN with GRU, wrong architecture)
+- Any framing around "when does recurrence become load-bearing" — irrelevant, blocks are stateless
+- Any experiment testing GRU vs feedforward inside blocks — answered (feedforward)
 
 ---
 
 ## Immediate next steps
 
-1. **Delete ParallelDiagonalModel** — remove `core/model.py` (or gut it)
-2. **Build cellular automaton model** — new `core/automaton.py` or similar
-3. **Run it at scale** — many blocks (8-16), many timesteps per token (4-16), long sequences (2048), TinyShakespeare
-4. **Daily + weekly reports** (due after 4pm today) — use back-chain format from dictation 15
-
----
-
-## Report format (dictation 15)
-
-Back-chain from the goal:
-- Why is the model not yet doing the full architecture?
-- If it did the full architecture now, what would happen?
-- Why would that result be indeterminate or built on shaky foundations?
-- Therefore it's doing this step → therefore that step
-
-At every step, justify why we're not just running the real thing. If you can't justify it, run the real thing.
+1. Delete ParallelDiagonalModel
+2. Build the cellular automaton model (new file, e.g. `core/automaton.py`)
+3. Sanity check (30 seconds — does loss go down at all?)
+4. Train at scale (many blocks, long sequences, real duration)
+5. Report results
 
 ---
 
 ## Key references
 
-- `dictations/2026-05-28-15.md` — the cellular automaton clarification
-- `dictations/2026-05-27-10.md` — the predictive processing course correction
-- `dictations/2026-05-27-11.md` — stream accumulation
-- `research/questions/stream-combining/README.md` — combining validated
-- `research/questions/horizon-sweep/README.md` — recurrence null (confirms stateless is correct)
-- `ROADMAP.md` Pathway 3 — local learning via distributional predictive coding
+- `dictations/2026-05-28-15.md` — cellular automaton clarification
+- `dictations/2026-05-28-16.md` — alignment session instruction
+- `dictations/2026-05-27-2.md` — "stop training models that aren't mine"
+- `dictations/2026-05-27-10.md` — predictive processing, "don't train, test pieces"
+- `dictations/2026-05-24-1.md` — Max's original Google Keep architecture note
+- `dictations/2026-05-26-5.md` — embedding-space prediction, noise on laterals
+- `dictations/2026-05-20-15.md` — against GRUs, residual streams, local learning
