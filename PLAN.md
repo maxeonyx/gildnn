@@ -79,13 +79,27 @@ One clean script. Not a framework. Not abstractions.
 
 1. Blocks are **stateless feedforward**. No hidden state. No GRU. No LSTM.
 2. Blocks are **independent**. Separate optimizers. Detached laterals. No shared gradients.
-3. The stream carries **distributions**. Not point vectors.
+3. **Bidirectional flow.** Token information flows rightward and NEVER comes back. Only PREDICTIONS flow leftward/backward. This is the predictive coding structure.
 4. **Noise on laterals** creates the information hierarchy. Distant blocks can't rely on precise token info.
-5. **Multiple timesteps per token.** The mechanism only works with many timesteps.
+5. **Multiple timesteps per token.** The mechanism only works with many timesteps. Information bounces around between blocks over time.
 6. **Long sequences.** 2048+ tokens. TBPTT.
 7. **Multi-rate.** Higher blocks fire less often.
-8. **Local predictive loss.** Each block predicts the next lateral arrival. W₂² loss.
+8. **Local predictive loss.** Each block predicts the next lateral arrival.
 9. **CE grounding.** Block 0 (output-facing) predicts tokens via dot-product against fixed embeddings.
+
+### Soft preferences (validated but not the core test)
+
+- **Distributional stream** (W₂² loss, diagonal Gaussians). Validated in piece tests. Use it. But the CORE question being tested is "does the cellular automaton grid with stateless blocks and local learning work at scale?" — not "do distributions beat point vectors?" If distributional representations are simpler to implement, use them. If point vectors get us to a running model faster, that's OK too.
+
+### Reporting format (daily/weekly)
+
+Back-chain from the goal:
+- Why is the model not yet doing the full architecture?
+- If it did the full architecture now, what would happen?
+- Why would that result be indeterminate or built on shaky foundations?
+- Therefore it's doing this step → therefore that step
+
+At every step, justify why we're not just running the real thing. If you can't justify it, run the real thing.
 
 ### What's been validated (use these)
 
