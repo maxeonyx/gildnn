@@ -126,16 +126,9 @@ After H=2 completes: launch `--horizon 4` (another ~79 min). Both must finish be
 
 Strategy: breadth first (answer more questions), then one depth step. Code dedup deferred until after key experiments.
 
-### Decision tree for combining results (pre-registered)
+### Decision tree outcome (was pre-registered, now resolved)
 
-Use gain metric: G = 1 - MSE/own_copy_baseline. Higher = better.
-
-- **Case A: combined > passthrough AND random < passthrough** → clean win. Proceed to multi-rate.
-- **Case C: combined ≈ passthrough BUT random < passthrough** → "H1 too obvious" interpretation. Bad signal hurts but good H1 signal is redundant (consistent with recurrence-null at H1). Still try multi-rate — higher horizons carry novel info.
-- **Case D: combined < passthrough AND random < passthrough** → folding anything hurts at H1. Run cheap "future-oracle combine" discriminator (combine with actual A0[t+2]) before committing to multi-rate.
-- **Case E: all ≈ equal** → ambiguous. Do not veto multi-rate from this alone.
-
-**Softened conditional:** Multi-rate proceeds if EITHER (a) equal-rate combining is clearly positive, OR (b) combining is null/negative at H1 but there's evidence longer-horizon predictions carry novel info (horizon sweep positive, or future-oracle combine positive). An H1 null alone should NOT kill multi-rate — H1 predictions are provably near-Markov/redundant.
+Pre-registered gain metric (G = 1 - MSE/own_copy_baseline) applied. Result: **Case A** (combined 42% > passthrough 37%, random 35% < passthrough 37%). Modest margins on one seed → "provisional" qualifier. Multi-rate proceeds.
 
 Note: "Noise on laterals for information hierarchy" (dictation 2026-05-27-2) is validated by piece test 07. Adding noise makes prediction MORE valuable relative to copy (gain increases from 32%→94%). However, the recurrence ablation shows noise does NOT make recurrence more valuable — advantage DECREASES with noise (23%→0.15%). Mechanism: at high noise, both GRU and FF converge to the same "predict the mean" strategy; past noisy observations don't add independent information about a quickly-changing state. The regime where noise WOULD make recurrence load-bearing: slow latent state + independent observation noise + partial observability — exactly what MULTI-RATE provides (slow block fires infrequently, needs to filter across multiple noisy observations). Conclusion: noise alone is not the forcing mechanism for recurrence; multi-rate + noise together likely are.
 
@@ -155,7 +148,10 @@ Piece test 06 validates tempered PoE + process noise. All 26 checks pass. Script
 | Multi-rate processing works | Assembly sanity check | ✅ — multi-timescale is core |
 | Per-timestep normalization needed | Stability fix | ❓ — may not apply to distributional stream |
 | Prediction beats copy by 37% | 2-block experiment report.json | ✅ — mechanism validated |
-| Recurrence doesn't help 1-step prediction | No-recurrence ablation matches/beats | ✅ — static transform sufficient at this scale |
+| Recurrence doesn't help 1-step prediction | No-recurrence ablation matches/beats | ✅ — static transform sufficient at H=1 |
+| Stream combining modestly helps (Case A) | 3-block report.json: G=42% vs 37% | ✅ — combining doesn't poison, provides modest benefit |
+| Noise doesn't break prediction | Piece test 07: all σ levels beat copy | ✅ — noise on laterals is compatible |
+| Noise doesn't force recurrence alone | Piece test 07 ablation: advantage drops | ✅ — need multi-rate + noise together |
 
 ---
 
