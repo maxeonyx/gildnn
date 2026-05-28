@@ -107,10 +107,21 @@ Expected completion: ~2:00pm NZST (Phase B ~37min + Phase C 3×~37min).
 2. **Horizon sweep** — IMPLEMENTED and ready to run (`runs/horizon_sweep.py`). Launch `--horizon 2` then `--horizon 4`. Each takes ~79 min (200 Phase A + 2×800 Phase B). Total ~2.6 hours.
 3. **Reports** (daily + weekly, due after 4pm Thursday) — can write while horizon sweep runs
 4. **Noise sanity check** (30s, per dictation 2026-05-27-5 build-up sequence) — add small noise to combined stream, confirm combining still works. This is a quick CPU check, not a full experiment.
-5. **Multi-rate** (conditional on combining positive) → rates 1/2/4 with horizon-matched control
+5. **Multi-rate** (softened conditional — see below) → rates 1/2/4 with horizon-matched control
 6. **One confirmation seed** if anything is clearly positive
 
 Strategy: breadth first (answer more questions), then one depth step. Code dedup deferred until after key experiments.
+
+### Decision tree for combining results (pre-registered)
+
+Use gain metric: G = 1 - MSE/own_copy_baseline. Higher = better.
+
+- **Case A: combined > passthrough AND random < passthrough** → clean win. Proceed to multi-rate.
+- **Case C: combined ≈ passthrough BUT random < passthrough** → "H1 too obvious" interpretation. Bad signal hurts but good H1 signal is redundant (consistent with recurrence-null at H1). Still try multi-rate — higher horizons carry novel info.
+- **Case D: combined < passthrough AND random < passthrough** → folding anything hurts at H1. Run cheap "future-oracle combine" discriminator (combine with actual A0[t+2]) before committing to multi-rate.
+- **Case E: all ≈ equal** → ambiguous. Do not veto multi-rate from this alone.
+
+**Softened conditional:** Multi-rate proceeds if EITHER (a) equal-rate combining is clearly positive, OR (b) combining is null/negative at H1 but there's evidence longer-horizon predictions carry novel info (horizon sweep positive, or future-oracle combine positive). An H1 null alone should NOT kill multi-rate — H1 predictions are provably near-Markov/redundant.
 
 Note: "Noise on laterals for information hierarchy" (dictation 2026-05-27-2) hasn't been tested in the predictive processing context. In the current architecture with σ=1, this means adding Gaussian noise to the μ vector flowing upward between blocks — degrading direction information and forcing higher blocks to rely more on their own temporal predictions (recurrence). If multi-rate shows no timescale separation, noise might be the forcing mechanism.
 
