@@ -106,10 +106,13 @@ Expected completion: ~2:00pm NZST (Phase B ~37min + Phase C 3×~37min).
 1. **Finish combining** (running now, ~2:00pm) → analyze results, update README
 2. **Horizon sweep** — IMPLEMENTED and ready to run (`runs/horizon_sweep.py`). Launch `--horizon 2` then `--horizon 4`. Each takes ~79 min (200 Phase A + 2×800 Phase B). Total ~2.6 hours.
 3. **Reports** (daily + weekly, due after 4pm Thursday) — can write while horizon sweep runs
-4. **Multi-rate** (conditional on combining positive) → rates 1/2/4 with horizon-matched control
-5. **One confirmation seed** if anything is clearly positive
+4. **Noise sanity check** (30s, per dictation 2026-05-27-5 build-up sequence) — add small noise to combined stream, confirm combining still works. This is a quick CPU check, not a full experiment.
+5. **Multi-rate** (conditional on combining positive) → rates 1/2/4 with horizon-matched control
+6. **One confirmation seed** if anything is clearly positive
 
 Strategy: breadth first (answer more questions), then one depth step. Code dedup deferred until after key experiments.
+
+Note: "Noise on laterals for information hierarchy" (dictation 2026-05-27-2) hasn't been tested in the predictive processing context. In the current architecture with σ=1, this means adding Gaussian noise to the μ vector flowing upward between blocks — degrading direction information and forcing higher blocks to rely more on their own temporal predictions (recurrence). If multi-rate shows no timescale separation, noise might be the forcing mechanism.
 
 ## ✅ DONE: Bayesian combining piece test
 
