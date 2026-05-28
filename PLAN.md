@@ -106,7 +106,7 @@ Expected completion: ~2:00pm NZST (Phase B ~37min + Phase C 3×~37min).
 1. **Finish combining** (running now, ~2:00pm) → analyze results, update README
 2. **Horizon sweep** — IMPLEMENTED and ready to run (`runs/horizon_sweep.py`). Launch `--horizon 2` then `--horizon 4`. Each takes ~79 min (200 Phase A + 2×800 Phase B). Total ~2.6 hours.
 3. **Reports** (daily + weekly, due after 4pm Thursday) — can write while horizon sweep runs
-4. **Noise sanity check** (30s, per dictation 2026-05-27-5 build-up sequence) — add small noise to combined stream, confirm combining still works. This is a quick CPU check, not a full experiment.
+4. ~~**Noise sanity check**~~ ✅ DONE. Piece test 07 validates: prediction works under ALL noise levels (σ=0→1). Counterintuitive: relative gain INCREASES with noise (32%→94%) because copy baseline degrades faster than learned prediction. This IS the information hierarchy mechanism — noise makes temporal modelling strictly more valuable vs naive copying. Script: `experiments/predictive_processing/07_noise_on_lateral.py`
 5. **Multi-rate** (softened conditional — see below) → rates 1/2/4 with horizon-matched control
 6. **One confirmation seed** if anything is clearly positive
 
@@ -123,7 +123,7 @@ Use gain metric: G = 1 - MSE/own_copy_baseline. Higher = better.
 
 **Softened conditional:** Multi-rate proceeds if EITHER (a) equal-rate combining is clearly positive, OR (b) combining is null/negative at H1 but there's evidence longer-horizon predictions carry novel info (horizon sweep positive, or future-oracle combine positive). An H1 null alone should NOT kill multi-rate — H1 predictions are provably near-Markov/redundant.
 
-Note: "Noise on laterals for information hierarchy" (dictation 2026-05-27-2) hasn't been tested in the predictive processing context. In the current architecture with σ=1, this means adding Gaussian noise to the μ vector flowing upward between blocks — degrading direction information and forcing higher blocks to rely more on their own temporal predictions (recurrence). If multi-rate shows no timescale separation, noise might be the forcing mechanism.
+Note: "Noise on laterals for information hierarchy" (dictation 2026-05-27-2) is now validated by piece test 07. Adding noise to the lateral makes prediction MORE valuable (relative to copy), confirming the forcing mechanism works. Remaining question: does noise also make RECURRENCE more valuable? (Currently H=1 prediction doesn't need recurrence even with noise — the predictor learns a static denoising transform. Multi-rate with higher horizons may change this.)
 
 ## ✅ DONE: Bayesian combining piece test
 
