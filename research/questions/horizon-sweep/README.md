@@ -61,6 +61,44 @@ This tests the **frozen teacher's Markov property**, not raw text temporal struc
 
 ---
 
+## Theory: why H=1 is null, and what this predicts for H=2/4
+
+### Why no benefit at H=1
+
+Block 0 was trained exactly to compress history into a state useful for next-token prediction. Its hidden state A0[t] IS the compressed history. Under MSE loss, Block 1's optimal prediction is E[A0[t+1] | available info]. Since A0[t] already encodes everything about the past relevant for predicting the next token/state, A0[t-1] is redundant — it's already been absorbed into A0[t] by Block 0's GRU dynamics.
+
+The "specific transition" counter-argument (observing A0[t-1]→A0[t] reveals the token at t) is real in principle, but for one-step prediction, if that information mattered for predicting the next state, Block 0 had training pressure to encode it in A0[t] directly. Empirically, it did.
+
+### Formal statement
+
+The H=1 null means: past changes the conditional mean E[A0[t+1] | history] by essentially nothing beyond what E[A0[t+1] | A0[t]] already captures. This is weaker than "A0[t] is fully sufficient for the future" — it only constrains the mean, not the full conditional distribution.
+
+### Critical insight for H=2+
+
+**H=1 null does NOT imply H=2 null.** Here's why:
+
+E[A0[t+2] | info] = E[ f(A0[t+1]) | info ] where f captures Block 0's dynamics.
+
+If f is nonlinear, then two information sets with the same one-step conditional mean can still produce different two-step conditional means — because E[f(X)] ≠ f(E[X]) in general. Past history could matter for the *distribution* of A0[t+1] (higher moments) without affecting its mean, and those higher moments propagate through nonlinear dynamics to affect the H=2 mean.
+
+### Predictions (pre-registered before running)
+
+- **H=2:** Probably still little/no recurrence benefit. A0[t] is close to a predictive state and the dynamics should mostly factor through it. Any gain would be small.
+- **H=4:** More likely to show benefit than H=2. Any state aliasing from L2 normalization compounds over longer horizons. Block 0 was trained for 1-step CE, not 4-step predictive sufficiency — features useful only at longer horizons may have been discarded.
+- **Important:** Rising MSE with horizon does NOT by itself indicate recurrence should help. It may reflect irreducible uncertainty from unknown future tokens, not missing past context.
+
+### What null at all horizons would mean
+
+That the normalized Block 0 representation is already essentially history-sufficient — an approximate predictive-state representation. The difficulty of long-horizon prediction comes from future uncertainty (unknown tokens), not from missing past information. This would be a strong positive finding for the architecture: it means the information bottleneck works as intended.
+
+### Conditions making recurrence most/least helpful
+
+Most helpful: if normalization discards useful variables (aliasing), if Block 0's hidden state is bottlenecked, if there are latent regimes where the same A0[t] has different future kernels.
+
+Least helpful: if A0[t] is close to a predictive-state representation, if the mapping A0[t] → E[A0[t+H]|A0[t]] is learnable without memory, if most uncertainty comes from unknown future tokens rather than current-state ambiguity.
+
+---
+
 ## Controls
 
 Required:
@@ -86,13 +124,13 @@ If positive result found:
 
 ## Status
 
-**Designed, not implemented.** GPU is running the 3-block stream combining experiment. This is independent and can run next.
+**Implemented, waiting to launch.** Script: `runs/horizon_sweep.py`. Sanity-checked at H=1, 2, 4 — copy baselines correctly increase with horizon (H1: 0.002879, H2: 0.004434, H4: 0.005931). GPU currently running the 3-block stream combining experiment; horizon sweep launches after.
 
 ---
 
 ## Next steps
 
-1. Implement as a configurable-horizon variant of `runs/predictive_processing.py`
-2. Run H2 + H4 screen (single seed, 4 runs, ~2.5 hours)
+1. ~~Implement as a configurable-horizon variant~~ — DONE (`runs/horizon_sweep.py`)
+2. Run H2 + H4 screen (single seed, 4 runs, ~2.5 hours) — NEXT when GPU is free
 3. If positive: confirm with seeds + sequence-shuffle ablation
 4. Feed results into multi-rate experiment design
