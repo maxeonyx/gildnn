@@ -1,0 +1,248 @@
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+
+if __package__ is None or __package__ == "":
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+import torch
+from jaxtyping import Int
+from torch import Tensor
+from torch.nn import functional as F
+
+from core.automaton import CellularAutomaton, count_parameters
+from core.run_utils import (
+    append_log,
+    prepare_output_paths,
+    redirect_sanity_check_paths,
+    register_active_lock,
+    resolve_device,
+)
+from core.training import current_git_sha, current_git_status_short, write_json
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Train the cellular automaton model on TinyShakespeare.")
+    parser.add_argument("--steps", type=int, default=1000)
+    parser.add_argument("--batch-size", type=int, default=4)
+    parser.add_argument("--seq-len", type=int, default=2048)
+    parser.add_argument("--n-levels", type=int, default=8)
+    parser.add_argument("--steps-per-token", type=int, default=8)
+    parser.add_argument("--d-stream", type=int, default=128)
+    parser.add_argument("--noise-std", type=float, default=0.1)
+    parser.add_argument("--lr", type=float, default=3e-4)
+    parser.add_argument("--sanity-check-only", action="store_true")
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--device", type=str, default=None)
+    parser.add_argument("--log-every", type=int, default=1)
+    parser.add_argument(
+        "--report-path",
+        type=Path,
+        default=Path("experiments/automaton/artifacts/report.json"),
+    )
+    parser.add_argument(
+        "--log-path",
+        type=Path,
+        default=Path("experiments/automaton/artifacts/run.jsonl"),
+    )
+    parser.add_argument("--no-lock", action="store_true")
+    args = parser.parse_args()
+
+    if args.steps <= 0:
+        raise ValueError(f"--steps must be positive, got {args.steps}.")
+    if args.batch_size <= 0:
+        raise ValueError(f"--batch-size must be positive, got {args.batch_size}.")
+    if args.seq_len <= 1:
+        raise ValueError(f"--seq-len must be greater than 1, got {args.seq_len}.")
+    if args.n_levels <= 0:
+        raise ValueError(f"--n-levels must be positive, got {args.n_levels}.")
+    if args.steps_per_token <= 0:
+        raise ValueError(f"--steps-per-token must be positive, got {args.steps_per_token}.")
+    if args.d_stream <= 0:
+        raise ValueError(f"--d-stream must be positive, got {args.d_stream}.")
+    if args.noise_std < 0.0:
+        raise ValueError(f"--noise-std must be non-negative, got {args.noise_std}.")
+    if args.lr <= 0.0:
+        raise ValueError(f"--lr must be positive, got {args.lr}.")
+    if args.log_every <= 0:
+        raise ValueError(f"--log-every must be positive, got {args.log_every}.")
+
+    if args.sanity_check_only:
+        args.steps = 5
+    return args
+
+
+def set_seed(seed: int) -> None:
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+@dataclass(frozen=True)
+class TinyShakespeareData:
+    encoded: Int[Tensor, "tokens"]
+    stoi: dict[str, int]
+    itos: dict[int, str]
+
+    @property
+    def vocab_size(self) -> int:
+        return len(self.stoi)
+
+
+def load_tinyshakespeare() -> TinyShakespeareData:
+    text_path = Path("experiments/corpora.ignore/tinyshakespeare_input.txt")
+    text = text_path.read_text(encoding="utf-8")
+    vocab = sorted(set(text))
+    stoi = {char: index for index, char in enumerate(vocab)}
+    itos = {index: char for index, char in enumerate(vocab)}
+    encoded = torch.tensor([stoi[char] for char in text], dtype=torch.long)
+    return TinyShakespeareData(encoded=encoded, stoi=stoi, itos=itos)
+
+
+def sample_batch(
+    encoded: Int[Tensor, "tokens"],
+    *,
+    batch_size: int,
+    seq_len: int,
+    device: torch.device,
+    generator: torch.Generator,
+) -> tuple[Int[Tensor, "batch seq"], Int[Tensor, "batch seq"]]:
+    if encoded.numel() <= seq_len:
+        raise ValueError(f"Need corpus longer than seq_len={seq_len}, got {encoded.numel()} tokens.")
+    max_start = encoded.numel() - seq_len - 1
+    if max_start < 0:
+        raise ValueError(
+            f"Need at least seq_len + 1 tokens for next-token targets, got {encoded.numel()} and seq_len={seq_len}."
+        )
+
+    starts = torch.randint(0, max_start + 1, (batch_size,), generator=generator)
+    offsets = torch.arange(seq_len + 1, dtype=torch.long)
+    windows = encoded[starts[:, None] + offsets]
+    inputs = windows[:, :-1]
+    targets = windows[:, 1:]
+    pin_memory = device.type == "cuda"
+    if pin_memory:
+        inputs = inputs.pin_memory()
+        targets = targets.pin_memory()
+    return (
+        inputs.to(device=device, dtype=torch.long, non_blocking=pin_memory),
+        targets.to(device=device, dtype=torch.long, non_blocking=pin_memory),
+    )
+
+
+def make_log_payload(
+    *,
+    step: int,
+    ce_loss: Tensor,
+    prediction_losses: Tensor,
+    prediction_counts: Tensor,
+    total_loss: Tensor,
+) -> dict[str, object]:
+    return {
+        "step": step,
+        "ce_loss": round(ce_loss.item(), 6),
+        "total_loss": round(total_loss.item(), 6),
+        "prediction_losses": [round(value, 6) for value in prediction_losses.detach().cpu().tolist()],
+        "prediction_counts": [int(value) for value in prediction_counts.detach().cpu().tolist()],
+    }
+
+
+def main() -> None:
+    args = parse_args()
+    set_seed(args.seed)
+    device = resolve_device(args.device)
+    data = load_tinyshakespeare()
+
+    if args.sanity_check_only:
+        redirect_sanity_check_paths(args)
+    else:
+        prepare_output_paths(report_path=args.report_path, log_path=args.log_path)
+        register_active_lock(
+            experiment_name="automaton",
+            variants={
+                "n_levels": args.n_levels,
+                "steps_per_token": args.steps_per_token,
+                "d_stream": args.d_stream,
+            },
+            enabled=not args.no_lock,
+        )
+
+    model = CellularAutomaton(
+        vocab_size=data.vocab_size,
+        d_stream=args.d_stream,
+        n_levels=args.n_levels,
+        steps_per_token=args.steps_per_token,
+        noise_std=args.noise_std,
+    ).to(device)
+    optimizers = [torch.optim.AdamW(model.level_parameters(level), lr=args.lr) for level in range(args.n_levels)]
+    rng = torch.Generator(device="cpu")
+    rng.manual_seed(args.seed)
+
+    last_payload: dict[str, object] | None = None
+    for step in range(1, args.steps + 1):
+        inputs, targets = sample_batch(
+            data.encoded,
+            batch_size=args.batch_size,
+            seq_len=args.seq_len,
+            device=device,
+            generator=rng,
+        )
+        output = model(inputs)
+        ce_loss = F.cross_entropy(output.logits.reshape(-1, data.vocab_size), targets.reshape(-1))
+        total_loss = ce_loss + output.total_prediction_loss
+
+        for optimizer in optimizers:
+            optimizer.zero_grad(set_to_none=True)
+        total_loss.backward()
+        for optimizer in optimizers:
+            optimizer.step()
+
+        if step % args.log_every != 0 and step != args.steps:
+            continue
+
+        payload = make_log_payload(
+            step=step,
+            ce_loss=ce_loss,
+            prediction_losses=output.prediction_losses,
+            prediction_counts=output.prediction_counts,
+            total_loss=total_loss,
+        )
+        last_payload = payload
+        if not args.sanity_check_only:
+            append_log(args.log_path, payload)
+        else:
+            print(json.dumps(payload), flush=True)
+
+    if args.sanity_check_only:
+        return
+
+    if last_payload is None:
+        raise RuntimeError("Training finished without producing any log payload.")
+
+    report = {
+        "git_sha": current_git_sha(),
+        "git_status_short": current_git_status_short(),
+        "parameter_count": count_parameters(model),
+        "device": str(device),
+        "config": {
+            "steps": args.steps,
+            "batch_size": args.batch_size,
+            "seq_len": args.seq_len,
+            "n_levels": args.n_levels,
+            "steps_per_token": args.steps_per_token,
+            "d_stream": args.d_stream,
+            "noise_std": args.noise_std,
+            "lr": args.lr,
+        },
+        "final": last_payload,
+    }
+    write_json(args.report_path, report)
+    print(json.dumps({"stage": "report_written", "report_path": str(args.report_path)}), flush=True)
+
+
+if __name__ == "__main__":
+    main()
