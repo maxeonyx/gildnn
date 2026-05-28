@@ -163,6 +163,8 @@ When you notice a new dictation, read it immediately — it contains Max's instr
 
 ## Support session
 
+**Checking loop status:** Use the `opencode-history` skill FIRST to read the loop agent's actual conversation history. Do NOT infer what the loop is doing from git logs or process lists — those are indirect and often misleading. OpenCode history shows you exactly what the agent is thinking and doing.
+
 A separate OpenCode session (the "support session") runs alongside the loop agent. It monitors the loop, writes dictations on Max's behalf, and may modify files in the repo independently (especially `dictations/` and `AGENTS.md`). If you notice unexpected file changes, this is likely the cause — not a conflict.
 
 **Dictation drafting process:** The support session drafts dictation content using Max's exact words, then shows Max the draft before committing. Do NOT create/commit the file until Max confirms. One creation, one notification, complete content.
