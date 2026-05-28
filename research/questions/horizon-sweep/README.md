@@ -124,13 +124,39 @@ If positive result found:
 
 ## Status
 
-**Implemented, waiting to launch.** Script: `runs/horizon_sweep.py`. Sanity-checked at H=1, 2, 4 — copy baselines correctly increase with horizon (H1: 0.002879, H2: 0.004434, H4: 0.005931). GPU currently running the 3-block stream combining experiment; horizon sweep launches after.
+**H=2 complete. H=4 running.**
+
+### H=2 results (seed 42)
+
+| Model | Eval MSE | Copy baseline | Gain | vs Recurrent |
+|---|---|---|---|---|
+| Block 1 recurrent | 0.003912 | 0.00686 | **43.0%** | — |
+| Block 1 no-recurrence | 0.003887 | 0.00686 | **43.4%** | −0.000024 (better) |
+
+**Recurrence gap: −0.000024.** No-recurrence marginally beats recurrence. **H=2 is a clear recurrence-null**, same as H=1. The "H2 probably still little/no benefit" pre-registered prediction was confirmed.
+
+Report: [`report_h2.json`](../../../experiments/tinyshakespeare/artifacts/horizon_sweep/report_h2.json)
+
+### Comparison across horizons so far
+
+| Horizon | Copy baseline | Recurrent gain | No-recurrence gain | Gap |
+|---|---|---|---|---|
+| H=1 | 0.004852 | 37.4% | 37.6% | +0.000011 (null) |
+| H=2 | 0.006860 | 43.0% | 43.4% | −0.000024 (null) |
+| H=4 | TBD | TBD | TBD | TBD |
+
+Copy baseline correctly increases with horizon (harder to predict further ahead). But both models learn equally well at both horizons, and the gain is actually HIGHER at H=2 (43% vs 37%) — suggesting the prediction task gets easier relative to copy as horizon increases. This makes sense: copy baseline degrades fast (correlation drops) while a learned predictor can exploit the underlying dynamics.
+
+### H=4 (running)
+
+PID 19988, started 2026-05-28 15:20 NZST. Log: `experiments/tinyshakespeare/artifacts/horizon_sweep/run_h4.jsonl`. Expected completion ~16:40 NZST.
 
 ---
 
 ## Next steps
 
-1. ~~Implement as a configurable-horizon variant~~ — DONE (`runs/horizon_sweep.py`)
-2. Run H2 + H4 screen (single seed, 4 runs, ~2.5 hours) — NEXT when GPU is free
-3. If positive: confirm with seeds + sequence-shuffle ablation
-4. Feed results into multi-rate experiment design
+1. ~~Implement as a configurable-horizon variant~~ — DONE
+2. ~~Run H2~~ — DONE (recurrence null, same as H=1)
+3. **Run H4** — in progress (PID 19988, ~16:40 completion)
+4. If H4 also null: conclude frozen Block 0 is approximately history-sufficient. Recurrence becomes relevant only under co-training or with multi-rate accumulation semantics.
+5. If H4 positive: confirm with 2-3 seeds + sequence-shuffle ablation

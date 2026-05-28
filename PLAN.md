@@ -107,13 +107,15 @@ Results (Phase C — Block 2 prediction under three conditions):
 
 **Implication:** Multi-rate proceeds (softened conditional satisfied). Horizon sweep is the real discriminator for whether longer-horizon predictions carry genuinely novel info.
 
-## IN PROGRESS: Horizon sweep H=2 (GPU active)
+## IN PROGRESS: Horizon sweep (GPU active)
 
-**Running now** (PID 15096, `runs/active.lock` present). Log: `experiments/tinyshakespeare/artifacts/horizon_sweep/run_h2.jsonl`. Config: 200 Block 0 steps, 2×800 Phase B steps (with/without recurrence). Started 2:00pm NZST. Expected ~79 min → completion ~3:20pm.
+**H=2 COMPLETE — recurrence null.** Recurrent eval 0.003912 vs no-recurrence 0.003887 (gap −0.000024). Same pattern as H=1: static transform suffices. Pre-registered prediction confirmed.
 
-Tests whether recurrence becomes load-bearing at horizon 2 (predict A0_{t+2} from context up to t). Design: `research/questions/horizon-sweep/README.md`.
+**H=4 running** (PID 19988, `runs/active.lock` present). Log: `experiments/tinyshakespeare/artifacts/horizon_sweep/run_h4.jsonl`. Started 15:20 NZST. Expected completion ~16:40.
 
-After H=2 completes: launch `--horizon 4` (another ~79 min). Both must finish before multi-rate design.
+Design: `research/questions/horizon-sweep/README.md`.
+
+If H=4 also null → conclusion: frozen Block 0 representations are approximately history-sufficient. Recurrence won't be load-bearing in this frozen-teacher regime at any tested horizon. Multi-rate's value would come from accumulation semantics (dictation 11) rather than temporal memory.
 
 ## Remaining timebox sequence (~2 days)
 
@@ -149,6 +151,7 @@ Piece test 06 validates tempered PoE + process noise. All 26 checks pass. Script
 | Per-timestep normalization needed | Stability fix | ❓ — may not apply to distributional stream |
 | Prediction beats copy by 37% | 2-block experiment report.json | ✅ — mechanism validated |
 | Recurrence doesn't help 1-step prediction | No-recurrence ablation matches/beats | ✅ — static transform sufficient at H=1 |
+| Recurrence doesn't help 2-step prediction | Horizon sweep H=2: gap −0.000024 | ✅ — static transform sufficient at H=2 too |
 | Stream combining modestly helps (Case A) | 3-block report.json: G=42% vs 37% | ✅ — combining doesn't poison, provides modest benefit |
 | Noise doesn't break prediction | Piece test 07: all σ levels beat copy | ✅ — noise on laterals is compatible |
 | Noise doesn't force recurrence alone | Piece test 07 ablation: advantage drops | ✅ — need multi-rate + noise together |
