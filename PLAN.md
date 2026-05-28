@@ -98,8 +98,8 @@ Results:
 Tests whether folding Block 1's predictions into the stream (via tempered PoE) helps Block 2. Three conditions: combined, passthrough, random.
 
 Design: `research/questions/stream-combining/README.md`
-Phase A complete (eval 2.507). Phase B in progress (step 150/800, already beating copy).
-Expected completion: ~2:00pm NZST (Phase B ~37min + Phase C 3×~37min).
+Phase A complete (eval 2.507). Phase B complete (eval 0.003038, beats copy). Phase C in progress: combined condition at step 550/800 (eval 0.001819, 34.6% better than copy). Passthrough and random conditions follow.
+Expected completion: ~1:45pm NZST.
 
 ## Remaining timebox sequence (~2 days)
 
