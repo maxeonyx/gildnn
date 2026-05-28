@@ -91,23 +91,37 @@ Results:
 - Multi-rate is where recurrence SHOULD matter (predicting 2+ steps ahead requires temporal context)
 - For the combined architecture: recurrence may only become load-bearing at longer prediction horizons or larger scale
 
-## IN PROGRESS: 3-block stream combining experiment (GPU active)
+## ✅ DONE: 3-block stream combining experiment
 
-**Running now** (PID 6728, `runs/active.lock` present). Config: 200 Block 0 steps, 800 Block 1 steps, 800 Block 2 steps × 3 conditions, lambda=0.5.
+**Complete.** Report: `experiments/tinyshakespeare/artifacts/stream_combining/report.json`
 
-Tests whether folding Block 1's predictions into the stream (via tempered PoE) helps Block 2. Three conditions: combined, passthrough, random.
+Results (Phase C — Block 2 prediction under three conditions):
 
-Design: `research/questions/stream-combining/README.md`
-Phase A complete (eval 2.507). Phase B complete (eval 0.003038, beats copy). Phase C in progress: combined condition at step 550/800 (eval 0.001819, 34.6% better than copy). Passthrough and random conditions follow.
-Expected completion: ~1:45pm NZST.
+| Condition | Eval MSE | Copy Baseline | Gain |
+|---|---|---|---|
+| Combined (real B1 predictions) | 0.001613 | 0.002782 | **42.0%** |
+| Passthrough (raw Block 0) | 0.003064 | 0.004852 | **36.9%** |
+| Random (noise combined) | 0.005208 | 0.008040 | **35.2%** |
+
+**Decision tree: provisional Case A** (combined > passthrough AND random < passthrough). Ordering is correct but gaps are modest (5pp combined-vs-passthrough, 1.7pp passthrough-vs-random) on one seed. Interpretation: real predictions provide modest benefit beyond raw passthrough; combining doesn't poison; but the effect at equal-rate H=1 is not dramatic. Consistent with recurrence-null — H=1 predictions are near-redundant, so folding them in doesn't transform much.
+
+**Implication:** Multi-rate proceeds (softened conditional satisfied). Horizon sweep is the real discriminator for whether longer-horizon predictions carry genuinely novel info.
+
+## IN PROGRESS: Horizon sweep H=2 (GPU active)
+
+**Running now** (PID 15096, `runs/active.lock` present). Log: `experiments/tinyshakespeare/artifacts/horizon_sweep/run_h2.jsonl`. Config: 200 Block 0 steps, 2×800 Phase B steps (with/without recurrence). Started 2:00pm NZST. Expected ~79 min → completion ~3:20pm.
+
+Tests whether recurrence becomes load-bearing at horizon 2 (predict A0_{t+2} from context up to t). Design: `research/questions/horizon-sweep/README.md`.
+
+After H=2 completes: launch `--horizon 4` (another ~79 min). Both must finish before multi-rate design.
 
 ## Remaining timebox sequence (~2 days)
 
-1. **Finish combining** (running now, ~2:00pm) → analyze results, update README
-2. **Horizon sweep** — IMPLEMENTED and ready to run (`runs/horizon_sweep.py`). Launch `--horizon 2` then `--horizon 4`. Each takes ~79 min (200 Phase A + 2×800 Phase B). Total ~2.6 hours.
+1. ~~**Finish combining**~~ ✅ DONE (provisional Case A)
+2. **Horizon sweep** — H=2 running now. Then H=4. Total ~2.6 hours remaining.
 3. **Reports** (daily + weekly, due after 4pm Thursday) — can write while horizon sweep runs
-4. ~~**Noise sanity check**~~ ✅ DONE. Piece test 07 validates: prediction works under ALL noise levels (σ=0→1). Counterintuitive: relative gain INCREASES with noise (32%→94%) because copy baseline degrades faster than learned prediction. This IS the information hierarchy mechanism — noise makes temporal modelling strictly more valuable vs naive copying. Script: `experiments/predictive_processing/07_noise_on_lateral.py`
-5. **Multi-rate** (softened conditional — see below) → rates 1/2/4 with horizon-matched control
+4. ~~**Noise sanity check**~~ ✅ DONE (piece test 07)
+5. **Multi-rate** (proceeds regardless — combining positive, consistent with plan) → rates 1/2/4 with horizon-matched control
 6. **One confirmation seed** if anything is clearly positive
 
 Strategy: breadth first (answer more questions), then one depth step. Code dedup deferred until after key experiments.

@@ -88,10 +88,47 @@ Where:
 
 ## Status
 
-**Running on GPU** (PID 6728, started 2026-05-28 11:21 NZST). Implementation: `runs/stream_combining.py`. Phase A+B complete. Phase C (three Block 2 conditions: combined, passthrough, random × 800 steps each) running. Expected completion ~1:45pm NZST.
+**Complete.** Report: [`report.json`](../../../experiments/tinyshakespeare/artifacts/stream_combining/report.json).
 
-Log: `experiments/tinyshakespeare/artifacts/stream_combining/run.jsonl`
-Report: `experiments/tinyshakespeare/artifacts/stream_combining/report.json` (generated on completion)
+---
+
+## GPU results (seed 42, d_model=96, 800 steps per condition)
+
+| Condition | Final eval MSE | Copy baseline | Gain (G = 1 - eval/copy) |
+|---|---|---|---|
+| Combined (real B1 predictions) | 0.001613 | 0.002782 | **42.0%** |
+| Passthrough (raw Block 0) | 0.003064 | 0.004852 | **36.9%** |
+| Random (noise combined) | 0.005208 | 0.008040 | **35.2%** |
+
+**Ordering: combined > passthrough > random.** Matches pre-registered Case A (combined better AND random worse than passthrough).
+
+### Interpretation
+
+The result is **provisional Case A** — the ordering is correct but the margins are modest:
+- Combined vs passthrough: **+5.1pp** (likely real, but single-seed)
+- Passthrough vs random: **+1.7pp** (marginal)
+
+Real Block 1 predictions provide modest benefit over raw passthrough. Combining doesn't poison the stream. But at equal-rate H=1, the effect isn't dramatic. This is consistent with the recurrence-null at H=1 — if B1's predictions are near-Markov (basically "what A0 just said, slightly transformed"), then combining them adds incremental value, not transformative information.
+
+**Why combined's copy baseline is lower:** The combined stream incorporates B1's predictions, which are a smoothed/averaged version of A0. This reduces timestep-to-timestep variance, making copy a better baseline (lower). Despite this tighter baseline, Block 2 still achieves a proportionally larger gain — suggesting real information content, not just smoothing.
+
+**Why random barely differs from passthrough:** Combining random noise makes the stream noisier (higher copy baseline: 0.008040 vs 0.004852), but Block 2 can still learn temporal structure in a noisy stream. The gain metric normalizes this: Block 2 beats its own (worse) copy baseline by nearly as much as passthrough beats its (better) copy baseline. Block 2 is robust.
+
+### What this settles
+
+- ✅ H1 (combining helps): Yes, modestly. 5pp gain over passthrough.
+- ⚠️ H2 (real prediction matters): Barely — random is only 1.7pp worse than passthrough.
+- ❌ H3 (hierarchy develops): Not tested here (requires multi-timescale data or multi-rate).
+
+### What this doesn't settle
+
+- Whether combining helps MORE at longer horizons (→ horizon sweep)
+- Whether multi-rate makes the combined predictions carry genuinely novel information
+- Whether the 5pp gap is seed-robust (single seed = provisional)
+
+### Decision
+
+Per pre-registered softened conditional: **multi-rate proceeds.** Combining is positive (even if modest), so the condition is satisfied. Horizon sweep will determine whether longer predictions carry novel info that makes combining transformative rather than incremental.
 
 ---
 
@@ -113,8 +150,9 @@ Report: `experiments/tinyshakespeare/artifacts/stream_combining/report.json` (ge
 
 1. ~~Design synthetic multi-timescale data source~~ — using TinyShakespeare (real text), same as 2-block
 2. ~~Implement 3-block equal-rate experiment~~ — done (`runs/stream_combining.py`)
-3. **Launch on GPU** (immediately after 2-block experiment finishes)
-4. If H1+H2 confirmed on GPU: add rates 1/2/4 (separate experiment)
+3. ~~Launch on GPU~~ — ✅ complete, provisional Case A
+4. **Horizon sweep** (running now) — tests whether H=2/H=4 predictions carry more novel info
+5. If horizon sweep positive + combining positive: **multi-rate experiment** (rates 1/2/4 with horizon-matched control)
 
 ---
 
