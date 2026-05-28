@@ -196,6 +196,18 @@ See `PROCESS.md` for loop behavior, experiment workflow, and reporting standards
 
 Daily and weekly narratives in `research/` must meet a high bar. See [PROCESS.md](PROCESS.md#reporting) for the full standard. The short version: distill.pub quality, every claim linked to a real artifact, no free-floating assertions.
 
+## Ad hoc report format (support session → Max)
+
+When Max asks "how's the loop going?" or similar, back-chain from the goal:
+- Why is the model not yet doing the full architecture?
+- If it did the full architecture now, what would happen?
+- Why would that result be indeterminate or built on shaky foundations?
+- Therefore it's doing this step → therefore it's doing that step → therefore it's doing that step
+
+At every step, justify why we're not just running the real thing. If you can't justify it, the loop should be running the real thing.
+
+The reporting agent needs serious context to write this report — understand the architecture, the current state, and the reasoning chain BEFORE reporting. Don't just relay status; explain the WHY.
+
 ## Subdirectory AGENTS.md files
 
 Each subdirectory has its own AGENTS.md explaining its purpose. Read them when entering a new directory.
