@@ -30,6 +30,7 @@ OBSERVATION_NOISE = 0.03
 
 @dataclass(frozen=True)
 class NoiseRunResult:
+    use_recurrence: bool
     noise_sigma: float
     final_train_mse: float
     eval_mse: float
@@ -48,6 +49,58 @@ class RecurrentPredictor(nn.Module):
     def forward(self, noisy_inputs: torch.Tensor) -> torch.Tensor:
         hidden_states, _final_state = self.gru(noisy_inputs)
         return self.readout(hidden_states)
+
+
+def matching_feedforward_hidden(dim: int, hidden: int) -> int:
+    recurrent_parameter_count = sum(parameter.numel() for parameter in RecurrentPredictor(dim=dim, hidden=hidden).parameters())
+    return max(1, (recurrent_parameter_count - dim) // (2 * dim + 1))
+
+
+def feedforward_parameter_remainder(dim: int, hidden: int, *, feedforward_hidden: int) -> int:
+    recurrent_parameter_count = sum(parameter.numel() for parameter in RecurrentPredictor(dim=dim, hidden=hidden).parameters())
+    feedforward_parameter_count = (2 * dim + 1) * feedforward_hidden + dim
+    return recurrent_parameter_count - feedforward_parameter_count
+
+
+class ScalarPolynomialCorrection(nn.Module):
+    def __init__(self, parameter_count: int) -> None:
+        super().__init__()
+        self.coefficients = nn.Parameter(torch.zeros(parameter_count)) if parameter_count > 0 else None
+
+    def forward(self, noisy_inputs: torch.Tensor) -> torch.Tensor:
+        if self.coefficients is None:
+            return torch.zeros((*noisy_inputs.shape[:-1], 1), dtype=noisy_inputs.dtype, device=noisy_inputs.device)
+
+        summary = noisy_inputs.mean(dim=-1, keepdim=True)
+        basis_terms = torch.cat([summary.pow(power) for power in range(1, self.coefficients.numel() + 1)], dim=-1)
+        return (basis_terms * self.coefficients).sum(dim=-1, keepdim=True)
+
+
+class FeedforwardPredictor(nn.Module):
+    def __init__(self, dim: int, hidden: int, *, match_parameter_count_to_hidden: int) -> None:
+        super().__init__()
+        feedforward_hidden = matching_feedforward_hidden(dim=dim, hidden=match_parameter_count_to_hidden)
+        parameter_remainder = feedforward_parameter_remainder(
+            dim=dim,
+            hidden=match_parameter_count_to_hidden,
+            feedforward_hidden=feedforward_hidden,
+        )
+        self.input_layer = nn.Linear(dim, feedforward_hidden)
+        self.output_layer = nn.Linear(feedforward_hidden, dim)
+        self.activation = nn.GELU()
+        self.correction = ScalarPolynomialCorrection(parameter_remainder)
+
+    def forward(self, noisy_inputs: torch.Tensor) -> torch.Tensor:
+        hidden_states = self.activation(self.input_layer(noisy_inputs))
+        predictions = self.output_layer(hidden_states)
+        predictions[..., :1] = predictions[..., :1] + self.correction(noisy_inputs)
+        return predictions
+
+
+def build_predictor(*, dim: int, hidden: int, use_recurrence: bool) -> nn.Module:
+    if use_recurrence:
+        return RecurrentPredictor(dim=dim, hidden=hidden)
+    return FeedforwardPredictor(dim=dim, hidden=hidden, match_parameter_count_to_hidden=hidden)
 
 
 def l2_normalize(vectors: torch.Tensor) -> torch.Tensor:
@@ -92,12 +145,14 @@ def copy_baseline_loss(noisy_sequences: torch.Tensor, clean_sequences: torch.Ten
     return F.mse_loss(noisy_sequences[:, :-1], clean_sequences[:, 1:])
 
 
-def train_noise_level(*, noise_sigma: float, seed: int) -> NoiseRunResult:
+def train_noise_level(*, noise_sigma: float, seed: int, use_recurrence: bool) -> NoiseRunResult:
     train_generator = torch.Generator(device=DEVICE).manual_seed(seed)
     eval_generator = torch.Generator(device=DEVICE).manual_seed(seed + 10_000)
 
-    model = RecurrentPredictor(dim=DIM, hidden=HIDDEN).to(device=DEVICE, dtype=DTYPE)
+    torch.manual_seed(seed)
+    model = build_predictor(dim=DIM, hidden=HIDDEN, use_recurrence=use_recurrence).to(device=DEVICE, dtype=DTYPE)
     optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
+    variant_label = "gru" if use_recurrence else "ff"
 
     final_train_mse = math.nan
     for step in range(1, TRAIN_STEPS + 1):
@@ -114,6 +169,7 @@ def train_noise_level(*, noise_sigma: float, seed: int) -> NoiseRunResult:
         if step == 1 or step % LOG_EVERY == 0:
             copy_mse = copy_baseline_loss(noisy_sequences, clean_sequences).item()
             print(
+                f"variant={variant_label:>3s} "
                 f"noise_sigma={noise_sigma:>3.1f} "
                 f"step={step:3d} "
                 f"train_mse={final_train_mse:.6f} "
@@ -136,6 +192,7 @@ def train_noise_level(*, noise_sigma: float, seed: int) -> NoiseRunResult:
     absolute_improvement = copy_mse - eval_mse
     relative_gain = absolute_improvement / copy_mse
     return NoiseRunResult(
+        use_recurrence=use_recurrence,
         noise_sigma=noise_sigma,
         final_train_mse=final_train_mse,
         eval_mse=eval_mse,
@@ -147,16 +204,25 @@ def train_noise_level(*, noise_sigma: float, seed: int) -> NoiseRunResult:
 
 
 def print_summary(results: list[NoiseRunResult], *, elapsed_seconds: float) -> None:
+    grouped_results = {
+        result.noise_sigma: {variant.use_recurrence: variant for variant in results if variant.noise_sigma == result.noise_sigma}
+        for result in results
+    }
+
     print()
     print("=== Noise on lateral summary ===")
     print(f"seed={SEED}  dtype={DTYPE}  device={DEVICE}  dim={DIM}  hidden={HIDDEN}  steps={TRAIN_STEPS}  elapsed_s={elapsed_seconds:.2f}")
     print()
-    print("sigma  final_train_mse  eval_mse   copy_mse   abs_improve  gain_vs_copy  beats_copy")
-    print("-----  ---------------  ---------  ---------  -----------  ------------  ----------")
-    for result in results:
+    print("sigma  gru_eval   ff_eval    copy_mse   gru_gain  ff_gain   recurrence_advantage  gru_beats_copy  ff_beats_copy")
+    print("-----  ---------  ---------  ---------  --------  --------  --------------------  --------------  -------------")
+    for noise_sigma in NOISE_LEVELS:
+        gru_result = grouped_results[noise_sigma][True]
+        ff_result = grouped_results[noise_sigma][False]
+        recurrence_advantage = gru_result.relative_gain - ff_result.relative_gain
         print(
-            f"{result.noise_sigma:5.1f}  {result.final_train_mse:15.6f}  {result.eval_mse:9.6f}  "
-            f"{result.copy_baseline_mse:9.6f}  {result.absolute_improvement:11.6f}  {result.relative_gain:12.2%}  {str(result.beats_copy):>10}"
+            f"{noise_sigma:5.1f}  {gru_result.eval_mse:9.6f}  {ff_result.eval_mse:9.6f}  "
+            f"{gru_result.copy_baseline_mse:9.6f}  {gru_result.relative_gain:8.2%}  {ff_result.relative_gain:8.2%}  "
+            f"{recurrence_advantage:20.2%}  {str(gru_result.beats_copy):>14}  {str(ff_result.beats_copy):>13}"
         )
 
 
@@ -166,20 +232,33 @@ def main() -> int:
     torch.set_num_threads(1)
 
     start_time = time.perf_counter()
-    results = [train_noise_level(noise_sigma=noise_sigma, seed=SEED + 1_000 * index) for index, noise_sigma in enumerate(NOISE_LEVELS)]
+    results = [
+        train_noise_level(noise_sigma=noise_sigma, seed=SEED + 1_000 * index, use_recurrence=use_recurrence)
+        for index, noise_sigma in enumerate(NOISE_LEVELS)
+        for use_recurrence in (True, False)
+    ]
     elapsed_seconds = time.perf_counter() - start_time
 
     print_summary(results, elapsed_seconds=elapsed_seconds)
 
+    grouped_results = {
+        noise_sigma: {result.use_recurrence: result for result in results if result.noise_sigma == noise_sigma}
+        for noise_sigma in NOISE_LEVELS
+    }
+
     failures: list[str] = []
     if elapsed_seconds >= 30.0:
         failures.append(f"runtime exceeded budget: {elapsed_seconds:.2f}s")
-    if not results[0].beats_copy:
-        failures.append("sigma=0.0 did not beat copy baseline")
-    if not all(result.beats_copy for result in results[1:]):
-        failures.append("at least one noisy condition failed to beat copy baseline")
-    if any(current.eval_mse + 1e-12 < previous.eval_mse for previous, current in zip(results, results[1:], strict=False)):
-        failures.append("eval_mse did not worsen monotonically with noise")
+    if not all(grouped_results[noise_sigma][True].beats_copy for noise_sigma in NOISE_LEVELS):
+        failures.append("gru predictor failed to beat copy baseline for at least one noise level")
+    if not all(grouped_results[noise_sigma][False].beats_copy for noise_sigma in NOISE_LEVELS):
+        failures.append("feedforward predictor failed to beat copy baseline for at least one noise level")
+    gru_results = [grouped_results[noise_sigma][True] for noise_sigma in NOISE_LEVELS]
+    ff_results = [grouped_results[noise_sigma][False] for noise_sigma in NOISE_LEVELS]
+    if any(current.eval_mse + 1e-12 < previous.eval_mse for previous, current in zip(gru_results, gru_results[1:], strict=False)):
+        failures.append("gru eval_mse did not worsen monotonically with noise")
+    if any(current.eval_mse + 1e-12 < previous.eval_mse for previous, current in zip(ff_results, ff_results[1:], strict=False)):
+        failures.append("feedforward eval_mse did not worsen monotonically with noise")
 
     if failures:
         print()
