@@ -137,9 +137,17 @@ At every step, justify why we're not just running the real thing. If you can't j
    - Model learning: confirmed
 
 ### 🏃 IN PROGRESS:
-7. **Noise ablation** — PID 6704, lock active. Same config as v1 but `--noise-std 0.0`. Started 05:33 NZST. Expected completion ~08:50 NZST.
+7. **Noise ablation (eager, no CUDA graph)** — completed 380 logged steps then exited without writing `report_v1_no_noise.json` or leaving a lock file.
    - Log: `experiments/automaton/artifacts/run_v1_no_noise.jsonl`
-   - Report: `experiments/automaton/artifacts/report_v1_no_noise.json`
+   - Last logged step: 380
+   - At step 380, CE is already essentially identical to v1 (`2.300843` vs `2.302976`) while levels 1-7 prediction losses are much lower than the noisy run. This already points toward noise being a major source of the earlier U-shaped spread.
+8. **Noise ablation (CUDA-graph rerun)** — PID 20796. Same config as v1 but `--noise-std 0.0`, using `experiments/automaton/train_cuda_graph.py`.
+   - Stdout: `experiments/automaton/artifacts/stdout_no_noise_cuda_graph.txt`
+   - Stderr: `experiments/automaton/artifacts/stderr_no_noise_cuda_graph.txt`
+   - Log: `experiments/automaton/artifacts/run_v1_no_noise_cuda_graph.jsonl`
+   - Report: `experiments/automaton/artifacts/report_v1_no_noise_cuda_graph.json`
+   - Started: 08:28 NZST 2026-05-30
+   - Expected completion: ~08:40 NZST if the ~1.3s CUDA-graph sanity speed carries over.
    - Question: Does removing noise change per-level differentiation? If noise doesn't matter, multi-rate timing alone creates the hierarchy.
 
 ### Performance notes (dictations 18-25):
@@ -148,11 +156,11 @@ At every step, justify why we're not just running the real thing. If you can't j
 - Full GPU-native execution (Triton kernels, CUDA graphs) would need Linux or a Windows Triton build.
 
 ### NEXT:
-8. **When noise ablation completes (~09:15 NZST)**: run `python experiments/automaton/analyze.py --log-path experiments/automaton/artifacts/run_v1_no_noise.jsonl`, compare per-level prediction losses between v1 (noise=0.1) and no-noise. Key metric: is the U-shaped differentiation pattern the same or different?
-9. **Write daily report** for 2026-05-30 once ablation finishes. Include: noise ablation comparison, one-way-upward finding, project wrap-up.
-10. **Write final weekly** — synthesize the full week: piece validation → course correction → automaton build → v1 training → noise ablation.
-11. Commit noise ablation artifacts, both reports, push.
-12. Clean up TASK-current.ignore.md (it served its purpose).
+9. **When CUDA-graph noise ablation completes**: run `python experiments/automaton/analyze.py --log-path experiments/automaton/artifacts/run_v1_no_noise_cuda_graph.jsonl`, compare per-level prediction losses against both v1 and the partial eager no-noise run. Key metric: does the no-noise pattern stay flatter / lower away from level 0?
+10. **Write daily report** for 2026-05-30 once ablation finishes. Include: partial eager no-noise result, CUDA-graph rerun result, one-way-upward finding, project wrap-up.
+11. **Write final weekly** — synthesize the full week: piece validation → course correction → automaton build → v1 training → noise ablation.
+12. Commit noise ablation artifacts, both reports, push.
+13. Clean up `TASK-current.ignore.md` once its context is folded into checked-in files.
 
 ---
 
