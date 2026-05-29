@@ -1,0 +1,46 @@
+{
+  "git_sha": "30772f374d40394c1f8fb0af2660cc83a896142d",
+  "git_status_short": [
+    "?? experiments/automaton/artifacts/",
+    "?? experiments/tinyshakespeare/"
+  ],
+  "parameter_count": 1185792,
+  "device": "cuda",
+  "config": {
+    "steps": 500,
+    "batch_size": 8,
+    "seq_len": 2048,
+    "n_levels": 8,
+    "steps_per_token": 4,
+    "d_stream": 128,
+    "noise_std": 0.1,
+    "lr": 0.0003,
+    "chunk_size": 128
+  },
+  "final": {
+    "step": 500,
+    "ce_loss": 2.302976,
+    "total_loss": 2.336695,
+    "prediction_losses": [
+      0.004633,
+      0.00642,
+      0.004025,
+      0.003248,
+      0.003385,
+      0.003673,
+      0.004001,
+      0.004335
+    ],
+    "prediction_counts": [
+      8191,
+      4095,
+      2047,
+      1023,
+      511,
+      255,
+      127,
+      63
+    ],
+    "wall_time_s": 27.442682
+  }
+}
