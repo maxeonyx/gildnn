@@ -132,7 +132,7 @@ At every step, justify why we're not just running the real thing. If you can't j
 5. ✅ Delete dead automaton-irrelevant helpers from `core/training.py`, `core/run_utils.py`, and `core/dataset.py` (commit `b0f97fa`)
 
 ### 🏃 IN PROGRESS:
-6. **Training at scale** — PID 11124, lock active. 8 levels, 4 steps/token, d=128, seq=2048, batch 8, 500 steps. Started 02:10 NZST. As of 02:45 NZST the run has reached step 90/500. Current average wall time is ~23.24s/step, implying completion around ~05:24 NZST if pace holds.
+6. **Training at scale** — PID 11124, lock active. 8 levels, 4 steps/token, d=128, seq=2048, batch 8, 500 steps. Started 02:10 NZST. As of 02:50 NZST the run has reached step 100/500. Current average wall time is ~23.17s/step, implying completion around ~05:25 NZST if pace holds.
    - Log: `experiments/automaton/artifacts/run_v1.jsonl`
    - Analysis: `.\.venv\Scripts\python.exe experiments/automaton/analyze.py`
 
@@ -142,7 +142,7 @@ At every step, justify why we're not just running the real thing. If you can't j
 - Full GPU-native execution (Triton kernels, CUDA graphs) would need Linux or a Windows Triton build.
 
 ### NEXT:
-   - Current signal: CE 3.5415 → 3.2367 by step 90; per-level prediction-loss gradient 1.215 → 1.406; all levels improving, no obvious single-block collapse yet.
+   - Current signal: CE 3.5415 → 3.0104 by step 100; per-level prediction-loss gradient 1.215 → 1.666; all levels improving, no obvious single-block collapse yet.
 7. **Check training results when run completes** — run `analyze.py`, look at:
    - Did CE plateau or keep improving? (step 40: 3.35, dropping at ~0.05/10 steps)
    - Did per-level prediction losses differentiate? (early signal: ratio 1.5x, growing)
