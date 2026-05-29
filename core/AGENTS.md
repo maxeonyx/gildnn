@@ -2,6 +2,16 @@
 
 Shared reusable components: datasets, models, training loops, utilities.
 
+## Current contents
+
+| File | Purpose |
+|---|---|
+| `automaton.py` | **The model.** Cellular automaton with vectorized bmm across levels. Stateless feedforward blocks, detached laterals, multi-rate firing, local prediction loss. |
+| `dataset.py` | WikiText-103 dataset loading |
+| `fixed_window_char.py` | Fixed-window character dataset (TinyShakespeare etc.) |
+| `run_utils.py` | Experiment infrastructure: lock file, output paths, logging, CUDA graph trainer |
+| `training.py` | Shared training utilities: evaluation, git metadata, JSON write |
+
 ## Purpose
 
 This is the project's flexible model library. Code here must be:
@@ -14,7 +24,7 @@ Code moves here from `experiments/` once it's verified stable and reused. Do not
 ## What belongs here
 
 - Dataset classes (e.g., fixed-window character dataset)
-- Model components (embeddings, attention, recurrent cells, prediction heads)
+- Model components (the cellular automaton)
 - Training utilities (training loops, evaluation, device/seed setup)
 - Anything shared between two or more experiments
 
