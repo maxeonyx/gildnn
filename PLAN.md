@@ -122,45 +122,37 @@ At every step, justify why we're not just running the real thing. If you can't j
 
 ---
 
-## Current state (2026-05-30 05:35 NZST)
+## Current state (2026-05-30 08:55 NZST)
 
 ### ✅ DONE:
 1. ✅ Delete ParallelDiagonalModel
 2. ✅ Build cellular automaton model (`core/automaton.py`)
 3. ✅ Sanity check — CE drops 4.85→3.79 in 5 steps, model learns
 4. ✅ Vectorize across levels with bmm (10x speedup: 55s→5s per step at small scale)
-5. ✅ Delete dead automaton-irrelevant helpers from `core/training.py`, `core/run_utils.py`, and `core/dataset.py` (commit `b0f97fa`)
-6. ✅ **v1 training complete** (commit `b54615f`). 500 steps, ~3h17m. Results:
-   - CE: 3.54 → 2.30 (random baseline 4.17, so 1.87 nats below random)
-   - All 8 levels' prediction losses improved (no single-block collapse)
-   - Per-level differentiation present but mild: level 1 highest (0.0064), levels 3-4 lowest (0.0033)
-   - Model learning: confirmed
+5. ✅ Delete dead automaton-irrelevant helpers
+6. ✅ **v1 training complete** (commit `b54615f`). 500 steps, ~3h17m. CE: 3.54→2.30.
+7. ✅ **CUDA graph training script** (commit `de4da18`). 17x speedup: 1.5s/step vs 27s/step at d_stream=128.
+8. ✅ **No-noise ablation complete** (CUDA graph, 500 steps, ~12 min). Results:
+   - CE: 2.35 (vs 2.30 with noise — noise helps CE slightly)
+   - Prediction losses much lower without noise: L1-L3 ≈ 0.0008 (vs 0.004-0.006 with noise)
+   - Noise forces genuine prediction; without it, blocks just pass exact copies
+   - U-shaped differentiation is caused by noise, not timing structure alone
 
-### 🏃 IN PROGRESS:
-7. **Noise ablation (eager, no CUDA graph)** — completed 380 logged steps then exited without writing `report_v1_no_noise.json` or leaving a lock file.
-   - Log: `experiments/automaton/artifacts/run_v1_no_noise.jsonl`
-   - Last logged step: 380
-   - At step 380, CE is already essentially identical to v1 (`2.300843` vs `2.302976`) while levels 1-7 prediction losses are much lower than the noisy run. This already points toward noise being a major source of the earlier U-shaped spread.
-8. **Noise ablation (CUDA-graph rerun)** — PID 20796. Same config as v1 but `--noise-std 0.0`, using `experiments/automaton/train_cuda_graph.py`.
-   - Stdout: `experiments/automaton/artifacts/stdout_no_noise_cuda_graph.txt`
-   - Stderr: `experiments/automaton/artifacts/stderr_no_noise_cuda_graph.txt`
-   - Log: `experiments/automaton/artifacts/run_v1_no_noise_cuda_graph.jsonl`
-   - Report: `experiments/automaton/artifacts/report_v1_no_noise_cuda_graph.json`
-   - Started: 08:28 NZST 2026-05-30
-   - Expected completion: ~08:40 NZST if the ~1.3s CUDA-graph sanity speed carries over.
-   - Question: Does removing noise change per-level differentiation? If noise doesn't matter, multi-rate timing alone creates the hierarchy.
+### Scale-up testing (dictation 30-02):
+- d_stream=512, batch=4: works, 8.8s/step, ~3.2GB VRAM
+- d_stream=1024, batch=4: works, 36s/step (too slow for the gain)
+- d_stream=512, batch=16: OOM during CUDA graph capture
+- d_stream=512, batch=8: **GPU LOST** — OOM crashed the CUDA driver
+- **⚠️ GPU is currently unrecoverable without reboot.** `nvidia-smi` reports "GPU is lost."
 
-### Performance notes (dictations 18-25):
-- torch.compile with fullgraph=True: TRACING SUCCEEDS (no graph breaks) but Triton not available on Windows. Inductor backend requires Triton.
-- Workaround: vectorized bmm gives 10x improvement in eager mode.
-- Full GPU-native execution (Triton kernels, CUDA graphs) would need Linux or a Windows Triton build.
+### BLOCKED:
+- **GPU requires reboot to recover.** Cannot run any more experiments until Max reboots.
 
-### NEXT:
-9. **When CUDA-graph noise ablation completes**: run `python experiments/automaton/analyze.py --log-path experiments/automaton/artifacts/run_v1_no_noise_cuda_graph.jsonl`, compare per-level prediction losses against both v1 and the partial eager no-noise run. Key metric: does the no-noise pattern stay flatter / lower away from level 0?
-10. **Write daily report** for 2026-05-30 once ablation finishes. Include: partial eager no-noise result, CUDA-graph rerun result, one-way-upward finding, project wrap-up.
-11. **Write final weekly** — synthesize the full week: piece validation → course correction → automaton build → v1 training → noise ablation.
-12. Commit noise ablation artifacts, both reports, push.
-13. Clean up `TASK-current.ignore.md` once its context is folded into checked-in files.
+### NEXT (after reboot):
+9. Launch scaled-up training: d_stream=512, batch=4 (or batch=8 with smaller chunk), noise=0.1, 500+ steps
+10. Write daily report for 2026-05-30
+11. Write final weekly synthesis
+12. Commit all artifacts and reports, push
 
 ---
 
