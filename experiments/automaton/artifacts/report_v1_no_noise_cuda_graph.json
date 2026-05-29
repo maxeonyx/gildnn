@@ -1,0 +1,53 @@
+{
+  "git_sha": "5b34a4547355631e7c6fc48b01a723bfcce4a70d",
+  "git_status_short": [
+    "?? experiments/automaton/artifacts/run_v1_no_noise.jsonl",
+    "?? experiments/automaton/artifacts/run_v1_no_noise_cuda_graph.jsonl",
+    "?? experiments/tinyshakespeare/"
+  ],
+  "parameter_count": 1185792,
+  "device": "cuda",
+  "config": {
+    "steps": 500,
+    "batch_size": 8,
+    "seq_len": 2048,
+    "n_levels": 8,
+    "steps_per_token": 4,
+    "d_stream": 128,
+    "noise_std": 0.0,
+    "lr": 0.0003,
+    "chunk_size": 128,
+    "use_cuda_graph": true
+  },
+  "cuda_graph": {
+    "requested": true,
+    "active": true,
+    "failure_reason": null
+  },
+  "final": {
+    "step": 500,
+    "ce_loss": 2.350602,
+    "total_loss": 2.36446,
+    "prediction_losses": [
+      0.00364,
+      0.000838,
+      0.000843,
+      0.000848,
+      0.001158,
+      0.001451,
+      0.002664,
+      0.002416
+    ],
+    "prediction_counts": [
+      8191,
+      4095,
+      2047,
+      1023,
+      511,
+      255,
+      127,
+      63
+    ],
+    "wall_time_s": 1.497269
+  }
+}

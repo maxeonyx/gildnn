@@ -145,14 +145,24 @@ At every step, justify why we're not just running the real thing. If you can't j
 - d_stream=512, batch=8: **GPU LOST** — OOM crashed the CUDA driver
 - **⚠️ GPU is currently unrecoverable without reboot.** `nvidia-smi` reports "GPU is lost."
 
+### ⚠️ New direction (dictation 30-03): MSE prediction loss is garbage
+- Core open question: what should the local learning signal be at each block?
+- Three parallel tracks: (1) theory/research, (2) fast ablations, (3) long training run with best config
+- Research directions: biological local learning rules, predictive coding, contrastive Hebbian learning, communication through coherence, phase-amplitude coupling
+- Key question: what signal makes blocks learn something useful AND different from neighbors?
+- Connects to: ROADMAP Pathway 3 (Local Learning)
+
 ### BLOCKED:
 - **GPU requires reboot to recover.** Cannot run any more experiments until Max reboots.
+- Tracks 2 and 3 (ablations, training run) blocked on GPU.
+- Track 1 (theory/research) can proceed without GPU.
 
-### NEXT (after reboot):
-9. Launch scaled-up training: d_stream=512, batch=4 (or batch=8 with smaller chunk), noise=0.1, 500+ steps
+### NEXT:
+9. **Track 1 — theory research** on local learning signals (no GPU needed)
 10. Write daily report for 2026-05-30
 11. Write final weekly synthesis
-12. Commit all artifacts and reports, push
+12. After reboot: launch scaled-up training (d_stream=512, batch=4, best loss variant)
+13. Commit all artifacts and reports, push
 
 ---
 
