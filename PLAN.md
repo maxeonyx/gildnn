@@ -131,7 +131,9 @@ At every step, justify why we're not just running the real thing. If you can't j
 4. ✅ Vectorize across levels with bmm (10x speedup: 55s→5s per step at small scale)
 
 ### 🏃 IN PROGRESS:
-5. **Training at scale** — PID 2472, lock active. 8 levels, 4 steps/token, d=128, seq=2048, batch 8, 500 steps. ~22s/step. Expected completion ~05:00 NZST.
+5. **Training at scale** — PID 2472, lock active. 8 levels, 4 steps/token, d=128, seq=2048, batch 8, 500 steps. ~24s/step. Expected completion ~05:30 NZST (started 02:10).
+   - Log: `experiments/automaton/artifacts/run_v1.jsonl`
+   - Analysis: `.\.venv\Scripts\python.exe experiments/automaton/analyze.py`
 
 ### Performance notes (dictations 18-25):
 - torch.compile with fullgraph=True: TRACING SUCCEEDS (no graph breaks) but Triton not available on Windows. Inductor backend requires Triton.
@@ -139,8 +141,13 @@ At every step, justify why we're not just running the real thing. If you can't j
 - Full GPU-native execution (Triton kernels, CUDA graphs) would need Linux or a Windows Triton build.
 
 ### NEXT:
-6. Check training results when run completes
-7. Report results (daily report for 2026-05-29/30)
+6. **Check training results when run completes** — run `analyze.py`, look at:
+   - Did CE plateau or keep improving? (step 40: 3.35, dropping at ~0.05/10 steps)
+   - Did per-level prediction losses differentiate? (early signal: ratio 1.5x, growing)
+   - Is one block doing all the work or are all levels contributing?
+7. **If results are positive**: run noise ablation (`--noise-std 0.0`, everything else same). This proves whether noise IS the mechanism creating differentiation, or if it's just multi-rate timing.
+8. **Write daily report** for 2026-05-30 when results are in.
+9. **Low priority cleanup**: `core/training.py` and `core/run_utils.py` are ~910 lines, of which only ~110 are used by the automaton training. `core/dataset.py` and `core/fixed_window_char.py` are only used by `base_experiments/`. Not urgent but noted.
 
 ---
 
