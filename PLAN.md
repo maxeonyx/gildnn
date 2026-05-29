@@ -114,21 +114,33 @@ At every step, justify why we're not just running the real thing. If you can't j
 | Local learning > global backprop | Validated | A/B detach test (−0.215 nats) |
 | Separate optimizers + fixed embeddings | Validated | 27-May training (genuine learning vs gradient interference) |
 
-### What to DELETE
+### What was DELETED
 
-- `core/model.py` — ParallelDiagonalModel (RNN with GRU, wrong architecture)
-- Any framing around "when does recurrence become load-bearing" — irrelevant, blocks are stateless
-- Any experiment testing GRU vs feedforward inside blocks — answered (feedforward)
+- ✅ `core/model.py` — ParallelDiagonalModel (deleted)
+- ✅ `core/tied_readout.py` — dead code (deleted)
+- ✅ 7 dead experiment scripts importing deleted model (deleted, −5200 lines)
 
 ---
 
-## Immediate next steps
+## Current state (2026-05-30 02:15 NZST)
 
-1. Delete ParallelDiagonalModel
-2. Build the cellular automaton model (new file, e.g. `core/automaton.py`)
-3. Sanity check (30 seconds — does loss go down at all?)
-4. Train at scale (many blocks, long sequences, real duration)
-5. Report results
+### ✅ DONE:
+1. ✅ Delete ParallelDiagonalModel
+2. ✅ Build cellular automaton model (`core/automaton.py`)
+3. ✅ Sanity check — CE drops 4.85→3.79 in 5 steps, model learns
+4. ✅ Vectorize across levels with bmm (10x speedup: 55s→5s per step at small scale)
+
+### 🏃 IN PROGRESS:
+5. **Training at scale** — PID 2472, lock active. 8 levels, 4 steps/token, d=128, seq=2048, batch 8, 500 steps. ~22s/step. Expected completion ~05:00 NZST.
+
+### Performance notes (dictations 18-25):
+- torch.compile with fullgraph=True: TRACING SUCCEEDS (no graph breaks) but Triton not available on Windows. Inductor backend requires Triton.
+- Workaround: vectorized bmm gives 10x improvement in eager mode.
+- Full GPU-native execution (Triton kernels, CUDA graphs) would need Linux or a Windows Triton build.
+
+### NEXT:
+6. Check training results when run completes
+7. Report results (daily report for 2026-05-29/30)
 
 ---
 
@@ -136,8 +148,9 @@ At every step, justify why we're not just running the real thing. If you can't j
 
 - `dictations/2026-05-28-15.md` — cellular automaton clarification
 - `dictations/2026-05-28-16.md` — alignment session instruction
+- `dictations/2026-05-28-18.md` through `2026-05-28-25.md` — performance: CUDA graphs, GPU-native, fused kernels
+- `dictations/2026-05-28-20.md` — REDACTION: blocks are NOT weight-shared
 - `dictations/2026-05-27-2.md` — "stop training models that aren't mine"
-- `dictations/2026-05-27-10.md` — predictive processing, "don't train, test pieces"
 - `dictations/2026-05-24-1.md` — Max's original Google Keep architecture note
-- `dictations/2026-05-26-5.md` — embedding-space prediction, noise on laterals
-- `dictations/2026-05-20-15.md` — against GRUs, residual streams, local learning
+- `core/automaton.py` — the cellular automaton model (vectorized bmm)
+- `experiments/automaton/train.py` — training script (TBPTT, per-level optimizers)
