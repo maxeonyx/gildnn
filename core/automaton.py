@@ -48,6 +48,8 @@ class CellularAutomaton(nn.Module):
         noise_std: float = 0.1,
         d_hidden: int | None = None,
         readout_temperature: float = 0.07,
+        loss_type: str = "mse",
+        info_nce_temperature: float = 0.07,
     ) -> None:
         super().__init__()
         if vocab_size <= 0:
@@ -62,6 +64,10 @@ class CellularAutomaton(nn.Module):
             raise ValueError(f"noise_std must be non-negative, got {noise_std}.")
         if readout_temperature <= 0.0:
             raise ValueError(f"readout_temperature must be positive, got {readout_temperature}.")
+        if loss_type not in {"mse", "infonce"}:
+            raise ValueError(f"loss_type must be 'mse' or 'infonce', got {loss_type!r}.")
+        if info_nce_temperature <= 0.0:
+            raise ValueError(f"info_nce_temperature must be positive, got {info_nce_temperature}.")
 
         resolved_rates = tuple(rates) if rates is not None else tuple(2**level for level in range(n_levels))
         if len(resolved_rates) != n_levels:
@@ -78,6 +84,9 @@ class CellularAutomaton(nn.Module):
         self.noise_std = noise_std
         self.d_hidden = d_hidden if d_hidden is not None else 4 * d_stream
         self.readout_temperature = readout_temperature
+        self.loss_type = loss_type
+        self.info_nce_temperature = info_nce_temperature
+        self.contrastive_buffer_size = 64
 
         self.token_embedding = nn.Embedding(vocab_size, d_stream)
         self.w1 = nn.Parameter(torch.empty(n_levels, d_stream, self.d_hidden))
@@ -86,6 +95,14 @@ class CellularAutomaton(nn.Module):
         self.b2 = nn.Parameter(torch.empty(n_levels, 1, d_stream))
         self.pred_w = nn.Parameter(torch.empty(n_levels, d_stream, d_stream))
         self.pred_b = nn.Parameter(torch.empty(n_levels, 1, d_stream))
+        if self.loss_type == "infonce":
+            buffer = l2_normalize(torch.randn(n_levels, self.contrastive_buffer_size, d_stream))
+            self.register_buffer("contrastive_buffer", buffer, persistent=False)
+            self.register_buffer(
+                "contrastive_buffer_ptr",
+                torch.zeros((n_levels,), dtype=torch.long),
+                persistent=False,
+            )
         self.reset_parameters()
 
     def _reset_stacked_linear(
@@ -184,6 +201,50 @@ class CellularAutomaton(nn.Module):
             torch.zeros_like(prediction_loss_sums),
         )
 
+    def _prediction_errors(
+        self,
+        predictions: Float[Tensor, "levels batch d_stream"],
+        targets: Float[Tensor, "levels batch d_stream"],
+    ) -> Float[Tensor, "levels"]:
+        if self.loss_type == "mse":
+            return F.mse_loss(
+                predictions.float(),
+                targets.float(),
+                reduction="none",
+            ).mean(dim=(1, 2))
+
+        normalized_predictions = F.normalize(predictions.float(), dim=-1, eps=1e-6)
+        normalized_targets = F.normalize(targets.float(), dim=-1, eps=1e-6)
+        normalized_buffer = F.normalize(self.contrastive_buffer.float(), dim=-1, eps=1e-6)
+        positive_logits = (normalized_predictions * normalized_targets).sum(dim=-1, keepdim=True)
+        negative_logits = torch.einsum("lbd,lkd->lbk", normalized_predictions, normalized_buffer)
+        logits = torch.cat((positive_logits, negative_logits), dim=-1) / self.info_nce_temperature
+        return (torch.logsumexp(logits, dim=-1) - logits[..., 0]).mean(dim=1)
+
+    def _update_contrastive_buffer(
+        self,
+        targets: Float[Tensor, "levels batch d_stream"],
+        active_predictions: torch.Tensor,
+    ) -> None:
+        if self.loss_type != "infonce":
+            return
+
+        batch_size = targets.shape[1]
+        write_offsets = torch.arange(batch_size, device=targets.device, dtype=torch.long)
+        positions = torch.remainder(self.contrastive_buffer_ptr[:, None] + write_offsets[None, :], self.contrastive_buffer_size)
+        scatter_index = positions.unsqueeze(-1).expand(-1, -1, self.d_stream)
+
+        with torch.no_grad():
+            existing_values = self.contrastive_buffer.gather(1, scatter_index)
+            source = torch.where(active_predictions[:, None, None], targets.to(self.contrastive_buffer.dtype), existing_values)
+            self.contrastive_buffer.scatter_(1, scatter_index, source)
+            self.contrastive_buffer_ptr.copy_(
+                torch.remainder(
+                    self.contrastive_buffer_ptr + active_predictions.to(dtype=torch.long) * batch_size,
+                    self.contrastive_buffer_size,
+                )
+            )
+
     def forward_chunk(
         self,
         tokens: Int[Tensor, "batch seq"],
@@ -234,15 +295,13 @@ class CellularAutomaton(nn.Module):
                 combined[0] = combined[0] + token_embeddings[:, token_index, :]
             combined = l2_normalize(combined)
 
-            prediction_errors = F.mse_loss(
-                current_predictions.float(),
-                combined.detach().float(),
-                reduction="none",
-            ).mean(dim=(1, 2))
+            detached_combined = combined.detach()
+            prediction_errors = self._prediction_errors(current_predictions, detached_combined)
             prediction_loss_sums = prediction_loss_sums + (
                 prediction_errors * active_predictions.to(dtype=prediction_errors.dtype)
             )
             prediction_counts = prediction_counts + active_predictions.to(dtype=torch.long)
+            self._update_contrastive_buffer(detached_combined, active_predictions)
 
             hidden = self._stacked_linear(combined, self.w1, self.b1)
             hidden = F.gelu(hidden)

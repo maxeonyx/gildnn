@@ -148,23 +148,23 @@ At every step, justify why we're not just running the real thing. If you can't j
 - d_stream=512, batch=16: OOM during CUDA graph capture
 - d_stream=512, batch=8: OOM crashed the CUDA driver
 
-### ⚠️ MIGRATING TO LINUX (dictation 30-01 + Max instruction)
+### Environment: migrating to Linux (Manjaro)
 
-Max is rebooting into Manjaro Linux for the remainder of the project (last ~1.5 days). Reason: Triton is available on Linux, enabling torch.compile with Inductor backend (not just CUDA graphs). This should give further speedup beyond the 17x already achieved.
+Max confirmed: reboot into Linux for Triton/torch.compile access. Everything is committed and pushed to GitHub — clone fresh on Linux.
 
 ### Three parallel tracks (dictation 30-03):
-1. **Theory/research** — ✅ DONE for now (local learning signal brief)
-2. **Fast ablations** — 30-second probes testing different local loss variants (needs GPU)
-3. **Training run** — long run with current best config, scaled up (needs GPU)
+1. **Theory/research** — ✅ DONE (local learning signal brief)
+2. **Fast ablations** — NEXT: implement InfoNCE loss variant, 30-second probes
+3. **Training run** — queued: long run with best loss variant at d_stream=512
 
 ### NEXT (on Linux):
-1. Clone this repo
-2. Set up Python venv with UV, install PyTorch + Triton
-3. Verify torch.compile works (Inductor backend)
-4. Try torch.compile on the automaton model — may be faster than manual CUDA graphs
-5. Scale up: d_stream=512, batch=4-8, noise=0.1
-6. Implement InfoNCE loss variant (from local learning signal brief)
-7. Run Track 2 ablations: nce-vs-mse, vicreg-xblk, etc.
+1. Clone repo, set up venv (UV + PyTorch + Triton)
+2. Verify torch.compile works (model traces clean — `fullgraph=True`, no graph breaks)
+3. Implement InfoNCE loss + cross-block covariance penalty in `core/automaton.py`
+4. 30-second sanity check: InfoNCE non-collapse?
+5. Comparison: torch.compile vs CUDA graphs speed
+6. Scale up: d_stream=512, batch=4-8
+7. Run Track 2 ablations (InfoNCE vs MSE, vicreg-xblk, etc.)
 8. Run Track 3 training with best config
 9. Write daily report for 2026-05-30
 10. Write final weekly synthesis

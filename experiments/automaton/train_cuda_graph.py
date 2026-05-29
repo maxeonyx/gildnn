@@ -41,8 +41,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--steps-per-token", type=int, default=8)
     parser.add_argument("--d-stream", type=int, default=128)
     parser.add_argument("--noise-std", type=float, default=0.1)
+    parser.add_argument("--loss-type", choices=("mse", "infonce"), default="mse")
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--chunk-size", type=int, default=128)
+    parser.add_argument("--xblk-lambda", type=float, default=0.01)
     parser.add_argument("--sanity-check-only", action="store_true")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--device", type=str, default=None)
@@ -84,6 +86,8 @@ def parse_args() -> argparse.Namespace:
         raise ValueError(f"--lr must be positive, got {args.lr}.")
     if args.chunk_size <= 0:
         raise ValueError(f"--chunk-size must be positive, got {args.chunk_size}.")
+    if args.xblk_lambda < 0.0:
+        raise ValueError(f"--xblk-lambda must be non-negative, got {args.xblk_lambda}.")
     if args.log_every <= 0:
         raise ValueError(f"--log-every must be positive, got {args.log_every}.")
     if args.seq_len % args.chunk_size != 0:
@@ -116,6 +120,7 @@ class ChunkStepResult:
     ce_loss: Float[Tensor, ""]
     prediction_loss_sums: Float[Tensor, "levels"]
     prediction_counts: Int[Tensor, "levels"]
+    xblk_penalty: Float[Tensor, ""]
 
 
 def load_tinyshakespeare() -> TinyShakespeareData:
@@ -165,12 +170,14 @@ def make_log_payload(
     ce_loss: Tensor,
     prediction_losses: Tensor,
     prediction_counts: Tensor,
+    xblk_penalty: Tensor,
     total_loss: Tensor,
     wall_time_s: float,
 ) -> dict[str, object]:
     return {
         "step": step,
         "ce_loss": round(ce_loss.item(), 6),
+        "xblk_penalty": round(xblk_penalty.item(), 6),
         "total_loss": round(total_loss.item(), 6),
         "prediction_losses": [round(value, 6) for value in prediction_losses.detach().cpu().tolist()],
         "prediction_counts": [int(value) for value in prediction_counts.detach().cpu().tolist()],
@@ -262,6 +269,7 @@ class ChunkTrainer:
         device: torch.device,
         use_cuda_graph: bool,
         optimizers: list[LevelAdamW],
+        xblk_lambda: float,
     ) -> None:
         if device.type != "cuda":
             raise RuntimeError(f"ChunkTrainer requires a CUDA device, got {device}.")
@@ -273,6 +281,7 @@ class ChunkTrainer:
         self.vocab_size = vocab_size
         self.device = device
         self.optimizers = optimizers
+        self.xblk_lambda = xblk_lambda
         self.requested_cuda_graph = use_cuda_graph
         self.graph_active = False
         self.graph_failure_reason: str | None = None
@@ -299,6 +308,7 @@ class ChunkTrainer:
         self.static_prediction_loss_sums = torch.zeros((n_levels,), device=device, dtype=dtype)
         self.static_prediction_counts = torch.zeros((n_levels,), device=device, dtype=torch.long)
         self.static_prediction_losses = torch.zeros((n_levels,), device=device, dtype=dtype)
+        self.static_xblk_penalty = torch.zeros((), device=device, dtype=dtype)
 
         self.graph: torch.cuda.CUDAGraph | None = None
 
@@ -355,7 +365,8 @@ class ChunkTrainer:
             )
             * self.chunk_ce_scale
         )
-        total_loss = ce_loss + prediction_losses.sum()
+        xblk_penalty = self._cross_block_covariance_penalty(next_states)
+        total_loss = ce_loss + prediction_losses.sum() + xblk_penalty
 
         with torch.no_grad():
             self.static_chunk_logits.copy_(chunk_logits)
@@ -367,8 +378,23 @@ class ChunkTrainer:
             self.static_prediction_loss_sums.copy_(prediction_loss_sums)
             self.static_prediction_counts.copy_(prediction_counts)
             self.static_prediction_losses.copy_(prediction_losses)
+            self.static_xblk_penalty.copy_(xblk_penalty)
 
         total_loss.backward()
+
+    def _cross_block_covariance_penalty(
+        self,
+        states: Float[Tensor, "levels batch d_stream"],
+    ) -> Float[Tensor, ""]:
+        if self.xblk_lambda == 0.0:
+            return torch.zeros((), device=states.device, dtype=states.dtype)
+
+        centered_states = states.float() - states.float().mean(dim=1, keepdim=True)
+        covariance = torch.einsum("lbd,mbf->lmdf", centered_states, centered_states) / self.batch_size
+        upper_triangle = torch.triu_indices(self.model.n_levels, self.model.n_levels, offset=1, device=states.device)
+        pairwise_covariance = covariance[upper_triangle[0], upper_triangle[1]]
+        penalty = pairwise_covariance.square().sum().to(dtype=states.dtype)
+        return penalty * self.xblk_lambda
 
     def _try_initialize_graph(self) -> None:
         try:
@@ -433,6 +459,7 @@ class ChunkTrainer:
             ce_loss=self.static_ce_loss,
             prediction_loss_sums=self.static_prediction_loss_sums,
             prediction_counts=self.static_prediction_counts,
+            xblk_penalty=self.static_xblk_penalty,
         )
 
 
@@ -490,7 +517,9 @@ def main() -> None:
                 "n_levels": args.n_levels,
                 "steps_per_token": args.steps_per_token,
                 "d_stream": args.d_stream,
+                "loss_type": args.loss_type,
                 "use_cuda_graph": args.use_cuda_graph,
+                "xblk_lambda": args.xblk_lambda,
             },
             enabled=not args.no_lock,
         )
@@ -501,6 +530,7 @@ def main() -> None:
         n_levels=args.n_levels,
         steps_per_token=args.steps_per_token,
         noise_std=args.noise_std,
+        loss_type=args.loss_type,
     ).to(device)
     optimizers = [make_level_optimizer(model.level_parameters(level), lr=args.lr) for level in range(args.n_levels)]
     chunk_trainer = ChunkTrainer(
@@ -512,6 +542,7 @@ def main() -> None:
         device=device,
         use_cuda_graph=args.use_cuda_graph,
         optimizers=optimizers,
+        xblk_lambda=args.xblk_lambda,
     )
     maybe_print_cuda_graph_status(chunk_trainer)
 
@@ -537,6 +568,7 @@ def main() -> None:
         prediction_loss_sums = torch.zeros((args.n_levels,), device=device, dtype=model.token_embedding.weight.dtype)
         prediction_counts = torch.zeros((args.n_levels,), device=device, dtype=torch.long)
         ce_loss = torch.zeros((), device=device, dtype=model.token_embedding.weight.dtype)
+        xblk_penalty = torch.zeros((), device=device, dtype=model.token_embedding.weight.dtype)
 
         if device.type == "cuda":
             torch.cuda.synchronize(device)
@@ -556,6 +588,7 @@ def main() -> None:
             ce_loss = ce_loss + chunk_result.ce_loss
             prediction_loss_sums = prediction_loss_sums + chunk_result.prediction_loss_sums
             prediction_counts = prediction_counts + chunk_result.prediction_counts
+            xblk_penalty = xblk_penalty + chunk_result.xblk_penalty
 
         for optimizer in optimizers:
             optimizer.step()
@@ -572,12 +605,13 @@ def main() -> None:
             continue
 
         prediction_losses = model.prediction_losses_from_sums(prediction_loss_sums, prediction_counts)
-        total_loss = ce_loss + prediction_losses.sum()
+        total_loss = ce_loss + prediction_losses.sum() + xblk_penalty
         payload = make_log_payload(
             step=step,
             ce_loss=ce_loss,
             prediction_losses=prediction_losses,
             prediction_counts=prediction_counts,
+            xblk_penalty=xblk_penalty,
             total_loss=total_loss,
             wall_time_s=wall_time_s,
         )
@@ -606,8 +640,10 @@ def main() -> None:
             "steps_per_token": args.steps_per_token,
             "d_stream": args.d_stream,
             "noise_std": args.noise_std,
+            "loss_type": args.loss_type,
             "lr": args.lr,
             "chunk_size": args.chunk_size,
+            "xblk_lambda": args.xblk_lambda,
             "use_cuda_graph": args.use_cuda_graph,
         },
         "cuda_graph": {
