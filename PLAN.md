@@ -122,7 +122,7 @@ At every step, justify why we're not just running the real thing. If you can't j
 
 ---
 
-## Current state (2026-05-30 02:45 NZST)
+## Current state (2026-05-30 05:35 NZST)
 
 ### ✅ DONE:
 1. ✅ Delete ParallelDiagonalModel
@@ -130,11 +130,17 @@ At every step, justify why we're not just running the real thing. If you can't j
 3. ✅ Sanity check — CE drops 4.85→3.79 in 5 steps, model learns
 4. ✅ Vectorize across levels with bmm (10x speedup: 55s→5s per step at small scale)
 5. ✅ Delete dead automaton-irrelevant helpers from `core/training.py`, `core/run_utils.py`, and `core/dataset.py` (commit `b0f97fa`)
+6. ✅ **v1 training complete** (commit `b54615f`). 500 steps, ~3h17m. Results:
+   - CE: 3.54 → 2.30 (random baseline 4.17, so 1.87 nats below random)
+   - All 8 levels' prediction losses improved (no single-block collapse)
+   - Per-level differentiation present but mild: level 1 highest (0.0064), levels 3-4 lowest (0.0033)
+   - Model learning: confirmed
 
 ### 🏃 IN PROGRESS:
-6. **Training at scale** — PID 11124, lock active. 8 levels, 4 steps/token, d=128, seq=2048, batch 8, 500 steps. Started 02:10 NZST. As of 02:50 NZST the run has reached step 100/500. Current average wall time is ~23.17s/step, implying completion around ~05:25 NZST if pace holds.
-   - Log: `experiments/automaton/artifacts/run_v1.jsonl`
-   - Analysis: `.\.venv\Scripts\python.exe experiments/automaton/analyze.py`
+7. **Noise ablation** — PID 6704, lock active. Same config as v1 but `--noise-std 0.0`. Started 05:33 NZST. Expected completion ~08:50 NZST.
+   - Log: `experiments/automaton/artifacts/run_v1_no_noise.jsonl`
+   - Report: `experiments/automaton/artifacts/report_v1_no_noise.json`
+   - Question: Does removing noise change per-level differentiation? If noise doesn't matter, multi-rate timing alone creates the hierarchy.
 
 ### Performance notes (dictations 18-25):
 - torch.compile with fullgraph=True: TRACING SUCCEEDS (no graph breaks) but Triton not available on Windows. Inductor backend requires Triton.
@@ -142,13 +148,8 @@ At every step, justify why we're not just running the real thing. If you can't j
 - Full GPU-native execution (Triton kernels, CUDA graphs) would need Linux or a Windows Triton build.
 
 ### NEXT:
-   - Current signal: CE 3.5415 → 3.0104 by step 100; per-level prediction-loss gradient 1.215 → 1.666; all levels improving, no obvious single-block collapse yet.
-7. **Check training results when run completes** — run `analyze.py`, look at:
-   - Did CE plateau or keep improving? (step 40: 3.35, dropping at ~0.05/10 steps)
-   - Did per-level prediction losses differentiate? (early signal: ratio 1.5x, growing)
-   - Is one block doing all the work or are all levels contributing?
-8. **If results are positive**: run noise ablation (`--noise-std 0.0`, everything else same). This proves whether noise IS the mechanism creating differentiation, or if it's just multi-rate timing.
-9. **Write daily report** for 2026-05-30 when results are in.
+8. **When noise ablation completes**: compare per-level prediction losses between v1 (noise=0.1) and no-noise. Key metric: is differentiation pattern the same or different?
+9. **Write daily report** for 2026-05-30 once both results are in (or at 4pm, whichever first).
 10. **Optional later cleanup**: consider whether `core/fixed_window_char.py` should move under `base-experiments/` or stay as shared legacy utility. No action needed now.
 
 ---
