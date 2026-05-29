@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -11,10 +12,10 @@ if __package__ is None or __package__ == "":
 
 import torch
 from jaxtyping import Int
-from torch import Tensor
+from torch import Tensor, nn
 from torch.nn import functional as F
 
-from core.automaton import CellularAutomaton, count_parameters
+from core.automaton import CellularAutomaton, ParameterSlice, count_parameters
 from core.run_utils import (
     append_log,
     prepare_output_paths,
@@ -23,6 +24,9 @@ from core.run_utils import (
     resolve_device,
 )
 from core.training import current_git_sha, current_git_status_short, write_json
+
+
+torch.backends.cuda.matmul.allow_tf32 = True
 
 
 def parse_args() -> argparse.Namespace:
@@ -35,6 +39,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--d-stream", type=int, default=128)
     parser.add_argument("--noise-std", type=float, default=0.1)
     parser.add_argument("--lr", type=float, default=3e-4)
+    parser.add_argument("--chunk-size", type=int, default=128)
     parser.add_argument("--sanity-check-only", action="store_true")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--device", type=str, default=None)
@@ -68,8 +73,12 @@ def parse_args() -> argparse.Namespace:
         raise ValueError(f"--noise-std must be non-negative, got {args.noise_std}.")
     if args.lr <= 0.0:
         raise ValueError(f"--lr must be positive, got {args.lr}.")
+    if args.chunk_size <= 0:
+        raise ValueError(f"--chunk-size must be positive, got {args.chunk_size}.")
     if args.log_every <= 0:
         raise ValueError(f"--log-every must be positive, got {args.log_every}.")
+    if args.seq_len % args.chunk_size != 0:
+        raise ValueError(f"--seq-len must be divisible by --chunk-size, got seq_len={args.seq_len}, chunk_size={args.chunk_size}.")
 
     if args.sanity_check_only:
         args.steps = 5
@@ -141,14 +150,89 @@ def make_log_payload(
     prediction_losses: Tensor,
     prediction_counts: Tensor,
     total_loss: Tensor,
+    wall_time_s: float,
 ) -> dict[str, object]:
-    return {
+    payload = {
         "step": step,
         "ce_loss": round(ce_loss.item(), 6),
         "total_loss": round(total_loss.item(), 6),
         "prediction_losses": [round(value, 6) for value in prediction_losses.detach().cpu().tolist()],
         "prediction_counts": [int(value) for value in prediction_counts.detach().cpu().tolist()],
+        "wall_time_s": round(wall_time_s, 6),
     }
+    return payload
+
+
+def make_level_optimizer(
+    parameter_slices: list[ParameterSlice],
+    *,
+    lr: float,
+) -> "LevelAdamW":
+    return LevelAdamW(parameter_slices, lr=lr)
+
+
+class LevelAdamW:
+    def __init__(
+        self,
+        parameter_slices: list[ParameterSlice],
+        *,
+        lr: float,
+        betas: tuple[float, float] = (0.9, 0.999),
+        eps: float = 1e-8,
+        weight_decay: float = 1e-2,
+    ) -> None:
+        self.parameter_slices = parameter_slices
+        self.lr = lr
+        self.beta1, self.beta2 = betas
+        self.eps = eps
+        self.weight_decay = weight_decay
+        self.state: dict[tuple[int, int], dict[str, Tensor | int]] = {}
+
+    def zero_grad(self, *, set_to_none: bool = True) -> None:
+        for parameter_slice in self.parameter_slices:
+            grad = parameter_slice.parameter.grad
+            if grad is None:
+                continue
+            if set_to_none:
+                grad[parameter_slice.level] = 0
+            else:
+                grad[parameter_slice.level].zero_()
+
+    @torch.no_grad()
+    def step(self) -> None:
+        for parameter_slice in self.parameter_slices:
+            parameter = parameter_slice.parameter
+            grad = parameter.grad
+            if grad is None:
+                continue
+            level = parameter_slice.level
+            level_grad = grad[level]
+            if self.weight_decay != 0.0:
+                parameter[level].mul_(1 - (self.lr * self.weight_decay))
+
+            state_key = (id(parameter), level)
+            state = self.state.get(state_key)
+            if state is None:
+                state = {
+                    "step": 0,
+                    "exp_avg": torch.zeros_like(parameter[level]),
+                    "exp_avg_sq": torch.zeros_like(parameter[level]),
+                }
+                self.state[state_key] = state
+
+            exp_avg = state["exp_avg"]
+            exp_avg_sq = state["exp_avg_sq"]
+            step = int(state["step"]) + 1
+            state["step"] = step
+
+            exp_avg.mul_(self.beta1).add_(level_grad, alpha=1 - self.beta1)
+            exp_avg_sq.mul_(self.beta2).addcmul_(level_grad, level_grad, value=1 - self.beta2)
+
+            bias_correction1 = 1 - (self.beta1**step)
+            bias_correction2 = 1 - (self.beta2**step)
+            step_size = self.lr / bias_correction1
+            denom = exp_avg_sq.sqrt().div_(bias_correction2**0.5).add_(self.eps)
+            parameter[level].addcdiv_(exp_avg, denom, value=-step_size)
 
 
 def main() -> None:
@@ -178,7 +262,7 @@ def main() -> None:
         steps_per_token=args.steps_per_token,
         noise_std=args.noise_std,
     ).to(device)
-    optimizers = [torch.optim.AdamW(model.level_parameters(level), lr=args.lr) for level in range(args.n_levels)]
+    optimizers = [make_level_optimizer(model.level_parameters(level), lr=args.lr) for level in range(args.n_levels)]
     rng = torch.Generator(device="cpu")
     rng.manual_seed(args.seed)
 
@@ -191,9 +275,51 @@ def main() -> None:
             device=device,
             generator=rng,
         )
-        output = model(inputs)
-        ce_loss = F.cross_entropy(output.logits.reshape(-1, data.vocab_size), targets.reshape(-1))
-        total_loss = ce_loss + output.total_prediction_loss
+
+        step_started_at = time.perf_counter()
+        states, lateral_buffers, predictions, has_predicted = model.initial_recurrent_state(args.batch_size, device=device)
+        logits_chunks: list[Tensor] = []
+        prediction_loss_sums = torch.zeros((args.n_levels,), device=device, dtype=model.token_embedding.weight.dtype)
+        prediction_counts = torch.zeros((args.n_levels,), device=device, dtype=torch.long)
+
+        for chunk_start in range(0, args.seq_len, args.chunk_size):
+            chunk_stop = chunk_start + args.chunk_size
+            chunk_inputs = inputs[:, chunk_start:chunk_stop]
+            chunk_global_step_offset = torch.tensor(
+                chunk_start * args.steps_per_token,
+                device=device,
+                dtype=torch.long,
+            )
+            (
+                chunk_logits,
+                states,
+                lateral_buffers,
+                predictions,
+                has_predicted,
+                chunk_loss_sums,
+                chunk_counts,
+            ) = model.forward_chunk(
+                chunk_inputs,
+                states,
+                lateral_buffers,
+                predictions,
+                has_predicted,
+                chunk_global_step_offset,
+            )
+            logits_chunks.append(chunk_logits)
+            prediction_loss_sums = prediction_loss_sums + chunk_loss_sums
+            prediction_counts = prediction_counts + chunk_counts
+            states, lateral_buffers, predictions, has_predicted = model.detach_recurrent_state(
+                states,
+                lateral_buffers,
+                predictions,
+                has_predicted,
+            )
+
+        logits = torch.cat(logits_chunks, dim=1)
+        prediction_losses = model.prediction_losses_from_sums(prediction_loss_sums, prediction_counts)
+        ce_loss = F.cross_entropy(logits.reshape(-1, data.vocab_size), targets.reshape(-1))
+        total_loss = ce_loss + prediction_losses.sum()
 
         for optimizer in optimizers:
             optimizer.zero_grad(set_to_none=True)
@@ -201,15 +327,20 @@ def main() -> None:
         for optimizer in optimizers:
             optimizer.step()
 
+        if device.type == "cuda":
+            torch.cuda.synchronize(device)
+        wall_time_s = time.perf_counter() - step_started_at
+
         if step % args.log_every != 0 and step != args.steps:
             continue
 
         payload = make_log_payload(
             step=step,
             ce_loss=ce_loss,
-            prediction_losses=output.prediction_losses,
-            prediction_counts=output.prediction_counts,
+            prediction_losses=prediction_losses,
+            prediction_counts=prediction_counts,
             total_loss=total_loss,
+            wall_time_s=wall_time_s,
         )
         last_payload = payload
         if not args.sanity_check_only:
@@ -237,6 +368,7 @@ def main() -> None:
             "d_stream": args.d_stream,
             "noise_std": args.noise_std,
             "lr": args.lr,
+            "chunk_size": args.chunk_size,
         },
         "final": last_payload,
     }
