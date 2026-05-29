@@ -148,9 +148,11 @@ At every step, justify why we're not just running the real thing. If you can't j
 - Full GPU-native execution (Triton kernels, CUDA graphs) would need Linux or a Windows Triton build.
 
 ### NEXT:
-8. **When noise ablation completes**: compare per-level prediction losses between v1 (noise=0.1) and no-noise. Key metric: is differentiation pattern the same or different?
-9. **Write daily report** for 2026-05-30 once both results are in (or at 4pm, whichever first).
-10. **Optional later cleanup**: consider whether `core/fixed_window_char.py` should move under `base-experiments/` or stay as shared legacy utility. No action needed now.
+8. **When noise ablation completes (~09:15 NZST)**: run `python experiments/automaton/analyze.py --log-path experiments/automaton/artifacts/run_v1_no_noise.jsonl`, compare per-level prediction losses between v1 (noise=0.1) and no-noise. Key metric: is the U-shaped differentiation pattern the same or different?
+9. **Write daily report** for 2026-05-30 once ablation finishes. Include: noise ablation comparison, one-way-upward finding, project wrap-up.
+10. **Write final weekly** — synthesize the full week: piece validation → course correction → automaton build → v1 training → noise ablation.
+11. Commit noise ablation artifacts, both reports, push.
+12. Clean up TASK-current.ignore.md (it served its purpose).
 
 ---
 
