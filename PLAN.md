@@ -122,7 +122,7 @@ At every step, justify why we're not just running the real thing. If you can't j
 
 ---
 
-## Current state (2026-05-30 08:55 NZST)
+## Current state (2026-05-30 11:43 NZST)
 
 ### ✅ DONE:
 1. ✅ Delete ParallelDiagonalModel
@@ -137,32 +137,37 @@ At every step, justify why we're not just running the real thing. If you can't j
    - Prediction losses much lower without noise: L1-L3 ≈ 0.0008 (vs 0.004-0.006 with noise)
    - Noise forces genuine prediction; without it, blocks just pass exact copies
    - U-shaped differentiation is caused by noise, not timing structure alone
+9. ✅ **Local learning signal theory brief** — `research/questions/local-learning-signal/README.md`
+   - Surveys 7 approaches ranked for async/stale compatibility
+   - Top candidate: InfoNCE + cross-block covariance penalty
+   - Proposed 30-second ablation experiments for each candidate
 
 ### Scale-up testing (dictation 30-02):
-- d_stream=512, batch=4: works, 8.8s/step, ~3.2GB VRAM
+- d_stream=512, batch=4: works, 8.8s/step, ~3.2GB VRAM (CUDA graphs)
 - d_stream=1024, batch=4: works, 36s/step (too slow for the gain)
 - d_stream=512, batch=16: OOM during CUDA graph capture
-- d_stream=512, batch=8: **GPU LOST** — OOM crashed the CUDA driver
-- **⚠️ GPU is currently unrecoverable without reboot.** `nvidia-smi` reports "GPU is lost."
+- d_stream=512, batch=8: OOM crashed the CUDA driver
 
-### ⚠️ New direction (dictation 30-03): MSE prediction loss is garbage
-- Core open question: what should the local learning signal be at each block?
-- Three parallel tracks: (1) theory/research, (2) fast ablations, (3) long training run with best config
-- Research directions: biological local learning rules, predictive coding, contrastive Hebbian learning, communication through coherence, phase-amplitude coupling
-- Key question: what signal makes blocks learn something useful AND different from neighbors?
-- Connects to: ROADMAP Pathway 3 (Local Learning)
+### ⚠️ MIGRATING TO LINUX (dictation 30-01 + Max instruction)
 
-### BLOCKED:
-- **GPU requires reboot to recover.** Cannot run any more experiments until Max reboots.
-- Tracks 2 and 3 (ablations, training run) blocked on GPU.
-- Track 1 (theory/research) can proceed without GPU.
+Max is rebooting into Manjaro Linux for the remainder of the project (last ~1.5 days). Reason: Triton is available on Linux, enabling torch.compile with Inductor backend (not just CUDA graphs). This should give further speedup beyond the 17x already achieved.
 
-### NEXT:
-9. **Track 1 — theory research** on local learning signals (no GPU needed)
-10. Write daily report for 2026-05-30
-11. Write final weekly synthesis
-12. After reboot: launch scaled-up training (d_stream=512, batch=4, best loss variant)
-13. Commit all artifacts and reports, push
+### Three parallel tracks (dictation 30-03):
+1. **Theory/research** — ✅ DONE for now (local learning signal brief)
+2. **Fast ablations** — 30-second probes testing different local loss variants (needs GPU)
+3. **Training run** — long run with current best config, scaled up (needs GPU)
+
+### NEXT (on Linux):
+1. Clone this repo
+2. Set up Python venv with UV, install PyTorch + Triton
+3. Verify torch.compile works (Inductor backend)
+4. Try torch.compile on the automaton model — may be faster than manual CUDA graphs
+5. Scale up: d_stream=512, batch=4-8, noise=0.1
+6. Implement InfoNCE loss variant (from local learning signal brief)
+7. Run Track 2 ablations: nce-vs-mse, vicreg-xblk, etc.
+8. Run Track 3 training with best config
+9. Write daily report for 2026-05-30
+10. Write final weekly synthesis
 
 ---
 
