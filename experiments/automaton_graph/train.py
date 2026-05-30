@@ -44,9 +44,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--cross-band-negatives", action="store_true", help="Use other bands as negatives in InfoNCE (anti-redundancy)")
     parser.add_argument("--attention-readout", action="store_true", help="Use attention over all module states instead of mean band-0")
     parser.add_argument("--detach-readout", action="store_true", help="Detach module states before attention readout (no CE gradient into modules)")
+    parser.add_argument("--band0-local-loss", action="store_true", help="Let band 0 learn from local prediction loss")
     parser.add_argument("--per-band-ce", action="store_true", help="Add per-band horizon cross-entropy loss")
     parser.add_argument("--hierarchical-targets", action="store_true", help="Band k predicts the mean state of band k-1")
     parser.add_argument("--streaming", action="store_true", help="Stateful streaming training (no state reset between chunks)")
+    parser.add_argument("--sanity-check-only", action="store_true")
     args = parser.parse_args()
 
     if args.steps <= 0:
@@ -61,6 +63,8 @@ def parse_args() -> argparse.Namespace:
         raise ValueError(f"--log-every must be positive, got {args.log_every}.")
     if args.save_every <= 0:
         raise ValueError(f"--save-every must be positive, got {args.save_every}.")
+    if args.sanity_check_only:
+        args.steps = min(args.steps, 5)
     return args
 
 
@@ -195,7 +199,7 @@ def main() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     data = load_tinyshakespeare(repo_root)
 
-    model = GraphCellularAutomaton(vocab_size=data.vocab_size, multi_scale_input=args.multi_scale_input, temporal_targets=args.temporal_targets, cross_band_negatives=args.cross_band_negatives, attention_readout=args.attention_readout, detach_readout=args.detach_readout, per_band_ce=args.per_band_ce, hierarchical_targets=args.hierarchical_targets).to(device)
+    model = GraphCellularAutomaton(vocab_size=data.vocab_size, multi_scale_input=args.multi_scale_input, temporal_targets=args.temporal_targets, cross_band_negatives=args.cross_band_negatives, attention_readout=args.attention_readout, detach_readout=args.detach_readout, per_band_ce=args.per_band_ce, hierarchical_targets=args.hierarchical_targets, band0_local_loss=args.band0_local_loss).to(device)
     model.train()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     generator = torch.Generator(device="cpu")

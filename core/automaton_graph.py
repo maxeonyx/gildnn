@@ -62,6 +62,7 @@ class GraphCellularAutomaton(nn.Module):
         detach_readout: bool = False,
         per_band_ce: bool = False,
         hierarchical_targets: bool = False,
+        band0_local_loss: bool = False,
     ) -> None:
         super().__init__()
         if vocab_size <= 0:
@@ -117,6 +118,7 @@ class GraphCellularAutomaton(nn.Module):
         self.detach_readout = detach_readout
         self.per_band_ce = per_band_ce
         self.hierarchical_targets = hierarchical_targets
+        self.band0_local_loss = band0_local_loss
 
         self.token_embedding = nn.Embedding(vocab_size, d_stream)
         self.w1 = nn.Parameter(torch.empty(self.n_modules, d_stream, self.d_hidden))
@@ -426,6 +428,11 @@ class GraphCellularAutomaton(nn.Module):
                 prediction_target = l2_normalize(band_means[lower_band_idx])
             else:
                 prediction_target = l2_normalize(neighbor_sum)
+            if self.band0_local_loss:
+                prediction_target = prediction_target.clone()
+                prediction_target[self.band0_mask] = l2_normalize(
+                    neighbor_sum[self.band0_mask] + token_embeddings[:, token_index, :]
+                )
             combined = current_states + neighbor_sum
             combined = combined.clone()
             if self.multi_scale_input:
@@ -450,14 +457,17 @@ class GraphCellularAutomaton(nn.Module):
                 prediction_errors = self._prediction_errors(current_predictions, temporal_target_expanded.detach(), current_global_buffer)
             else:
                 prediction_errors = self._prediction_errors(current_predictions, prediction_target.detach(), current_global_buffer)
-            prediction_errors[self.band0_mask] = 0.0
+            if not self.band0_local_loss:
+                prediction_errors[self.band0_mask] = 0.0
             prediction_loss_sums = prediction_loss_sums + (
                 prediction_errors * active_predictions.to(dtype=prediction_errors.dtype)
             )
             prediction_counts = prediction_counts + active_predictions.to(dtype=torch.long)
-            non_band0_active = active_predictions.clone()
-            non_band0_active[self.band0_mask] = False
-            self._update_contrastive_buffer(prediction_target.detach(), non_band0_active)
+            contrastive_active = active_predictions
+            if not self.band0_local_loss:
+                contrastive_active = active_predictions.clone()
+                contrastive_active[self.band0_mask] = False
+            self._update_contrastive_buffer(prediction_target.detach(), contrastive_active)
 
             hidden = F.gelu(self._stacked_linear(combined, self.w1, self.b1))
             output = self._stacked_linear(hidden, self.w2, self.b2)
