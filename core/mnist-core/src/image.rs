@@ -207,7 +207,9 @@ pub fn build_autoregressive_panel(
         ));
     }
     if seeds.is_empty() {
-        return Err(anyhow!("cannot build autoregressive panel for empty inputs"));
+        return Err(anyhow!(
+            "cannot build autoregressive panel for empty inputs"
+        ));
     }
 
     let patches_per_side = MNIST_IMAGE_SIDE / patch_size;
@@ -222,7 +224,9 @@ pub fn build_autoregressive_panel(
         let observed = &seeds[column];
         let generated = &completions[column];
         if observed.len() < token_count || generated.len() < token_count {
-            return Err(anyhow!("token sequence too short for MNIST patch reconstruction"));
+            return Err(anyhow!(
+                "token sequence too short for MNIST patch reconstruction"
+            ));
         }
 
         for py in 0..patches_per_side {
@@ -267,94 +271,34 @@ pub fn build_autoregressive_panel(
 fn render_digit_mask(digit: usize) -> Vec<f32> {
     const FONT: [[&str; 7]; 10] = [
         [
-            "  ###  ",
-            " #   # ",
-            "#     #",
-            "#     #",
-            "#     #",
-            " #   # ",
-            "  ###  ",
+            "  ###  ", " #   # ", "#     #", "#     #", "#     #", " #   # ", "  ###  ",
         ],
         [
-            "   #   ",
-            "  ##   ",
-            " # #   ",
-            "   #   ",
-            "   #   ",
-            "   #   ",
-            " ##### ",
+            "   #   ", "  ##   ", " # #   ", "   #   ", "   #   ", "   #   ", " ##### ",
         ],
         [
-            " ##### ",
-            "#     #",
-            "      #",
-            "   ### ",
-            "  #    ",
-            " #     ",
-            "#######",
+            " ##### ", "#     #", "      #", "   ### ", "  #    ", " #     ", "#######",
         ],
         [
-            " ##### ",
-            "#     #",
-            "      #",
-            " ##### ",
-            "      #",
-            "#     #",
-            " ##### ",
+            " ##### ", "#     #", "      #", " ##### ", "      #", "#     #", " ##### ",
         ],
         [
-            "    ## ",
-            "   # # ",
-            "  #  # ",
-            " #   # ",
-            "#######",
-            "     # ",
-            "     # ",
+            "    ## ", "   # # ", "  #  # ", " #   # ", "#######", "     # ", "     # ",
         ],
         [
-            "#######",
-            "#      ",
-            "#      ",
-            "###### ",
-            "      #",
-            "#     #",
-            " ##### ",
+            "#######", "#      ", "#      ", "###### ", "      #", "#     #", " ##### ",
         ],
         [
-            "  #### ",
-            " #     ",
-            "#      ",
-            "###### ",
-            "#     #",
-            "#     #",
-            " ##### ",
+            "  #### ", " #     ", "#      ", "###### ", "#     #", "#     #", " ##### ",
         ],
         [
-            "#######",
-            "     # ",
-            "    #  ",
-            "   #   ",
-            "  #    ",
-            " #     ",
-            "#      ",
+            "#######", "     # ", "    #  ", "   #   ", "  #    ", " #     ", "#      ",
         ],
         [
-            " ##### ",
-            "#     #",
-            "#     #",
-            " ##### ",
-            "#     #",
-            "#     #",
-            " ##### ",
+            " ##### ", "#     #", "#     #", " ##### ", "#     #", "#     #", " ##### ",
         ],
         [
-            " ##### ",
-            "#     #",
-            "#     #",
-            " ######",
-            "      #",
-            "     # ",
-            " ####  ",
+            " ##### ", "#     #", "#     #", " ######", "      #", "     # ", " ####  ",
         ],
     ];
 

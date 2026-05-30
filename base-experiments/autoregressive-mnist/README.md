@@ -17,9 +17,17 @@ We reset this experiment to its simplest useful form: a tiny decoder-only transf
    - Token construction for one digit (prefix/next-token pairs).
    - Training curves for both train/test metrics.
    - Sampled completions at early, mid, and late training checkpoints.
-5. After the baseline trains end-to-end, snapshot `config.json`, `benchmark.json`, and regenerate `report.md` directly from the harness.
+5. After the baseline trains end-to-end, snapshot `config.json`, `expected.json`, `report.md`.
 
 ## Guardrails
 - If new ideas pop up (patches, sampling tricks, etc.), capture them in follow-up experiments (`autoregressive-patch-mnist`, `autoregressive-mnist-sampling-orders`) instead of expanding this crate.
 - Keep the implementation runnable on CPU with batch sizes ≤32 so iterative development stays quick.
 - Regenerate the deterministic report after every meaningful change to keep the artefact canonical.
+
+## Experiment Status
+
+- ✅ Directory created with report scaffolding.
+- ⬜ Complete the report scaffold.
+- ⬜ Implement the visualizations and generate the report prior to training.
+- ⬜ Implement the downsampled pixel transformer and deterministic training loop, run training.
+- ⬜ Create the smaller `test` mode configuration and generate `expected.json` for use by the test harness.

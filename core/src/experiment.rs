@@ -36,6 +36,7 @@ impl ExperimentMode {
 pub struct ExperimentModeArgs {
     mode: ExperimentMode,
     help_requested: bool,
+    generate_expected: bool,
 }
 
 impl ExperimentModeArgs {
@@ -49,6 +50,7 @@ impl ExperimentModeArgs {
     {
         let mut mode: Option<ExperimentMode> = None;
         let mut help_requested = false;
+        let mut generate_expected = false;
         let mut iter = args.into_iter();
 
         while let Some(arg) = iter.next() {
@@ -59,6 +61,8 @@ impl ExperimentModeArgs {
                 mode = Some(ExperimentMode::from_str(&value)?);
             } else if arg == "--help" || arg == "-h" {
                 help_requested = true;
+            } else if arg == "--generate-expected" || arg == "-g" {
+                generate_expected = true;
             } else if let Some(mode_value) = arg.strip_prefix("--mode=") {
                 mode = Some(ExperimentMode::from_str(mode_value)?);
             } else {
@@ -69,6 +73,7 @@ impl ExperimentModeArgs {
         Ok(Self {
             mode: mode.unwrap_or(ExperimentMode::Full),
             help_requested,
+            generate_expected,
         })
     }
 
@@ -78,5 +83,9 @@ impl ExperimentModeArgs {
 
     pub fn mode(&self) -> ExperimentMode {
         self.mode
+    }
+
+    pub fn generate_expected(&self) -> bool {
+        self.generate_expected
     }
 }

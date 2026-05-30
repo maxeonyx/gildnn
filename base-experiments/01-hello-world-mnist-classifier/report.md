@@ -70,7 +70,9 @@ Each hypothesis panel stacks the MNIST input row (top) with the expected digit r
 - Seed: 1337
 - Batch size: 64
 - Hidden units: 128
-- Train steps: 200
+- Train steps (full mode): 200
+- Train steps (test mode): 25
+- Train steps (this run): 200
 - Learning rate: 0.0010
 - Five-shot evaluation batches: 5
 <!-- OUTPUTSLOT:configuration end -->

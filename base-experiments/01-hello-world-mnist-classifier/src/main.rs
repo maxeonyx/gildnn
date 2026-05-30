@@ -43,14 +43,10 @@ use serde::{Deserialize, Serialize};
 
 const INPUT_DIM: usize = MNIST_PIXEL_COUNT;
 const NUM_CLASSES: usize = 10;
-const HIDDEN_DIM: usize = 128;
 const BATCH_SIZE: usize = 64;
 const LEARNING_RATE: f64 = 1e-3;
 const TEST_FIVE_SHOT_BATCHES: usize = 5;
 const FIVE_SHOT_STEP: usize = 10;
-const FULL_TRAIN_STEPS: usize = 200;
-const TEST_TRAIN_STEPS: usize = 25;
-const BENCHMARK_TOLERANCE: f32 = 5e-3;
 const DATASET_ROW_COUNT: usize = DEFAULT_PANEL_DIGITS;
 const HYPOTHESIS_SAMPLE_COUNT: usize = 50;
 const SNAPSHOT_SAMPLE_COUNT: usize = 10;
@@ -61,25 +57,52 @@ type TrainingBackend = Autodiff<Candle<f32, i64>>;
 #[derive(Serialize, Deserialize)]
 struct ExperimentConfig {
     seed: u64,
+    #[serde(default = "default_model_config")]
+    model: ModelConfig,
+    #[serde(default = "default_train_schedule")]
+    train_steps: TrainSchedule,
+}
+
+#[derive(Serialize, Deserialize)]
+struct ModelConfig {
+    hidden_dim: usize,
+}
+
+#[derive(Serialize, Deserialize)]
+struct TrainSchedule {
+    full: usize,
+    test: usize,
+}
+
+fn default_model_config() -> ModelConfig {
+    ModelConfig { hidden_dim: 128 }
+}
+
+fn default_train_schedule() -> TrainSchedule {
+    TrainSchedule {
+        full: 200,
+        test: 25,
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-struct BenchmarkSnapshot {
-    #[serde(default = "default_benchmark_train_steps")]
+struct ExperimentSnapshot {
+    #[serde(default = "default_snapshot_train_steps")]
     train_steps: usize,
     final_train: StepMetrics,
     final_test: EvaluationMetrics,
     five_shot: Option<EvaluationMetrics>,
 }
 
-const fn default_benchmark_train_steps() -> usize {
-    TEST_TRAIN_STEPS
+fn default_snapshot_train_steps() -> usize {
+    default_train_schedule().test
 }
 
 struct ExperimentPaths {
     config: PathBuf,
     report: PathBuf,
-    benchmark: PathBuf,
+    expected: PathBuf,
+    actual: PathBuf,
 }
 
 struct ExperimentResult {
@@ -121,10 +144,10 @@ struct MnistClassifier<B: burn::tensor::backend::Backend> {
 }
 
 impl<B: burn::tensor::backend::Backend> MnistClassifier<B> {
-    fn init(device: &B::Device, seed: u64) -> Self {
+    fn init(device: &B::Device, seed: u64, hidden_dim: usize) -> Self {
         let mut rng = seeded_rng(seed);
-        let hidden = linear_from_rng::<B>(&mut rng, device, INPUT_DIM, HIDDEN_DIM);
-        let output = linear_from_rng::<B>(&mut rng, device, HIDDEN_DIM, NUM_CLASSES);
+        let hidden = linear_from_rng::<B>(&mut rng, device, INPUT_DIM, hidden_dim);
+        let output = linear_from_rng::<B>(&mut rng, device, hidden_dim, NUM_CLASSES);
 
         Self { hidden, output }
     }
@@ -144,11 +167,14 @@ fn main() -> Result<()> {
     let mode = mode_args.mode();
 
     let paths = initialize_paths()?;
-    let config: ExperimentConfig = load_or_init(&paths.config, || ExperimentConfig { seed: 1337 })?;
+    let config: ExperimentConfig = load_or_init(&paths.config, || ExperimentConfig {
+        seed: 1337,
+        model: default_model_config(),
+        train_steps: default_train_schedule(),
+    })?;
     ensure_report_file(&paths.report)?;
-    let benchmark = load_benchmark(&paths.benchmark)?;
 
-    let train_steps = mode.select(FULL_TRAIN_STEPS, TEST_TRAIN_STEPS);
+    let train_steps = mode.select(config.train_steps.full, config.train_steps.test);
     println!("running MNIST baseline in {} mode", mode.label());
 
     let result = run_training(train_steps, &config)?;
@@ -157,35 +183,29 @@ fn main() -> Result<()> {
         write_report(&paths.report, &config, train_steps, &result)?;
     }
 
-    match mode {
-        ExperimentMode::Full => {
-            if benchmark.is_none() {
-                println!(
-                    "no benchmark snapshot recorded yet; run with --mode test to capture one."
-                );
-            }
+    if matches!(mode, ExperimentMode::Full) && !paths.expected.exists() {
+        println!("no expected snapshot recorded yet; run with --mode test to capture one.");
+    }
+
+    if matches!(mode, ExperimentMode::Test) {
+        let snapshot = ExperimentSnapshot {
+            train_steps,
+            final_train: result.final_train.clone(),
+            final_test: result.final_test,
+            five_shot: result.five_shot,
+        };
+        save_snapshot(&paths.actual, &snapshot)?;
+        if mode_args.generate_expected() {
+            save_snapshot(&paths.expected, &snapshot)?;
+            println!(
+                "updated expected snapshot at {}",
+                paths.expected.display()
+            );
         }
-        ExperimentMode::Test => {
-            let snapshot = BenchmarkSnapshot {
-                train_steps,
-                final_train: result.final_train.clone(),
-                final_test: result.final_test,
-                five_shot: result.five_shot,
-            };
-            if let Some(reference) = benchmark {
-                validate_benchmark(&snapshot, &reference)?;
-                println!(
-                    "benchmark check passed (tolerance {:.1e})",
-                    BENCHMARK_TOLERANCE
-                );
-            } else {
-                save_benchmark(&paths.benchmark, &snapshot)?;
-                println!(
-                    "saved new benchmark snapshot to {}",
-                    paths.benchmark.display()
-                );
-            }
-        }
+        println!(
+            "wrote test snapshot to {} (compare against expected.json separately)",
+            paths.actual.display()
+        );
     }
 
     Ok(())
@@ -203,13 +223,15 @@ fn initialize_paths() -> Result<ExperimentPaths> {
     Ok(ExperimentPaths {
         config: dir.join("config.json"),
         report: dir.join("report.md"),
-        benchmark: dir.join("benchmark.json"),
+        expected: dir.join("expected.json"),
+        actual: dir.join("actual.ignore.json"),
     })
 }
 
 fn run_training(train_steps: usize, config: &ExperimentConfig) -> Result<ExperimentResult> {
     let device = CandleDevice::Cpu;
-    let mut model: MnistClassifier<TrainingBackend> = MnistClassifier::init(&device, config.seed);
+    let mut model: MnistClassifier<TrainingBackend> =
+        MnistClassifier::init(&device, config.seed, config.model.hidden_dim);
     let mut optimizer = AdamConfig::new().init();
     let loss_fn = CrossEntropyLossConfig::new().init(&device);
 
@@ -466,8 +488,15 @@ fn render_dataset_section(
 
 fn render_configuration_section(config: &ExperimentConfig, train_steps: usize) -> String {
     format!(
-        "- Seed: {}\n- Batch size: {}\n- Hidden units: {}\n- Train steps: {}\n- Learning rate: {:.4}\n- Five-shot evaluation batches: {}\n",
-        config.seed, BATCH_SIZE, HIDDEN_DIM, train_steps, LEARNING_RATE, TEST_FIVE_SHOT_BATCHES
+        "- Seed: {}\n- Batch size: {}\n- Hidden units: {}\n- Train steps (full mode): {}\n- Train steps (test mode): {}\n- Train steps (this run): {}\n- Learning rate: {:.4}\n- Five-shot evaluation batches: {}\n",
+        config.seed,
+        BATCH_SIZE,
+        config.model.hidden_dim,
+        config.train_steps.full,
+        config.train_steps.test,
+        train_steps,
+        LEARNING_RATE,
+        TEST_FIVE_SHOT_BATCHES,
     )
 }
 
@@ -818,106 +847,15 @@ fn random_tensor<B: Backend, const D: usize>(
     Tensor::<B, D>::from_floats(TensorData::new(values, shape), device)
 }
 
-fn load_benchmark(path: &Path) -> Result<Option<BenchmarkSnapshot>> {
-    if path.exists() {
-        let contents = fs::read_to_string(path)
-            .with_context(|| format!("failed to read benchmark from {}", path.display()))?;
-        let snapshot = serde_json::from_str(&contents)
-            .with_context(|| format!("failed to parse benchmark at {}", path.display()))?;
-        Ok(Some(snapshot))
-    } else {
-        Ok(None)
-    }
-}
-
-fn save_benchmark(path: &Path, snapshot: &BenchmarkSnapshot) -> Result<()> {
+fn save_snapshot(path: &Path, snapshot: &ExperimentSnapshot) -> Result<()> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)
             .with_context(|| format!("failed to create directory {}", parent.display()))?;
     }
     let serialized = serde_json::to_string_pretty(snapshot)?;
     fs::write(path, serialized)
-        .with_context(|| format!("failed to write benchmark to {}", path.display()))?;
+        .with_context(|| format!("failed to write snapshot to {}", path.display()))?;
     Ok(())
-}
-
-fn validate_benchmark(actual: &BenchmarkSnapshot, reference: &BenchmarkSnapshot) -> Result<()> {
-    if actual.train_steps != reference.train_steps {
-        return Err(anyhow!(
-            "train step count mismatch (expected {}, found {})",
-            reference.train_steps,
-            actual.train_steps
-        ));
-    }
-    ensure_close(
-        actual.final_train.step as f32,
-        reference.final_train.step as f32,
-        0.5,
-        "train steps",
-    )?;
-    ensure_close(
-        actual.final_train.loss,
-        reference.final_train.loss,
-        BENCHMARK_TOLERANCE,
-        "final train loss",
-    )?;
-    ensure_close(
-        actual.final_train.accuracy,
-        reference.final_train.accuracy,
-        BENCHMARK_TOLERANCE,
-        "final train accuracy",
-    )?;
-    ensure_close(
-        actual.final_test.loss,
-        reference.final_test.loss,
-        BENCHMARK_TOLERANCE,
-        "final test loss",
-    )?;
-    ensure_close(
-        actual.final_test.accuracy,
-        reference.final_test.accuracy,
-        BENCHMARK_TOLERANCE,
-        "final test accuracy",
-    )?;
-
-    match (&actual.five_shot, &reference.five_shot) {
-        (Some(actual), Some(reference)) => {
-            ensure_close(
-                actual.loss,
-                reference.loss,
-                BENCHMARK_TOLERANCE,
-                "five-shot loss",
-            )?;
-            ensure_close(
-                actual.accuracy,
-                reference.accuracy,
-                BENCHMARK_TOLERANCE,
-                "five-shot accuracy",
-            )?;
-        }
-        (None, None) => {}
-        _ => {
-            return Err(anyhow!(
-                "five-shot availability changed between runs; update benchmark if this is intentional"
-            ));
-        }
-    }
-
-    Ok(())
-}
-
-fn ensure_close(actual: f32, expected: f32, tolerance: f32, label: &str) -> Result<()> {
-    if (actual - expected).abs() > tolerance {
-        Err(anyhow!(
-            "{} deviated from benchmark (actual {:.4} vs expected {:.4}, tol {:.4})",
-            label,
-            actual,
-            expected,
-            tolerance
-        ))
-    } else {
-        Ok(())
-    }
 }
 
 impl<B: AutodiffBackend> MnistBatch<B> {

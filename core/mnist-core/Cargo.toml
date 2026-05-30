@@ -3,7 +3,7 @@ name = "mnist-core"
 version = "0.1.0"
 edition = "2021"
 description = "Shared MNIST utilities for gildnn experiments"
-license = "MIT OR Apache-2.0"
+license = "LicenseRef-ALL-RIGHTS-RESERVED"
 
 [dependencies]
 anyhow = "1.0"

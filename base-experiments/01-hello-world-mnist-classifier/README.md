@@ -8,8 +8,9 @@ Objective:
 Key Requirements:
 - Download MNIST, normalize inputs, and create batched dataloaders.
 - Implement a minimal CNN or MLP classifier using the shared model interface.
-- Provide configuration files for optimizer, scheduler, and training length.
-- Emit evaluation metrics (accuracy, loss) and checkpoint artifacts.
+- Have the experiment produce a single self-contained `report.md`.
+- Surface the primary knobs (seed, hidden width, train steps for `full` and `test` modes) through `config.json`.
+- Have a test mode that writes `actual.ignore.json`; the shared harness compares it against `expected.json` for regression checks.
 
 Scaffolding Expectations:
 - Define the base project layout (data module, model module, trainer module).

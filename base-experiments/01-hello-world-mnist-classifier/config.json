@@ -1,0 +1,10 @@
+{
+  "seed": 1337,
+  "model": {
+    "hidden_dim": 128
+  },
+  "train_steps": {
+    "full": 200,
+    "test": 25
+  }
+}

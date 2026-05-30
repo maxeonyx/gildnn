@@ -3,7 +3,7 @@ name = "gildnn-core"
 version = "0.1.0"
 edition = "2021"
 description = "Shared experiment infrastructure for gildnn"
-license = "MIT OR Apache-2.0"
+license = "LicenseRef-ALL-RIGHTS-RESERVED"
 
 [lib]
 name = "gildnn_core"

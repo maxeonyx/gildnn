@@ -2,7 +2,8 @@
 members = [
     "core",
     "core/mnist-core",
-    "base-experiments/hello-world-mnist-classifier",
+    "base-experiments/01-hello-world-mnist-classifier",
     "base-experiments/autoregressive-mnist",
+    "tests/experiment-smoke",
 ]
 resolver = "2"
