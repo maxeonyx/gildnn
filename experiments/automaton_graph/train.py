@@ -37,6 +37,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--save-dir", type=Path, default=Path("runs/checkpoints.ignore/"))
     parser.add_argument("--resume", type=Path)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--multi-scale-input", action="store_true", help="EMA token injection per band")
     args = parser.parse_args()
 
     if args.steps <= 0:
@@ -135,7 +136,7 @@ def main() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     data = load_tinyshakespeare(repo_root)
 
-    model = GraphCellularAutomaton(vocab_size=data.vocab_size).to(device)
+    model = GraphCellularAutomaton(vocab_size=data.vocab_size, multi_scale_input=args.multi_scale_input).to(device)
     model.train()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     generator = torch.Generator(device="cpu")
