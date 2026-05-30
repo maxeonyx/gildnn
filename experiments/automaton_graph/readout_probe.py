@@ -26,10 +26,10 @@ from core.automaton_graph import GraphCellularAutomaton, l2_normalize
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Readout comparison: attention vs band-0-only.")
     parser.add_argument("--checkpoint", type=Path, required=True)
-    parser.add_argument("--tokens", type=int, default=4096, help="Training tokens for the probe")
-    parser.add_argument("--eval-tokens", type=int, default=2048, help="Eval tokens")
+    parser.add_argument("--tokens", type=int, default=32768, help="Training tokens for the probe")
+    parser.add_argument("--eval-tokens", type=int, default=8192, help="Eval tokens")
     parser.add_argument("--batch-size", type=int, default=4)
-    parser.add_argument("--probe-steps", type=int, default=200, help="Steps to train the attention probe")
+    parser.add_argument("--probe-steps", type=int, default=500, help="Steps to train the attention probe")
     parser.add_argument("--lr", type=float, default=1e-3)
     return parser.parse_args()
 
@@ -223,6 +223,28 @@ def main() -> None:
     for b in range(n_bands):
         bar = "█" * int(mean_attn[b].item() * 80)
         print(f"    band {b}: {mean_attn[b].item():.4f} {bar}")
+
+    # Band ablation: reuse the trained probe, masking out excluded bands at eval time.
+    band_subsets = [
+        ("band 0 only", range(0, 1)),
+        ("bands 0-1", range(0, 2)),
+        ("bands 0-3", range(0, 4)),
+        ("all bands", range(0, n_bands)),
+        ("bands 4-7 only", range(4, 8)),
+    ]
+    print(f"\n  Attention probe band ablations:")
+    with torch.no_grad():
+        eval_states_device = eval_states.to(device)
+        eval_targets_device = eval_targets.to(device)
+        for label, included_bands in band_subsets:
+            masked_states = torch.zeros_like(eval_states_device)
+            for band_idx in included_bands:
+                start = band_idx * n_cols
+                end = (band_idx + 1) * n_cols
+                masked_states[:, start:end, :] = eval_states_device[:, start:end, :]
+            masked_logits, _ = probe(masked_states)
+            masked_ce = F.cross_entropy(masked_logits, eval_targets_device).item()
+            print(f"    {label:<16} CE = {masked_ce:.4f}")
 
 
 if __name__ == "__main__":
