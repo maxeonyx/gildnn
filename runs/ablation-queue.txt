@@ -1,0 +1,4 @@
+# Baselines (1000 steps each, ~2-5 min)
+# Our architecture: band0-local-loss + CE on band 0 (no detach) — does local prediction help CE?
+# Combined: band0-local-loss + hierarchical-targets + detached attention
+CC=/usr/bin/gcc-15 .venv/bin/python experiments/automaton_graph/train.py --band0-local-loss --hierarchical-targets --attention-readout --detach-readout --steps 100 --log-every 10
