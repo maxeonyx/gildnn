@@ -8,7 +8,7 @@ This is personal hobbyist ML research. The goal is discovery: try ideas, run exp
 
 ## The autonomous loop
 
-`loop.ps1` relaunches OpenCode if it exits. **The loop uses Windows Task Scheduler** — it is a child of the task scheduler, not a child of the terminal. Do not revert this to a terminal-based loop; closing the terminal must not kill the loop.
+The loop runs as a systemd user service (`gildnn-loop`). It relaunches OpenCode if it exits. Stop: `systemctl --user stop gildnn-loop`. Start: `systemctl --user start gildnn-loop`. Logs: `journalctl --user -u gildnn-loop -f`.
 
 This file is what autonomous agents follow when running in that loop.
 
@@ -19,7 +19,7 @@ On session start:
 1. If you lack project context, read `VISION.md` first to orient.
 2. Read `PLAN.md` and any `TASK-*.ignore.md` files in the repo root.
 3. Check the time and whether a daily or weekly report is due.
-4. Check whether a background run is active (`runs/active.lock`).
+4. Check whether a background run is active (`runs/active-large.lock` or `runs/active-small.lock`).
 5. **Check `git status`** — commit any uncommitted work from the previous session. The handover protocol requires committing everything, but violations happen. Don't leave orphaned changes.
 6. Continue the current task if there is one. Otherwise pick the cheapest useful next step.
 
@@ -536,8 +536,8 @@ Long training runs must not block the agent. This is a significant process requi
 
 Rules:
 
-- **Never block on a training run expected to take >5 minutes.** Start it in the background (e.g. `Start-Process` on Windows), capture the PID and log path, then continue with other work.
-- **Use unbuffered Python output** for background runs: set `$env:PYTHONUNBUFFERED = '1'` before `Start-Process`, or pass `-u` to the Python interpreter. Without this, stdout is buffered and logs appear empty until the process ends.
+- **Never block on a training run expected to take >5 minutes.** Start it in the background (e.g. `nohup ... &` or via the systemd loop), capture the PID and log path, then continue with other work.
+- **Use unbuffered Python output** for background runs: set `PYTHONUNBUFFERED=1` or pass `-u` to the Python interpreter. Without this, stdout is buffered and logs appear empty until the process ends.
 - At most one large training run (>10 min) at a time.
 - One small/fast experiment can run alongside a large run.
 - **NEVER be idle while a run is active.** This is not optional. GPU time is the project's most expensive resource — the agent's job is to maximize the value produced per GPU-hour by doing high-quality intellectual work in parallel. See the "Quality loops while GPU is busy" section below.
@@ -561,15 +561,12 @@ The orchestrator is responsible for deciding when to check back — not the suba
 
 **If you (the orchestrator) delegate an experiment without splitting it this way, you have failed the process.** There is always other useful work to do while the GPU runs — theory, reports, doc updates, small non-GPU experiments. Name that work before checking on the run.
 
-Use `runs/active.lock` to record the active large run. **The experiment scripts manage this file automatically** — they attempt exclusive creation on startup (refuses if another live process holds the lock, reclaims stale locks from dead PIDs) and remove it via `atexit` only after verifying the lock still belongs to the current process. If the process crashes, the lock persists as a stale indicator; the next script to start will detect the dead PID and reclaim it. Small runs (<5 min) do not need lock files.
+Use `runs/active-large.lock` and `runs/active-small.lock` to record active runs. Large runs block other large runs; small ablations block other small ablations but can coexist with a large run. **The experiment scripts manage these files automatically** — they attempt exclusive creation on startup (refuses if another live process of the same size holds the lock, reclaims stale locks from dead PIDs) and remove via `atexit` only after verifying the lock still belongs to the current process. If the process crashes, the lock persists as a stale indicator; the next script to start will detect the dead PID and reclaim it.
 
-**Windows launch reliability:**
+**Launch reliability:**
 
-- Use a single documented `Start-Process` pattern. Do not improvise argument passing — use comma-separated array for simple args, or a wrapper script for complex commands.
-- **Before launching a GPU run, preflight GPU availability** — confirm `nvidia-smi` shows the GPU idle and CUDA will initialize. On this desktop, gaming can hold the GPU exclusively; CUDA init will block indefinitely if the GPU is busy.
-- If launch infrastructure is flaky, fix and document the launch mechanism before spending more time on experiments.
-- **Do NOT use `-RedirectStandardOutput`/`-RedirectStandardError` with `Start-Process -WindowStyle Hidden`.** This causes the child process to hang when stdout buffers fill (the hidden window has no console to flush to). Instead: let stdout go to the hidden window's console (effectively discarded) and rely on the experiment's own JSONL log file for monitoring.
-- **Corpus loading takes ~90 seconds** (WikiText-103 raw is 538M chars). The log file won't appear until after loading completes. Don't assume the process is dead during this period — check CPU/memory via `Get-Process`.
+- **Before launching a GPU run, preflight GPU availability** — confirm `nvidia-smi` shows the GPU has enough free memory.
+- **Corpus loading takes ~90 seconds** (WikiText-103 raw is 538M chars). The log file won't appear until after loading completes. Don't assume the process is dead during this period — check CPU/memory via `ps` or `nvidia-smi`.
 
 **Checkpointing requirement:**
 
@@ -602,7 +599,7 @@ The GPU produces evidence. The agent's parallel job is to produce *understanding
 
 ### What to do (priority order)
 
-0. **Run CPU-only experiments** — Eval-only measurements, probing studies, and small-model training (e.g. TinyShakespeare tied-depth) can run on CPU without competing for GPU. These produce real experimental results in parallel. Always check: does any pre-registered experiment have a CPU-viable path?
+0. **Run small ablations alongside the training run** — The 3090 has 24GB. A 30-second sanity check on a 2-module graph fits alongside most training runs. Check `nvidia-smi` for available memory. If a small GPU ablation fits, run it — don't assume the GPU is fully occupied. Only fall back to CPU when you've confirmed the GPU memory is genuinely full. CPU-only experiments (eval-only measurements, probing studies, small-model training) are still valid and produce real results in parallel.
 
 1. **Deep theory work** — Send the same design question to a thinker 5-10 times with different framings. Collect alternatives. Do the maths to operationalize concepts into concrete architecture variants. Don't accept the first answer — iterate until real alternatives emerge.
 

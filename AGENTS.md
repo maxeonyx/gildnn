@@ -154,7 +154,7 @@ Evidence in question READMEs must be **embedded inline** in the markdown (tables
 
 **Background execution.** Experiments expected to take more than ~5 minutes must use a **two-phase delegation**: Phase 1 (launch only) — subagent starts the process, returns PID and log path, and stops. It does NOT wait, poll, or check results. Phase 2 (check) — orchestrator decides when to check back and resumes the subagent to analyse results. Failing to split this way is a process failure. See `PROCESS.md` for the full rule.
 
-**⚠️ NEVER run experiment scripts against the real artifacts directory while a long experiment is active.** The `runs/active.lock` mechanism is advisory — it can be overwritten, and the atexit handler of a short test run will DELETE the lock even if a real long-running experiment is still using the GPU. Before running ANY experiment script (even for testing a code change), ALWAYS use `--sanity-check-only` which routes to a temp directory. If you need to test non-sanity-check behavior, use `--no-lock` AND redirect `--report-path` and `--log-path` to a separate temp directory. Violating this can corrupt in-progress experiment checkpoints and leave the GPU unprotected.
+**⚠️ NEVER run experiment scripts against the real artifacts directory while a long experiment is active.** The lock file mechanism (`runs/active-large.lock`, `runs/active-small.lock`) prevents same-size collisions — large runs block other large runs, small ablations block other small ablations, but small ablations can coexist with a large run. Before running ANY experiment script (even for testing a code change), ALWAYS use `--sanity-check-only` which routes to a temp directory. If you need to test non-sanity-check behavior, use `--no-lock` AND redirect `--report-path` and `--log-path` to a separate temp directory.
 
 ## Dictation notification
 
@@ -189,7 +189,7 @@ When picking up after a handover:
 1. Read `VISION.md` — understand where the current work sits in the bigger picture
 2. Read `PLAN.md` — immediate checklist and next steps
 3. Check for `TASK-*.ignore.md` in root — read any that exist
-5. Check `runs/active.lock` — if a background run is active, do other work (don't start a second long run)
+5. Check `runs/active-large.lock` — if a large background run is active, don't start another large run (but small ablations are fine)
 6. **Check the time** — if after 4pm, write the daily report at the next natural stopping point; if Thursday, weekly too
 
 When handing over:
