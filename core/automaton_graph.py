@@ -56,6 +56,7 @@ class GraphCellularAutomaton(nn.Module):
         refractory_decay: float = 0.8,
         multi_scale_input: bool = False,
         temporal_targets: bool = False,
+        cross_band_negatives: bool = False,
     ) -> None:
         super().__init__()
         if vocab_size <= 0:
@@ -106,6 +107,7 @@ class GraphCellularAutomaton(nn.Module):
         self.refractory_decay = refractory_decay
         self.multi_scale_input = multi_scale_input
         self.temporal_targets = temporal_targets
+        self.cross_band_negatives = cross_band_negatives
 
         self.token_embedding = nn.Embedding(vocab_size, d_stream)
         self.w1 = nn.Parameter(torch.empty(self.n_modules, d_stream, self.d_hidden))
@@ -134,6 +136,17 @@ class GraphCellularAutomaton(nn.Module):
         self.register_buffer("module_rates", module_rates, persistent=False)
         self.register_buffer("module_phases", module_phases, persistent=False)
         self.register_buffer("band0_mask", module_rows == 0, persistent=False)
+
+        # Cross-band negatives: for each module, indices of other bands in the same column
+        if cross_band_negatives:
+            # column_peers[module, k] = index of band k in the same column (excluding self)
+            column_peers = torch.zeros((self.n_modules, n_bands - 1), dtype=torch.long)
+            for module_idx in range(self.n_modules):
+                col = module_cols[module_idx].item()
+                band = module_rows[module_idx].item()
+                peers = [b * n_cols + col for b in range(n_bands) if b != band]
+                column_peers[module_idx] = torch.tensor(peers, dtype=torch.long)
+            self.register_buffer("column_peers", column_peers, persistent=False)
 
         neighbor_indices, neighbor_mask = self._build_neighbor_index()
         self.register_buffer("neighbor_indices", neighbor_indices, persistent=False)
@@ -252,17 +265,32 @@ class GraphCellularAutomaton(nn.Module):
         self,
         predictions: Float[Tensor, "modules batch d_stream"],
         targets: Float[Tensor, "modules batch d_stream"],
+        global_buffer: Float[Tensor, "modules batch d_stream"] | None = None,
     ) -> Float[Tensor, "modules"]:
         if self.loss_type == "mse":
             return F.mse_loss(predictions.float(), targets.float(), reduction="none").mean(dim=(1, 2))
 
         norm_pred = F.normalize(predictions.float(), dim=-1, eps=1e-6)
         norm_target = F.normalize(targets.float(), dim=-1, eps=1e-6)
-        norm_buffer = F.normalize(self.contrastive_buffer.float(), dim=-1, eps=1e-6)
 
         positive_logits = (norm_pred * norm_target).sum(dim=-1, keepdim=True)
-        negative_logits = torch.einsum("mbd,mkd->mbk", norm_pred, norm_buffer)
-        logits = torch.cat((positive_logits, negative_logits), dim=-1) / self.info_nce_temperature
+
+        if self.cross_band_negatives and global_buffer is not None:
+            # Negatives = outputs of other bands in the same column
+            # column_peers: [modules, n_bands-1]
+            peer_states = global_buffer[self.column_peers]  # [modules, n_bands-1, batch, d_stream]
+            norm_peers = F.normalize(peer_states.float(), dim=-1, eps=1e-6)
+            # negative_logits: [modules, batch, n_bands-1]
+            negative_logits = torch.einsum("mbd,mkbd->mbk", norm_pred, norm_peers)
+            # Also include buffer negatives for additional difficulty
+            norm_buffer = F.normalize(self.contrastive_buffer.float(), dim=-1, eps=1e-6)
+            buffer_logits = torch.einsum("mbd,mkd->mbk", norm_pred, norm_buffer)
+            logits = torch.cat((positive_logits, negative_logits, buffer_logits), dim=-1) / self.info_nce_temperature
+        else:
+            norm_buffer = F.normalize(self.contrastive_buffer.float(), dim=-1, eps=1e-6)
+            negative_logits = torch.einsum("mbd,mkd->mbk", norm_pred, norm_buffer)
+            logits = torch.cat((positive_logits, negative_logits), dim=-1) / self.info_nce_temperature
+
         return (torch.logsumexp(logits, dim=-1) - logits[..., 0]).mean(dim=1)
 
     def _update_contrastive_buffer(
@@ -384,9 +412,9 @@ class GraphCellularAutomaton(nn.Module):
                 # rate/steps_per_token tokens ago — naturally forcing timescale separation.
                 temporal_target = l2_normalize(token_embeddings[:, token_index, :])  # [batch, d_stream]
                 temporal_target_expanded = temporal_target.unsqueeze(0).expand(self.n_modules, -1, -1)
-                prediction_errors = self._prediction_errors(current_predictions, temporal_target_expanded.detach())
+                prediction_errors = self._prediction_errors(current_predictions, temporal_target_expanded.detach(), current_global_buffer)
             else:
-                prediction_errors = self._prediction_errors(current_predictions, prediction_target.detach())
+                prediction_errors = self._prediction_errors(current_predictions, prediction_target.detach(), current_global_buffer)
             prediction_errors[self.band0_mask] = 0.0
             prediction_loss_sums = prediction_loss_sums + (
                 prediction_errors * active_predictions.to(dtype=prediction_errors.dtype)
