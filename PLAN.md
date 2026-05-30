@@ -124,7 +124,7 @@ At every step, justify why we're not just running the real thing. If you can't j
 
 ## Current state (2026-05-31 ~02:00 NZST)
 
-**⚠️ PROJECT ENDS MIDNIGHT SUN 31 MAY NZST. ~22 hours remain.**
+**⚠️ PROJECT ENDS MIDNIGHT SUN 31 MAY NZST. ~33 hours remain (from 15:15 Fri).**
 
 ### Environment: Linux (Manjaro VM), RTX 3090
 - torch 2.12.0, CUDA working, Triton 3.5.1
@@ -186,11 +186,17 @@ At every step, justify why we're not just running the real thing. If you can't j
 - Each module's backward is independent (detached laterals → no cross-module gradient)
 
 ### NEXT:
-1. **Triton persistent kernel** — the real performance target. Start with forward-only, verify against eager.
-2. **Training at scale** — once Triton works, run at batch=16 for real
-3. **Wave propagation experiments** — compare refractory vs novelty-gated vs baseline at scale
-4. **Daily report** for 2026-05-30 (overdue)
+1. **Daily report** for 2026-05-30 (due now, 15:15 NZST)
+2. **Triton fused kernel** — profile showed pure PyTorch active-only optimization doesn't help (indexing overhead > savings). Need fused kernel: neighbor_read + normalize + MLP + write in one Triton call per timestep.
+3. **Training at scale** — 500-step InfoNCE run active (PID 26787, ~14 min expected)
+4. **Wave propagation experiments** — impulse diagnostic once Triton enables fast iteration
 5. **Final weekly synthesis** before project ends
+
+### Key insight from profiling:
+- Active-only in pure PyTorch was SLOWER (indexing overhead outweighed savings)
+- Bottleneck is NOT any single op — it's 1024 timesteps × many small CUDA kernels
+- Only solution: fused Triton kernel (one kernel per timestep doing the whole module computation)
+- bmm is only 35% of time; elementwise/indexing is 65%
 
 ### What's validated:
 - 192-module graph learns (CE 4.2→2.4 in 20 steps)
