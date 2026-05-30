@@ -5,7 +5,7 @@
 __pycache__/
 runs/*.log
 runs/*.err
-runs/active.lock
+runs/active*.lock
 # No model weights or large tensors in git
 **/*.pt
 # Experiment runtime artifacts (logs, outputs, generated text)
