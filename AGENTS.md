@@ -91,7 +91,7 @@ Evidence in question READMEs must be **embedded inline** in the markdown (tables
 | `ROADMAP.md` | Research pathways toward the vision — directions to explore, hypotheses, connections. **Do not edit without Max asking.** | Choosing what to work on, understanding the bigger picture |
 | `PROCESS.md` | How work is done — experiment discipline, loop, reporting | Deciding how to proceed |
 | `PLAN.md` | Working notes — current state, what's been done, what's next. Edit freely, keep up to date. | Picking up after a handover |
-| `loop.ps1` | Outer restart loop — uses Task Scheduler (NOT terminal child). Do not revert to terminal-based loop. **To stop: `.\loop.ps1 stop` — this is the ONLY way to stop the loop. NEVER manually kill opencode processes by PID; you will kill unrelated sessions. To restart: `.\loop.ps1`** | Understanding how the loop works |
+| `loop.ps1` | (Windows, archived) Outer restart loop via Task Scheduler. **Linux:** loop runs as systemd user service `gildnn-loop`. Stop: `systemctl --user stop gildnn-loop`. Start: `systemctl --user start gildnn-loop`. Logs: `journalctl --user -u gildnn-loop -f`. | Understanding how the loop works |
 | `research/daily/` | Daily output narratives for Max | Reviewing recent progress |
 | `research/weekly/` | Weekly synthesis narratives for Max | Weekly review |
 | `research/questions/` | Per-question reports — Max-readable, inline evidence only | Investigating a specific open question |
@@ -121,6 +121,12 @@ Evidence in question READMEs must be **embedded inline** in the markdown (tables
 **Every experiment must connect to a ROADMAP pathway.** Before running any experiment, name which pathway it advances and what the exit condition is. If you can't, stop and redirect. Do NOT amplify marginal signals — the correct response to a 0.01 nat improvement is "interesting, what does this teach us?" not "how do I make this bigger?" See PROCESS.md for the full experiment loop with exit conditions.
 
 **Three parallel tracks, always.** There should always be three concurrent workstreams: (1) **Theory/research** — reading, thinking, questioning assumptions, finding where the architecture is wrong; (2) **Ablations** — fast 30-second probes testing variants; (3) **Training run** — one long run with current best config, always improving as a baseline. Theory informs ablations, ablations validate or reject theory, best results feed into the training run. Never let one track crowd out the others — especially never let grinding experiments crowd out theory.
+
+**"GPU is busy" is not an excuse to idle.** When a long training run occupies the GPU:
+- **First:** check whether small ablations can coexist (the 3090 has 24GB — a 30-second sanity check on a 2-module graph fits alongside most training runs).
+- **Second:** if GPU memory is genuinely full, run ablations on CPU. Tiny models proving a concept (does this loss function create gradient signal? does this input encoding distinguish timescales?) don't need GPU.
+- **Third:** if no ablation is runnable, theory track is MANDATORY. Read papers, question assumptions, explore the design space of local objectives, work through the math of why something does or doesn't create specialization pressure.
+- **Never:** poll for checkpoints, verify argument parsing, or prep experiment scripts as your primary activity while waiting. Those are 5-minute tasks, not hour-long activities. Waiting is failure.
 
 **Check the time on every session start.** If it's after 4pm and no daily report exists for today in `research/daily/`, write it before starting new work. If it's after 4pm Thursday and no weekly report exists for this week in `research/weekly/`, write that too. See `research/AGENTS.md` for the report process.
 
