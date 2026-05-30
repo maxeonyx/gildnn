@@ -38,6 +38,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--resume", type=Path)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--multi-scale-input", action="store_true", help="EMA token injection per band")
+    parser.add_argument("--streaming", action="store_true", help="Stateful streaming training (no state reset between chunks)")
     args = parser.parse_args()
 
     if args.steps <= 0:
@@ -101,6 +102,30 @@ def sample_batch(
     )
 
 
+class StreamingData:
+    """Split text into batch_size contiguous streams. Yield chunk_size tokens endlessly."""
+
+    def __init__(self, encoded_text: Tensor, batch_size: int, chunk_size: int, device: torch.device) -> None:
+        # Trim text to be evenly divisible by batch_size
+        n = (encoded_text.numel() // batch_size) * batch_size
+        self.streams = encoded_text[:n].reshape(batch_size, -1)  # [batch, stream_len]
+        self.chunk_size = chunk_size
+        self.device = device
+        self.pos = 0  # current position in each stream
+        self.stream_len = self.streams.shape[1]
+
+    def next_chunk(self) -> tuple[Tensor, Tensor]:
+        end = self.pos + self.chunk_size + 1
+        if end > self.stream_len:
+            self.pos = 0
+            end = self.chunk_size + 1
+        window = self.streams[:, self.pos : end]  # [batch, chunk_size+1]
+        self.pos += self.chunk_size
+        inputs = window[:, :-1].to(device=self.device, dtype=torch.long)
+        targets = window[:, 1:].to(device=self.device, dtype=torch.long)
+        return inputs, targets
+
+
 def format_per_band_losses(prediction_losses: Tensor, *, band_count: int, modules_per_band: int) -> str:
     per_band_mean_losses = prediction_losses.reshape(band_count, modules_per_band).mean(dim=1)
     return ", ".join(f"b{band}={value.item():.4f}" for band, value in enumerate(per_band_mean_losses))
@@ -151,9 +176,18 @@ def main() -> None:
         initial_step = int(checkpoint["step"])
 
     print(
-        f"starting training steps={args.steps} batch_size={args.batch_size} chunk_size={args.chunk_size} device={device}",
+        f"starting training steps={args.steps} batch_size={args.batch_size} chunk_size={args.chunk_size} device={device} streaming={args.streaming}",
         flush=True,
     )
+
+    # Set up streaming or random-chunk data
+    if args.streaming:
+        stream = StreamingData(data.encoded_text, args.batch_size, args.chunk_size, device)
+        # Persistent state for streaming (carried across steps, detached for TBPTT)
+        carry_states, carry_buffer, carry_preds, carry_has_pred, carry_refrac = model.initial_recurrent_state(
+            args.batch_size, device=device,
+        )
+        carry_step_offset = torch.zeros((), device=device, dtype=torch.long)
 
     start_time = time.perf_counter()
     final_ce_loss: float | None = None
@@ -161,27 +195,38 @@ def main() -> None:
     final_per_band_mean_losses: list[float] | None = None
 
     for step in range(initial_step + 1, args.steps + 1):
-        inputs, targets = sample_batch(
-            data.encoded_text,
-            batch_size=args.batch_size,
-            chunk_size=args.chunk_size,
-            device=device,
-            generator=generator,
-        )
+        if args.streaming:
+            inputs, targets = stream.next_chunk()
+            # Detach carried state (TBPTT boundary)
+            states = carry_states.detach()
+            global_buffer = carry_buffer.detach()
+            predictions = carry_preds.detach()
+            has_predicted = carry_has_pred
+            refractory_levels = carry_refrac.detach()
+            step_offset = carry_step_offset
+        else:
+            inputs, targets = sample_batch(
+                data.encoded_text,
+                batch_size=args.batch_size,
+                chunk_size=args.chunk_size,
+                device=device,
+                generator=generator,
+            )
+            states, global_buffer, predictions, has_predicted, refractory_levels = model.initial_recurrent_state(
+                args.batch_size,
+                device=device,
+            )
+            step_offset = torch.zeros((), device=device, dtype=torch.long)
 
-        states, global_buffer, predictions, has_predicted, refractory_levels = model.initial_recurrent_state(
-            args.batch_size,
-            device=device,
-        )
         optimizer.zero_grad(set_to_none=True)
-        logits, _, _, _, _, _, prediction_loss_sums, prediction_counts = model.forward_chunk(
+        logits, new_states, new_buffer, new_preds, new_has_pred, new_refrac, prediction_loss_sums, prediction_counts = model.forward_chunk(
             inputs,
             states,
             global_buffer,
             predictions,
             has_predicted,
             refractory_levels,
-            global_step_offset=0,
+            global_step_offset=step_offset,
         )
         prediction_losses = model.prediction_losses_from_sums(prediction_loss_sums, prediction_counts)
         total_prediction_loss = prediction_losses.sum()
@@ -190,6 +235,14 @@ def main() -> None:
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()
+
+        if args.streaming:
+            carry_states = new_states
+            carry_buffer = new_buffer
+            carry_preds = new_preds
+            carry_has_pred = new_has_pred
+            carry_refrac = new_refrac
+            carry_step_offset = step_offset + args.chunk_size * model.steps_per_token
 
         final_ce_loss = ce_loss.item()
         final_total_prediction_loss = total_prediction_loss.item()
