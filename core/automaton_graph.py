@@ -129,10 +129,13 @@ class GraphCellularAutomaton(nn.Module):
             nn.init.uniform_(bias[module], -bound, bound)
 
     def reset_parameters(self) -> None:
-        nn.init.normal_(self.token_embedding.weight)
-        self._reset_stacked_linear(self.w1, self.b1)
-        self._reset_stacked_linear(self.w2, self.b2)
-        self._reset_stacked_linear(self.pred_w, self.pred_b)
+        with torch.no_grad():
+            self.token_embedding.weight.normal_()
+            self.token_embedding.weight.copy_(l2_normalize(self.token_embedding.weight))
+            self._reset_stacked_linear(self.w1, self.b1)
+            self._reset_stacked_linear(self.w2, self.b2)
+            self._reset_stacked_linear(self.pred_w, self.pred_b)
+        self.token_embedding.weight.requires_grad_(False)
 
     def module_parameters(self, module: int) -> list[ParameterSlice]:
         if module < 0 or module >= self.n_modules:
@@ -254,15 +257,17 @@ class GraphCellularAutomaton(nn.Module):
             fires = fires_at[timestep]
             fire_mask = fires[:, None, None]
 
-            combined = current_states + self._neighbor_sum(current_global_buffer)
+            neighbor_sum = self._neighbor_sum(current_global_buffer)
+            prediction_target = l2_normalize(neighbor_sum)
+            combined = current_states + neighbor_sum
             combined = combined.clone()
             combined[self.band0_mask] = combined[self.band0_mask] + token_embeddings[:, token_index, :]
             combined = l2_normalize(combined)
 
-            active_predictions = fires & current_has_predicted & (~self.band0_mask)
+            active_predictions = fires & current_has_predicted
             prediction_errors = F.mse_loss(
                 current_predictions.float(),
-                combined.detach().float(),
+                prediction_target.detach().float(),
                 reduction="none",
             ).mean(dim=(1, 2))
             prediction_loss_sums = prediction_loss_sums + (
