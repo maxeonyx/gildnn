@@ -27,14 +27,18 @@ The project ran May 20–31, 2026. The architecture is built and individual piec
 | Triton forward | 1.94x |
 
 ### What was NOT solved
-The local learning rule. Two boundary conditions bracket the missing piece:
+The local learning rule. The core open question: what local objectives produce good representations in a multi-module system? (See [dictation 2026-05-31-04](dictations/2026-05-31-04.md) — this is explicitly an exploration space, not a settled architecture.)
+
+Three boundary conditions bracket the answer:
 - **InfoNCE** (local neighbor prediction): orthogonal to token prediction (cosine 0.013). Bands 2-7 never specialize.
 - **Per-band CE** (each band predicts tokens at own horizon): rapid specialization, but rejected as "unprincipled hack" — broadcasts global objective to every level ([dictation 2026-05-31-01](dictations/2026-05-31-01.md)).
+- **Predict-next-inputs** (band 0 predicts neighbor_sum + token_emb): genuinely local, CE 3.24 at 100 steps via detached attention. One candidate, not the answer.
+- **Hierarchical targets** (band k predicts mean of band k-1): CE 2.67 at 100 steps. Another candidate.
 
 ### Key open question
-What local neighborhood objective is both genuinely local AND task-aligned enough to create multi-timescale representations?
+What local neighborhood objective is both genuinely local AND task-aligned enough to create multi-timescale representations? This is an exploration space — many things should be tried, not one settled on. (See [dictation 2026-05-31-04](dictations/2026-05-31-04.md).)
 
-Promising directions: predictive coding, contrastive Hebbian learning, communication through coherence, phase-amplitude coupling ([dictation 2026-05-30-03](dictations/2026-05-30-03.md)).
+Candidates explored so far: InfoNCE (failed), predict-next-inputs (promising), hierarchical-targets (promising). Unexplored: delta prediction, mutual information maximization, contrastive neighbor distinction, phase-amplitude coupling.
 
 ### Architecture spec (reference)
 
