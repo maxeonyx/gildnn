@@ -54,6 +54,7 @@ class GraphCellularAutomaton(nn.Module):
         refractory: bool = False,
         refractory_threshold: float = 1.0,
         refractory_decay: float = 0.8,
+        multi_scale_input: bool = False,
     ) -> None:
         super().__init__()
         if vocab_size <= 0:
@@ -102,6 +103,7 @@ class GraphCellularAutomaton(nn.Module):
         self.refractory = refractory
         self.refractory_threshold = refractory_threshold
         self.refractory_decay = refractory_decay
+        self.multi_scale_input = multi_scale_input
 
         self.token_embedding = nn.Embedding(vocab_size, d_stream)
         self.w1 = nn.Parameter(torch.empty(self.n_modules, d_stream, self.d_hidden))
@@ -324,6 +326,16 @@ class GraphCellularAutomaton(nn.Module):
         current_has_predicted = has_predicted
         current_refractory_levels = refractory_levels
 
+        # Multi-scale input: EMA of token embeddings per band
+        if self.multi_scale_input:
+            # ema_alphas[band] = 1.0 / rate[band], so band 0 (rate 1) gets α=1 (raw token)
+            ema_alphas = (1.0 / self.module_rates.float()).unsqueeze(-1)  # [n_modules, 1]
+            token_ema = torch.zeros(
+                (self.n_modules, batch_size, self.d_stream),
+                device=tokens.device,
+                dtype=token_embeddings.dtype,
+            )
+
         if isinstance(global_step_offset, int):
             step_offset = torch.tensor(global_step_offset, device=tokens.device, dtype=torch.long)
         else:
@@ -351,7 +363,16 @@ class GraphCellularAutomaton(nn.Module):
             prediction_target = l2_normalize(neighbor_sum)
             combined = current_states + neighbor_sum
             combined = combined.clone()
-            combined[self.band0_mask] = combined[self.band0_mask] + token_embeddings[:, token_index, :]
+            if self.multi_scale_input:
+                # Update EMA at token boundaries
+                if timestep % self.steps_per_token == 0:
+                    tok_emb = token_embeddings[:, token_index, :]  # [batch, d_stream]
+                    tok_emb_expanded = tok_emb.unsqueeze(0).expand(self.n_modules, -1, -1)
+                    token_ema = (1.0 - ema_alphas.unsqueeze(-1)) * token_ema + ema_alphas.unsqueeze(-1) * tok_emb_expanded
+                # All modules get their band's temporal view
+                combined = combined + token_ema
+            else:
+                combined[self.band0_mask] = combined[self.band0_mask] + token_embeddings[:, token_index, :]
             combined = l2_normalize(combined)
 
             active_predictions = fires & current_has_predicted
