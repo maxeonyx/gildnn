@@ -122,9 +122,9 @@ At every step, justify why we're not just running the real thing. If you can't j
 
 ---
 
-## Current state (2026-05-31 ~02:00 NZST)
+## Current state (2026-05-30 ~17:00 NZST)
 
-**⚠️ PROJECT ENDS MIDNIGHT SUN 31 MAY NZST. ~33 hours remain (from 15:15 Fri).**
+**⚠️ PROJECT ENDS MIDNIGHT SUN 31 MAY NZST. ~31 hours remain.**
 
 ### Environment: Linux (Manjaro VM), RTX 3090
 - torch 2.12.0, CUDA working, Triton 3.5.1
