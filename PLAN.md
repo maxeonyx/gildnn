@@ -192,17 +192,10 @@ At every step, justify why we're not just running the real thing. If you can't j
 - Each module's backward is independent (detached laterals → no cross-module gradient)
 
 ### NEXT:
-1. ✅ **5000-step baseline completed** — lag probe confirms: band 0=33.5%, band 1=23.9%, bands 2-7 random. CE 2.64.
-2. ✅ **Multi-scale + streaming 2000-step experiment completed** — Result: FASTER learning (CE 2.49 vs 2.64, band 0=37%, band 1=24.1%) but STILL no band 2-7 specialization.
-3. **Root cause is the LOSS, not the input.** Multi-scale input gives better performance but doesn't force different representations. InfoNCE (predict neighbor sum) lets all bands converge to the same "encode recent tokens" strategy because that's the easiest prediction for everyone.
-4. **Next experiment needed:** change the loss to incentivize different representations per band. Options:
-   - (a) **Residual targets:** band k predicts what band k-1 DOESN'T predict (successive refinement)
-   - (b) **Anti-redundancy penalty:** penalize mutual information between adjacent bands' representations
-   - (c) **Temporal target per band:** band k explicitly predicts lag=2^k ahead (force timescale matching)
-   - Option (c) is closest to Max's design ("predict k steps ahead" + multi-rate). Band with rate R makes predictions evaluated R steps later — this is ALREADY how it works. So why doesn't it specialize? Because the prediction TARGET (neighbor sum) is dominated by band 0 which encodes recent tokens. Higher bands predict "what band 0 will look like" rather than encoding their own temporal view.
-   - **Fix:** detach band 0 from the neighbor sum that higher bands predict. Or: each band predicts a DIFFERENT target (e.g., token embedding at lag=rate).
-5. **Central attention readout** (Max's dictation idea) — still not implemented, do after fixing loss
-6. **Final daily report** needed before end of day
+1. **MSI + cross-band experiment running** (PID 50655, step ~500/2000, finishing ~00:30 NZST Sun)
+2. **NEXT EXPERIMENT: attention readout with attached gradients** — `--streaming --multi-scale-input --attention-readout`. This gives ALL bands direct CE pressure through the attention mechanism. It's the most principled fix for the fundamental problem (bands have no incentive to encode token-useful info). Launch after current run finishes.
+3. Also test: `--streaming --multi-scale-input --cross-band-negatives --attention-readout` (full stack)
+4. **Update daily report** after attention readout results arrive
 
 ### Key findings from lag probe (definitive):
 - **Baseline 5000 steps:** band 0=33.5%, band 1=23.9%, bands 2-7 random. CE 2.64.
