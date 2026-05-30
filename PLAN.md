@@ -122,60 +122,66 @@ At every step, justify why we're not just running the real thing. If you can't j
 
 ---
 
-## Current state (2026-05-30 12:20 NZST)
+## Current state (2026-05-30 ~21:00 NZST)
 
-### ✅ DONE:
-1. ✅ Delete ParallelDiagonalModel
-2. ✅ Build cellular automaton model (`core/automaton.py`)
-3. ✅ Sanity check — CE drops 4.85→3.79 in 5 steps, model learns
-4. ✅ Vectorize across levels with bmm (10x speedup: 55s→5s per step at small scale)
-5. ✅ Delete dead automaton-irrelevant helpers
-6. ✅ **v1 training complete** (commit `b54615f`). 500 steps, ~3h17m. CE: 3.54→2.30.
-7. ✅ **CUDA graph training script** (commit `de4da18`). 17x speedup: 1.5s/step vs 27s/step at d_stream=128.
-8. ✅ **No-noise ablation complete** (CUDA graph, 500 steps, ~12 min). Results:
-   - CE: 2.35 (vs 2.30 with noise — noise helps CE slightly)
-   - Prediction losses much lower without noise: L1-L3 ≈ 0.0008 (vs 0.004-0.006 with noise)
-   - Noise forces genuine prediction; without it, blocks just pass exact copies
-   - U-shaped differentiation is caused by noise, not timing structure alone
-9. ✅ **Local learning signal theory brief** — `research/questions/local-learning-signal/README.md`
-   - Surveys 7 approaches ranked for async/stale compatibility
-   - Top candidate: InfoNCE + cross-block covariance penalty
-   - Proposed 30-second ablation experiments for each candidate
-10. ✅ **InfoNCE implemented** (commit `94a5962`). 64-slot temporal ring buffer, cosine sim, temp=0.07, `--xblk-lambda` for cross-block covariance penalty.
-11. ✅ **InfoNCE conflict diagnosed and fixed** (commit `7c01263`).
-    - 70-step run on Windows showed: InfoNCE at level 0 directly fights CE.
-    - Mechanism: CE wants "represent this token well"; InfoNCE wants "be temporally discriminative from neighbors". They're incompatible at the output-facing block.
-    - Trajectory: CE drops 4.63→3.51 (steps 1-20), then InfoNCE starts winning and CE rises back to 4.8, then catastrophic collapse of both losses around step 40.
-    - **Fix: level 0 exempt from InfoNCE prediction loss.** Level 0 uses CE only (grounding). Levels 1-7 use InfoNCE.
-    - Fix NOT yet sanity-checked (requires GPU; blocked by reboot to Linux).
+**⚠️ PROJECT ENDS MIDNIGHT SUN 31 MAY NZST. ~27 hours remain.**
 
-### Scale-up testing (dictation 30-02):
-- d_stream=512, batch=4: works, 8.8s/step, ~3.2GB VRAM (CUDA graphs)
-- d_stream=1024, batch=4: works, 36s/step (too slow for the gain)
-- d_stream=512, batch=16: OOM during CUDA graph capture
-- d_stream=512, batch=8: OOM crashed the CUDA driver
+### Environment: Linux (Manjaro VM), RTX 3090
+- torch 2.12.0, CUDA working, Triton 3.5.1
+- System Python 3.14 with venv (`--system-site-packages`)
+- einops + jaxtyping in venv
+- TinyShakespeare downloaded to `experiments/corpora.ignore/tinyshakespeare_input.txt`
+- **GPU power limit: needs `sudo nvidia-smi -pl 185` (Max must run this)**
+- torch.compile HANGS on this model (1024-iteration loop too complex for tracer)
+- CUDA graphs fail on Linux (CPU↔CUDA copy during capture)
 
-### Environment: migrating to Linux (Manjaro)
+### Direction confirmed by Max this session:
+- **Don't use CUDA graphs or torch.compile.** Write GPU programs directly (Triton).
+- **The architecture is a GRAPH, not a linear chain.** Scale to many modules.
+- **Partial/torn reads from unsynchronized global memory = just noise.** No mailbox protocol.
+- **Goal: truly exploit GPU parallelism** with the architecture's natural independence.
 
-Max confirmed: reboot into Linux for Triton/torch.compile access. Everything committed and pushed to `origin/main` (commit `7c01263`). Clone fresh on Linux.
+### Architecture spec (designed this session):
 
-### Three parallel tracks (dictation 30-03):
-1. **Theory/research** — ✅ DONE (local learning signal brief + InfoNCE conflict analysis)
-2. **Fast ablations** — NEXT: sanity-check the level-0 fix, then compare InfoNCE vs MSE
-3. **Training run** — queued: long run with best loss variant at d_stream=512
+**192-module 2D grid** (replaces the 8-level linear chain):
+- **8 rate bands × 24 positions** = 192 modules
+- **Topology:** 2D grid, horizontal ring (wrap), vertical open boundary
+- **Neighbors:** 4-neighborhood (left, right, up, down)
+- **Rates by band:** `[1, 2, 4, 8, 16, 32, 64, 128]`
+- **Phase stagger:** `phase[b,c] = c mod rate[b]` (spreads work across timesteps)
+- **d_stream=96, d_hidden=384** → ~16M params total, ~83K params/module
+- **batch=16** (tensor core alignment: tl.dot needs M≥16)
+- **Communication:** raw unsynchronized global-memory reads from neighbors
+- **Token injection:** band 0 only
+- **Output:** mean of all band-0 module logits (tied readout against fixed embeddings)
+- **Loss:** band-0 CE + all other modules: local prediction loss (predict own next combined input)
+- **Chunk:** 128 tokens × 8 steps/token = 1024 microsteps
+- **Average active modules per microstep:** ~48 (due to multi-rate + phase stagger)
 
-### NEXT (on Linux):
-1. Clone repo: `git clone https://github.com/maxeonyx/gildnn.git`
-2. Set up venv: `uv venv && uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128 && uv pip install einops jaxtyping`
-3. Download TinyShakespeare to `experiments/corpora.ignore/tinyshakespeare_input.txt`
-4. **Sanity check the InfoNCE fix:** `python experiments/automaton/train_cuda_graph.py --loss-type infonce --sanity-check-only`
-   - Expected: CE drops (like before), levels 1-7 InfoNCE drops (new), no conflict
-5. Try torch.compile: `python experiments/automaton/train_cuda_graph.py --compile --sanity-check-only`
-6. Scale up: d_stream=512, batch=4-8
-7. 500-step comparison: InfoNCE (fixed) vs MSE at d_stream=512
-8. Run Track 3 training with best config (long run, background)
-9. Write daily report for 2026-05-30
-10. Write final weekly synthesis
+### Triton persistent kernel design:
+- One kernel launch, 192 programs (one per module)
+- Each program loops at its own rate (rate-1 does 1024 iters, rate-128 does 8)
+- Reads neighbor outputs from global memory WITHOUT synchronization barriers
+- Writes own output to global memory (visible to neighbors whenever hardware delivers)
+- The stale-lateral semantics = GPU's default memory visibility model
+- For backward: store activations during forward → custom backward kernel (same structure, reverse)
+- Each module's backward is independent (detached laterals → no cross-module gradient)
+
+### Implementation plan:
+1. Build eager PyTorch version of 192-module graph architecture (verify it learns)
+2. Write Triton persistent forward kernel
+3. Write Triton backward kernel (or chunked eager backward from stored activations)
+4. Wrap in autograd.Function
+5. Sanity-check: Triton vs eager produce matching outputs
+6. Training run with Triton backend
+7. Compare InfoNCE vs MSE local learning signals
+8. Final reports
+
+### What's validated from prior work (still applies):
+- Local learning > global backprop (validated)
+- Tempered PoE combining (validated)
+- Noise forces prediction advantage (validated)
+- InfoNCE with level-0 CE exemption (implemented, sanity-checked on Linux: CE drops 4.63→3.86 in 3 steps)
 
 ---
 
@@ -187,5 +193,5 @@ Max confirmed: reboot into Linux for Triton/torch.compile access. Everything com
 - `dictations/2026-05-28-20.md` — REDACTION: blocks are NOT weight-shared
 - `dictations/2026-05-27-2.md` — "stop training models that aren't mine"
 - `dictations/2026-05-24-1.md` — Max's original Google Keep architecture note
-- `core/automaton.py` — the cellular automaton model (vectorized bmm)
-- `experiments/automaton/train.py` — training script (TBPTT, per-level optimizers)
+- `core/automaton.py` — the 8-level linear automaton model (reference, being superseded)
+- `experiments/automaton/train_cuda_graph.py` — training script (reference for training loop structure)
