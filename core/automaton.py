@@ -297,10 +297,14 @@ class CellularAutomaton(nn.Module):
 
             detached_combined = combined.detach()
             prediction_errors = self._prediction_errors(current_predictions, detached_combined)
+            # Level 0 uses CE for grounding - no local prediction loss (InfoNCE conflicts with CE)
+            prediction_errors[0] = 0.0
             prediction_loss_sums = prediction_loss_sums + (
                 prediction_errors * active_predictions.to(dtype=prediction_errors.dtype)
             )
             prediction_counts = prediction_counts + active_predictions.to(dtype=torch.long)
+            active_predictions = active_predictions.clone()
+            active_predictions[0] = False
             self._update_contrastive_buffer(detached_combined, active_predictions)
 
             hidden = self._stacked_linear(combined, self.w1, self.b1)
