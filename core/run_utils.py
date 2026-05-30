@@ -6,6 +6,7 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
+from typing import Literal
 
 import torch
 
@@ -55,10 +56,17 @@ def register_active_lock(
     variants: object,
     enabled: bool = True,
     started_at: str | None = None,
-    lock_path: Path = Path("runs/active.lock"),
+    lock_path: Path | None = None,
+    run_size: Literal["large", "small"] = "large",
 ) -> None:
     if not enabled:
         return
+
+    resolved_lock_path = lock_path
+    lock_description = "active experiment lock"
+    if resolved_lock_path is None:
+        resolved_lock_path = Path(f"runs/active-{run_size}.lock")
+        lock_description = f"{run_size} experiment lock"
 
     def _parse_lock_metadata(lock_content: str) -> tuple[int, str]:
         fields: dict[str, str] = {}
@@ -71,13 +79,13 @@ def register_active_lock(
         experiment = fields.get("Experiment")
         if pid_text is None or experiment is None:
             raise ValueError(
-                f"Active lock at {lock_path} is malformed: expected PID and Experiment lines, found {lock_content!r}."
+                f"Active lock at {resolved_lock_path} is malformed: expected PID and Experiment lines, found {lock_content!r}."
             )
         try:
             pid = int(pid_text)
         except ValueError as exc:
             raise ValueError(
-                f"Active lock at {lock_path} is malformed: PID must be an integer, found {pid_text!r}."
+                f"Active lock at {resolved_lock_path} is malformed: PID must be an integer, found {pid_text!r}."
             ) from exc
         return pid, experiment
 
@@ -96,7 +104,7 @@ def register_active_lock(
             return True
         return True
 
-    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    resolved_lock_path.parent.mkdir(parents=True, exist_ok=True)
     lock_content = (
         f"PID: {os.getpid()}\n"
         f"Experiment: {experiment_name}\n"
@@ -106,19 +114,19 @@ def register_active_lock(
 
     while True:
         try:
-            lock_handle = lock_path.open("x+", encoding="utf-8")
+            lock_handle = resolved_lock_path.open("x+", encoding="utf-8")
             break
         except FileExistsError:
-            existing_content = lock_path.read_text(encoding="utf-8")
+            existing_content = resolved_lock_path.read_text(encoding="utf-8")
             existing_pid, existing_experiment = _parse_lock_metadata(existing_content)
             if _pid_is_alive(existing_pid):
                 raise RuntimeError(
-                    "Cannot acquire the active experiment lock because another experiment is still running. "
-                    f"Lock path: {lock_path}. Experiment: {existing_experiment}. PID: {existing_pid}. "
+                    f"Cannot acquire the {lock_description} because another experiment is still running. "
+                    f"Lock path: {resolved_lock_path}. Experiment: {existing_experiment}. PID: {existing_pid}. "
                     "If this invocation is only a safe test, rerun with --no-lock so you do not interfere with the live run."
                 )
             try:
-                lock_path.unlink()
+                resolved_lock_path.unlink()
             except FileNotFoundError:
                 continue
             except PermissionError:
@@ -129,7 +137,7 @@ def register_active_lock(
 
     def _remove_lock() -> None:
         try:
-            current_content = lock_path.read_text(encoding="utf-8")
+            current_content = resolved_lock_path.read_text(encoding="utf-8")
         except OSError:
             current_content = None
         try:
@@ -145,7 +153,7 @@ def register_active_lock(
         if current_pid != os.getpid():
             return
         try:
-            lock_path.unlink(missing_ok=True)
+            resolved_lock_path.unlink(missing_ok=True)
         except OSError:
             pass
 

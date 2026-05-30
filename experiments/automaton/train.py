@@ -245,15 +245,17 @@ def main() -> None:
         redirect_sanity_check_paths(args)
     else:
         prepare_output_paths(report_path=args.report_path, log_path=args.log_path)
-        register_active_lock(
-            experiment_name="automaton",
-            variants={
-                "n_levels": args.n_levels,
-                "steps_per_token": args.steps_per_token,
-                "d_stream": args.d_stream,
-            },
-            enabled=not args.no_lock,
-        )
+
+    register_active_lock(
+        experiment_name="automaton",
+        variants={
+            "n_levels": args.n_levels,
+            "steps_per_token": args.steps_per_token,
+            "d_stream": args.d_stream,
+        },
+        enabled=not args.no_lock,
+        run_size="small" if args.sanity_check_only else "large",
+    )
 
     model = CellularAutomaton(
         vocab_size=data.vocab_size,
