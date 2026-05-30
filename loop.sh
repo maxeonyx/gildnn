@@ -12,7 +12,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-SESSION_ID="ses_1a616aba2ffeSGSY936KJjNNs7"
+SESSION_ID="ses_189bc3a17ffe1O7nyZLLcIAQId"
 CRASH_COUNT=0
 ITERATION=0
 
