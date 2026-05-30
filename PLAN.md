@@ -192,17 +192,27 @@ At every step, justify why we're not just running the real thing. If you can't j
 - Each module's backward is independent (detached laterals → no cross-module gradient)
 
 ### NEXT:
-1. **Per-band CE experiment running** (systemd unit `gildnn-per-band-ce`, started 07:43, ~2000 steps, expected ~09:15 NZST). Config: `--streaming --multi-scale-input --per-band-ce`, checkpoints to `runs/checkpoints_pbc.ignore/`.
-2. **When step 500 arrives:** run lag probe. Prediction: bands should show specialization at their respective horizons (band 4 peak at lag=16, etc).
-3. **When step 2000 arrives:** full lag probe + gradient audit + per-band CE analysis.
-4. **Next experiment after per-band CE:** combine per-band-ce + attention readout (detached). The readout learns to USE multi-timescale representations without sending gradient back.
-5. **If specialization is confirmed:** integrate per-band CE into the default config. This is the proven piece that was missing.
+1. **Per-band CE experiment running** (systemd unit `gildnn-per-band-ce`, step ~620/2000, expected ~09:15 NZST). Config: `--streaming --multi-scale-input --per-band-ce`, checkpoints to `runs/checkpoints_pbc.ignore/`.
+2. **When step 2000 completes:** Run lag probe, gradient audit, and readout comparison. CE at step 620 is 2.58 (catching up to other experiments). All bands predicting below entropy at their horizons.
+3. **NEXT EXPERIMENT after per-band CE: full faithful stack** — `--streaming --multi-scale-input --per-band-ce --attention-readout --detach-readout`. Tests whether a detached attention readout adds value on top of per-band-CE-specialized representations.
+4. **If full stack shows improvement:** that's the architecture working as designed. Write up as final result.
+5. **If NOT:** try per-band CE weight sweep (reduce from 0.1 to 0.01) to see if less per-band-CE allows better global CE while maintaining specialization.
 
-### Key results (2026-05-31 early morning):
-- **Attention readout with attached gradients:** band 2 = 20.8% at lag=1 (FIRST above-chance for band 2). Bands 1-2 benefit. Bands 3-7 stuck. Gradient audit confirms why (local loss 18-44x stronger than CE after training).
-- **Per-band CE 30-step sanity check:** ALL 8 bands learning their horizon task. Band 4 dropped from 4.51 → 3.82 in 30 steps.
+### Key results (2026-05-31 morning session):
+- **Attention readout with attached gradients (step 500):** band 2 = 20.8% at lag=1 (FIRST above-chance for band 2). Gradient audit confirms CE is a "gentle nudge" (1.3-1.9x ratio at init, collapsing to 36-44x after training as attention converges).
+- **Per-band CE (step 500):** ALL 8 bands learning their horizon task (all below entropy 4.17). But lag probe unchanged (expected: lag probe measures past encoding, per-band CE trains future prediction). Global CE 2.67 (slightly worse than attention readout's 2.55, catching up by step 620 → 2.58).
+- **Theory insight:** per-band CE creates multi-timescale representations (useful for multi-horizon prediction) rather than improving single-token CE. The value shows up at the architecture level (rich multi-scale context) not the metric level (single-token perplexity).
 - **MSI + cross-band 2000 steps:** confirmed null. Bands 2-7 still random.
-- **Root cause confirmed:** the local InfoNCE loss is orthogonal to token prediction (cosine 0.013). It cannot create token-useful specialization by design.
+- **Root cause confirmed:** InfoNCE local loss is orthogonal to token prediction (cosine 0.013).
+
+### Implemented features ready for full-stack test:
+- `--multi-scale-input` — EMA token injection per band
+- `--streaming` — stateful TBPTT (endless sequences)
+- `--per-band-ce` — each band predicts token at horizon min(2^b, 64)
+- `--attention-readout` — learned attention over all module states for logit output
+- `--detach-readout` — attention reads detached states (no CE gradient into modules)
+- `--cross-band-negatives` — (not needed with per-band CE)
+- `--temporal-targets` — (BROKEN: trivially solved, don't use)
 
 ### Key findings from lag probe (definitive):
 - **Baseline 5000 steps:** band 0=33.5%, band 1=23.9%, bands 2-7 random. CE 2.64.
