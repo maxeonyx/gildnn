@@ -48,6 +48,9 @@ class GraphCellularAutomaton(nn.Module):
         steps_per_token: int = 8,
         noise_std: float = 0.1,
         readout_temperature: float = 0.07,
+        loss_type: str = "infonce",
+        info_nce_temperature: float = 0.07,
+        contrastive_buffer_size: int = 64,
         refractory: bool = False,
         refractory_threshold: float = 1.0,
         refractory_decay: float = 0.8,
@@ -67,6 +70,14 @@ class GraphCellularAutomaton(nn.Module):
             raise ValueError(f"noise_std must be non-negative, got {noise_std}.")
         if readout_temperature <= 0.0:
             raise ValueError(f"readout_temperature must be positive, got {readout_temperature}.")
+        if loss_type not in {"mse", "infonce"}:
+            raise ValueError(f"loss_type must be 'mse' or 'infonce', got {loss_type!r}.")
+        if info_nce_temperature <= 0.0:
+            raise ValueError(f"info_nce_temperature must be positive, got {info_nce_temperature}.")
+        if contrastive_buffer_size <= 0:
+            raise ValueError(
+                f"contrastive_buffer_size must be positive, got {contrastive_buffer_size}."
+            )
         if refractory_threshold < 0.0:
             raise ValueError(f"refractory_threshold must be non-negative, got {refractory_threshold}.")
         if not 0.0 <= refractory_decay <= 1.0:
@@ -85,6 +96,9 @@ class GraphCellularAutomaton(nn.Module):
         self.steps_per_token = steps_per_token
         self.noise_std = noise_std
         self.readout_temperature = readout_temperature
+        self.loss_type = loss_type
+        self.info_nce_temperature = info_nce_temperature
+        self.contrastive_buffer_size = contrastive_buffer_size
         self.refractory = refractory
         self.refractory_threshold = refractory_threshold
         self.refractory_decay = refractory_decay
@@ -96,6 +110,16 @@ class GraphCellularAutomaton(nn.Module):
         self.b2 = nn.Parameter(torch.empty(self.n_modules, 1, d_stream))
         self.pred_w = nn.Parameter(torch.empty(self.n_modules, d_stream, d_stream))
         self.pred_b = nn.Parameter(torch.empty(self.n_modules, 1, d_stream))
+        if self.loss_type == "infonce":
+            contrastive_buffer = l2_normalize(
+                torch.randn(self.n_modules, self.contrastive_buffer_size, d_stream)
+            )
+            self.register_buffer("contrastive_buffer", contrastive_buffer, persistent=False)
+            self.register_buffer(
+                "contrastive_buffer_ptr",
+                torch.zeros((self.n_modules,), dtype=torch.long),
+                persistent=False,
+            )
 
         module_rows = repeat(torch.arange(n_bands, dtype=torch.long), "band -> (band col)", col=n_cols)
         module_cols = repeat(torch.arange(n_cols, dtype=torch.long), "col -> (band col)", band=n_bands)
@@ -220,6 +244,50 @@ class GraphCellularAutomaton(nn.Module):
             torch.zeros_like(prediction_loss_sums),
         )
 
+    def _prediction_errors(
+        self,
+        predictions: Float[Tensor, "modules batch d_stream"],
+        targets: Float[Tensor, "modules batch d_stream"],
+    ) -> Float[Tensor, "modules"]:
+        if self.loss_type == "mse":
+            return F.mse_loss(predictions.float(), targets.float(), reduction="none").mean(dim=(1, 2))
+
+        norm_pred = F.normalize(predictions.float(), dim=-1, eps=1e-6)
+        norm_target = F.normalize(targets.float(), dim=-1, eps=1e-6)
+        norm_buffer = F.normalize(self.contrastive_buffer.float(), dim=-1, eps=1e-6)
+
+        positive_logits = (norm_pred * norm_target).sum(dim=-1, keepdim=True)
+        negative_logits = torch.einsum("mbd,mkd->mbk", norm_pred, norm_buffer)
+        logits = torch.cat((positive_logits, negative_logits), dim=-1) / self.info_nce_temperature
+        return (torch.logsumexp(logits, dim=-1) - logits[..., 0]).mean(dim=1)
+
+    def _update_contrastive_buffer(
+        self,
+        targets: Float[Tensor, "modules batch d_stream"],
+        active_modules: torch.Tensor,
+    ) -> None:
+        if self.loss_type != "infonce":
+            return
+
+        batch_size = targets.shape[1]
+        write_offsets = torch.arange(batch_size, device=targets.device, dtype=torch.long)
+        positions = torch.remainder(
+            self.contrastive_buffer_ptr[:, None] + write_offsets[None, :],
+            self.contrastive_buffer_size,
+        )
+        scatter_index = positions.unsqueeze(-1).expand(-1, -1, self.d_stream)
+
+        with torch.no_grad():
+            existing = self.contrastive_buffer.gather(1, scatter_index)
+            source = torch.where(active_modules[:, None, None], targets.to(self.contrastive_buffer.dtype), existing)
+            self.contrastive_buffer.scatter_(1, scatter_index, source)
+            self.contrastive_buffer_ptr.copy_(
+                torch.remainder(
+                    self.contrastive_buffer_ptr + active_modules.to(dtype=torch.long) * batch_size,
+                    self.contrastive_buffer_size,
+                )
+            )
+
     def forward_chunk(
         self,
         tokens: Int[Tensor, "batch seq"],
@@ -287,15 +355,15 @@ class GraphCellularAutomaton(nn.Module):
             combined = l2_normalize(combined)
 
             active_predictions = fires & current_has_predicted
-            prediction_errors = F.mse_loss(
-                current_predictions.float(),
-                prediction_target.detach().float(),
-                reduction="none",
-            ).mean(dim=(1, 2))
+            prediction_errors = self._prediction_errors(current_predictions, prediction_target.detach())
+            prediction_errors[self.band0_mask] = 0.0
             prediction_loss_sums = prediction_loss_sums + (
                 prediction_errors * active_predictions.to(dtype=prediction_errors.dtype)
             )
             prediction_counts = prediction_counts + active_predictions.to(dtype=torch.long)
+            non_band0_active = active_predictions.clone()
+            non_band0_active[self.band0_mask] = False
+            self._update_contrastive_buffer(prediction_target.detach(), non_band0_active)
 
             hidden = F.gelu(self._stacked_linear(combined, self.w1, self.b1))
             output = self._stacked_linear(hidden, self.w2, self.b2)

@@ -38,7 +38,7 @@ def main() -> None:
     stoi = {char: index for index, char in enumerate(vocab)}
     encoded_text = torch.tensor([stoi[char] for char in raw_text], dtype=torch.long)
 
-    model = GraphCellularAutomaton(vocab_size=len(vocab)).to(device)
+    model = GraphCellularAutomaton(vocab_size=len(vocab), loss_type="infonce").to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
     batch_size = 4
