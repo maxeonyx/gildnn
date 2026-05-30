@@ -1,0 +1,131 @@
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+import time
+from pathlib import Path
+
+if __package__ is None or __package__ == "":
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+import torch
+from torch import nn
+from torch.nn import functional as F
+
+from core.fixed_window_char import load_dataset, set_seed
+
+
+torch.backends.cuda.matmul.allow_tf32 = True
+
+
+class GruLanguageModel(nn.Module):
+    def __init__(
+        self,
+        *,
+        vocab_size: int,
+        hidden_size: int = 256,
+        n_layers: int = 2,
+    ) -> None:
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, hidden_size)
+        self.gru = nn.GRU(
+            input_size=hidden_size,
+            hidden_size=hidden_size,
+            num_layers=n_layers,
+            batch_first=True,
+            dropout=0.0,
+        )
+        self.lm_head = nn.Linear(hidden_size, vocab_size)
+
+    def forward(self, tokens: torch.Tensor) -> torch.Tensor:
+        embeddings = self.embedding(tokens)
+        hidden, _ = self.gru(embeddings)
+        return self.lm_head(hidden)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Train a GRU baseline on TinyShakespeare.")
+    parser.add_argument("--steps", type=int, default=1000)
+    parser.add_argument("--log-every", type=int, default=50)
+    parser.add_argument("--batch-size", type=int, default=32)
+    parser.add_argument("--chunk-size", type=int, default=128)
+    args = parser.parse_args()
+
+    if args.steps <= 0:
+        raise ValueError(f"--steps must be positive, got {args.steps}.")
+    if args.log_every <= 0:
+        raise ValueError(f"--log-every must be positive, got {args.log_every}.")
+    if args.batch_size <= 0:
+        raise ValueError(f"--batch-size must be positive, got {args.batch_size}.")
+    if args.chunk_size <= 1:
+        raise ValueError(f"--chunk-size must be greater than 1, got {args.chunk_size}.")
+
+    return args
+
+
+def count_parameters(model: nn.Module) -> int:
+    return sum(parameter.numel() for parameter in model.parameters())
+
+
+def prepare_dataset(*, chunk_size: int) -> tuple[torch.Tensor, torch.Tensor, int]:
+    (train_inputs, train_next_tokens), _, vocab_size = load_dataset(context_size=chunk_size)
+    train_targets = torch.cat((train_inputs[:, 1:], train_next_tokens.unsqueeze(1)), dim=1)
+    return train_inputs, train_targets, vocab_size
+
+
+def main() -> None:
+    args = parse_args()
+    set_seed(0)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    train_inputs, train_targets, vocab_size = prepare_dataset(chunk_size=args.chunk_size)
+    model = GruLanguageModel(vocab_size=vocab_size).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)
+    parameter_count = count_parameters(model)
+    sample_count = train_inputs.shape[0]
+
+    print(f"params={parameter_count}", flush=True)
+
+    start_time = time.perf_counter()
+    final_ce_loss = float("nan")
+
+    for step in range(1, args.steps + 1):
+        batch_indices = torch.randint(0, sample_count, (args.batch_size,))
+        batch_inputs = train_inputs[batch_indices].to(device)
+        batch_targets = train_targets[batch_indices].to(device)
+
+        optimizer.zero_grad(set_to_none=True)
+        logits = model(batch_inputs)
+        loss = F.cross_entropy(logits.reshape(-1, vocab_size), batch_targets.reshape(-1))
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+        optimizer.step()
+
+        final_ce_loss = loss.item()
+        if step % args.log_every == 0 or step == args.steps:
+            if device.type == "cuda":
+                torch.cuda.synchronize(device)
+            elapsed_s = time.perf_counter() - start_time
+            print(f"step={step} ce_loss={final_ce_loss:.4f} elapsed_s={elapsed_s:.2f}", flush=True)
+
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
+    total_time_s = time.perf_counter() - start_time
+    print(
+        json.dumps(
+            {
+                "step_count": args.steps,
+                "final_ce_loss": round(final_ce_loss, 6),
+                "total_time_s": round(total_time_s, 6),
+                "model": "gru",
+                "params": parameter_count,
+            }
+        ),
+        flush=True,
+    )
+    print("DONE", flush=True)
+
+
+if __name__ == "__main__":
+    main()
