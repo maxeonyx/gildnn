@@ -55,6 +55,7 @@ class GraphCellularAutomaton(nn.Module):
         refractory_threshold: float = 1.0,
         refractory_decay: float = 0.8,
         multi_scale_input: bool = False,
+        temporal_targets: bool = False,
     ) -> None:
         super().__init__()
         if vocab_size <= 0:
@@ -104,6 +105,7 @@ class GraphCellularAutomaton(nn.Module):
         self.refractory_threshold = refractory_threshold
         self.refractory_decay = refractory_decay
         self.multi_scale_input = multi_scale_input
+        self.temporal_targets = temporal_targets
 
         self.token_embedding = nn.Embedding(vocab_size, d_stream)
         self.w1 = nn.Parameter(torch.empty(self.n_modules, d_stream, self.d_hidden))
@@ -376,7 +378,15 @@ class GraphCellularAutomaton(nn.Module):
             combined = l2_normalize(combined)
 
             active_predictions = fires & current_has_predicted
-            prediction_errors = self._prediction_errors(current_predictions, prediction_target.detach())
+            if self.temporal_targets:
+                # Each module's prediction target = current token embedding (L2-normalized)
+                # Since different bands fire at different rates, their predictions were made
+                # rate/steps_per_token tokens ago — naturally forcing timescale separation.
+                temporal_target = l2_normalize(token_embeddings[:, token_index, :])  # [batch, d_stream]
+                temporal_target_expanded = temporal_target.unsqueeze(0).expand(self.n_modules, -1, -1)
+                prediction_errors = self._prediction_errors(current_predictions, temporal_target_expanded.detach())
+            else:
+                prediction_errors = self._prediction_errors(current_predictions, prediction_target.detach())
             prediction_errors[self.band0_mask] = 0.0
             prediction_loss_sums = prediction_loss_sums + (
                 prediction_errors * active_predictions.to(dtype=prediction_errors.dtype)

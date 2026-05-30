@@ -38,6 +38,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--resume", type=Path)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--multi-scale-input", action="store_true", help="EMA token injection per band")
+    parser.add_argument("--temporal-targets", action="store_true", help="Predict future token embedding instead of neighbor sum")
     parser.add_argument("--streaming", action="store_true", help="Stateful streaming training (no state reset between chunks)")
     args = parser.parse_args()
 
@@ -138,18 +139,19 @@ def save_checkpoint(
     step: int,
     ce_loss: float,
     save_dir: Path,
+    args: object | None = None,
 ) -> Path:
     save_dir.mkdir(parents=True, exist_ok=True)
     checkpoint_path = save_dir / f"step_{step:06d}.pt"
-    torch.save(
-        {
-            "model_state_dict": model.state_dict(),
-            "optimizer_state_dict": optimizer.state_dict(),
-            "step": step,
-            "ce_loss": ce_loss,
-        },
-        checkpoint_path,
-    )
+    checkpoint_data: dict = {
+        "model_state_dict": model.state_dict(),
+        "optimizer_state_dict": optimizer.state_dict(),
+        "step": step,
+        "ce_loss": ce_loss,
+    }
+    if args is not None:
+        checkpoint_data["args"] = vars(args) if hasattr(args, "__dict__") else args
+    torch.save(checkpoint_data, checkpoint_path)
     return checkpoint_path
 
 
@@ -161,7 +163,7 @@ def main() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     data = load_tinyshakespeare(repo_root)
 
-    model = GraphCellularAutomaton(vocab_size=data.vocab_size, multi_scale_input=args.multi_scale_input).to(device)
+    model = GraphCellularAutomaton(vocab_size=data.vocab_size, multi_scale_input=args.multi_scale_input, temporal_targets=args.temporal_targets).to(device)
     model.train()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     generator = torch.Generator(device="cpu")
@@ -270,6 +272,7 @@ def main() -> None:
                 step=step,
                 ce_loss=final_ce_loss,
                 save_dir=args.save_dir,
+                args=args,
             )
             print(f"saved checkpoint {checkpoint_path}", flush=True)
 

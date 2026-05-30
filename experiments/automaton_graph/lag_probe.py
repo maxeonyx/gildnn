@@ -110,13 +110,21 @@ def infer_model_kwargs(checkpoint: dict[str, object]) -> dict[str, int | float |
     if not isinstance(token_embedding, Tensor) or not isinstance(w1, Tensor):
         raise ValueError("Checkpoint model_state_dict is missing token_embedding.weight or w1.")
     n_modules, d_stream, d_hidden = w1.shape
-    return {
+    kwargs: dict[str, int | float | bool] = {
         "vocab_size": int(token_embedding.shape[0]),
         "d_stream": int(d_stream),
         "d_hidden": int(d_hidden),
         "n_bands": 8,
         "n_cols": int(n_modules // 8),
     }
+    # Pass through training flags stored in checkpoint
+    train_args = checkpoint.get("args")
+    if isinstance(train_args, dict):
+        if train_args.get("multi_scale_input"):
+            kwargs["multi_scale_input"] = True
+        if train_args.get("temporal_targets"):
+            kwargs["temporal_targets"] = True
+    return kwargs
 
 
 def build_model(args: argparse.Namespace, *, data_vocab_size: int) -> tuple[GraphCellularAutomaton, str]:
