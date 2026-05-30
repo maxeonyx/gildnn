@@ -315,6 +315,27 @@ The reviewer is a DIFFERENT subagent from the one doing the work. It receives th
 5. **Is the interpretation honest?** No overclaiming. No "this proves X" when it merely suggests X. Open things stay open.
 6. **Is the result actually meaningful enough to count as evidence?** Would this change what you'd try next on a different pathway? If not, it's not meaningful — it's noise.
 
+### Implementation pipeline (within experiment design loop)
+
+When building new architecture code or significant model changes, the work flows through separate agents with adversarial boundaries:
+
+1. **Implement** (implement agent) — writes the code, commits it. Does NOT run it, does NOT review it. Its incentive is to produce code that matches the spec.
+
+2. **Review** (review agent) — receives the committed code and reviews it against THREE things:
+   - **The spec** — does the code do what was designed?
+   - **The spirit of the dictations** — is this actually Max's architecture? Does it preserve the properties he cares about (true parallelism, local learning, stale laterals as a feature not a bug, graph not chain, etc.)? Would Max look at this and say "yes, that's what I meant"?
+   - **Experiment design** — will running this actually tell us something? Are there cold-start traps, confounds, or measurement gaps that would invalidate results?
+
+   The reviewer is adversarial. It is looking for problems. If it finds none, that's a pass. If it finds problems, the implementation goes back.
+
+3. **Fix & sanity check** (implement agent) — takes review findings, fixes issues, runs the sanity check (overfit one batch, loss drops in 5 steps). Commits the fix. Reports the actual loss trajectory as evidence.
+
+4. **Setup & start** (implement agent) — launches the real training run (background). Reports PID and log path. Does NOT wait for it to finish.
+
+After step 4, the orchestrator continues with other tracks (theory, ablations) while the training run proceeds.
+
+**Why separate agents:** A single agent that implements and reviews its own work has the wrong incentives — it anchors on its own decisions and glosses over problems. Separate agents create adversarial pressure at each boundary. The reviewer doesn't know what compromises the implementer made or why, so it judges the output fresh.
+
 ### The reviewer cannot be overridden
 
 **If the reviewer identifies ANY problem, the orchestrator must either:**
