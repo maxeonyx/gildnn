@@ -209,6 +209,20 @@ At every step, justify why we're not just running the real thing. If you can't j
 - **Multi-scale + streaming 2000 steps:** band 0=37%, band 1=24.1%, bands 2-7 STILL random. CE 2.49 (better!).
 - Multi-scale input accelerates learning but does NOT create specialization.
 - **The bottleneck is the prediction target**, not the input. All bands predict the same neighbor sum, which is dominated by band 0's recent-token encoding. There's no incentive to encode anything different.
+- **Cross-band negatives (streaming only, step 500):** band 2=17.9% — promising but reverted to noise at step 1000.
+- **Temporal targets:** prediction loss collapses to 0 (task too easy — token embeddings are fixed).
+
+### Band CE probe finding:
+- Bands 1-7 have representations that are WORSE THAN RANDOM for token prediction when decoded through the fixed embedding readout (CE > 4.17, vs random = 4.17).
+- This means they ARE encoding something DIFFERENT from band 0 — just nothing useful for next-token prediction in the current readout format.
+- **Implication:** need attention readout (Max's dictation idea) to let the model learn to USE all-band information. Implemented as `--attention-readout`.
+
+### Architecture additions (ready to test together):
+- `--multi-scale-input` — EMA token injection per band (unique temporal info)
+- `--streaming` — stateful TBPTT (endless sequences)
+- `--cross-band-negatives` — other bands as InfoNCE negatives (anti-redundancy)
+- `--attention-readout` — learned query attends over all module states for logit output (gives CE gradient pressure to all bands via the readout)
+- `--temporal-targets` — (BROKEN: trivially solved, don't use)
 
 ### 1000-step results (anchor run):
 - CE: 4.17 → 2.69 (1.48 nats learned)
