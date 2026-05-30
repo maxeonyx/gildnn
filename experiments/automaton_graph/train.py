@@ -19,6 +19,8 @@ from core.automaton_graph import GraphCellularAutomaton
 
 torch.backends.cuda.matmul.allow_tf32 = True
 
+PER_BAND_CE_WEIGHT = 0.1
+
 
 @dataclass(frozen=True)
 class TinyShakespeareData:
@@ -41,6 +43,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--temporal-targets", action="store_true", help="Predict future token embedding instead of neighbor sum")
     parser.add_argument("--cross-band-negatives", action="store_true", help="Use other bands as negatives in InfoNCE (anti-redundancy)")
     parser.add_argument("--attention-readout", action="store_true", help="Use attention over all module states instead of mean band-0")
+    parser.add_argument("--per-band-ce", action="store_true", help="Add per-band horizon cross-entropy loss")
     parser.add_argument("--streaming", action="store_true", help="Stateful streaming training (no state reset between chunks)")
     args = parser.parse_args()
 
@@ -134,6 +137,31 @@ def format_per_band_losses(prediction_losses: Tensor, *, band_count: int, module
     return ", ".join(f"b{band}={value.item():.4f}" for band, value in enumerate(per_band_mean_losses))
 
 
+def compute_per_band_ce(
+    *,
+    per_band_logits: Tensor | None,
+    targets: Tensor,
+    chunk_size: int,
+) -> tuple[Tensor, Tensor | None]:
+    if per_band_logits is None:
+        return targets.new_zeros((), dtype=torch.float32), None
+
+    batch_size, n_bands, seq_len, vocab_size = per_band_logits.shape
+    per_band_losses = torch.zeros((n_bands,), device=per_band_logits.device, dtype=torch.float32)
+    horizon_cap = max(1, chunk_size // 2)
+    for band in range(n_bands):
+        horizon = min(2**band, horizon_cap)
+        target_shift = horizon - 1
+        valid_positions = seq_len - target_shift
+        if valid_positions <= 0:
+            continue
+        band_logits = per_band_logits[:, band, :valid_positions, :].reshape(batch_size * valid_positions, vocab_size)
+        band_targets = targets[:, target_shift:].reshape(batch_size * valid_positions)
+        per_band_losses[band] = F.cross_entropy(band_logits, band_targets)
+
+    return per_band_losses.sum() * PER_BAND_CE_WEIGHT, per_band_losses
+
+
 def save_checkpoint(
     *,
     model: GraphCellularAutomaton,
@@ -165,7 +193,7 @@ def main() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     data = load_tinyshakespeare(repo_root)
 
-    model = GraphCellularAutomaton(vocab_size=data.vocab_size, multi_scale_input=args.multi_scale_input, temporal_targets=args.temporal_targets, cross_band_negatives=args.cross_band_negatives, attention_readout=args.attention_readout).to(device)
+    model = GraphCellularAutomaton(vocab_size=data.vocab_size, multi_scale_input=args.multi_scale_input, temporal_targets=args.temporal_targets, cross_band_negatives=args.cross_band_negatives, attention_readout=args.attention_readout, per_band_ce=args.per_band_ce).to(device)
     model.train()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     generator = torch.Generator(device="cpu")
@@ -196,7 +224,9 @@ def main() -> None:
     start_time = time.perf_counter()
     final_ce_loss: float | None = None
     final_total_prediction_loss: float | None = None
+    final_per_band_ce_loss: float | None = None
     final_per_band_mean_losses: list[float] | None = None
+    final_per_band_ce_losses: list[float] | None = None
 
     for step in range(initial_step + 1, args.steps + 1):
         if args.streaming:
@@ -223,7 +253,7 @@ def main() -> None:
             step_offset = torch.zeros((), device=device, dtype=torch.long)
 
         optimizer.zero_grad(set_to_none=True)
-        logits, new_states, new_buffer, new_preds, new_has_pred, new_refrac, prediction_loss_sums, prediction_counts = model.forward_chunk(
+        logits, per_band_logits, new_states, new_buffer, new_preds, new_has_pred, new_refrac, prediction_loss_sums, prediction_counts = model.forward_chunk(
             inputs,
             states,
             global_buffer,
@@ -235,7 +265,12 @@ def main() -> None:
         prediction_losses = model.prediction_losses_from_sums(prediction_loss_sums, prediction_counts)
         total_prediction_loss = prediction_losses.sum()
         ce_loss = F.cross_entropy(logits.reshape(-1, logits.shape[-1]), targets.reshape(-1))
-        loss = ce_loss + total_prediction_loss
+        per_band_ce_loss, per_band_ce_losses = compute_per_band_ce(
+            per_band_logits=per_band_logits,
+            targets=targets,
+            chunk_size=args.chunk_size,
+        )
+        loss = ce_loss + total_prediction_loss + per_band_ce_loss
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()
@@ -250,22 +285,31 @@ def main() -> None:
 
         final_ce_loss = ce_loss.item()
         final_total_prediction_loss = total_prediction_loss.item()
+        final_per_band_ce_loss = per_band_ce_loss.item()
         final_per_band_mean_losses = (
             prediction_losses.detach().reshape(model.n_bands, model.n_cols).mean(dim=1).cpu().tolist()
         )
+        final_per_band_ce_losses = None if per_band_ce_losses is None else per_band_ce_losses.detach().cpu().tolist()
 
         if step % args.log_every == 0 or step == args.steps:
             if device.type == "cuda":
                 torch.cuda.synchronize(device)
             elapsed_s = time.perf_counter() - start_time
             print(
-                f"step={step} ce_loss={final_ce_loss:.4f} total_prediction_loss={final_total_prediction_loss:.4f} elapsed_s={elapsed_s:.2f}",
+                f"step={step} ce_loss={final_ce_loss:.4f} total_prediction_loss={final_total_prediction_loss:.4f} per_band_ce_loss={final_per_band_ce_loss:.4f} elapsed_s={elapsed_s:.2f}",
                 flush=True,
             )
             print(
                 f"  per_band_mean_prediction_loss: {format_per_band_losses(prediction_losses.detach(), band_count=model.n_bands, modules_per_band=model.n_cols)}",
                 flush=True,
             )
+            if per_band_ce_losses is not None:
+                print(
+                    "  per_band_ce: " + ", ".join(
+                        f"b{band}={value.item():.4f}" for band, value in enumerate(per_band_ce_losses.detach())
+                    ),
+                    flush=True,
+                )
 
         if step % args.save_every == 0:
             checkpoint_path = save_checkpoint(
@@ -287,8 +331,12 @@ def main() -> None:
             final_total_prediction_loss if final_total_prediction_loss is not None else float("nan"),
             6,
         ),
+        "final_per_band_ce_loss": round(final_per_band_ce_loss if final_per_band_ce_loss is not None else float("nan"), 6),
         "final_per_band_mean_prediction_loss": [
             round(value, 6) for value in (final_per_band_mean_losses if final_per_band_mean_losses is not None else [])
+        ],
+        "final_per_band_ce": [
+            round(value, 6) for value in (final_per_band_ce_losses if final_per_band_ce_losses is not None else [])
         ],
     }
     print(json.dumps(summary), flush=True)

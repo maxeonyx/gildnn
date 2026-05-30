@@ -18,7 +18,11 @@ def _clone_state(state: tuple[torch.Tensor, ...]) -> tuple[torch.Tensor, ...]:
     return tuple(tensor.clone() for tensor in state)
 
 
-def _assert_close(name: str, actual: torch.Tensor, expected: torch.Tensor) -> None:
+def _assert_close(name: str, actual: torch.Tensor | None, expected: torch.Tensor | None) -> None:
+    if actual is None or expected is None:
+        if actual is not expected:
+            raise AssertionError(f"{name} mismatch")
+        return
     if actual.dtype in (torch.bool, torch.int32, torch.int64, torch.long):
         if not torch.equal(actual, expected):
             raise AssertionError(f"{name} mismatch")
@@ -83,6 +87,7 @@ def main() -> None:
 
     names = [
         "logits",
+        "per_band_logits",
         "states",
         "global_buffer",
         "predictions",

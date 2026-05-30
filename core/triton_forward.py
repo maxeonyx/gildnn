@@ -302,7 +302,7 @@ def triton_forward_chunk(
     has_predicted: Tensor,
     refractory_levels: Tensor,
     global_step_offset: int | Tensor,
-) -> tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
+) -> tuple[Tensor, Tensor | None, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
     _validate_triton_inputs(model, tokens, states, global_buffer, predictions, has_predicted, refractory_levels)
 
     batch_size, seq_len = tokens.shape
@@ -438,6 +438,7 @@ def triton_forward_chunk(
 
     return (
         rearrange(logits, "seq batch vocab -> batch seq vocab"),
+        None,
         current_states[:, :batch_size],
         current_global_buffer[:, :batch_size],
         current_predictions[:, :batch_size],
@@ -460,7 +461,7 @@ class TritonForwardChunkFunction(torch.autograd.Function):
         has_predicted: Tensor,
         refractory_levels: Tensor,
         global_step_offset: int | Tensor,
-    ) -> tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
+    ) -> tuple[Tensor, Tensor | None, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
         del ctx
         return triton_forward_chunk(
             model,
@@ -477,6 +478,6 @@ class TritonForwardChunkFunction(torch.autograd.Function):
     def backward(
         ctx: torch.autograd.function.FunctionCtx,
         *grad_outputs: Tensor,
-    ) -> tuple[None, None, None, None, None, None, None, None]:
+    ) -> tuple[None, None, None, None, None, None, None, None, None]:
         del ctx, grad_outputs
         raise NotImplementedError("Triton backward is not implemented yet.")

@@ -73,7 +73,7 @@ def main():
 
     with torch.no_grad():
         states, global_buffer, predictions, has_predicted, refractory_levels = model.initial_recurrent_state(1, device=device)
-        logits, final_states, _, _, _, _, _, _ = model.forward_chunk(
+        logits, _, final_states, _, _, _, _, _, _ = model.forward_chunk(
             tokens, states, global_buffer, predictions, has_predicted, refractory_levels,
             global_step_offset=0,
         )

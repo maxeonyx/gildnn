@@ -31,6 +31,7 @@ class ParameterSlice:
 @dataclass(frozen=True)
 class GraphAutomatonOutput:
     logits: Float[Tensor, "batch seq vocab"]
+    per_band_logits: Float[Tensor, "batch n_bands seq vocab"] | None
     prediction_losses: Float[Tensor, "modules"]
     prediction_counts: Int[Tensor, "modules"]
     total_prediction_loss: Float[Tensor, ""]
@@ -58,6 +59,7 @@ class GraphCellularAutomaton(nn.Module):
         temporal_targets: bool = False,
         cross_band_negatives: bool = False,
         attention_readout: bool = False,
+        per_band_ce: bool = False,
     ) -> None:
         super().__init__()
         if vocab_size <= 0:
@@ -110,6 +112,7 @@ class GraphCellularAutomaton(nn.Module):
         self.temporal_targets = temporal_targets
         self.cross_band_negatives = cross_band_negatives
         self.attention_readout = attention_readout
+        self.per_band_ce = per_band_ce
 
         self.token_embedding = nn.Embedding(vocab_size, d_stream)
         self.w1 = nn.Parameter(torch.empty(self.n_modules, d_stream, self.d_hidden))
@@ -339,6 +342,7 @@ class GraphCellularAutomaton(nn.Module):
         global_step_offset: int | Int[Tensor, ""],
     ) -> tuple[
         Float[Tensor, "batch seq vocab"],
+        Float[Tensor, "batch n_bands seq vocab"] | None,
         Float[Tensor, "modules batch d_stream"],
         Float[Tensor, "modules batch d_stream"],
         Float[Tensor, "modules batch d_stream"],
@@ -355,6 +359,15 @@ class GraphCellularAutomaton(nn.Module):
         batch_size, seq_len = tokens.shape
         token_embeddings: Float[Tensor, "batch seq d_stream"] = self.token_embedding(tokens)
         logits = torch.empty((seq_len, batch_size, self.vocab_size), device=tokens.device, dtype=token_embeddings.dtype)
+        per_band_logits = (
+            torch.empty(
+                (seq_len, self.n_bands, batch_size, self.vocab_size),
+                device=tokens.device,
+                dtype=token_embeddings.dtype,
+            )
+            if self.per_band_ce
+            else None
+        )
         prediction_loss_sums = torch.zeros((self.n_modules,), device=tokens.device, dtype=token_embeddings.dtype)
         prediction_counts = torch.zeros((self.n_modules,), device=tokens.device, dtype=torch.long)
 
@@ -450,6 +463,14 @@ class GraphCellularAutomaton(nn.Module):
                 )
 
             if timestep % self.steps_per_token == self.steps_per_token - 1:
+                if per_band_logits is not None:
+                    band_mean_states = rearrange(
+                        current_states,
+                        "(band col) batch d_stream -> band col batch d_stream",
+                        band=self.n_bands,
+                        col=self.n_cols,
+                    ).mean(dim=1)
+                    per_band_logits[token_index] = self.logits_from_hidden(band_mean_states)
                 if self.attention_readout:
                     # Attend over ALL module states (detached from module gradients)
                     all_states = current_states  # [modules, batch, d_stream] — gradients flow through
@@ -468,6 +489,7 @@ class GraphCellularAutomaton(nn.Module):
 
         return (
             rearrange(logits, "seq batch vocab -> batch seq vocab"),
+            None if per_band_logits is None else rearrange(per_band_logits, "seq band batch vocab -> batch band seq vocab"),
             current_states,
             current_global_buffer,
             current_predictions,
@@ -487,7 +509,7 @@ class GraphCellularAutomaton(nn.Module):
             tokens.shape[0],
             device=tokens.device,
         )
-        logits, _, _, _, _, _, prediction_loss_sums, prediction_counts = self.forward_chunk(
+        logits, per_band_logits, _, _, _, _, _, prediction_loss_sums, prediction_counts = self.forward_chunk(
             tokens,
             states,
             global_buffer,
@@ -499,6 +521,7 @@ class GraphCellularAutomaton(nn.Module):
         prediction_losses = self.prediction_losses_from_sums(prediction_loss_sums, prediction_counts)
         return GraphAutomatonOutput(
             logits=logits,
+            per_band_logits=per_band_logits,
             prediction_losses=prediction_losses,
             prediction_counts=prediction_counts,
             total_prediction_loss=prediction_losses.sum(),
