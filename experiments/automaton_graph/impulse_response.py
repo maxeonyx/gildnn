@@ -128,19 +128,27 @@ def main() -> None:
     torch.manual_seed(0)
     device = torch.device("cpu")
 
-    model = GraphCellularAutomaton(
-        vocab_size=128,
-        noise_std=0.0,
-        refractory=True,
-        refractory_threshold=0.5,
-        refractory_decay=0.9,
-    ).to(device)
-
     if args.checkpoint is not None:
         ckpt = torch.load(args.checkpoint, map_location=device, weights_only=False)
+        # Infer vocab_size from checkpoint
+        vocab_size = ckpt["model_state_dict"]["token_embedding.weight"].shape[0]
+        model = GraphCellularAutomaton(
+            vocab_size=vocab_size,
+            noise_std=0.0,
+            refractory=True,
+            refractory_threshold=0.5,
+            refractory_decay=0.9,
+        ).to(device)
         model.load_state_dict(ckpt["model_state_dict"])
         print(f"Loaded checkpoint from step {ckpt['step']} (ce_loss={ckpt['ce_loss']:.4f})")
     else:
+        model = GraphCellularAutomaton(
+            vocab_size=128,
+            noise_std=0.0,
+            refractory=True,
+            refractory_threshold=0.5,
+            refractory_decay=0.9,
+        ).to(device)
         print("Using random initialization")
 
     model.eval()
