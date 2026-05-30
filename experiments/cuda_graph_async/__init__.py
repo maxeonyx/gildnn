@@ -1,1 +1,0 @@
-"""CUDA Graph async microbenchmark."""
