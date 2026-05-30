@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import torch
-from einops import rearrange
 from torch import Tensor
 from torch.nn import functional as F
 
@@ -97,12 +96,7 @@ def sample_batch(
 
 
 def format_per_band_losses(prediction_losses: Tensor, *, band_count: int, modules_per_band: int) -> str:
-    per_band_mean_losses = rearrange(
-        prediction_losses,
-        "(band module) -> band module",
-        band=band_count,
-        module=modules_per_band,
-    ).mean(dim=1)
+    per_band_mean_losses = prediction_losses.reshape(band_count, modules_per_band).mean(dim=1)
     return ", ".join(f"b{band}={value.item():.4f}" for band, value in enumerate(per_band_mean_losses))
 
 
@@ -158,16 +152,14 @@ def main() -> None:
         ce_loss = F.cross_entropy(logits.reshape(-1, logits.shape[-1]), targets.reshape(-1))
         loss = ce_loss + total_prediction_loss
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()
 
         final_ce_loss = ce_loss.item()
         final_total_prediction_loss = total_prediction_loss.item()
-        final_per_band_mean_losses = rearrange(
-            prediction_losses.detach(),
-            "(band module) -> band module",
-            band=model.n_bands,
-            module=model.n_cols,
-        ).mean(dim=1).cpu().tolist()
+        final_per_band_mean_losses = (
+            prediction_losses.detach().reshape(model.n_bands, model.n_cols).mean(dim=1).cpu().tolist()
+        )
 
         if step % args.log_every == 0 or step == args.steps:
             if device.type == "cuda":
