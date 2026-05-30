@@ -149,6 +149,12 @@ At every step, justify why we're not just running the real thing. If you can't j
    - Refractory helps CE: 2.46 vs 2.55 baseline
    - Makes prediction harder (expected — signal actually propagates instead of pooling)
 7. ✅ **Process documented:** implementation pipeline (implement→review→fix→start) in PROCESS.md
+8. ✅ **Gradient clipping** — fixed InfoNCE NaN divergence at step 300 (max_norm=1.0)
+9. ✅ **Triton fused forward kernel** — 1.94x speedup, numerically verified (`core/triton_forward.py`)
+10. ✅ **1000-step training completed** — CE 4.17→2.69, all bands learning
+11. ✅ **Impulse response diagnostic** — confirms diffusion (not waves) with random weights
+12. ✅ **Checkpoint saving** added to training script
+13. ✅ **5000-step long run launched** (PID 34251, lr=1e-4, checkpoints every 1000 steps, ~3.4h)
 
 ### Wave propagation theory (discussed with Max):
 - Current model is diffusion-like (symmetric reads, no directional transport)
@@ -186,11 +192,19 @@ At every step, justify why we're not just running the real thing. If you can't j
 - Each module's backward is independent (detached laterals → no cross-module gradient)
 
 ### NEXT:
-1. ✅ **Daily report** for 2026-05-30 — written
-2. ✅ **Triton fused kernel** — forward kernel done, 1.94x speedup at batch=16 (inference only; backward not yet implemented)
-3. **Training at scale** — 1000-step InfoNCE run active (PID 30002, ~step 460/1000, CE 2.65)
-4. **Integrate Triton backward** or find another path to use kernel in training
-5. **Final weekly synthesis** before project ends
+1. **Monitor 5000-step run** — PID 34251, check back ~20:30 NZST for initial results
+2. **Triton backward decision:** hybrid approach (Triton forward trace + PyTorch per-module replay) is correct design but complex (~3h). Not pursuing in remaining time. Forward-only kernel preserved for future use.
+3. **Final weekly synthesis** before project ends (Sunday midnight)
+4. **Run impulse response on trained model** — to see if learned dynamics differ from random
+
+### 1000-step results (anchor run):
+- CE: 4.17 → 2.69 (1.48 nats learned)
+- **Inverted U pattern in band performance:**
+  - Bands 4-5 (rates 16, 32): 1.38 — BEST
+  - Bands 1-2 (rates 2, 4): 1.65-1.78
+  - Band 6 (rate 64): 2.60
+  - Band 7 (rate 128): 3.52
+- Interpretation: mid-rate bands have optimal balance of informative targets + sufficient training events
 
 ### Key insight from profiling:
 - Active-only in pure PyTorch was SLOWER (indexing overhead outweighed savings)
