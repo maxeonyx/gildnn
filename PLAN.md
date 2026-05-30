@@ -1,44 +1,49 @@
 # Plan
 
-Working notes. Final state as of project end (2026-05-31).
+Working notes. Final day (2026-05-31), project concludes at midnight NZST.
 
 ---
 
-## Project status: concluded
+## Current state (11:55 NZST, May 31)
 
-The project ran May 20–31, 2026. The architecture is built and individual pieces are validated. The local learning rule — the core thesis — remains an open question.
+### Queue running
+`systemctl --user status gildnn-ablation-queue` — auto-draining experiments. Check `runs/queue-logs/` for results.
 
-### What's built
-- `core/automaton_graph.py` — 192-module 2D graph cellular automaton (8 bands × 24 positions, d=96, d_hidden=384, ~16M params)
-- `core/triton_forward.py` — fused forward kernel, 1.94x speedup (forward only)
-- `experiments/automaton_graph/train.py` — training script with streaming TBPTT, checkpointing, multi-scale input, per-band CE, attention readout
-- Diagnostics: `lag_probe.py`, `band_similarity.py`, `band_utility.py`, `grad_audit.py`
-- Infrastructure: systemd user services, lock files, loop script
+Remaining in queue:
+1. Combined: `--band0-local-loss --hierarchical-targets --attention-readout --detach-readout` (100 steps) — RUNNING NOW
+2. Transformer baseline batch_size=4 (1000 steps)
+3. GRU baseline batch_size=4 (1000 steps)
+4. Control: default config, no local loss (100 steps)
 
-### What was validated
-| Piece | Result |
-|-------|--------|
-| Multi-rate execution | 20.7% wall-clock speedup (time/quality tradeoff) |
-| Width scaling | 4-block d=256 beats 6-block sequential |
-| Detached laterals | 3.85 vs 4.07 nats, strictly better |
-| Tempered PoE combining | 26/26 property checks |
-| Stateless feedforward blocks | Horizon H=1, H=2 nulls |
-| 192-module graph | CE 4.17→2.69 in 1000 steps |
-| Triton forward | 1.94x |
+### Results collected today
 
-### What was NOT solved
-The local learning rule. The core open question: what local objectives produce good representations in a multi-module system? (See [dictation 2026-05-31-04](dictations/2026-05-31-04.md) — this is explicitly an exploration space, not a settled architecture.)
+| Experiment | CE | Steps | Notes |
+|-----------|-----|-------|-------|
+| GRU baseline (batch=32) | **1.35** | 1000 | 820K params, 8s |
+| Transformer baseline (batch=32) | **1.84** | 1000 | 825K params, 8s |
+| Our arch (default) | **2.69** | 1000 | 16M params, 220s |
+| Hierarchical targets (detached) | **2.67** | 100 | Best purely-local |
+| Band0-local-loss + CE on band 0 | **3.04** | 100 | Local prediction + CE |
+| Band0-local-loss (detached) | **3.24→3.41** | 100→500 | CE stagnates while prediction improves |
+| Per-band CE + attention | **3.03** | 2000 | Rejected (not local) |
 
-Three boundary conditions bracket the answer:
-- **InfoNCE** (local neighbor prediction): orthogonal to token prediction (cosine 0.013). Bands 2-7 never specialize.
-- **Per-band CE** (each band predicts tokens at own horizon): rapid specialization, but rejected as "unprincipled hack" — broadcasts global objective to every level ([dictation 2026-05-31-01](dictations/2026-05-31-01.md)).
-- **Predict-next-inputs** (band 0 predicts neighbor_sum + token_emb): genuinely local, CE 3.24 at 100 steps via detached attention. One candidate, not the answer.
-- **Hierarchical targets** (band k predicts mean of band k-1): CE 2.67 at 100 steps. Another candidate.
+### Key insight
+Per dictation 07: "Aux loss numbers are completely meaningless. The question is whether it's the right incentive, not whether it's learning well given its incentive." Stop reporting prediction loss.
 
-### Key open question
-What local neighborhood objective is both genuinely local AND task-aligned enough to create multi-timescale representations? This is an exploration space — many things should be tried, not one settled on. (See [dictation 2026-05-31-04](dictations/2026-05-31-04.md).)
+### What's done
+- [x] Queue mechanism (`experiments/queue_runner.py`)
+- [x] Baselines (transformer, GRU)
+- [x] Band0-local-loss implementation
+- [x] 500-step detached result (negative: CE stagnates)
+- [x] Horizontal vs vertical coupling insight
+- [x] Daily report updated
+- [x] Weekly report updated
 
-Candidates explored so far: InfoNCE (failed), predict-next-inputs (promising), hierarchical-targets (promising). Unexplored: delta prediction, mutual information maximization, contrastive neighbor distinction, phase-amplitude coupling.
+### What remains
+- [ ] Collect remaining queue results (combined, batch-4 baselines, control)
+- [ ] Update daily/weekly with final results
+- [ ] Final commit and push
+- [ ] Pretrained embeddings: Max asked about it. For char-level with 65 tokens, the answer is "doesn't apply cleanly" — see daily report.
 
 ### Architecture spec (reference)
 
@@ -51,7 +56,7 @@ Candidates explored so far: InfoNCE (failed), predict-next-inputs (promising), h
 - Communication: detached noisy neighbor reads from shared buffer
 - Token injection: band 0 only
 - Output: band 0 CE only (one CE head)
-- Local loss: OPEN QUESTION — InfoNCE orthogonal, per-band CE rejected
+- Local loss: OPEN QUESTION — see `research/questions/local-objectives/README.md`
 - Chunk: 128 tokens × 8 steps/token = 1024 microsteps
 
 ### Key references
@@ -59,5 +64,7 @@ Candidates explored so far: InfoNCE (failed), predict-next-inputs (promising), h
 - `ROADMAP.md` — research pathways
 - `PROCESS.md` — how work is done
 - `research/weekly/2026-05-31.md` — final project summary
+- `research/daily/2026-05-31.md` — today's report
+- `research/questions/local-objectives/README.md` — local objectives exploration
 - `dictations/` — authoritative source of Max's intent
 - `core/automaton_graph.py` — the model
