@@ -48,6 +48,9 @@ class GraphCellularAutomaton(nn.Module):
         steps_per_token: int = 8,
         noise_std: float = 0.1,
         readout_temperature: float = 0.07,
+        refractory: bool = False,
+        refractory_threshold: float = 1.0,
+        refractory_decay: float = 0.8,
     ) -> None:
         super().__init__()
         if vocab_size <= 0:
@@ -64,6 +67,10 @@ class GraphCellularAutomaton(nn.Module):
             raise ValueError(f"noise_std must be non-negative, got {noise_std}.")
         if readout_temperature <= 0.0:
             raise ValueError(f"readout_temperature must be positive, got {readout_temperature}.")
+        if refractory_threshold < 0.0:
+            raise ValueError(f"refractory_threshold must be non-negative, got {refractory_threshold}.")
+        if not 0.0 <= refractory_decay <= 1.0:
+            raise ValueError(f"refractory_decay must be in [0, 1], got {refractory_decay}.")
 
         rates = (1, 2, 4, 8, 16, 32, 64, 128)
         if n_bands != len(rates):
@@ -78,6 +85,9 @@ class GraphCellularAutomaton(nn.Module):
         self.steps_per_token = steps_per_token
         self.noise_std = noise_std
         self.readout_temperature = readout_temperature
+        self.refractory = refractory
+        self.refractory_threshold = refractory_threshold
+        self.refractory_decay = refractory_decay
 
         self.token_embedding = nn.Embedding(vocab_size, d_stream)
         self.w1 = nn.Parameter(torch.empty(self.n_modules, d_stream, self.d_hidden))
@@ -159,6 +169,7 @@ class GraphCellularAutomaton(nn.Module):
         Float[Tensor, "modules batch d_stream"],
         Float[Tensor, "modules batch d_stream"],
         torch.Tensor,
+        Float[Tensor, "modules"],
     ]:
         resolved_device = device if device is not None else self.token_embedding.weight.device
         dtype = self.token_embedding.weight.dtype
@@ -167,7 +178,8 @@ class GraphCellularAutomaton(nn.Module):
         global_buffer = torch.zeros_like(states)
         predictions = torch.zeros_like(states)
         has_predicted = torch.zeros((self.n_modules,), device=resolved_device, dtype=torch.bool)
-        return states, global_buffer, predictions, has_predicted
+        refractory_levels = torch.zeros((self.n_modules,), device=resolved_device, dtype=dtype)
+        return states, global_buffer, predictions, has_predicted, refractory_levels
 
     def _stacked_linear(
         self,
@@ -180,10 +192,14 @@ class GraphCellularAutomaton(nn.Module):
     def _neighbor_sum(
         self,
         global_buffer: Float[Tensor, "modules batch d_stream"],
+        refractory_levels: Float[Tensor, "modules"],
     ) -> Float[Tensor, "modules batch d_stream"]:
         gathered = global_buffer.detach()[self.clamped_neighbor_indices]
         if self.noise_std > 0.0:
             gathered = gathered + (torch.randn_like(gathered) * self.noise_std)
+        if self.refractory:
+            neighbor_refractory = refractory_levels[self.clamped_neighbor_indices].to(dtype=gathered.dtype)
+            gathered = gathered * (1.0 - neighbor_refractory[..., None, None])
         masked = gathered * self.neighbor_mask.to(dtype=gathered.dtype)
         return masked.sum(dim=1)
 
@@ -211,6 +227,7 @@ class GraphCellularAutomaton(nn.Module):
         global_buffer: Float[Tensor, "modules batch d_stream"],
         predictions: Float[Tensor, "modules batch d_stream"],
         has_predicted: torch.Tensor,
+        refractory_levels: Float[Tensor, "modules"],
         global_step_offset: int | Int[Tensor, ""],
     ) -> tuple[
         Float[Tensor, "batch seq vocab"],
@@ -218,6 +235,7 @@ class GraphCellularAutomaton(nn.Module):
         Float[Tensor, "modules batch d_stream"],
         Float[Tensor, "modules batch d_stream"],
         torch.Tensor,
+        Float[Tensor, "modules"],
         Float[Tensor, "modules"],
         Int[Tensor, "modules"],
     ]:
@@ -236,6 +254,7 @@ class GraphCellularAutomaton(nn.Module):
         current_global_buffer = global_buffer
         current_predictions = predictions
         current_has_predicted = has_predicted
+        current_refractory_levels = refractory_levels
 
         if isinstance(global_step_offset, int):
             step_offset = torch.tensor(global_step_offset, device=tokens.device, dtype=torch.long)
@@ -257,7 +276,10 @@ class GraphCellularAutomaton(nn.Module):
             fires = fires_at[timestep]
             fire_mask = fires[:, None, None]
 
-            neighbor_sum = self._neighbor_sum(current_global_buffer)
+            if self.refractory:
+                current_refractory_levels = current_refractory_levels * self.refractory_decay
+
+            neighbor_sum = self._neighbor_sum(current_global_buffer, current_refractory_levels)
             prediction_target = l2_normalize(neighbor_sum)
             combined = current_states + neighbor_sum
             combined = combined.clone()
@@ -283,6 +305,14 @@ class GraphCellularAutomaton(nn.Module):
             current_predictions = torch.where(fire_mask, new_predictions, current_predictions)
             current_global_buffer = torch.where(fire_mask, output.detach(), current_global_buffer)
             current_has_predicted = current_has_predicted | fires
+            if self.refractory:
+                output_norms = output.float().norm(dim=-1).amax(dim=1)
+                fired_strongly = fires & (output_norms > self.refractory_threshold)
+                current_refractory_levels = torch.where(
+                    fired_strongly,
+                    torch.ones_like(current_refractory_levels),
+                    current_refractory_levels,
+                )
 
             if timestep % self.steps_per_token == self.steps_per_token - 1:
                 band0_logits = self.logits_from_hidden(current_states[self.band0_mask])
@@ -294,6 +324,7 @@ class GraphCellularAutomaton(nn.Module):
             current_global_buffer,
             current_predictions,
             current_has_predicted,
+            current_refractory_levels,
             prediction_loss_sums,
             prediction_counts,
         )
@@ -304,16 +335,17 @@ class GraphCellularAutomaton(nn.Module):
         if tokens.dtype != torch.long:
             raise ValueError(f"Expected tokens dtype torch.long, got {tokens.dtype}.")
 
-        states, global_buffer, predictions, has_predicted = self.initial_recurrent_state(
+        states, global_buffer, predictions, has_predicted, refractory_levels = self.initial_recurrent_state(
             tokens.shape[0],
             device=tokens.device,
         )
-        logits, _, _, _, _, prediction_loss_sums, prediction_counts = self.forward_chunk(
+        logits, _, _, _, _, _, prediction_loss_sums, prediction_counts = self.forward_chunk(
             tokens,
             states,
             global_buffer,
             predictions,
             has_predicted,
+            refractory_levels,
             torch.zeros((), device=tokens.device, dtype=torch.long),
         )
         prediction_losses = self.prediction_losses_from_sums(prediction_loss_sums, prediction_counts)

@@ -139,14 +139,18 @@ def main() -> None:
             generator=generator,
         )
 
-        states, global_buffer, predictions, has_predicted = model.initial_recurrent_state(args.batch_size, device=device)
+        states, global_buffer, predictions, has_predicted, refractory_levels = model.initial_recurrent_state(
+            args.batch_size,
+            device=device,
+        )
         optimizer.zero_grad(set_to_none=True)
-        logits, _, _, _, _, prediction_loss_sums, prediction_counts = model.forward_chunk(
+        logits, _, _, _, _, _, prediction_loss_sums, prediction_counts = model.forward_chunk(
             inputs,
             states,
             global_buffer,
             predictions,
             has_predicted,
+            refractory_levels,
             global_step_offset=0,
         )
         prediction_losses = model.prediction_losses_from_sums(prediction_loss_sums, prediction_counts)
