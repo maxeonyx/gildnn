@@ -57,6 +57,7 @@ class GraphCellularAutomaton(nn.Module):
         multi_scale_input: bool = False,
         temporal_targets: bool = False,
         cross_band_negatives: bool = False,
+        attention_readout: bool = False,
     ) -> None:
         super().__init__()
         if vocab_size <= 0:
@@ -108,6 +109,7 @@ class GraphCellularAutomaton(nn.Module):
         self.multi_scale_input = multi_scale_input
         self.temporal_targets = temporal_targets
         self.cross_band_negatives = cross_band_negatives
+        self.attention_readout = attention_readout
 
         self.token_embedding = nn.Embedding(vocab_size, d_stream)
         self.w1 = nn.Parameter(torch.empty(self.n_modules, d_stream, self.d_hidden))
@@ -126,6 +128,12 @@ class GraphCellularAutomaton(nn.Module):
                 torch.zeros((self.n_modules,), dtype=torch.long),
                 persistent=False,
             )
+
+        # Attention readout: learned query attends over all module states
+        if attention_readout:
+            self.attn_query = nn.Parameter(torch.randn(1, 1, d_stream))
+            self.attn_key_proj = nn.Linear(d_stream, d_stream, bias=False)
+            self.attn_value_proj = nn.Linear(d_stream, d_stream, bias=False)
 
         module_rows = repeat(torch.arange(n_bands, dtype=torch.long), "band -> (band col)", col=n_cols)
         module_cols = repeat(torch.arange(n_cols, dtype=torch.long), "col -> (band col)", band=n_bands)
@@ -442,8 +450,21 @@ class GraphCellularAutomaton(nn.Module):
                 )
 
             if timestep % self.steps_per_token == self.steps_per_token - 1:
-                band0_logits = self.logits_from_hidden(current_states[self.band0_mask])
-                logits[token_index] = band0_logits.mean(dim=0)
+                if self.attention_readout:
+                    # Attend over ALL module states (detached from module gradients)
+                    all_states = current_states.detach()  # [modules, batch, d_stream]
+                    # Reshape to [batch, modules, d_stream]
+                    all_states_bt = all_states.permute(1, 0, 2)
+                    keys = self.attn_key_proj(all_states_bt)  # [batch, modules, d_stream]
+                    values = self.attn_value_proj(all_states_bt)  # [batch, modules, d_stream]
+                    query = self.attn_query.expand(all_states_bt.shape[0], -1, -1)  # [batch, 1, d_stream]
+                    attn_scores = torch.bmm(query, keys.transpose(1, 2)) / (self.d_stream ** 0.5)
+                    attn_weights = F.softmax(attn_scores, dim=-1)  # [batch, 1, modules]
+                    readout_state = torch.bmm(attn_weights, values).squeeze(1)  # [batch, d_stream]
+                    logits[token_index] = self.logits_from_hidden(readout_state)
+                else:
+                    band0_logits = self.logits_from_hidden(current_states[self.band0_mask])
+                    logits[token_index] = band0_logits.mean(dim=0)
 
         return (
             rearrange(logits, "seq batch vocab -> batch seq vocab"),
