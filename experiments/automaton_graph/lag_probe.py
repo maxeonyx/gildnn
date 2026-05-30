@@ -124,6 +124,12 @@ def infer_model_kwargs(checkpoint: dict[str, object]) -> dict[str, int | float |
             kwargs["multi_scale_input"] = True
         if train_args.get("temporal_targets"):
             kwargs["temporal_targets"] = True
+        if train_args.get("cross_band_negatives"):
+            kwargs["cross_band_negatives"] = True
+        if train_args.get("attention_readout"):
+            kwargs["attention_readout"] = True
+        if train_args.get("per_band_ce"):
+            kwargs["per_band_ce"] = True
     return kwargs
 
 
