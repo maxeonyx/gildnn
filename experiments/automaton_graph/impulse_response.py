@@ -116,6 +116,15 @@ def print_snapshot(timestep: int, snapshot: Tensor) -> None:
 
 
 def main() -> None:
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--checkpoint", type=Path, default=None, help="Path to trained checkpoint")
+    parser.add_argument("--band", type=int, default=4)
+    parser.add_argument("--col", type=int, default=12)
+    parser.add_argument("--magnitude", type=float, default=10.0)
+    args = parser.parse_args()
+
     torch.manual_seed(0)
     device = torch.device("cpu")
 
@@ -126,6 +135,14 @@ def main() -> None:
         refractory_threshold=0.5,
         refractory_decay=0.9,
     ).to(device)
+
+    if args.checkpoint is not None:
+        ckpt = torch.load(args.checkpoint, map_location=device, weights_only=False)
+        model.load_state_dict(ckpt["model_state_dict"])
+        print(f"Loaded checkpoint from step {ckpt['step']} (ce_loss={ckpt['ce_loss']:.4f})")
+    else:
+        print("Using random initialization")
+
     model.eval()
 
     with torch.no_grad():
@@ -133,7 +150,7 @@ def main() -> None:
             1,
             device=device,
         )
-        inject_impulse(model, states, global_buffer, band=4, col=12, magnitude=10.0)
+        inject_impulse(model, states, global_buffer, band=args.band, col=args.col, magnitude=args.magnitude)
 
         snapshots: dict[int, Tensor] = {0: record_norms(model, states)}
         for timestep in range(1, max(SNAPSHOT_STEPS) + 1):
@@ -149,9 +166,8 @@ def main() -> None:
             if timestep in SNAPSHOT_STEPS:
                 snapshots[timestep] = record_norms(model, states)
 
-    print("Graph cellular automaton impulse response")
-    print("fresh random initialization, zero token input, CPU")
-    print("impulse: band=4 col=12 magnitude=10.0")
+    print(f"Graph cellular automaton impulse response")
+    print(f"impulse: band={args.band} col={args.col} magnitude={args.magnitude}")
     print()
 
     for timestep in SNAPSHOT_STEPS:
