@@ -192,10 +192,17 @@ At every step, justify why we're not just running the real thing. If you can't j
 - Each module's backward is independent (detached laterals → no cross-module gradient)
 
 ### NEXT:
-1. **MSI + cross-band experiment running** (PID 50655, step ~500/2000, finishing ~00:30 NZST Sun)
-2. **NEXT EXPERIMENT: attention readout with attached gradients** — `--streaming --multi-scale-input --attention-readout`. This gives ALL bands direct CE pressure through the attention mechanism. It's the most principled fix for the fundamental problem (bands have no incentive to encode token-useful info). Launch after current run finishes.
-3. Also test: `--streaming --multi-scale-input --cross-band-negatives --attention-readout` (full stack)
-4. **Update daily report** after attention readout results arrive
+1. **Per-band CE experiment running** (systemd unit `gildnn-per-band-ce`, started 07:43, ~2000 steps, expected ~09:15 NZST). Config: `--streaming --multi-scale-input --per-band-ce`, checkpoints to `runs/checkpoints_pbc.ignore/`.
+2. **When step 500 arrives:** run lag probe. Prediction: bands should show specialization at their respective horizons (band 4 peak at lag=16, etc).
+3. **When step 2000 arrives:** full lag probe + gradient audit + per-band CE analysis.
+4. **Next experiment after per-band CE:** combine per-band-ce + attention readout (detached). The readout learns to USE multi-timescale representations without sending gradient back.
+5. **If specialization is confirmed:** integrate per-band CE into the default config. This is the proven piece that was missing.
+
+### Key results (2026-05-31 early morning):
+- **Attention readout with attached gradients:** band 2 = 20.8% at lag=1 (FIRST above-chance for band 2). Bands 1-2 benefit. Bands 3-7 stuck. Gradient audit confirms why (local loss 18-44x stronger than CE after training).
+- **Per-band CE 30-step sanity check:** ALL 8 bands learning their horizon task. Band 4 dropped from 4.51 → 3.82 in 30 steps.
+- **MSI + cross-band 2000 steps:** confirmed null. Bands 2-7 still random.
+- **Root cause confirmed:** the local InfoNCE loss is orthogonal to token prediction (cosine 0.013). It cannot create token-useful specialization by design.
 
 ### Key findings from lag probe (definitive):
 - **Baseline 5000 steps:** band 0=33.5%, band 1=23.9%, bands 2-7 random. CE 2.64.
