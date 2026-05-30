@@ -100,6 +100,18 @@ This suggests the right answer might not be "purely local learning + detached re
 3. **Two-phase: local only → freeze → train readout** — train modules 300 steps, freeze, train only attention head 200 steps. Tests: is the problem dynamics or representation quality? (requires code change)
 4. **Higher attention LR**: 10x LR on attention parameters only. Tests: can faster readout adaptation track changing representations? (requires code change)
 
+## Key insight: direction of coupling matters
+
+**Horizontal coupling** (predict same-level neighbors): doesn't propagate token information upward. Band 3 predicting its band-3 neighbors learns about band-3 dynamics, not tokens. Token info stays trapped in band 0.
+
+**Vertical coupling** (predict lower-band states): creates a chain from tokens (in band 0) through all bands. Band 1 predicting band 0 must model band 0's dynamics, which encode tokens. Band 2 predicting band 1 must model band 1's dynamics, which encode band 0's dynamics, which encode tokens.
+
+This explains why:
+- Predict-next-inputs (horizontal for bands 1-7): CE 3.24 at 100 steps
+- Hierarchical targets (vertical): CE 2.67 at 100 steps
+
+The vertical coupling creates token-aligned representations in ALL bands, not just band 0. This suggests the optimal combined config: band 0 predicts tokens+neighbors (forcing token encoding), bands 1-7 predict lower-band dynamics (forcing token info upward through hierarchy).
+
 ## Why this still might not work
 
 - The detached readout may be fundamentally unable to exploit representations optimized for a different objective.
