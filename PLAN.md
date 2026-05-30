@@ -192,22 +192,23 @@ At every step, justify why we're not just running the real thing. If you can't j
 - Each module's backward is independent (detached laterals → no cross-module gradient)
 
 ### NEXT:
-1. **5000-step run completing** — PID 34251, finishes ~20:15 NZST. Run lag probe on step_005000.pt (likely same result as 3000: no new specialization).
-2. **Run the REAL next experiment:** `--streaming --multi-scale-input` — this combines Max's two key ideas (endless sequences + unique temporal info per band). Run a 500-step sanity check first, then 2000+ steps if it works.
-3. **Dictation 2025-05-30-2 and 2025-05-30-3 ideas:**
-   - ✅ Multi-scale input implemented (EMA per band, `--multi-scale-input` flag)
-   - ✅ Streaming/stateful training implemented (`--streaming` flag)
-   - Central attention readout (NOT yet implemented — do after testing multi-scale)
-   - "predict k steps ahead" — already how the architecture works (confirmed by Max)
-   - Surprise-based triggering — noted, not clear, deferred
-4. **Final weekly update** after experiments complete
+1. ✅ **5000-step baseline completed** — lag probe confirms: band 0=33.5%, band 1=23.9%, bands 2-7 random. CE 2.64.
+2. ✅ **Multi-scale + streaming 2000-step experiment completed** — Result: FASTER learning (CE 2.49 vs 2.64, band 0=37%, band 1=24.1%) but STILL no band 2-7 specialization.
+3. **Root cause is the LOSS, not the input.** Multi-scale input gives better performance but doesn't force different representations. InfoNCE (predict neighbor sum) lets all bands converge to the same "encode recent tokens" strategy because that's the easiest prediction for everyone.
+4. **Next experiment needed:** change the loss to incentivize different representations per band. Options:
+   - (a) **Residual targets:** band k predicts what band k-1 DOESN'T predict (successive refinement)
+   - (b) **Anti-redundancy penalty:** penalize mutual information between adjacent bands' representations
+   - (c) **Temporal target per band:** band k explicitly predicts lag=2^k ahead (force timescale matching)
+   - Option (c) is closest to Max's design ("predict k steps ahead" + multi-rate). Band with rate R makes predictions evaluated R steps later — this is ALREADY how it works. So why doesn't it specialize? Because the prediction TARGET (neighbor sum) is dominated by band 0 which encodes recent tokens. Higher bands predict "what band 0 will look like" rather than encoding their own temporal view.
+   - **Fix:** detach band 0 from the neighbor sum that higher bands predict. Or: each band predicts a DIFFERENT target (e.g., token embedding at lag=rate).
+5. **Central attention readout** (Max's dictation idea) — still not implemented, do after fixing loss
+6. **Final daily report** needed before end of day
 
 ### Key findings from lag probe (definitive):
-- Steps 1000, 2000, 3000: NO temporal specialization emerging in bands 2-7
-- Only band 0 (31%, lag=1) and band 1 (19.6%, lag=1) encode anything beyond random
-- Band 2's apparent improvement at step 2000 was noise (reverted at step 3000)
-- **Root cause confirmed:** bands need BOTH unique information AND unique incentives
-- Multi-scale input (EMA) gives unique information; streaming gives long-term context to develop it
+- **Baseline 5000 steps:** band 0=33.5%, band 1=23.9%, bands 2-7 random. CE 2.64.
+- **Multi-scale + streaming 2000 steps:** band 0=37%, band 1=24.1%, bands 2-7 STILL random. CE 2.49 (better!).
+- Multi-scale input accelerates learning but does NOT create specialization.
+- **The bottleneck is the prediction target**, not the input. All bands predict the same neighbor sum, which is dominated by band 0's recent-token encoding. There's no incentive to encode anything different.
 
 ### 1000-step results (anchor run):
 - CE: 4.17 → 2.69 (1.48 nats learned)
