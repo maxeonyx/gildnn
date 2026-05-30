@@ -192,16 +192,27 @@ At every step, justify why we're not just running the real thing. If you can't j
 - Each module's backward is independent (detached laterals → no cross-module gradient)
 
 ### NEXT:
-1. **Per-band CE experiment running** (systemd unit `gildnn-per-band-ce`, step ~620/2000, expected ~09:15 NZST). Config: `--streaming --multi-scale-input --per-band-ce`, checkpoints to `runs/checkpoints_pbc.ignore/`.
-2. **When step 2000 completes:** Run lag probe, gradient audit, and readout comparison. CE at step 620 is 2.58 (catching up to other experiments). All bands predicting below entropy at their horizons.
-3. **NEXT EXPERIMENT after per-band CE: full faithful stack** — `--streaming --multi-scale-input --per-band-ce --attention-readout --detach-readout`. Tests whether a detached attention readout adds value on top of per-band-CE-specialized representations.
-4. **If full stack shows improvement:** that's the architecture working as designed. Write up as final result.
-5. **If NOT:** try per-band CE weight sweep (reduce from 0.1 to 0.01) to see if less per-band-CE allows better global CE while maintaining specialization.
+1. **Full-stack experiment running** (systemd unit `gildnn-full-stack`, step ~90/2000, expected ~10:33 NZST). Config: `--streaming --multi-scale-input --per-band-ce --attention-readout --detach-readout`, checkpoints to `runs/checkpoints_full.ignore/`.
+2. **When step 2000 completes:** Run band utility test (parameter-free) to compare band-0-only vs attention readout CE. Run band similarity. Run lag probe.
+3. **KEY QUESTION:** Does the attention readout CE beat band-0-only CE (2.54-2.61)?
+4. **If yes:** Multi-timescale representations are exploitable. Core thesis validated.
+5. **If no:** Readout mechanism too weak, or per-band CE representations don't help next-token. Both informative.
+
+### Per-band CE completed (2000 steps, 09:01 NZST):
+- Final CE: 2.54 (comparable to MSI+streaming's 2.49 without per-band CE)
+- All bands below entropy (4.17) at their horizons, BUT:
+  - Fast bands (1-2) oscillate/regress (b1 went from 3.49 → 4.03)
+  - Slow bands (3-7) converge stably (~3.3-3.6)
+  - Suggests per-band LR scaling (slower LR for faster bands)
+- Band similarity: 0.35-0.82 cosine (genuinely differentiated, moderate correlation because all encode token-relevant info)
+- Lag probe: bands 5-7 BELOW random (10-13%) — anti-token representations
+- Parameter-free test: fixed readout can't exploit bands 1-7 (optimal = band 0 alone)
 
 ### Key results (2026-05-31 morning session):
 - **Attention readout with attached gradients (step 500):** band 2 = 20.8% at lag=1 (FIRST above-chance for band 2). Gradient audit confirms CE is a "gentle nudge" (1.3-1.9x ratio at init, collapsing to 36-44x after training as attention converges).
-- **Per-band CE (step 500):** ALL 8 bands learning their horizon task (all below entropy 4.17). But lag probe unchanged (expected: lag probe measures past encoding, per-band CE trains future prediction). Global CE 2.67 (slightly worse than attention readout's 2.55, catching up by step 620 → 2.58).
-- **Theory insight:** per-band CE creates multi-timescale representations (useful for multi-horizon prediction) rather than improving single-token CE. The value shows up at the architecture level (rich multi-scale context) not the metric level (single-token perplexity).
+- **Per-band CE (2000 steps):** ALL 8 bands learning their horizon task (all below entropy 4.17). Slow bands stable (3.3-3.6), fast bands oscillate. Global CE 2.54. Anti-token lag probe signatures for bands 5-7.
+- **Band similarity:** InfoNCE made bands orthogonal but useless. Per-band CE makes bands correlated but EACH useful.
+- **Theory insight:** orthogonality ≠ usefulness. Per-band CE creates moderate correlation (shared language substrate) with horizon-specific projections.
 - **MSI + cross-band 2000 steps:** confirmed null. Bands 2-7 still random.
 - **Root cause confirmed:** InfoNCE local loss is orthogonal to token prediction (cosine 0.013).
 
