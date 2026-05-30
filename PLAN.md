@@ -186,10 +186,10 @@ At every step, justify why we're not just running the real thing. If you can't j
 - Each module's backward is independent (detached laterals → no cross-module gradient)
 
 ### NEXT:
-1. **Daily report** for 2026-05-30 (due now, 15:15 NZST)
-2. **Triton fused kernel** — profile showed pure PyTorch active-only optimization doesn't help (indexing overhead > savings). Need fused kernel: neighbor_read + normalize + MLP + write in one Triton call per timestep.
-3. **Training at scale** — 500-step InfoNCE run active (PID 26787, ~14 min expected)
-4. **Wave propagation experiments** — impulse diagnostic once Triton enables fast iteration
+1. ✅ **Daily report** for 2026-05-30 — written
+2. ✅ **Triton fused kernel** — forward kernel done, 1.94x speedup at batch=16 (inference only; backward not yet implemented)
+3. **Training at scale** — 1000-step InfoNCE run active (PID 30002, ~step 460/1000, CE 2.65)
+4. **Integrate Triton backward** or find another path to use kernel in training
 5. **Final weekly synthesis** before project ends
 
 ### Key insight from profiling:
@@ -197,6 +197,8 @@ At every step, justify why we're not just running the real thing. If you can't j
 - Bottleneck is NOT any single op — it's 1024 timesteps × many small CUDA kernels
 - Only solution: fused Triton kernel (one kernel per timestep doing the whole module computation)
 - bmm is only 35% of time; elementwise/indexing is 65%
+- **Triton forward kernel achieves 1.94x speedup** (913ms vs 1772ms at batch=16, chunk=128)
+- Backward pass not yet fused — training would benefit from ~1.3x (forward-only fusion)
 
 ### What's validated:
 - 192-module graph learns (CE 4.2→2.4 in 20 steps)
