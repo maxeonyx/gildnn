@@ -115,7 +115,7 @@ def collect_states_and_targets(
             current_states = states
 
             # Simplified: just run full forward_chunk and collect final states
-            logits_out, final_states, *_ = model.forward_chunk(
+            logits_out, _per_band_logits, final_states, *_ = model.forward_chunk(
                 inputs, states, global_buffer, predictions, has_predicted,
                 refractory_levels, global_step_offset=step_offset,
             )
