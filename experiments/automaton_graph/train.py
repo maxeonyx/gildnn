@@ -45,6 +45,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--attention-readout", action="store_true", help="Use attention over all module states instead of mean band-0")
     parser.add_argument("--detach-readout", action="store_true", help="Detach module states before attention readout (no CE gradient into modules)")
     parser.add_argument("--per-band-ce", action="store_true", help="Add per-band horizon cross-entropy loss")
+    parser.add_argument("--hierarchical-targets", action="store_true", help="Band k predicts the mean state of band k-1")
     parser.add_argument("--streaming", action="store_true", help="Stateful streaming training (no state reset between chunks)")
     args = parser.parse_args()
 
@@ -194,7 +195,7 @@ def main() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     data = load_tinyshakespeare(repo_root)
 
-    model = GraphCellularAutomaton(vocab_size=data.vocab_size, multi_scale_input=args.multi_scale_input, temporal_targets=args.temporal_targets, cross_band_negatives=args.cross_band_negatives, attention_readout=args.attention_readout, detach_readout=args.detach_readout, per_band_ce=args.per_band_ce).to(device)
+    model = GraphCellularAutomaton(vocab_size=data.vocab_size, multi_scale_input=args.multi_scale_input, temporal_targets=args.temporal_targets, cross_band_negatives=args.cross_band_negatives, attention_readout=args.attention_readout, detach_readout=args.detach_readout, per_band_ce=args.per_band_ce, hierarchical_targets=args.hierarchical_targets).to(device)
     model.train()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     generator = torch.Generator(device="cpu")

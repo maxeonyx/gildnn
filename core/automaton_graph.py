@@ -61,6 +61,7 @@ class GraphCellularAutomaton(nn.Module):
         attention_readout: bool = False,
         detach_readout: bool = False,
         per_band_ce: bool = False,
+        hierarchical_targets: bool = False,
     ) -> None:
         super().__init__()
         if vocab_size <= 0:
@@ -115,6 +116,7 @@ class GraphCellularAutomaton(nn.Module):
         self.attention_readout = attention_readout
         self.detach_readout = detach_readout
         self.per_band_ce = per_band_ce
+        self.hierarchical_targets = hierarchical_targets
 
         self.token_embedding = nn.Embedding(vocab_size, d_stream)
         self.w1 = nn.Parameter(torch.empty(self.n_modules, d_stream, self.d_hidden))
@@ -413,7 +415,17 @@ class GraphCellularAutomaton(nn.Module):
                 current_refractory_levels = current_refractory_levels * self.refractory_decay
 
             neighbor_sum = self._neighbor_sum(current_global_buffer, current_refractory_levels)
-            prediction_target = l2_normalize(neighbor_sum)
+            if self.hierarchical_targets:
+                band_means = rearrange(
+                    current_global_buffer,
+                    "(band col) batch d -> band col batch d",
+                    band=self.n_bands,
+                    col=self.n_cols,
+                ).mean(dim=1)
+                lower_band_idx = (self.module_rows - 1).clamp_min(0)
+                prediction_target = l2_normalize(band_means[lower_band_idx])
+            else:
+                prediction_target = l2_normalize(neighbor_sum)
             combined = current_states + neighbor_sum
             combined = combined.clone()
             if self.multi_scale_input:
