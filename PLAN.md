@@ -192,10 +192,20 @@ At every step, justify why we're not just running the real thing. If you can't j
 - Each module's backward is independent (detached laterals → no cross-module gradient)
 
 ### NEXT:
-1. **Monitor 5000-step run** — PID 34251, check back ~20:30 NZST for initial results
-2. **Triton backward decision:** hybrid approach (Triton forward trace + PyTorch per-module replay) is correct design but complex (~3h). Not pursuing in remaining time. Forward-only kernel preserved for future use.
-3. **Final weekly synthesis** before project ends (Sunday midnight)
-4. **Run impulse response on trained model** — to see if learned dynamics differ from random
+1. **5000-step run completing** — PID 34251, check back ~20:30 NZST. Run lag probe on step_005000.pt.
+2. **Test multi_scale_input** — after 5000-step run frees GPU, run 500-step comparison: default vs `--multi-scale-input`. Hypothesis: multi-scale gives each band unique temporal info → lag probe shows differentiation.
+3. **Dictation 2025-05-30-2 ideas (queued):**
+   - Split input over graph (partially addressed by multi_scale_input EMA)
+   - Central attention readout over all bands (replaces mean-band0-logits)
+   - Reward model for attention (deferred — needs working attention first)
+   - Local objectives rethink (anti-redundancy / residual targets)
+4. **Final weekly update** after 5000-step results
+
+### Key insight from lag probe:
+- At steps 1000 and 2000: NO temporal specialization. All bands converging toward encoding recent tokens.
+- Information propagates outward from band 0: band 1 lag=1 improving (17.4%→19.3%), band 2 just starting (17.1%). Bands 3-7 unchanged from random.
+- **Root cause:** bands have no unique information AND no unique incentives.
+- **Fix requires both:** unique temporal evidence per band (multi_scale_input) + loss that rewards non-redundancy
 
 ### 1000-step results (anchor run):
 - CE: 4.17 → 2.69 (1.48 nats learned)
