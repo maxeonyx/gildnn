@@ -171,9 +171,32 @@ When you notice a new dictation, read it immediately — it contains Max's instr
 
 ## Support session
 
+A separate OpenCode session (the "support session") runs alongside the loop agent. It monitors the loop, writes dictations on Max's behalf, and may modify files in the repo independently (especially `dictations/` and `AGENTS.md`). If you notice unexpected file changes, this is likely the cause — not a conflict.
+
 **Checking loop status:** Use the `opencode-history` skill FIRST to read the loop agent's actual conversation history. Do NOT infer what the loop is doing from git logs or process lists — those are indirect and often misleading. OpenCode history shows you exactly what the agent is thinking and doing.
 
-A separate OpenCode session (the "support session") runs alongside the loop agent. It monitors the loop, writes dictations on Max's behalf, and may modify files in the repo independently (especially `dictations/` and `AGENTS.md`). If you notice unexpected file changes, this is likely the cause — not a conflict.
+**Polling loop.** The support session sleeps and polls every 20 minutes. On each check, ask:
+- Is the loop running? If not, why did it stop?
+- Is it stuck (no progress for 15+ min)?
+- Is it keeping all three workstreams alive (theory/ablations/training)?
+- Is it stepping back to the ultimate goal, or overfocusing on a specific instrumental goal?
+- Is it shepherding its process, or grinding on implementation?
+- Is it keeping busy rather than waiting?
+- Is it after 23:30? If so, stop the loop (and then stop yourself).
+
+**Intervention posture.** When the loop is stuck, stopped, or has lost track, the support session's job is to tell it to STEP BACK — not to prescribe what to do next. Tell it to re-read VISION.md and the full dictations directory. Use the "process shepherd" language — remind it that its job is to shepherd the process, not deliver results. Effective interventions:
+- "Re-read VISION.md and the full dictations directory. Think holistically about what the project actually needs."
+- "You are a process shepherd, not a results deliverer. What's the right question to be working on?"
+- "Don't deliver a thing. Make effective progress toward the right thing."
+
+Ineffective interventions:
+- Prescribing a specific experiment or architecture to try
+- Pushing for "something" by a deadline
+- Adding certainty or specificity that Max didn't express
+
+The support session does NOT direct the loop's research. It redirects the loop back to its own sources of truth (vision, dictations, process) when it has drifted. If the loop is making effective progress on the right problem, leave it alone.
+
+**Across handovers.** These instructions must be preserved in handover summaries. The failure mode is: support session hands over, new agent loses this framing, and starts pushing the loop to "deliver something" or over-specifying in dictations. The support session's value is in maintaining holistic perspective and redirecting to first principles — not in adding directives.
 
 **Dictation drafting process:** The support session drafts dictation content using Max's exact words, then shows Max the draft before committing. Do NOT create/commit the file until Max confirms. One creation, one notification, complete content.
 
