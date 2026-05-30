@@ -192,20 +192,22 @@ At every step, justify why we're not just running the real thing. If you can't j
 - Each module's backward is independent (detached laterals → no cross-module gradient)
 
 ### NEXT:
-1. **5000-step run completing** — PID 34251, check back ~20:30 NZST. Run lag probe on step_005000.pt.
-2. **Test multi_scale_input** — after 5000-step run frees GPU, run 500-step comparison: default vs `--multi-scale-input`. Hypothesis: multi-scale gives each band unique temporal info → lag probe shows differentiation.
-3. **Dictation 2025-05-30-2 ideas (queued):**
-   - Split input over graph (partially addressed by multi_scale_input EMA)
-   - Central attention readout over all bands (replaces mean-band0-logits)
-   - Reward model for attention (deferred — needs working attention first)
-   - Local objectives rethink (anti-redundancy / residual targets)
-4. **Final weekly update** after 5000-step results
+1. **5000-step run completing** — PID 34251, finishes ~20:15 NZST. Run lag probe on step_005000.pt (likely same result as 3000: no new specialization).
+2. **Run the REAL next experiment:** `--streaming --multi-scale-input` — this combines Max's two key ideas (endless sequences + unique temporal info per band). Run a 500-step sanity check first, then 2000+ steps if it works.
+3. **Dictation 2025-05-30-2 and 2025-05-30-3 ideas:**
+   - ✅ Multi-scale input implemented (EMA per band, `--multi-scale-input` flag)
+   - ✅ Streaming/stateful training implemented (`--streaming` flag)
+   - Central attention readout (NOT yet implemented — do after testing multi-scale)
+   - "predict k steps ahead" — already how the architecture works (confirmed by Max)
+   - Surprise-based triggering — noted, not clear, deferred
+4. **Final weekly update** after experiments complete
 
-### Key insight from lag probe:
-- At steps 1000 and 2000: NO temporal specialization. All bands converging toward encoding recent tokens.
-- Information propagates outward from band 0: band 1 lag=1 improving (17.4%→19.3%), band 2 just starting (17.1%). Bands 3-7 unchanged from random.
-- **Root cause:** bands have no unique information AND no unique incentives.
-- **Fix requires both:** unique temporal evidence per band (multi_scale_input) + loss that rewards non-redundancy
+### Key findings from lag probe (definitive):
+- Steps 1000, 2000, 3000: NO temporal specialization emerging in bands 2-7
+- Only band 0 (31%, lag=1) and band 1 (19.6%, lag=1) encode anything beyond random
+- Band 2's apparent improvement at step 2000 was noise (reverted at step 3000)
+- **Root cause confirmed:** bands need BOTH unique information AND unique incentives
+- Multi-scale input (EMA) gives unique information; streaming gives long-term context to develop it
 
 ### 1000-step results (anchor run):
 - CE: 4.17 → 2.69 (1.48 nats learned)
