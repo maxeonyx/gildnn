@@ -1,12 +1,10 @@
 # What local objective creates useful multi-timescale representations?
 
-Serves [dictation 2026-05-31-01](../../../dictations/2026-05-31-01.md) and [dictation 2026-05-30-03](../../../dictations/2026-05-30-03.md).
+Serves [dictation 2026-05-31-01](../../../dictations/2026-05-31-01.md), [dictation 2026-05-30-03](../../../dictations/2026-05-30-03.md), and [dictation 2026-05-31-04](../../../dictations/2026-05-31-04.md) (explore many, don't settle).
 
-## Conclusion first
+## Status: exploration in progress
 
-The best current hypothesis is **hierarchical future-state prediction through a noisy lateral bottleneck**: band _k_ predicts a summary of band _k-1_'s state at `t + rate(k)`, while only band 0 sees token cross-entropy. This is the only candidate here that is local, plausibly creates timescale separation, and stays aligned with the task without broadcasting the global objective to every band.
-
-It is still only a hypothesis. The failure modes are obvious enough that it needs a 30-second sanity check before any larger run.
+No single answer yet. Two candidates show life; neither is conclusive. The core question remains open: what local objective is both genuinely local AND creates representations useful for token prediction?
 
 ## The bracketing result
 
@@ -53,30 +51,58 @@ So the best current target family is probably: **predict a learned or fixed proj
 
 ## Ranked alternatives
 
-| Approach | Local? | Timescale diff? | Task-aligned? | Verdict |
-|----------|--------|-----------------|---------------|---------|
-| Hierarchical future prediction | ✓ | ✓ | ✓ (via hierarchy) | **Top pick** |
-| SFA / VICReg temporal | ✓ | ✓✓ | ~ (indirect) | Good auxiliary |
-| Forward-Forward | ✓ | ? | ? | Unclear (negative generation problem) |
-| Equilibrium Propagation | ✓ | - | - | Dead end (wrong dynamics) |
-| Communication coherence | ✓ | - | ✗ | Dead end (= InfoNCE problem) |
+| Approach | Local? | Timescale diff? | Task-aligned? | Tested? | Result |
+|----------|--------|-----------------|---------------|---------|--------|
+| Predict-next-inputs (band0 token+neighbor) | ✓ | ~ | ✓ (band 0) | ✓ | CE 3.24 at 100 steps (detached readout) |
+| Hierarchical targets (band k → mean of band k-1) | ✓ | ✓ | ✓ (via hierarchy) | ✓ | CE 2.67 at 100 steps (detached readout) |
+| Hierarchical future prediction through noise | ✓ | ✓ | ✓ (via hierarchy) | ✗ | Untested — need future-state targeting |
+| SFA / VICReg temporal | ✓ | ✓✓ | ~ (indirect) | ✗ | Good auxiliary candidate |
+| Forward-Forward | ✓ | ? | ? | ✗ | Unclear (negative generation problem) |
+| Equilibrium Propagation | ✓ | - | - | ✗ | Dead end (wrong dynamics) |
+| Communication coherence | ✓ | - | ✗ | ✗ | Dead end (= InfoNCE problem) |
 
-SFA-style slowness and VICReg-style variance/covariance penalties might help as auxiliaries, but by themselves they do not obviously couple the bands to token-relevant dynamics. Forward-Forward remains interesting only in principle; the negative-sample story in this architecture is unclear. Equilibrium Propagation solves the wrong problem because the model is not naturally an equilibrium-settling system.
+## Experimental results (day 10)
 
-## Simplest 30-second sanity check
+### Predict-next-inputs (`--band0-local-loss --attention-readout --detach-readout`)
 
-```python
-Band 0: CE loss on next token  # existing
-Band 1: loss = MSE(
-    linear_head(band1_output_t),
-    detach(band0_output_{t + rate(1)})
-)
+Band 0 predicts l2_normalize(neighbor_sum + token_embedding). All other bands predict l2_normalize(neighbor_sum). Detached attention head for CE.
+
+**Key finding: prediction improves dramatically but CE stagnates.**
+
+```
+Step     Band 0 pred   CE (attention)
+  50      2.94          3.61
+ 100      2.40          3.24
+ 150      1.36          3.49
+ 200      1.18          3.27
+ 250      0.64          3.37
+ 300      0.59          3.33
 ```
 
-Success criterion: **band 1's prediction loss decreases and band 0's CE improves relative to the no-band-1 control**. That would not prove the full theory, but it would show the mechanism can produce useful upward pressure through the noisy lateral channel.
+Band 0 becomes excellent at predicting its inputs (loss → 0.59) but the detached attention head can't extract improving token predictions. Two hypotheses:
+1. **Training dynamics**: the attention head is chasing rapidly-changing representations it can't influence
+2. **Representation mismatch**: predicting inputs well doesn't create states linearly decodable as token logits
+
+### Hierarchical targets (`--hierarchical-targets --attention-readout --detach-readout`)
+
+Band k predicts the mean state of band k-1. CE 2.67 at 100 steps (best purely-local result so far). However, this may be partly "cheating": lower-band means ARE your neighbors in the 2D grid, so this is very similar to neighbor prediction but with spatial averaging.
+
+## Why per-band CE works and these don't (fully)
+
+Per-band CE gets CE 2.54 because it directly optimizes through the logit head — the representation IS optimized for token classification. The detached-readout experiments have a fundamental mismatch: modules optimize for local prediction, the readout must somehow exploit representations optimized for a different purpose.
+
+This suggests the right answer might not be "purely local learning + detached readout" but rather "local learning + a small amount of task signal through the readout." The question becomes: how much task signal, and does it violate the local-learning principle?
+
+## Experiment queue (next to try)
+
+1. **Band0-local-loss WITHOUT detach** — band 0 gets CE + local prediction together. Tests: does local prediction help CE when combined? (~100 steps, 5 min)
+2. **Combined: band0-local-loss + hierarchical-targets + attention-readout + detach** — all modules have local targets. Tests: does the combination beat either alone? (~100 steps, 5 min)
+3. **Two-phase: local only → freeze → train readout** — train modules 300 steps, freeze, train only attention head 200 steps. Tests: is the problem dynamics or representation quality? (requires code change)
+4. **Higher attention LR**: 10x LR on attention parameters only. Tests: can faster readout adaptation track changing representations? (requires code change)
 
 ## Why this still might not work
 
+- The detached readout may be fundamentally unable to exploit representations optimized for a different objective.
 - Even a projected neighbor target might still be too high-dimensional for MSE to be selective.
 - The existing noise level might destroy too much information for the future state to be predictable at all.
 - The alignment story assumes band 0 quickly learns something worth predicting; at initialization it does not.
@@ -84,9 +110,11 @@ Success criterion: **band 1's prediction loss decreases and band 0's CE improves
 
 ## Open questions
 
+- Is the CE stagnation a dynamics issue (readout chasing) or a representation issue (wrong features)?
 - What loss should sit on the prediction head: MSE, cosine, or a temporal contrastive loss?
 - Should the target be the full future state, a learned projection, or a fixed random projection?
 - Does alignment really propagate upward? A direct check would be the gradient cosine between band 1's prediction loss and band 0's CE loss.
 - How much lateral noise is enough to prevent copying without making the target effectively random?
+- Is the "purely detached" constraint too strict? Maybe a small task signal to the readout is acceptable if modules still learn locally.
 
-For now the design-space answer is fairly narrow: **predict the future through a bottleneck, and predict a summary of dynamics rather than a raw state**. Everything else tried so far either aligns poorly, cheats by reintroducing the global objective, or leaves too much room for trivial solutions.
+For now the design-space answer is: **predict something about your neighbors' future through a bottleneck**. The exact form (what target, what loss, how much global signal is acceptable) is the open experimental question with multiple candidates to test.
