@@ -122,41 +122,59 @@ At every step, justify why we're not just running the real thing. If you can't j
 
 ---
 
-## Current state (2026-05-30 ~21:00 NZST)
+## Current state (2026-05-31 ~02:00 NZST)
 
-**⚠️ PROJECT ENDS MIDNIGHT SUN 31 MAY NZST. ~27 hours remain.**
+**⚠️ PROJECT ENDS MIDNIGHT SUN 31 MAY NZST. ~22 hours remain.**
 
 ### Environment: Linux (Manjaro VM), RTX 3090
 - torch 2.12.0, CUDA working, Triton 3.5.1
 - System Python 3.14 with venv (`--system-site-packages`)
 - einops + jaxtyping in venv
 - TinyShakespeare downloaded to `experiments/corpora.ignore/tinyshakespeare_input.txt`
-- **GPU power limit: needs `sudo nvidia-smi -pl 185` (Max must run this)**
+- **GPU power limit set to 185W** (`sudo nvidia-smi -pl 185`, resets on reboot)
 - torch.compile HANGS on this model (1024-iteration loop too complex for tracer)
 - CUDA graphs fail on Linux (CPU↔CUDA copy during capture)
+- **Loop:** `systemctl --user start gildnn-loop` (systemd user service, survives disconnects)
 
-### Direction confirmed by Max this session:
-- **Don't use CUDA graphs or torch.compile.** Write GPU programs directly (Triton).
-- **The architecture is a GRAPH, not a linear chain.** Scale to many modules.
-- **Partial/torn reads from unsynchronized global memory = just noise.** No mailbox protocol.
-- **Goal: truly exploit GPU parallelism** with the architecture's natural independence.
+### ✅ Completed this session:
+1. ✅ Built 192-module 2D graph automaton (`core/automaton_graph.py`) — 16M params
+2. ✅ Adversarial review found/fixed: frozen embeddings, prediction target (predict incoming laterals not combined state)
+3. ✅ Sanity check passes: CE 4.24→2.37 in 20 steps (fixed batch overfit)
+4. ✅ 200-step training run completed: CE 3.32→2.69 at batch=4, chunk=128 (~5.5 min)
+5. ✅ **InfoNCE implemented as default local loss** (commit `e712c9a`)
+   - InfoNCE beats MSE on CE: 2.41 vs 2.53 at step 19
+   - Band-0 exempt (uses CE for grounding)
+   - Stable, no collapse
+6. ✅ **Refractory mechanism implemented** (option, default off)
+   - Refractory helps CE: 2.46 vs 2.55 baseline
+   - Makes prediction harder (expected — signal actually propagates instead of pooling)
+7. ✅ **Process documented:** implementation pipeline (implement→review→fix→start) in PROCESS.md
 
-### Architecture spec (designed this session):
+### Wave propagation theory (discussed with Max):
+- Current model is diffusion-like (symmetric reads, no directional transport)
+- Cortical analogy: excitable medium (threshold + refractory → wavefronts)
+- Options identified (simplest → most faithful):
+  1. Novelty-gated drive (nearly free)
+  2. Threshold + refractory scalar (implemented ✅, tested ✅)
+  3. Directional edge buffers (moderate cost)
+  4. Activator–inhibitor (highest cost, most faithful)
+- Diagnostic: impulse response — waves show sharp moving shell, diffusion shows broadening blob
 
-**192-module 2D grid** (replaces the 8-level linear chain):
+### Architecture spec:
+
+**192-module 2D grid:**
 - **8 rate bands × 24 positions** = 192 modules
 - **Topology:** 2D grid, horizontal ring (wrap), vertical open boundary
 - **Neighbors:** 4-neighborhood (left, right, up, down)
 - **Rates by band:** `[1, 2, 4, 8, 16, 32, 64, 128]`
-- **Phase stagger:** `phase[b,c] = c mod rate[b]` (spreads work across timesteps)
-- **d_stream=96, d_hidden=384** → ~16M params total, ~83K params/module
-- **batch=16** (tensor core alignment: tl.dot needs M≥16)
-- **Communication:** raw unsynchronized global-memory reads from neighbors
+- **Phase stagger:** `phase[b,c] = c mod rate[b]`
+- **d_stream=96, d_hidden=384** → ~16M params, ~83K/module
+- **batch=16** (tensor core alignment)
+- **Communication:** detached noisy neighbor reads from shared buffer
 - **Token injection:** band 0 only
-- **Output:** mean of all band-0 module logits (tied readout against fixed embeddings)
-- **Loss:** band-0 CE + all other modules: local prediction loss (predict own next combined input)
+- **Output:** mean of all band-0 module logits (tied readout, fixed embeddings, temp=0.07)
+- **Loss:** band-0 CE + bands 1-7: InfoNCE local prediction (predict normalized incoming lateral sum)
 - **Chunk:** 128 tokens × 8 steps/token = 1024 microsteps
-- **Average active modules per microstep:** ~48 (due to multi-rate + phase stagger)
 
 ### Triton persistent kernel design:
 - One kernel launch, 192 programs (one per module)
@@ -167,21 +185,19 @@ At every step, justify why we're not just running the real thing. If you can't j
 - For backward: store activations during forward → custom backward kernel (same structure, reverse)
 - Each module's backward is independent (detached laterals → no cross-module gradient)
 
-### Implementation plan:
-1. Build eager PyTorch version of 192-module graph architecture (verify it learns)
-2. Write Triton persistent forward kernel
-3. Write Triton backward kernel (or chunked eager backward from stored activations)
-4. Wrap in autograd.Function
-5. Sanity-check: Triton vs eager produce matching outputs
-6. Training run with Triton backend
-7. Compare InfoNCE vs MSE local learning signals
-8. Final reports
+### NEXT:
+1. **Triton persistent kernel** — the real performance target. Start with forward-only, verify against eager.
+2. **Training at scale** — once Triton works, run at batch=16 for real
+3. **Wave propagation experiments** — compare refractory vs novelty-gated vs baseline at scale
+4. **Daily report** for 2026-05-30 (overdue)
+5. **Final weekly synthesis** before project ends
 
-### What's validated from prior work (still applies):
-- Local learning > global backprop (validated)
-- Tempered PoE combining (validated)
-- Noise forces prediction advantage (validated)
-- InfoNCE with level-0 CE exemption (implemented, sanity-checked on Linux: CE drops 4.63→3.86 in 3 steps)
+### What's validated:
+- 192-module graph learns (CE 4.2→2.4 in 20 steps)
+- InfoNCE > MSE for local loss (0.12 nats better CE)
+- Refractory helps CE (~0.09 nats) — consistent with wave-like transport being better
+- Multi-rate phase stagger working (prediction counts match expected rates)
+- Noise forces genuine prediction (prior work, still applies)
 
 ---
 
@@ -193,5 +209,6 @@ At every step, justify why we're not just running the real thing. If you can't j
 - `dictations/2026-05-28-20.md` — REDACTION: blocks are NOT weight-shared
 - `dictations/2026-05-27-2.md` — "stop training models that aren't mine"
 - `dictations/2026-05-24-1.md` — Max's original Google Keep architecture note
-- `core/automaton.py` — the 8-level linear automaton model (reference, being superseded)
-- `experiments/automaton/train_cuda_graph.py` — training script (reference for training loop structure)
+- `core/automaton_graph.py` — the 192-module graph model (current)
+- `core/automaton.py` — the 8-level linear model (reference, superseded)
+- `experiments/automaton_graph/` — training + ablation scripts
