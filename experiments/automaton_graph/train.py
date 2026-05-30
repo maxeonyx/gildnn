@@ -33,6 +33,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--chunk-size", type=int, default=128)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--log-every", type=int, default=10)
+    parser.add_argument("--save-every", type=int, default=500)
+    parser.add_argument("--save-dir", type=Path, default=Path("runs/checkpoints.ignore/"))
+    parser.add_argument("--resume", type=Path)
     parser.add_argument("--seed", type=int, default=0)
     args = parser.parse_args()
 
@@ -46,6 +49,8 @@ def parse_args() -> argparse.Namespace:
         raise ValueError(f"--lr must be positive, got {args.lr}.")
     if args.log_every <= 0:
         raise ValueError(f"--log-every must be positive, got {args.log_every}.")
+    if args.save_every <= 0:
+        raise ValueError(f"--save-every must be positive, got {args.save_every}.")
     return args
 
 
@@ -100,6 +105,28 @@ def format_per_band_losses(prediction_losses: Tensor, *, band_count: int, module
     return ", ".join(f"b{band}={value.item():.4f}" for band, value in enumerate(per_band_mean_losses))
 
 
+def save_checkpoint(
+    *,
+    model: GraphCellularAutomaton,
+    optimizer: torch.optim.Optimizer,
+    step: int,
+    ce_loss: float,
+    save_dir: Path,
+) -> Path:
+    save_dir.mkdir(parents=True, exist_ok=True)
+    checkpoint_path = save_dir / f"step_{step:06d}.pt"
+    torch.save(
+        {
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict(),
+            "step": step,
+            "ce_loss": ce_loss,
+        },
+        checkpoint_path,
+    )
+    return checkpoint_path
+
+
 def main() -> None:
     args = parse_args()
     set_seed(args.seed)
@@ -113,6 +140,14 @@ def main() -> None:
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     generator = torch.Generator(device="cpu")
     generator.manual_seed(args.seed)
+    initial_step = 0
+
+    if args.resume is not None:
+        print(f"loading checkpoint {args.resume}", flush=True)
+        checkpoint = torch.load(args.resume, map_location=device)
+        model.load_state_dict(checkpoint["model_state_dict"])
+        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        initial_step = int(checkpoint["step"])
 
     print(
         f"starting training steps={args.steps} batch_size={args.batch_size} chunk_size={args.chunk_size} device={device}",
@@ -124,7 +159,7 @@ def main() -> None:
     final_total_prediction_loss: float | None = None
     final_per_band_mean_losses: list[float] | None = None
 
-    for step in range(1, args.steps + 1):
+    for step in range(initial_step + 1, args.steps + 1):
         inputs, targets = sample_batch(
             data.encoded_text,
             batch_size=args.batch_size,
@@ -174,9 +209,19 @@ def main() -> None:
                 flush=True,
             )
 
+        if step % args.save_every == 0:
+            checkpoint_path = save_checkpoint(
+                model=model,
+                optimizer=optimizer,
+                step=step,
+                ce_loss=final_ce_loss,
+                save_dir=args.save_dir,
+            )
+            print(f"saved checkpoint {checkpoint_path}", flush=True)
+
     total_time_s = time.perf_counter() - start_time
     summary = {
-        "step_count": args.steps,
+        "step_count": max(args.steps, initial_step),
         "total_time_s": round(total_time_s, 6),
         "final_ce_loss": round(final_ce_loss if final_ce_loss is not None else float("nan"), 6),
         "final_total_prediction_loss": round(
