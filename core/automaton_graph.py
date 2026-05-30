@@ -59,6 +59,7 @@ class GraphCellularAutomaton(nn.Module):
         temporal_targets: bool = False,
         cross_band_negatives: bool = False,
         attention_readout: bool = False,
+        detach_readout: bool = False,
         per_band_ce: bool = False,
     ) -> None:
         super().__init__()
@@ -112,6 +113,7 @@ class GraphCellularAutomaton(nn.Module):
         self.temporal_targets = temporal_targets
         self.cross_band_negatives = cross_band_negatives
         self.attention_readout = attention_readout
+        self.detach_readout = detach_readout
         self.per_band_ce = per_band_ce
 
         self.token_embedding = nn.Embedding(vocab_size, d_stream)
@@ -473,7 +475,7 @@ class GraphCellularAutomaton(nn.Module):
                     per_band_logits[token_index] = self.logits_from_hidden(band_mean_states)
                 if self.attention_readout:
                     # Attend over ALL module states (detached from module gradients)
-                    all_states = current_states  # [modules, batch, d_stream] — gradients flow through
+                    all_states = current_states.detach() if self.detach_readout else current_states  # [modules, batch, d_stream]
                     # Reshape to [batch, modules, d_stream]
                     all_states_bt = all_states.permute(1, 0, 2)
                     keys = self.attn_key_proj(all_states_bt)  # [batch, modules, d_stream]

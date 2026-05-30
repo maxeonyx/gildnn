@@ -128,6 +128,8 @@ def infer_model_kwargs(checkpoint: dict[str, object]) -> dict[str, int | float |
             kwargs["cross_band_negatives"] = True
         if train_args.get("attention_readout"):
             kwargs["attention_readout"] = True
+        if train_args.get("detach_readout"):
+            kwargs["detach_readout"] = True
         if train_args.get("per_band_ce"):
             kwargs["per_band_ce"] = True
     return kwargs
