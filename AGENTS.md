@@ -24,7 +24,7 @@ Periodically — especially after completing a significant task or before starti
 
 ## Project constraints
 
-**Timebox:** this project runs until the end of the month when GitHub Copilot changes its billing. Make the most of the remaining time.
+**Timebox:** this project concluded 2026-05-31. See `PLAN.md` for final state and `research/weekly/2026-05-31.md` for the final summary.
 
 **Work sizing:** before starting any significant task, estimate whether it fits in one agent context window. If not, split it deliberately and plan the handovers in advance. Don't drift into a task that can't be finished in one session.
 
