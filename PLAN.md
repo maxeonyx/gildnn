@@ -122,7 +122,7 @@ At every step, justify why we're not just running the real thing. If you can't j
 
 ---
 
-## Current state (2026-05-30 11:43 NZST)
+## Current state (2026-05-30 12:20 NZST)
 
 ### ✅ DONE:
 1. ✅ Delete ParallelDiagonalModel
@@ -141,6 +141,13 @@ At every step, justify why we're not just running the real thing. If you can't j
    - Surveys 7 approaches ranked for async/stale compatibility
    - Top candidate: InfoNCE + cross-block covariance penalty
    - Proposed 30-second ablation experiments for each candidate
+10. ✅ **InfoNCE implemented** (commit `94a5962`). 64-slot temporal ring buffer, cosine sim, temp=0.07, `--xblk-lambda` for cross-block covariance penalty.
+11. ✅ **InfoNCE conflict diagnosed and fixed** (commit `7c01263`).
+    - 70-step run on Windows showed: InfoNCE at level 0 directly fights CE.
+    - Mechanism: CE wants "represent this token well"; InfoNCE wants "be temporally discriminative from neighbors". They're incompatible at the output-facing block.
+    - Trajectory: CE drops 4.63→3.51 (steps 1-20), then InfoNCE starts winning and CE rises back to 4.8, then catastrophic collapse of both losses around step 40.
+    - **Fix: level 0 exempt from InfoNCE prediction loss.** Level 0 uses CE only (grounding). Levels 1-7 use InfoNCE.
+    - Fix NOT yet sanity-checked (requires GPU; blocked by reboot to Linux).
 
 ### Scale-up testing (dictation 30-02):
 - d_stream=512, batch=4: works, 8.8s/step, ~3.2GB VRAM (CUDA graphs)
@@ -150,22 +157,23 @@ At every step, justify why we're not just running the real thing. If you can't j
 
 ### Environment: migrating to Linux (Manjaro)
 
-Max confirmed: reboot into Linux for Triton/torch.compile access. Everything is committed and pushed to GitHub — clone fresh on Linux.
+Max confirmed: reboot into Linux for Triton/torch.compile access. Everything committed and pushed to `origin/main` (commit `7c01263`). Clone fresh on Linux.
 
 ### Three parallel tracks (dictation 30-03):
-1. **Theory/research** — ✅ DONE (local learning signal brief)
-2. **Fast ablations** — NEXT: implement InfoNCE loss variant, 30-second probes
+1. **Theory/research** — ✅ DONE (local learning signal brief + InfoNCE conflict analysis)
+2. **Fast ablations** — NEXT: sanity-check the level-0 fix, then compare InfoNCE vs MSE
 3. **Training run** — queued: long run with best loss variant at d_stream=512
 
 ### NEXT (on Linux):
-1. Clone repo, set up venv (UV + PyTorch + Triton)
-2. Verify torch.compile works (model traces clean — `fullgraph=True`, no graph breaks)
-3. Implement InfoNCE loss + cross-block covariance penalty in `core/automaton.py`
-4. 30-second sanity check: InfoNCE non-collapse?
-5. Comparison: torch.compile vs CUDA graphs speed
+1. Clone repo: `git clone https://github.com/maxeonyx/gildnn.git`
+2. Set up venv: `uv venv && uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128 && uv pip install einops jaxtyping`
+3. Download TinyShakespeare to `experiments/corpora.ignore/tinyshakespeare_input.txt`
+4. **Sanity check the InfoNCE fix:** `python experiments/automaton/train_cuda_graph.py --loss-type infonce --sanity-check-only`
+   - Expected: CE drops (like before), levels 1-7 InfoNCE drops (new), no conflict
+5. Try torch.compile: `python experiments/automaton/train_cuda_graph.py --compile --sanity-check-only`
 6. Scale up: d_stream=512, batch=4-8
-7. Run Track 2 ablations (InfoNCE vs MSE, vicreg-xblk, etc.)
-8. Run Track 3 training with best config
+7. 500-step comparison: InfoNCE (fixed) vs MSE at d_stream=512
+8. Run Track 3 training with best config (long run, background)
 9. Write daily report for 2026-05-30
 10. Write final weekly synthesis
 
