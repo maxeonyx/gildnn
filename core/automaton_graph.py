@@ -452,7 +452,7 @@ class GraphCellularAutomaton(nn.Module):
             if timestep % self.steps_per_token == self.steps_per_token - 1:
                 if self.attention_readout:
                     # Attend over ALL module states (detached from module gradients)
-                    all_states = current_states.detach()  # [modules, batch, d_stream]
+                    all_states = current_states  # [modules, batch, d_stream] — gradients flow through
                     # Reshape to [batch, modules, d_stream]
                     all_states_bt = all_states.permute(1, 0, 2)
                     keys = self.attn_key_proj(all_states_bt)  # [batch, modules, d_stream]
