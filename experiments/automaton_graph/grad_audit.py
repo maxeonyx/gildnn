@@ -81,7 +81,7 @@ def main() -> None:
 
     # Load model
     if args.checkpoint:
-        checkpoint = torch.load(args.checkpoint, map_location=device)
+        checkpoint = torch.load(args.checkpoint, map_location=device, weights_only=False)
         ckpt_args = checkpoint.get("args", {})
         model = GraphCellularAutomaton(
             vocab_size=vocab_size,
