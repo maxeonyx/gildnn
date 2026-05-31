@@ -4,33 +4,19 @@ Working notes. Final day (2026-05-31), project concludes at midnight NZST.
 
 ---
 
-## Active work (afternoon session, May 31)
+## Active work (final session, May 31 ~17:30 NZST)
 
-### Temporal residual state update — ANSWERED
+### CUDA graph capture restored — DONE ✓
 
-The automaton's state update was `state = output` (full replacement). This is wrong — VISION says "merge", not "replace." Tested 3 update rules:
+CPU→CUDA scalar assignments (`prediction_errors[0] = 0.0`, `active_predictions[0] = False`) broke CUDA graph capture when the residual fix was added. Fixed with precomputed `_skip_level0` mask buffer. Committed `aa78d4b`.
 
-| Update rule | spt=1 | spt=8 |
-|---|---|---|
-| state = output (original) | 2.20 | 3.29 |
-| state = state + output (raw add) | 3.26 | 3.29 |
-| state = normalize(state + output) | 2.23 | 2.68 |
+**Performance:** 8-level d=128 spt=4 seq=2048 batch=8 → **1.87s/step** with graph vs 11.9s eager (6.3×). Restores the 14× speedup over the original 26s/step baseline.
 
-**Finding:** Normalized residual fixes the catastrophic spt=8 failure (3.29→2.68). spt sweep with residual: 2.23→2.29→2.37→2.68 — more steps still hurts at n_levels=1, but gracefully.
+### 8-level residual convergence — IN PROGRESS (ETA ~18:07 NZST)
 
-**Root cause of remaining degradation:** At n_levels=1, extra steps apply the same autonomous MLP with no new information. "Autonomous drift." In multi-level, laterals give each step something to process. The gap to GRU (2.23 vs 1.58) is NOT attention — GRU has no attention either. It's lack of gating.
+Running via systemd: `automaton-8level-residual-full`. Config: n=8, d=128, spt=4, seq=2048, batch=8, noise=0.1, lr=3e-4, 200 steps, eager mode (launched before graph fix).
 
-**Committed:** `8a6f09a`. Full writeup: `research/questions/residual-stream-across-time/README.md`.
-
-### 8-level residual (200 steps, seq=512) — IN PROGRESS
-
-CE 2.92 at 200 steps, still on steep downward trajectory (3.34→2.92). Needs more steps and controlled comparison vs original (which got 2.30 at 500 steps with seq=2048) to determine if residual helps multi-level.
-
-### Next steps (prioritized)
-
-1. **Controlled multi-level comparison:** Run original config (n=8, d=128, spt=4, seq=2048) with and without residual, same conditions, to convergence
-2. **Learned gate experiment:** Replace raw normalized-add with `α * state + (1-α) * output` (α produced by MLP). Tests whether gating closes the GRU gap.
-3. **Connect back to Pathway 1:** The tied transformer (CE 1.67) uses attention. The automaton (CE 2.23) doesn't. But GRU (1.58) also doesn't. The automaton needs either better state update (gating) or attention to be competitive.
+**Key question:** Does multi-level + residual match/beat the prior 8-level result (CE 2.30 at 500 steps, no residual, seq=2048)? If laterals actually help during autonomous steps, multi-level should outperform the 1-level spt=4 result (CE 2.37).
 
 ---
 
