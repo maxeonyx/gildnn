@@ -31,7 +31,7 @@ Local prediction learning actively hurts token classification. As modules specia
 | Our arch (default, 1000 steps) | **2.69** | 1000 | 16M params, 220s |
 | Band0-local-loss + CE on band 0 | **3.04** | 100 | Local prediction + CE |
 | Band0-local-loss (detached) | **3.24→3.41** | 100→500 | Purely local, CE stagnates |
-| Hier targets purely-local (detached) | **3.28** | 100 | Band 0 untrained, 1000-step run active |
+| Hier targets purely-local (detached) | **3.28→3.52** | 100→1000 | Worsens with training |
 | Combined (band0+hier+attn+detach) | **3.35** | 100 | Worse than parts individually |
 
 ### Key conclusion (scoped)
@@ -65,6 +65,10 @@ Concretely: can a globally-trained multi-rate 192-module graph show a quality/co
 3. **Pathway 8 (Multi-Rate at long context)** — only tested at ctx=32 where slow bands are useless. At ctx=512+ the multi-rate structure might show genuine timescale separation under global CE.
 
 4. **Pathway 3 (Local Learning)** — paused for the predict-neighbors family. Would need a fundamentally different objective class to revisit. The necessary properties are documented in `research/questions/local-objectives/README.md`.
+
+### Unaddressed items from dictations
+
+- **Pretrained embeddings** (dictation 07): "Did we try using actual pretrained embeddings yet?" Not done. At the character level, "pretrained embeddings" is non-obvious — characters are only 65 classes. Could mean: pretrained byte-level embeddings from a larger model, or a pretrained character-aware word embedding projected back to characters. Worth exploring because richer input representations might change the local-learning story (if band 0 receives features that already encode token-relevant structure, predicting neighbors might become aligned with token prediction). This was not tested.
 
 ### What the tested local objectives taught us
 
