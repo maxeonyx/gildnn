@@ -19,7 +19,9 @@ class SpecGraphConfig:
     rollout_steps: int = 8
     horizon_steps: tuple[int, ...] = (2, 4, 6, 8)
     noise_std: float = 0.1
-    ema_decay: float = 0.99
+    ema_decay: float = 0.999
+    reward_gain: float = 64.0
+    predict_horizon: int = 4
     detach_head_input: bool = True
     readout_temperature: float = 1.0
     input_rows: tuple[int, ...] = (0,)
@@ -33,8 +35,9 @@ class SpecGraphConfig:
 class SpecGraphCarry:
     node_states: Float[Tensor, "batch node d_model"]
     lateral_buffer: Float[Tensor, "batch node d_model"]
-    pending_prediction: Float[Tensor, "batch node d_model"]
-    has_pending_prediction: Bool[Tensor, ""]
+    prediction_ring: Float[Tensor, "horizon batch node d_model"]
+    ring_position: int
+    ring_full: bool
     delayed_reward: Float[Tensor, ""]
     ema_ce: Float[Tensor, ""]
     ema_initialized: Bool[Tensor, ""]
@@ -44,8 +47,9 @@ class SpecGraphCarry:
         return SpecGraphCarry(
             node_states=self.node_states.detach(),
             lateral_buffer=self.lateral_buffer.detach(),
-            pending_prediction=self.pending_prediction.detach(),
-            has_pending_prediction=self.has_pending_prediction,
+            prediction_ring=self.prediction_ring.detach(),
+            ring_position=self.ring_position,
+            ring_full=self.ring_full,
             delayed_reward=self.delayed_reward.detach(),
             ema_ce=self.ema_ce.detach(),
             ema_initialized=self.ema_initialized,
@@ -58,6 +62,8 @@ class SpecGraphOutput:
     head_ce_loss: Float[Tensor, ""]
     local_loss: Float[Tensor, ""]
     reward_scalar: Float[Tensor, ""]
+    reward_min: Float[Tensor, ""]
+    reward_max: Float[Tensor, ""]
     per_horizon_ce: Float[Tensor, "horizon"]
 
 
@@ -167,11 +173,15 @@ class SpecGraphModel(nn.Module):
 
     def initial_carry(self, batch_size: int, device: torch.device) -> SpecGraphCarry:
         zeros_state = torch.zeros(batch_size, self.config.num_nodes, self.config.d_model, device=device)
+        prediction_ring = torch.zeros(
+            self.config.predict_horizon, batch_size, self.config.num_nodes, self.config.d_model, device=device
+        )
         return SpecGraphCarry(
             node_states=zeros_state,
             lateral_buffer=zeros_state.clone(),
-            pending_prediction=zeros_state.clone(),
-            has_pending_prediction=torch.tensor(False, device=device),
+            prediction_ring=prediction_ring,
+            ring_position=0,
+            ring_full=False,
             delayed_reward=torch.tensor(0.5, device=device),
             ema_ce=torch.tensor(0.0, device=device),
             ema_initialized=torch.tensor(False, device=device),
@@ -207,7 +217,8 @@ class SpecGraphModel(nn.Module):
         ema_initialized: Bool[Tensor, ""],
     ) -> tuple[Float[Tensor, ""], Float[Tensor, ""], Bool[Tensor, ""]]:
         baseline_ce = torch.where(ema_initialized, ema_ce, current_ce.detach())
-        reward = torch.sigmoid(baseline_ce - current_ce.detach())
+        delta = baseline_ce - current_ce.detach()
+        reward = torch.sigmoid(self.config.reward_gain * delta)
         updated_ema = torch.where(
             ema_initialized,
             self.config.ema_decay * ema_ce + (1.0 - self.config.ema_decay) * current_ce.detach(),
@@ -229,6 +240,8 @@ class SpecGraphModel(nn.Module):
         reward_values: list[Float[Tensor, ""]] = []
 
         current = carry
+        ring_pos = carry.ring_position
+        ring_full = carry.ring_full
         for token_index in range(seq_len):
             token_embedding = token_embeddings[:, token_index, :]
             target = targets[:, token_index]
@@ -237,8 +250,11 @@ class SpecGraphModel(nn.Module):
             for rollout_step in range(1, self.config.rollout_steps + 1):
                 reward_values.append(current.delayed_reward)
                 clean_lateral = self._clean_lateral_from_buffer(current.lateral_buffer)
-                if bool(current.has_pending_prediction.item()):
-                    per_node_local_loss = F.mse_loss(current.pending_prediction, clean_lateral, reduction="none").mean(dim=-1)
+
+                # Score the prediction from K steps ago against current clean lateral
+                if ring_full:
+                    old_prediction = current.prediction_ring[ring_pos]
+                    per_node_local_loss = F.mse_loss(old_prediction, clean_lateral, reduction="none").mean(dim=-1)
                     weighted_local_loss = per_node_local_loss * current.delayed_reward.detach()
                     local_losses.append(weighted_local_loss.mean())
                     next_neighbor_loss_buffer = per_node_local_loss.mean(dim=0).detach()
@@ -264,6 +280,12 @@ class SpecGraphModel(nn.Module):
                 )
                 new_state, predicted_next_lateral = self.cell(cell_input, current.node_states)
 
+                # Store current prediction in ring buffer at current position
+                new_ring = current.prediction_ring.clone()
+                new_ring[ring_pos] = predicted_next_lateral.detach()
+                next_ring_pos = (ring_pos + 1) % self.config.predict_horizon
+                next_ring_full = ring_full or (next_ring_pos == 0)
+
                 next_reward = current.delayed_reward.detach()
                 next_ema = current.ema_ce.detach()
                 next_ema_initialized = current.ema_initialized
@@ -282,18 +304,24 @@ class SpecGraphModel(nn.Module):
                 current = SpecGraphCarry(
                     node_states=new_state,
                     lateral_buffer=new_state.detach(),
-                    pending_prediction=predicted_next_lateral,
-                    has_pending_prediction=torch.tensor(True, device=new_state.device),
+                    prediction_ring=new_ring,
+                    ring_position=next_ring_pos,
+                    ring_full=next_ring_full,
                     delayed_reward=next_reward.detach(),
                     ema_ce=next_ema.detach(),
                     ema_initialized=next_ema_initialized,
                     neighbor_loss_buffer=next_neighbor_loss_buffer,
                 )
+                ring_pos = next_ring_pos
+                ring_full = next_ring_full
 
         device = inputs.device
         head_ce_loss = torch.stack(head_losses).mean() if head_losses else torch.zeros((), device=device)
         local_loss = torch.stack(local_losses).mean() if local_losses else torch.zeros((), device=device)
-        reward_scalar = torch.stack(reward_values).mean() if reward_values else torch.zeros((), device=device)
+        reward_stack = torch.stack(reward_values) if reward_values else torch.zeros(1, device=device)
+        reward_scalar = reward_stack.mean()
+        reward_min = reward_stack.min()
+        reward_max = reward_stack.max()
         per_horizon_ce = torch.stack(
             [
                 torch.stack(terms).mean() if terms else torch.zeros((), device=device)
@@ -304,5 +332,7 @@ class SpecGraphModel(nn.Module):
             head_ce_loss=head_ce_loss,
             local_loss=local_loss,
             reward_scalar=reward_scalar,
+            reward_min=reward_min,
+            reward_max=reward_max,
             per_horizon_ce=per_horizon_ce,
         ), current

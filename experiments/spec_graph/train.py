@@ -61,6 +61,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--d-model", type=int, default=128)
     parser.add_argument("--rollout-steps", type=int, default=8)
     parser.add_argument("--noise-std", type=float, default=0.1)
+    parser.add_argument("--predict-horizon", type=int, default=4)
     parser.add_argument("--local-loss-weight", type=float, default=1.0)
     parser.add_argument("--ema-decay", type=float, default=0.99)
     parser.add_argument("--allow-head-gradient", action="store_true", help="Allow CE gradient to flow into graph nodes (scaffolding)")
@@ -133,6 +134,7 @@ def main() -> None:
             rollout_steps=args.rollout_steps,
             noise_std=args.noise_std,
             ema_decay=args.ema_decay,
+            predict_horizon=args.predict_horizon,
             detach_head_input=not args.allow_head_gradient,
         )
     ).to(device)
@@ -164,7 +166,7 @@ def main() -> None:
                 torch.cuda.synchronize(device)
             elapsed = time.perf_counter() - start_time
             print(
-                f"step={step} head_ce={output.head_ce_loss.item():.4f} local_loss={output.local_loss.item():.4f} reward_scalar={output.reward_scalar.item():.4f} time_elapsed={elapsed:.2f}s",
+                f"step={step} head_ce={output.head_ce_loss.item():.4f} local_loss={output.local_loss.item():.4f} reward={output.reward_scalar.item():.4f}[{output.reward_min.item():.3f},{output.reward_max.item():.3f}] time_elapsed={elapsed:.2f}s",
                 flush=True,
             )
             print(
