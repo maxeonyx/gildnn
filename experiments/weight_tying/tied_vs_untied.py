@@ -20,9 +20,9 @@ from core.fixed_window_char import load_dataset, set_seed
 torch.backends.cuda.matmul.allow_tf32 = True
 
 
-MODEL_DIM = 128
-MLP_DIM = 512
-N_HEADS = 4
+DEFAULT_MODEL_DIM = 128
+DEFAULT_MLP_DIM = 512
+DEFAULT_N_HEADS = 4
 CHUNK_SIZE = 128
 BATCH_SIZE = 32
 EVAL_BATCH_SIZE = 256
@@ -147,6 +147,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--log-every", type=int, default=50)
     parser.add_argument("--seeds", type=str, default="0,1,2")
     parser.add_argument("--n-layers", type=int, default=8)
+    parser.add_argument("--d-model", type=int, default=DEFAULT_MODEL_DIM)
+    parser.add_argument("--mlp-dim", type=int, default=None, help="MLP hidden dim (default: 4*d_model)")
+    parser.add_argument("--n-heads", type=int, default=DEFAULT_N_HEADS)
+    parser.add_argument("--tied-only", action="store_true", help="Only run the tied model")
     args = parser.parse_args()
 
     if args.steps <= 0:
@@ -155,6 +159,12 @@ def parse_args() -> argparse.Namespace:
         raise ValueError(f"--log-every must be positive, got {args.log_every}.")
     if args.n_layers <= 0:
         raise ValueError(f"--n-layers must be positive, got {args.n_layers}.")
+    if args.d_model <= 0:
+        raise ValueError(f"--d-model must be positive, got {args.d_model}.")
+    if args.d_model % args.n_heads != 0:
+        raise ValueError(f"--d-model ({args.d_model}) must be divisible by --n-heads ({args.n_heads}).")
+    if args.mlp_dim is None:
+        args.mlp_dim = args.d_model * 4
 
     seeds = [int(seed.strip()) for seed in args.seeds.split(",") if seed.strip()]
     if not seeds:
@@ -167,12 +177,21 @@ def count_parameters(model: nn.Module) -> int:
     return sum(parameter.numel() for parameter in model.parameters())
 
 
-def build_models(*, vocab_size: int, n_layers: int, device: torch.device) -> tuple[TiedTransformer, UntiedTransformer]:
-    base_token_embedding = nn.Embedding(vocab_size, MODEL_DIM)
-    base_position_embedding = nn.Embedding(CHUNK_SIZE, MODEL_DIM)
-    base_block = TransformerBlock(model_dim=MODEL_DIM, n_heads=N_HEADS, mlp_dim=MLP_DIM)
-    base_final_norm = nn.LayerNorm(MODEL_DIM)
-    base_lm_head = nn.Linear(MODEL_DIM, vocab_size)
+def build_models(
+    *,
+    vocab_size: int,
+    n_layers: int,
+    model_dim: int,
+    mlp_dim: int,
+    n_heads: int,
+    device: torch.device,
+    tied_only: bool = False,
+) -> tuple[TiedTransformer, UntiedTransformer | None]:
+    base_token_embedding = nn.Embedding(vocab_size, model_dim)
+    base_position_embedding = nn.Embedding(CHUNK_SIZE, model_dim)
+    base_block = TransformerBlock(model_dim=model_dim, n_heads=n_heads, mlp_dim=mlp_dim)
+    base_final_norm = nn.LayerNorm(model_dim)
+    base_lm_head = nn.Linear(model_dim, vocab_size)
 
     tied_model = TiedTransformer(
         token_embedding=copy.deepcopy(base_token_embedding),
@@ -182,14 +201,16 @@ def build_models(*, vocab_size: int, n_layers: int, device: torch.device) -> tup
         lm_head=copy.deepcopy(base_lm_head),
         n_layers=n_layers,
     )
-    untied_model = UntiedTransformer(
-        token_embedding=copy.deepcopy(base_token_embedding),
-        position_embedding=copy.deepcopy(base_position_embedding),
-        blocks=nn.ModuleList([copy.deepcopy(base_block) for _ in range(n_layers)]),
-        final_norm=copy.deepcopy(base_final_norm),
-        lm_head=copy.deepcopy(base_lm_head),
-    )
-    return tied_model.to(device), untied_model.to(device)
+    untied_model = None
+    if not tied_only:
+        untied_model = UntiedTransformer(
+            token_embedding=copy.deepcopy(base_token_embedding),
+            position_embedding=copy.deepcopy(base_position_embedding),
+            blocks=nn.ModuleList([copy.deepcopy(base_block) for _ in range(n_layers)]),
+            final_norm=copy.deepcopy(base_final_norm),
+            lm_head=copy.deepcopy(base_lm_head),
+        )
+    return tied_model.to(device), untied_model.to(device) if untied_model else None
 
 
 def prepare_dataset() -> tuple[Tensor, Tensor, Tensor, Tensor, int]:
@@ -246,7 +267,7 @@ def log_metrics(
     *,
     step: int,
     tied_model: TiedTransformer,
-    untied_model: UntiedTransformer,
+    untied_model: UntiedTransformer | None,
     train_inputs: Tensor,
     train_targets: Tensor,
     val_inputs: Tensor,
@@ -255,17 +276,9 @@ def log_metrics(
     val_eval_indices: Tensor,
     device: torch.device,
     vocab_size: int,
-) -> tuple[float, float]:
+) -> tuple[float, float | None]:
     tied_train_ce = compute_ce(
         tied_model,
-        inputs=train_inputs,
-        targets=train_targets,
-        indices=train_eval_indices,
-        device=device,
-        vocab_size=vocab_size,
-    )
-    untied_train_ce = compute_ce(
-        untied_model,
         inputs=train_inputs,
         targets=train_targets,
         indices=train_eval_indices,
@@ -280,21 +293,37 @@ def log_metrics(
         device=device,
         vocab_size=vocab_size,
     )
-    untied_val_ce = compute_ce(
-        untied_model,
-        inputs=val_inputs,
-        targets=val_targets,
-        indices=val_eval_indices,
-        device=device,
-        vocab_size=vocab_size,
-    )
-    print(
-        f"step={step} "
-        f"tied_train_ce={tied_train_ce:.4f} untied_train_ce={untied_train_ce:.4f} "
-        f"tied_val_ce={tied_val_ce:.4f} untied_val_ce={untied_val_ce:.4f}",
-        flush=True,
-    )
-    return tied_val_ce, untied_val_ce
+
+    if untied_model:
+        untied_train_ce = compute_ce(
+            untied_model,
+            inputs=train_inputs,
+            targets=train_targets,
+            indices=train_eval_indices,
+            device=device,
+            vocab_size=vocab_size,
+        )
+        untied_val_ce = compute_ce(
+            untied_model,
+            inputs=val_inputs,
+            targets=val_targets,
+            indices=val_eval_indices,
+            device=device,
+            vocab_size=vocab_size,
+        )
+        print(
+            f"step={step} "
+            f"tied_train_ce={tied_train_ce:.4f} untied_train_ce={untied_train_ce:.4f} "
+            f"tied_val_ce={tied_val_ce:.4f} untied_val_ce={untied_val_ce:.4f}",
+            flush=True,
+        )
+        return tied_val_ce, untied_val_ce
+    else:
+        print(
+            f"step={step} tied_train_ce={tied_train_ce:.4f} tied_val_ce={tied_val_ce:.4f}",
+            flush=True,
+        )
+        return tied_val_ce, None
 
 
 def train_one_seed(
@@ -303,35 +332,52 @@ def train_one_seed(
     steps: int,
     log_every: int,
     n_layers: int,
+    model_dim: int,
+    mlp_dim: int,
+    n_heads: int,
+    tied_only: bool,
     train_inputs: Tensor,
     train_targets: Tensor,
     val_inputs: Tensor,
     val_targets: Tensor,
     vocab_size: int,
     device: torch.device,
-) -> tuple[float, float, int, int]:
+) -> tuple[float, float | None, int, int | None]:
     set_seed(seed)
-    tied_model, untied_model = build_models(vocab_size=vocab_size, n_layers=n_layers, device=device)
+    tied_model, untied_model = build_models(
+        vocab_size=vocab_size,
+        n_layers=n_layers,
+        model_dim=model_dim,
+        mlp_dim=mlp_dim,
+        n_heads=n_heads,
+        device=device,
+        tied_only=tied_only,
+    )
     tied_optimizer = torch.optim.Adam(tied_model.parameters(), lr=LEARNING_RATE)
-    untied_optimizer = torch.optim.Adam(untied_model.parameters(), lr=LEARNING_RATE)
+    untied_optimizer = torch.optim.Adam(untied_model.parameters(), lr=LEARNING_RATE) if untied_model else None
 
     tied_params = count_parameters(tied_model)
-    untied_params = count_parameters(untied_model)
+    untied_params = count_parameters(untied_model) if untied_model else None
 
     train_eval_indices = sample_indices(
         total=train_inputs.shape[0], count=EVAL_BATCH_SIZE, seed=TRAIN_EVAL_BATCH_SEED
     )
     val_eval_indices = sample_indices(total=val_inputs.shape[0], count=EVAL_BATCH_SIZE, seed=VAL_BATCH_SEED)
-    verify_identical_initialization(
-        tied_model,
-        untied_model,
-        inputs=train_inputs,
-        indices=train_eval_indices,
-        device=device,
-    )
+
+    if untied_model:
+        verify_identical_initialization(
+            tied_model,
+            untied_model,
+            inputs=train_inputs,
+            indices=train_eval_indices,
+            device=device,
+        )
 
     print(f"=== Seed {seed} ===", flush=True)
-    print(f"tied_params={tied_params} untied_params={untied_params}", flush=True)
+    if untied_params:
+        print(f"tied_params={tied_params} untied_params={untied_params}", flush=True)
+    else:
+        print(f"tied_params={tied_params} d_model={model_dim} n_layers={n_layers}", flush=True)
 
     tied_final_val_ce, untied_final_val_ce = log_metrics(
         step=0,
@@ -362,12 +408,13 @@ def train_one_seed(
         torch.nn.utils.clip_grad_norm_(tied_model.parameters(), max_norm=1.0)
         tied_optimizer.step()
 
-        untied_optimizer.zero_grad(set_to_none=True)
-        untied_logits = untied_model(batch_inputs)
-        untied_loss = F.cross_entropy(untied_logits.reshape(-1, vocab_size), batch_targets.reshape(-1))
-        untied_loss.backward()
-        torch.nn.utils.clip_grad_norm_(untied_model.parameters(), max_norm=1.0)
-        untied_optimizer.step()
+        if untied_model and untied_optimizer:
+            untied_optimizer.zero_grad(set_to_none=True)
+            untied_logits = untied_model(batch_inputs)
+            untied_loss = F.cross_entropy(untied_logits.reshape(-1, vocab_size), batch_targets.reshape(-1))
+            untied_loss.backward()
+            torch.nn.utils.clip_grad_norm_(untied_model.parameters(), max_norm=1.0)
+            untied_optimizer.step()
 
         if step % log_every == 0 or step == steps:
             tied_final_val_ce, untied_final_val_ce = log_metrics(
@@ -403,6 +450,10 @@ def main() -> None:
             steps=args.steps,
             log_every=args.log_every,
             n_layers=args.n_layers,
+            model_dim=args.d_model,
+            mlp_dim=args.mlp_dim,
+            n_heads=args.n_heads,
+            tied_only=args.tied_only,
             train_inputs=train_inputs,
             train_targets=train_targets,
             val_inputs=val_inputs,
