@@ -4,19 +4,44 @@ Working notes. Final day (2026-05-31), project concludes at midnight NZST.
 
 ---
 
-## Active work (final session, May 31 ~17:30 NZST)
+## Active work (final session, May 31 ~18:15 NZST)
+
+### Bidirectional laterals fix — DONE ✓
+
+Dictation 10 confirmed: upward-only laterals was a bug. Higher levels should influence lower levels. Fixed in `190a243`: lateral_signal from level k now flows both to level k+1 AND level k-1 (when that level fires). Dictation 11 confirmed: multi-rate delay is fine (higher levels fire less frequently → downward info arrives slowly, which is the design intent). Dictation 12 confirmed: state is persistent across tokens ✓ (no reset at token boundaries).
+
+### 8-level bidirectional results — DONE (mixed)
+
+500 steps, n=8, d=128, spt=4, seq=2048, batch=8, noise=0.1, lr=3e-4, CUDA graphs (~1.7s/step):
+
+| Step | Bidir+residual | Prior (replace, upward-only) |
+|------|---------------|------------------------------|
+| 50   | 3.33          | 3.33                         |
+| 100  | 3.23          | 3.01                         |
+| 200  | 2.99          | 2.47                         |
+| 500  | **2.78**      | **2.30**                     |
+
+Bidirectional + residual (CE 2.78) is worse than original (CE 2.30) at step 500. But better than 1-level floor (~2.37). Two changes were made simultaneously (residual + bidirectional), so this is confounded.
+
+### Queue running — comparison experiments (ETA ~19:15 NZST)
+
+`experiments/bidir-comparisons.queue` via `bidir-queue` systemd unit. 4 experiments:
+1. 1-level spt=4 (floor baseline, no laterals)
+2. 1-level spt=1 (best single-level)
+3. 8-level spt=1 (bidirectional but no autonomous steps)
+4. 8-level spt=8 (max autonomous steps — tests lateral rescue)
+
+**Key question:** Does multi-level bidirectional beat 1-level at matched spt? If so, laterals provide value. If not, the communication structure is still broken.
+
+### Theory insight (important)
+
+With **detached** laterals, higher levels cannot receive CE gradient. They're trained ONLY by local prediction loss (InfoNCE), which is orthogonal to CE (gradient cosine 0.013). So information flowing down from higher levels is representations optimized for neighbor-prediction, NOT token-prediction. This may explain why multi-level doesn't help CE much.
+
+**Possible resolution:** The downward signal might still help as a diversity/regularization mechanism (different features for level 0 to exploit), even if it wasn't trained for that purpose. The queue experiments will test this.
 
 ### CUDA graph capture restored — DONE ✓
 
-CPU→CUDA scalar assignments (`prediction_errors[0] = 0.0`, `active_predictions[0] = False`) broke CUDA graph capture when the residual fix was added. Fixed with precomputed `_skip_level0` mask buffer. Committed `aa78d4b`.
-
-**Performance:** 8-level d=128 spt=4 seq=2048 batch=8 → **1.87s/step** with graph vs 11.9s eager (6.3×). Restores the 14× speedup over the original 26s/step baseline.
-
-### 8-level residual convergence — IN PROGRESS (ETA ~18:07 NZST)
-
-Running via systemd: `automaton-8level-residual-full`. Config: n=8, d=128, spt=4, seq=2048, batch=8, noise=0.1, lr=3e-4, 200 steps, eager mode (launched before graph fix).
-
-**Key question:** Does multi-level + residual match/beat the prior 8-level result (CE 2.30 at 500 steps, no residual, seq=2048)? If laterals actually help during autonomous steps, multi-level should outperform the 1-level spt=4 result (CE 2.37).
+Committed `aa78d4b`. 1.76s/step with CUDA graphs (14× vs original 26s baseline).
 
 ---
 
