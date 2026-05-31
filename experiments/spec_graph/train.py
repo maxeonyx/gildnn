@@ -62,6 +62,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--rollout-steps", type=int, default=8)
     parser.add_argument("--noise-std", type=float, default=0.1)
     parser.add_argument("--local-loss-weight", type=float, default=1.0)
+    parser.add_argument("--ema-decay", type=float, default=0.99)
+    parser.add_argument("--allow-head-gradient", action="store_true", help="Allow CE gradient to flow into graph nodes (scaffolding)")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--log-every", type=int, default=10)
     parser.add_argument("--sanity-check-only", action="store_true")
@@ -130,6 +132,8 @@ def main() -> None:
             d_model=args.d_model,
             rollout_steps=args.rollout_steps,
             noise_std=args.noise_std,
+            ema_decay=args.ema_decay,
+            detach_head_input=not args.allow_head_gradient,
         )
     ).to(device)
     model.train()
