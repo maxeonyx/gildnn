@@ -111,15 +111,24 @@ Evidence: band0-local-loss prediction loss goes from 4.65 → 0.54 (excellent lo
 
 This is not a readout problem. It's a feature-geometry problem.
 
-## The fundamental tension
+## The fundamental tension (theoretical conclusion)
 
-The project's thesis: "local objectives can produce globally-useful representations through topology." The evidence says no — at least for these objectives on this architecture. The representations that local objectives create are locally optimal but globally unexploitable.
+**Formal argument:** For a local objective to produce token-useful representations, the locally-predicted quantity must be a sufficient statistic for the next token. If there exist contexts c1, c2 that produce the same optimal local behavior but require different token predictions, the local objective has no reason to distinguish them — and will collapse the distinction. Topology cannot create task information that the objective never rewards preserving.
 
-Possible escapes (not tested):
-1. **Train the readout WITH gradient into modules** — but this violates "purely local"
-2. **A local objective whose optimal features ARE logit-extractable** — not obvious what this would be
-3. **Much longer training** — the 1000-step run will test this (if CE drops from 3.28 toward 2.7 over 1000 steps, convergence is just slow)
-4. **Different architecture** — maybe the 2D grid + detached laterals is the wrong topology for local learning
+In our experiments: neighbor states, lower-band means, and next-step inputs are all **invariant to distinctions that matter for next-token prediction**. You can predict your neighbors perfectly well regardless of whether the next character is 'a' or 'z' — the neighbor dynamics don't encode that distinction. So the local objective discards it.
+
+The measured gradient cosine (0.013) is not bad luck — it's a structural consequence. The local objectives and CE are asking for different things, and optimizing one actively moves features away from the other.
+
+**What's dead:** "Generic local prediction objectives become language-useful through topology." This is falsified.
+
+**What remains open:** Whether a *different* class of local objective — one that targets bottlenecked predictive structure rather than raw state reconstruction, and possibly with a non-detached communication architecture — could align local learning with token prediction. The necessary properties:
+1. Target must be closer to a sufficient statistic for future tokens (not raw neighbor state)
+2. Must be predictive (future-oriented), not reconstructive (present snapshot)
+3. Must be bottlenecked (force selection, not copying)
+4. Must create complementarity pressure (different modules learn different useful things)
+5. Downstream usefulness must be locally visible (detached laterals remove this signal)
+
+The tested family satisfies none of these except weakly (3) via L2 normalization. A working local learning rule would need a fundamentally different design — not a variant of "predict neighbors."
 
 ## Experiment queue (next to try)
 

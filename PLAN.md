@@ -36,9 +36,10 @@ Local prediction learning actively hurts token classification. As modules specia
 
 ### What remains
 - [x] 1000-step purely-local hierarchical targets result — DONE (negative: CE worsens)
-- [ ] Update daily report with 1000-step result
-- [ ] Update weekly with definitive negative conclusion
-- [ ] Final commit
+- [x] Update daily report with 1000-step result
+- [x] Update weekly with definitive negative conclusion
+- [x] Theoretical analysis: formal argument for why tested objective family fails
+- [x] Final commit
 
 ### Architecture spec (reference)
 
