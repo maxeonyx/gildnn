@@ -147,19 +147,21 @@ Previous reports showed misleading "GRU 1.35 vs our 2.70" — that compared GRU 
 
 4. **Temporal residual state update — ANSWERED.** State replacement catastrophic at high spt; normalized residual (`normalize(state + output)`) fixes it. The remaining gap to GRU is gating, not attention. Committed `8a6f09a`. See `research/questions/residual-stream-across-time/README.md`.
 
-### What remains open
+### Open questions (if the project is reopened)
 
 1. **Gating for the automaton:** The gap between automaton (CE 2.23) and GRU (1.58) is likely gating. A learned gate (`α * state + (1-α) * output` where α is MLP-produced) would test this. Connects to Pathway 1.
 
-2. **Multi-level with residual — NOW ANSWERED:** Tested at 500 steps with bidirectional laterals. 8-level spt=1 (bidir+residual) CE 2.57 vs 1-level spt=1 CE 2.45. Multi-level actively hurts. The issue is local InfoNCE producing task-irrelevant downward signal, not convergence time.
+2. **Joint training with dynamic depth (ACT/CALM-style):** The frozen-model probe shows the information is there. Training model + halting head simultaneously should produce clearer signals. Connects to Pathway 5.
 
-3. **Joint training with dynamic depth (ACT/CALM-style):** The frozen-model probe shows the information is there. Training model + halting head simultaneously should produce clearer signals. Connects to Pathway 5.
+3. **Pathway 8 (Multi-Rate at long context):** Only tested at ctx=32/128 where slow bands are useless. At ctx=512+ the multi-rate structure might show genuine timescale separation.
 
-4. **Pathway 8 (Multi-Rate at long context):** Only tested at ctx=32/128 where slow bands are useless. At ctx=512+ the multi-rate structure might show genuine timescale separation.
+4. **The 192-module graph:** CE 2.69, fundamentally broken communication. The temporal residual might help, but narrow d_stream=96 and detached laterals are likely the deeper issue.
 
-5. **The 192-module graph:** CE 2.69, fundamentally broken communication. The temporal residual might help, but narrow d_stream=96 and detached laterals are likely the deeper issue.
+5. **Local learning (different objective families):** Predict-neighbors failed. Info-theoretic / contrastive / predictive coding with different inductive biases untested.
 
-6. **Local learning (different objective families):** Predict-neighbors failed. Info-theoretic / contrastive / predictive coding with different inductive biases untested.
+### Answered since initial planning
+
+- **Multi-level with residual:** Tested at 500 steps with bidirectional laterals. 8-level spt=1 (bidir+residual) CE 2.57 vs 1-level spt=1 CE 2.45. Multi-level actively hurts. The issue is local InfoNCE producing task-irrelevant downward signal.
 
 ### Unaddressed items from dictations
 

@@ -1,6 +1,6 @@
 # Process
 
-> **Timebox:** this project concludes at midnight NZST 2026-05-31. See `PLAN.md` for current state.
+> **Timebox:** this project concluded at midnight NZST 2026-05-31. **The project is archived.** Do not start new work. If the loop relaunches, verify working tree is clean and exit. See `PLAN.md` for final state.
 
 How work gets done in this project.
 

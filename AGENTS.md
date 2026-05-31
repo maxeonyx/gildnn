@@ -24,7 +24,7 @@ Periodically — especially after completing a significant task or before starti
 
 ## Project constraints
 
-**Timebox:** this project concluded 2026-05-31. See `PLAN.md` for final state and `research/weekly/2026-05-31.md` for the final summary.
+**Timebox:** this project concluded at midnight NZST 2026-05-31. **The project is archived.** Do not start new experiments or research. If the loop relaunches after this date, verify working tree is clean and exit. See `PLAN.md` for final state and `research/weekly/2026-05-31.md` for the final summary.
 
 **Work sizing:** before starting any significant task, estimate whether it fits in one agent context window. If not, split it deliberately and plan the handovers in advance. Don't drift into a task that can't be finished in one session.
 
