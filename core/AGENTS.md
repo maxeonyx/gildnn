@@ -7,10 +7,11 @@ Shared reusable components: datasets, models, training loops, utilities.
 | File | Purpose |
 |---|---|
 | `automaton.py` | **The model.** Cellular automaton with vectorized bmm across levels. Stateless feedforward blocks, detached laterals, multi-rate firing, local prediction loss. |
-| `dataset.py` | WikiText-103 dataset loading |
+| `automaton_graph.py` | Graph-structured variant of the automaton (192-module 2D grid). |
 | `fixed_window_char.py` | Fixed-window character dataset (TinyShakespeare etc.) |
 | `run_utils.py` | Experiment infrastructure: lock file, output paths, logging, CUDA graph trainer |
 | `training.py` | Shared training utilities: evaluation, git metadata, JSON write |
+| `triton_forward.py` | Fused Triton forward kernel (forward only, 1.94x speedup) |
 
 ## Purpose
 
