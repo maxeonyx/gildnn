@@ -41,6 +41,38 @@ Local prediction learning actively hurts token classification. As modules specia
 - [x] Theoretical analysis: formal argument for why tested objective family fails
 - [x] Final commit
 
+---
+
+## If this project is picked up again
+
+### The gating question (answer this FIRST)
+
+**"With ordinary global training, does this architecture family buy any real advantage that a much simpler recurrent/transformer baseline does not?"**
+
+Concretely: can a globally-trained multi-rate 192-module graph show a quality/compute or dynamic-depth advantage at matched wall-clock or FLOPs vs a GRU/transformer? If no, the 192-module graph should be demoted from "core architecture" to "interesting failed branch."
+
+### Pathway priority (post local-learning failure)
+
+1. **Pathway 1 (Wide Recurrent vs Deep Transformer)** — the fundamental thesis. Never directly compared on this architecture. If weight-tied recurrence + width can't buy a real advantage under ordinary global training, nothing else matters.
+
+2. **Pathway 5 (Dynamic Depth / Early Exit)** — strongest near-term value story. If different tokens genuinely need different iteration counts, that's an architecture win regardless of local learning.
+
+3. **Pathway 8 (Multi-Rate at long context)** — only tested at ctx=32 where slow bands are useless. At ctx=512+ the multi-rate structure might show genuine timescale separation under global CE.
+
+4. **Pathway 3 (Local Learning)** — PAUSED. Only revisit with a fundamentally different objective class (not "predict neighbors"). The necessary properties are documented in `research/questions/local-objectives/README.md`.
+
+### Key lessons from the negative result
+
+- Topology alone does NOT create task information the objective never rewards
+- All positive results (detached laterals, multi-rate, width scaling) relied on global CE somewhere
+- Detached laterals being BETTER than full backprop suggests weaker coupling + strong global objective is the right direction
+- Future work should bias toward simpler coupling, not more elaborate local-learning machinery
+- The architecture's value proposition (if any) is dynamic computation, not local learning
+
+### What the architecture IS currently competitive at (nothing)
+
+16M params, CE 2.69, 220s — vs GRU 820K params, CE 1.35, 8s. The architecture is 20x bigger, 27x slower, and nearly 2x worse. Its value proposition was always "local learning at scale" or "dynamic computation." Local learning failed. Dynamic computation is untested.
+
 ### Architecture spec (reference)
 
 **192-module 2D grid:**
