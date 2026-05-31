@@ -24,9 +24,11 @@ InfoNCE here asks: **which sample in the batch is my true neighbor?** That rewar
 
 So the loss is contrastive over **identity**, not over **dynamics**. A module can get very good at saying "this is my neighbor" without learning anything that helps model future tokens.
 
-## Recommended approach: hierarchical future-state prediction through noise
+## Previously recommended approach: hierarchical future-state prediction through noise (UNTESTED — likely insufficient)
 
-- **Band 0** keeps the existing next-token CE loss.
+This was the pre-correction recommendation. It may be better than the tested alternatives but the theoretical analysis (below) suggests it still fails the "sufficient statistic" test.
+
+- **Band 0** keeps the existing next-token CE loss (violates purely-local constraint).
 - **Band k** predicts band `k-1`'s output at time `t + rate(k)`.
 - **Laterals stay noisy**, so the channel is not an exact copy path.
 - **Targets should be summaries or projections**, not the full raw state.
@@ -36,6 +38,8 @@ The intended logic is:
 1. Noise on laterals creates an information bottleneck.
 2. Future prediction adds compression pressure: model transition structure, not snapshot identity.
 3. Alignment can then propagate upward: if band 0 learns token-relevant features, band 1 must model their dynamics; band 2 must model band 1's slower dynamics; and so on.
+
+**Why this likely still fails:** The theoretical conclusion identifies that this approach requires band 0 to already be trained by CE for the "upward propagation" story to work. In the purely-local case, band 0 has no token-prediction signal — it learns to predict its inputs, not to classify tokens. The chain "band k → band k-1 → ... → tokens" only exists if something at the bottom IS a token predictor. Without that anchor, future-state prediction is just a more sophisticated version of neighbor prediction, and the sufficient-statistic argument still applies.
 
 This differs from the rejected options in exactly the needed ways:
 
@@ -55,9 +59,9 @@ So the best current target family is probably: **predict a learned or fixed proj
 
 | Approach | Local? | Timescale diff? | Task-aligned? | Tested? | Result |
 |----------|--------|-----------------|---------------|---------|--------|
-| Predict-next-inputs (band0 token+neighbor) | ✓ | ~ | ✓ (band 0) | ✓ | CE 3.24 at 100 steps (detached readout) |
-| Hierarchical targets (band k → mean of band k-1) | ✓ | ✓ | ✓ (via hierarchy) | ✓ | **Corrected:** hybrid=2.67 (≈control), purely-local=3.28 |
-| Hierarchical future prediction through noise | ✓ | ✓ | ✓ (via hierarchy) | ✗ | Untested — need future-state targeting |
+| Predict-next-inputs (band0 token+neighbor) | ✓ | ~ | ✓ (band 0) | ✓ | CE 3.24→3.41 (detached, worsens) |
+| Hierarchical targets (band k → mean of band k-1) | ✓ | ✓ | ✓ (via hierarchy) | ✓ | **Corrected:** hybrid=2.67 (≈control), purely-local=3.28→3.52 (worsens) |
+| Hierarchical future prediction through noise | ✓ | ✓ | ✓ (via hierarchy) | ✗ | Untested — likely insufficient (see theoretical conclusion) |
 | SFA / VICReg temporal | ✓ | ✓✓ | ~ (indirect) | ✗ | Good auxiliary candidate |
 | Forward-Forward | ✓ | ? | ? | ✗ | Unclear (negative generation problem) |
 | Equilibrium Propagation | ✓ | - | - | ✗ | Dead end (wrong dynamics) |
@@ -95,8 +99,8 @@ The truly purely-local configuration (`--hierarchical-targets --attention-readou
 
 So the honest results are:
 - Hybrid (CE on band 0 + hierarchical targets on bands 1-7): CE ~2.67 (≈ control, within noise)
-- Purely local (no CE anywhere, detached attention readout): CE 3.28 (worse than control)
-- A 1000-step purely-local run is in progress to see if it converges.
+- Purely local (no CE anywhere, detached attention readout): CE 3.28 → **3.52 at 1000 steps** (actively worsens)
+- Local prediction improves strongly (band 2: 4.17 → 1.97) while CE degrades — confirming anti-correlation.
 
 ## Why per-band CE works and local objectives don't
 
@@ -130,24 +134,22 @@ The measured gradient cosine (0.013) is not bad luck — it's a structural conse
 
 The tested family satisfies none of these except weakly (3) via L2 normalization. A working local learning rule would need a fundamentally different design — not a variant of "predict neighbors."
 
-## Experiment queue (next to try)
+## Experiment queue (completed)
 
-1. **Band0-local-loss WITHOUT detach** — band 0 gets CE + local prediction together. Tests: does local prediction help CE when combined? (~100 steps, 5 min)
-2. **Combined: band0-local-loss + hierarchical-targets + attention-readout + detach** — all modules have local targets. Tests: does the combination beat either alone? (~100 steps, 5 min)
-3. **Two-phase: local only → freeze → train readout** — train modules 300 steps, freeze, train only attention head 200 steps. Tests: is the problem dynamics or representation quality? (requires code change)
-4. **Higher attention LR**: 10x LR on attention parameters only. Tests: can faster readout adaptation track changing representations? (requires code change)
+1. **Band0-local-loss WITHOUT detach** — band 0 gets CE + local prediction together. **Result: CE 3.04 at 100 steps.** Worse than control (2.70). Local prediction conflicts with CE even when combined.
+2. **Combined: band0-local-loss + hierarchical-targets + attention-readout + detach** — all modules have local targets. **Result: CE 3.35 at 100 steps.** Worse than either alone. Multiple local objectives don't synergize.
+3. ~~Two-phase: local only → freeze → train readout~~ — not tested (project concluded)
+4. ~~Higher attention LR~~ — not tested (project concluded)
 
-## Key insight: direction of coupling matters
+## Key insight: direction of coupling matters (but doesn't solve the problem)
 
 **Horizontal coupling** (predict same-level neighbors): doesn't propagate token information upward. Band 3 predicting its band-3 neighbors learns about band-3 dynamics, not tokens. Token info stays trapped in band 0.
 
 **Vertical coupling** (predict lower-band states): creates a chain from tokens (in band 0) through all bands. Band 1 predicting band 0 must model band 0's dynamics, which encode tokens. Band 2 predicting band 1 must model band 1's dynamics, which encode band 0's dynamics, which encode tokens.
 
-This explains why:
-- Predict-next-inputs (horizontal for bands 1-7): CE 3.24 at 100 steps
-- Hierarchical targets (vertical): CE 2.67 at 100 steps
+**However:** the corrected purely-local results show vertical coupling ALSO fails at token prediction. Hybrid hierarchical targets (CE on band 0 + vertical on bands 1-7) matches the control at 2.67 — but that's because the CE on band 0 does all the work. When everything is purely local (CE 3.28 → 3.52), vertical coupling doesn't rescue it. The "chain from tokens through all bands" story only works if band 0 is already trained by CE — which defeats the purpose.
 
-The vertical coupling creates token-aligned representations in ALL bands, not just band 0. This suggests the optimal combined config: band 0 predicts tokens+neighbors (forcing token encoding), bands 1-7 predict lower-band dynamics (forcing token info upward through hierarchy).
+So vertical > horizontal for local learning, but neither is sufficient for token-useful representations without global task signal somewhere in the system.
 
 ## Why this still might not work
 
