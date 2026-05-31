@@ -83,10 +83,21 @@ def count_parameters(model: nn.Module) -> int:
     return sum(parameter.numel() for parameter in model.parameters())
 
 
-def prepare_dataset(*, chunk_size: int) -> tuple[torch.Tensor, torch.Tensor, int]:
-    (train_inputs, train_next_tokens), _, vocab_size = load_dataset(context_size=chunk_size)
+def prepare_dataset(*, chunk_size: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, int]:
+    (train_inputs, train_next_tokens), (val_inputs, val_next_tokens), vocab_size = load_dataset(context_size=chunk_size)
     train_targets = torch.cat((train_inputs[:, 1:], train_next_tokens.unsqueeze(1)), dim=1)
-    return train_inputs, train_targets, vocab_size
+    val_targets = torch.cat((val_inputs[:, 1:], val_next_tokens.unsqueeze(1)), dim=1)
+    return train_inputs, train_targets, val_inputs, val_targets, vocab_size
+
+
+def compute_val_ce(model: nn.Module, val_inputs: torch.Tensor, val_targets: torch.Tensor, vocab_size: int, device: torch.device) -> float:
+    """Compute validation CE on a random 256-sample batch."""
+    indices = torch.randint(0, val_inputs.shape[0], (256,), generator=torch.Generator().manual_seed(17241))
+    batch_inputs = val_inputs[indices].to(device)
+    batch_targets = val_targets[indices].to(device)
+    with torch.inference_mode():
+        logits = model(batch_inputs)
+        return F.cross_entropy(logits.reshape(-1, vocab_size), batch_targets.reshape(-1)).item()
 
 
 def main() -> None:
@@ -94,7 +105,7 @@ def main() -> None:
     set_seed(0)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    train_inputs, train_targets, vocab_size = prepare_dataset(chunk_size=args.chunk_size)
+    train_inputs, train_targets, val_inputs, val_targets, vocab_size = prepare_dataset(chunk_size=args.chunk_size)
     model = CausalTransformer(vocab_size=vocab_size, chunk_size=args.chunk_size).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)
     parameter_count = count_parameters(model)
@@ -122,16 +133,19 @@ def main() -> None:
             if device.type == "cuda":
                 torch.cuda.synchronize(device)
             elapsed_s = time.perf_counter() - start_time
-            print(f"step={step} ce_loss={final_ce_loss:.4f} elapsed_s={elapsed_s:.2f}", flush=True)
+            val_ce = compute_val_ce(model, val_inputs, val_targets, vocab_size, device)
+            print(f"step={step} train_ce={final_ce_loss:.4f} val_ce={val_ce:.4f} elapsed_s={elapsed_s:.2f}", flush=True)
 
     if device.type == "cuda":
         torch.cuda.synchronize(device)
     total_time_s = time.perf_counter() - start_time
+    final_val_ce = compute_val_ce(model, val_inputs, val_targets, vocab_size, device)
     print(
         json.dumps(
             {
                 "step_count": args.steps,
-                "final_ce_loss": round(final_ce_loss, 6),
+                "final_train_ce": round(final_ce_loss, 6),
+                "final_val_ce": round(final_val_ce, 6),
                 "total_time_s": round(total_time_s, 6),
                 "model": "transformer",
                 "params": parameter_count,
