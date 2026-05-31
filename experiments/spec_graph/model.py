@@ -65,11 +65,13 @@ class SharedNodeCell(nn.Module):
     def __init__(self, d_model: int) -> None:
         super().__init__()
         hidden = d_model * 4
+        self.input_norm = nn.LayerNorm(d_model * 3 + 2)
         self.mlp = nn.Sequential(
             nn.Linear(d_model * 3 + 2, hidden),
             nn.SiLU(),
             nn.Linear(hidden, d_model),
         )
+        self.output_norm = nn.LayerNorm(d_model)
         self.predictor = nn.Sequential(
             nn.Linear(d_model, hidden),
             nn.SiLU(),
@@ -79,8 +81,11 @@ class SharedNodeCell(nn.Module):
     def forward(
         self,
         cell_input: Float[Tensor, "batch node features"],
+        current_state: Float[Tensor, "batch node d_model"],
     ) -> tuple[Float[Tensor, "batch node d_model"], Float[Tensor, "batch node d_model"]]:
-        new_state = self.mlp(cell_input)
+        normed_input = self.input_norm(cell_input)
+        update = self.mlp(normed_input)
+        new_state = self.output_norm(current_state + update)
         predicted_next_lateral = self.predictor(new_state)
         return new_state, predicted_next_lateral
 
@@ -257,7 +262,7 @@ class SpecGraphModel(nn.Module):
                     ],
                     dim=-1,
                 )
-                new_state, predicted_next_lateral = self.cell(cell_input)
+                new_state, predicted_next_lateral = self.cell(cell_input, current.node_states)
 
                 next_reward = current.delayed_reward.detach()
                 next_ema = current.ema_ce.detach()
