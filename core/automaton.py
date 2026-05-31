@@ -312,7 +312,7 @@ class CellularAutomaton(nn.Module):
             output = self._stacked_linear(hidden, self.w2, self.b2)
             new_predictions = self._stacked_linear(output, self.pred_w, self.pred_b)
 
-            current_states = torch.where(fire_mask, output, current_states)
+            current_states = torch.where(fire_mask, l2_normalize(current_states + output), current_states)
             current_predictions = torch.where(fire_mask, new_predictions, current_predictions)
             current_has_predicted = current_has_predicted | fires
 
