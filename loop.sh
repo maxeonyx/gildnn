@@ -12,6 +12,11 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+# Project archived 2026-05-31. Stop the loop.
+echo "Project timebox concluded 2026-05-31. Loop exiting."
+echo "To restart: edit loop.sh to remove this guard, then: systemctl --user start gildnn-loop"
+exit 0
+
 SESSION_ID="ses_189bc3a17ffe1O7nyZLLcIAQId"
 CRASH_COUNT=0
 ITERATION=0
