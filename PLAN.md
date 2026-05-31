@@ -4,7 +4,37 @@ Working notes. Final day (2026-05-31), project concludes at midnight NZST.
 
 ---
 
-## Final state (15:10 NZST, May 31 — project concluded)
+## Active work (afternoon session, May 31)
+
+### Temporal residual state update — ANSWERED
+
+The automaton's state update was `state = output` (full replacement). This is wrong — VISION says "merge", not "replace." Tested 3 update rules:
+
+| Update rule | spt=1 | spt=8 |
+|---|---|---|
+| state = output (original) | 2.20 | 3.29 |
+| state = state + output (raw add) | 3.26 | 3.29 |
+| state = normalize(state + output) | 2.23 | 2.68 |
+
+**Finding:** Normalized residual fixes the catastrophic spt=8 failure (3.29→2.68). spt sweep with residual: 2.23→2.29→2.37→2.68 — more steps still hurts at n_levels=1, but gracefully.
+
+**Root cause of remaining degradation:** At n_levels=1, extra steps apply the same autonomous MLP with no new information. "Autonomous drift." In multi-level, laterals give each step something to process. The gap to GRU (2.23 vs 1.58) is NOT attention — GRU has no attention either. It's lack of gating.
+
+**Committed:** `8a6f09a`. Full writeup: `research/questions/residual-stream-across-time/README.md`.
+
+### 8-level residual (200 steps, seq=512) — IN PROGRESS
+
+CE 2.92 at 200 steps, still on steep downward trajectory (3.34→2.92). Needs more steps and controlled comparison vs original (which got 2.30 at 500 steps with seq=2048) to determine if residual helps multi-level.
+
+### Next steps (prioritized)
+
+1. **Controlled multi-level comparison:** Run original config (n=8, d=128, spt=4, seq=2048) with and without residual, same conditions, to convergence
+2. **Learned gate experiment:** Replace raw normalized-add with `α * state + (1-α) * output` (α produced by MLP). Tests whether gating closes the GRU gap.
+3. **Connect back to Pathway 1:** The tied transformer (CE 1.67) uses attention. The automaton (CE 2.23) doesn't. But GRU (1.58) also doesn't. The automaton needs either better state update (gating) or attention to be competitive.
+
+---
+
+## Completed results (prior sessions)
 
 ### Pathway 1 weight-tying experiment — DONE ✓ (positive result)
 
@@ -101,17 +131,21 @@ Previous reports showed misleading "GRU 1.35 vs our 2.70" — that compared GRU 
 
 2. **Pathway 5 — VALIDATED.** Dynamic depth is practical. Learned halting predictor: 22-23% savings at zero/negligible CE overhead, 85-100% oracle efficiency. Hidden state encodes halting signal (r=0.51-0.53). Confirmed at both ctx=128 and ctx=256.
 
-3. **Pathway 3 (predict-neighbors family) — NEGATIVE.** All tested purely-local objectives from the "predict neighbor state" family are structurally misaligned. Gradient cosine 0.013. CE worsens over training. Scoped to: 3 objectives, 1 architecture, detached laterals.
+4. **Temporal residual state update — ANSWERED.** State replacement catastrophic at high spt; normalized residual (`normalize(state + output)`) fixes it. The remaining gap to GRU is gating, not attention. Committed `8a6f09a`. See `research/questions/residual-stream-across-time/README.md`.
 
 ### What remains open
 
-1. **Joint training with dynamic depth (ACT/CALM-style):** The frozen-model probe shows the information is there. Training model + halting head simultaneously should produce clearer signals and let the model learn to front-load computation.
+1. **Gating for the automaton:** The gap between automaton (CE 2.23) and GRU (1.58) is likely gating. A learned gate (`α * state + (1-α) * output` where α is MLP-produced) would test this. Connects to Pathway 1.
 
-2. **Pathway 8 (Multi-Rate at long context):** Only tested at ctx=32/128 where slow bands are useless. At ctx=512+ the multi-rate structure might show genuine timescale separation under global CE.
+2. **Multi-level with residual at convergence:** The normalized residual was only tested at 200 steps for multi-level (still converging). Need controlled comparison vs original.
 
-3. **The 192-module graph communication problem:** CE 2.69 is caused by stale detached laterals / topology / narrow d_stream=96 — NOT by weight tying. The graph needs either fresh communication design or should be abandoned in favor of the simpler tied transformer (which already works).
+3. **Joint training with dynamic depth (ACT/CALM-style):** The frozen-model probe shows the information is there. Training model + halting head simultaneously should produce clearer signals. Connects to Pathway 5.
 
-4. **Local learning (different objective families):** The predict-neighbors family failed. Fundamentally different approaches (e.g., information-theoretic objectives, contrastive temporal coding, predictive coding with different inductive biases) are untested. The architectural blocker is documented in `research/questions/local-objectives/README.md`.
+4. **Pathway 8 (Multi-Rate at long context):** Only tested at ctx=32/128 where slow bands are useless. At ctx=512+ the multi-rate structure might show genuine timescale separation.
+
+5. **The 192-module graph:** CE 2.69, fundamentally broken communication. The temporal residual might help, but narrow d_stream=96 and detached laterals are likely the deeper issue.
+
+6. **Local learning (different objective families):** Predict-neighbors failed. Info-theoretic / contrastive / predictive coding with different inductive biases untested.
 
 ### Unaddressed items from dictations
 
