@@ -25,7 +25,7 @@ Lateral connections between nodes carry signals with:
 
 1. **Staleness.** A node sees its neighbour's output from one of the neighbour's steps ago, not the current output. Communication is asynchronous by construction.
 
-2. **Noise bottleneck (principled).** Calibrated noise is injected into the lateral signal. The SNR controls information capacity. This forces compression — a node cannot relay its full internal state; it must select what to communicate. The noise IS the information bottleneck. Noise levels may differ per connection or be learned.
+2. **Noise bottleneck (principled if used, but optional).** Calibrated noise injected into the lateral signal, combined with a signal constraint (e.g., magnitude/normalization) so SNR is bounded. This forces compression — a node must select what to communicate. Whether this is needed depends on whether the system finds degenerate solutions without it. It's a principled mechanism (information bottleneck), not a hack — but the architecture might work without it.
 
 3. **Bidirectional, symmetric mechanism.** Connections exist in both directions with the same mechanism (same projections, same noise). The asymmetry in what actually flows — and how nodes use it — emerges from their different positions in the graph relative to input sources. It is not designed in.
 
