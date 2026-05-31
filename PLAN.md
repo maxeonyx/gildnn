@@ -59,9 +59,13 @@ Tiny MLP (261→64→1) trained on frozen model's hidden states predicts remaini
 
 Hidden state Pearson r=0.53 vs entropy-only r=0.42. Per-depth hidden r=0.31–0.40. Dominates all fixed-depth and entropy heuristic baselines.
 
-### Context length robustness — DONE ✓ (advantage holds)
+### Context length robustness — DONE ✓ (mixed: per-param holds, FLOP-matched doesn't)
 
-Reran Pathway 1 at ctx=256. Tied d=256 (887K) val CE 1.841 vs untied d=128 (1.6M) val CE 1.905. Per-param advantage: 0.064 nats (was 0.078 at ctx=128). Thesis survives longer context.
+At ctx=256:
+- Per-param: tied d=256 N=8 (887K) val CE 1.841 vs untied d=128 N=8 (1.6M) val CE 1.905 → **tied wins** (0.064 nats)
+- FLOP-matched: tied d=256 N=2 (887K) val CE 1.962 vs untied d=128 N=8 (1.6M) val CE 1.905 → **untied wins** (0.057 nats)
+
+At ctx=128 both comparisons favored tied. At ctx=256 only per-param holds. Longer context benefits from more iterations/depth.
 
 ### What to explore next (remaining runway)
 
