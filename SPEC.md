@@ -43,9 +43,24 @@ The exact trigger mechanism is an open experimental question (prediction error t
 
 **Inputs spread out.** Raw input can enter at multiple points in the graph. Some nodes receive token embeddings (or projections/subsets) as one of their inputs. These nodes can be anywhere — they don't form a layer or boundary.
 
-**Outputs centralized.** For the task, there is a single readout point. For language: weight-tied normalized readout producing token probabilities. For mixed modality (vision → motor, etc.): the output node(s) produce a control signal or latent.
+**Outputs centralized.** A central head network — NOT a node in the graph — attends over all node states and produces token predictions. The head can be anything (transformer, MLP, whatever). It reads the graph's state and produces logits. The graph's job is to produce states worth reading.
 
-The asymmetry matters: many nodes are grounded by raw input, but the system's task performance is measured at one centralized output. This is the same structure as: sensory cortex spread across the brain, motor output centralized.
+The asymmetry matters: inputs are spread across many nodes, output is one centralized reader of the whole graph. Same structure as: sensory cortex spread across the brain, motor/prefrontal output centralized.
+
+---
+
+## Training: rollouts and multi-horizon prediction
+
+The graph executes rollouts — multiple steps of all nodes firing per input token. At each rollout step, the central head can make predictions:
+
+- **Variable thinking depth:** Predict next token after 1, 2, 3, 4... (up to ~graph_width * 2) steps of graph execution. More steps = more thinking = potentially better predictions.
+- **Future token prediction:** At any rollout step, predict not just the next token but tokens +1, +2, +3... ahead.
+- **Multi-token output:** Possibly predict multiple tokens from a single graph state (1 step → M tokens).
+- **Loss self-prediction:** Heads predict their own loss at each step. This enables dynamic depth (stop thinking when the loss predictor says more steps won't help) and dynamic rollout (know how many future tokens you got right).
+
+All of this produces CE losses. These are aggregated into the broadcast scalar reward that modulates node learning. The nodes don't know about the head directly — they only see the scalar.
+
+This is orthogonal to the local learning question. The multi-horizon training is HOW the network's task performance is measured. The local node objective is HOW nodes learn to produce useful states. They're separate mechanisms connected only by the reward broadcast.
 
 ---
 
@@ -55,28 +70,28 @@ The asymmetry matters: many nodes are grounded by raw input, but the system's ta
 
 **Parallelizable computation.** The point of local learning is that nodes can compute and update independently, in parallel. This is both a performance goal (GPU parallelism) and a design constraint (forces the architecture to work without global synchronization).
 
-### One universal objective
+### One universal objective (THE OPEN QUESTION)
 
 All nodes have the same objective — including nodes connected to raw input. The objective is not differentiated by position in the graph.
 
-What that objective IS remains the key open question. Candidates:
-- **Predict your inputs.** Every node tries to predict what it will receive next from its neighbours (and from raw input, if connected). Input-connected nodes are naturally grounded by reality because raw input is part of what they predict. Interior nodes predict their neighbours' outputs.
-- **Minimize surprise (free energy).** Same as above, framed as: minimize prediction error about inputs, subject to a complexity constraint on outputs (provided by the noise bottleneck).
-- **Some other formulation** that achieves the same properties: local, universal, grounded-by-connection-to-reality.
+**What that objective IS is the central unsolved problem.** This is not a gap in the spec — it IS the research question. Candidates:
+- **Predict your inputs.** Every node predicts what it will receive next from its neighbours (and from raw input, if connected).
+- **Minimize free energy.** Minimize prediction error about inputs, subject to a complexity constraint on outputs (noise bottleneck provides this).
+- **Something else entirely.** The right answer may not be in the "predict" family at all.
 
-The key insight: you don't need a DIFFERENT objective for input-connected nodes. The universal objective + the fact that some inputs are raw data = task grounding without special-casing.
+The constraint: whatever it is, it must be universal (same rule for all nodes), local (computable from the node's own inputs/outputs/neighbourhood), and must produce representations that the central head finds useful — even though nodes don't know about the head. The broadcast scalar reward is the only signal connecting node objectives to task performance.
 
-### Why "predict your inputs" alone failed in this project
+### Why "predict your inputs" failed in this project (and might work with the full system)
 
-The gildnn experiments tested "predict your inputs" with strictly detached laterals and found it orthogonal to token prediction (gradient cosine 0.013). The features optimized for predicting neighbours are structurally different from features useful for predicting tokens.
+The gildnn experiments tested "predict your inputs" with strictly detached laterals. Result: orthogonal to token prediction (gradient cosine 0.013). Features optimized for predicting neighbours are structurally different from features useful for predicting tokens.
 
 The hypothesis for why it COULD work with the full architecture:
-- **Noise bottleneck** forces compression (can't just copy neighbour states — must select what's informative)
-- **Broadcast scalar reward** modulates which predictions get reinforced (only reinforce when the system's centralized output performed well)
+- **Noise bottleneck** forces compression (can't just copy — must select what's informative)
+- **Broadcast scalar reward** modulates which predictions get reinforced (only reinforce when the central head performed well)
 - **Adaptive firing** creates natural temporal abstraction
-- **Neighbourhood interactions** create cooperative pressure
+- **Neighbourhood reward signals** create cooperative pressure
 
-This is the BET — not established truth. The combination has never been tested.
+This is the BET. The combination has never been tested. It might not work — in which case the universal objective needs to be something fundamentally different from "predict your inputs."
 
 ### Broadcast scalar reward (principled, dopamine-like)
 
@@ -94,11 +109,12 @@ This is variant B1: scalar modulation, independently schedulable, no shared comp
 
 ### Why task signal is NOT missing
 
-The concern "interior nodes don't see task signal" is wrong. The graph is connected. Raw input enters at some nodes. Those nodes' outputs flow to neighbours. Neighbours' outputs flow to their neighbours. The task-relevant information IS in the graph — it propagates through communication, not through gradient.
+The concern "interior nodes don't see task signal" assumes they need gradient from the task. They don't. They need:
+1. **The broadcast scalar reward** — tells them WHEN the system did well (temporal credit)
+2. **Neighbourhood reward signals** — tells them whether their outputs helped neighbours
+3. **Raw input flowing through communication** — task-relevant information IS in the graph, propagating through lateral connections
 
-The broadcast scalar reward provides the WHICH (which timesteps were good), and the local dynamics provide the WHAT (what to do differently). Together: credit assignment without backprop.
-
-Whether this is SUFFICIENT for learning useful representations is the open experimental question. But the signal is not absent — it's indirect and local.
+The task signal is indirect and local. Whether this is SUFFICIENT for useful learning is the open question. But the signal is not absent.
 
 ---
 
@@ -120,23 +136,25 @@ These are scaffolding for early experiments. They should be removable. If the pr
 - **Fixed multi-rate** — Approximation of adaptive firing.
 - **Fixed/designed topology** — Necessary initially, to be relaxed.
 - **Truncated backprop through neighbours (variant A)** — Provides gradient directly, more practical than B1, but NOT biologically plausible (requires computing through neighbour's weights). Use for capability testing. Not the target architecture.
-- **Separate readout loss feeding gradient into input-connected nodes** — If the universal objective alone doesn't ground input-connected nodes sufficiently, a CE loss on the readout is acceptable as scaffolding. But ideally the universal objective + raw input connection is enough.
+- **Gradient from central head into graph nodes** — If the broadcast scalar alone doesn't ground nodes sufficiently, allowing the head's CE gradient to flow into graph nodes (through the attention) is acceptable as scaffolding. But ideally nodes learn from local objectives + scalar reward only.
 
 ---
 
 ## The key experimental questions (ordered by importance)
 
-1. **Does the universal objective + noise bottleneck + broadcast reward produce useful representations?** This is everything. If yes, the architecture works. If no, something fundamental is missing.
+1. **What is the universal node objective?** "Predict your inputs" is a candidate. There may be others. This is the research question — everything else is engineering.
 
-2. **What is the right firing trigger?** Does temporal abstraction actually emerge from adaptive firing?
+2. **Does universal objective + noise bottleneck + broadcast reward produce representations the central head can use?** If yes, the architecture works. If no, something fundamental is missing.
 
-3. **What topology works?** Does structure matter, or does any reasonably-connected graph learn?
+3. **What is the right firing trigger?** Does temporal abstraction actually emerge from adaptive firing?
 
-4. **How much noise?** What SNR gives the best compression/performance tradeoff?
+4. **What topology works?** Does structure matter, or does any reasonably-connected graph learn?
 
-5. **Is the broadcast scalar reward necessary?** Can neighbourhood signals alone do credit assignment, or is the global scalar required?
+5. **How much noise?** What SNR gives the best compression/performance tradeoff?
 
-6. **How many nodes need raw input?** One? Many? All boundary nodes? Does density of input connections matter?
+6. **Is the broadcast scalar reward necessary?** Can neighbourhood signals alone do credit assignment, or is the global scalar required?
+
+7. **How many nodes need raw input?** One? Many? Does density of input connections matter?
 
 ---
 
