@@ -51,13 +51,14 @@ CE-based early exit (oracle): 43% compute savings at +0.045 nats. Early exit at 
 
 Tiny MLP (261→64→1) trained on frozen model's hidden states predicts remaining CE gain `g_d = L_d - L_8`. Evaluated on held-out 20% of validation set.
 
-| Operating point | Mean Iters | Compute Savings | CE Overhead | Oracle Efficiency |
-|----------------|------------|-----------------|-------------|-------------------|
-| thr=0.05 | 6.12 | 23.5% | −0.000 | 73% |
-| thr=0.10 | 5.53 | 30.9% | +0.023 | 85% |
-| thr=0.20 | 4.71 | 41.1% | +0.081 | 96% |
+| Context | Operating point | Mean Iters | Compute Savings | CE Overhead | Oracle Efficiency |
+|---------|----------------|------------|-----------------|-------------|-------------------|
+| 128 | thr=0.05 | 6.12 | 23.5% | −0.000 | 73% |
+| 128 | thr=0.10 | 5.53 | 30.9% | +0.023 | 85% |
+| 128 | thr=0.20 | 4.71 | 41.1% | +0.081 | 96% |
+| 256 | thr=0.05 | 6.23 | 22.1% | +0.006 | >100% at matched overhead |
 
-Hidden state Pearson r=0.53 vs entropy-only r=0.42. Per-depth hidden r=0.31–0.40. Dominates all fixed-depth and entropy heuristic baselines.
+Ctx=256 confirms the result generalizes: full-depth val CE baseline 1.840, hidden-state Pearson r=0.51 (per-depth 0.30–0.41), and the predictor still gets negative overhead at a smaller threshold (thr=0.02: 16.9% savings, −0.006 CE). The notable change is that the oracle no longer improves CE at longer context (smallest-threshold oracle is already +0.072), while the learned predictor beats oracle at matched overhead for larger thresholds because predicted **total remaining gain** is a better stopping criterion than **next-step gain**.
 
 ### Context length robustness — DONE ✓ (mixed: per-param holds, FLOP-matched doesn't)
 
