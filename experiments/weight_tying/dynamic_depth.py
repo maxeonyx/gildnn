@@ -31,6 +31,7 @@ N_LAYERS = 8
 LOG_EVERY = 100
 TRAIN_BATCH_SEED_OFFSET = 100_000
 THRESHOLDS = [0.001, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5]
+ENTROPY_THRESHOLDS = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0]
 
 
 class TiedTransformerDynamicDepth(nn.Module):
@@ -102,6 +103,12 @@ def compute_per_token_ce(logits: Tensor, targets: Tensor) -> Tensor:
     ).reshape(targets.shape)
 
 
+def compute_per_token_entropy(logits: Tensor) -> Tensor:
+    log_probs = F.log_softmax(logits, dim=-1)
+    probs = log_probs.exp()
+    return -(probs * log_probs).sum(dim=-1)
+
+
 def train_model(
     *,
     model: TiedTransformerDynamicDepth,
@@ -169,14 +176,15 @@ def evaluate_validation_ce(
     return total_loss / total_tokens
 
 
-def collect_validation_losses_by_iteration(
+def collect_validation_metrics_by_iteration(
     *,
     model: TiedTransformerDynamicDepth,
     val_inputs: Tensor,
     val_targets: Tensor,
     device: torch.device,
-) -> Tensor:
+) -> tuple[Tensor, Tensor]:
     per_batch_losses: list[Tensor] = []
+    per_batch_entropies: list[Tensor] = []
 
     model.eval()
     with torch.inference_mode():
@@ -186,9 +194,11 @@ def collect_validation_losses_by_iteration(
             batch_targets = val_targets[start:stop].to(device)
             logits_by_depth = model.forward_all_iterations(batch_inputs)
             depth_losses = [compute_per_token_ce(depth_logits, batch_targets).cpu() for depth_logits in logits_by_depth]
+            depth_entropies = [compute_per_token_entropy(depth_logits).cpu() for depth_logits in logits_by_depth]
             per_batch_losses.append(torch.stack(depth_losses, dim=0))
+            per_batch_entropies.append(torch.stack(depth_entropies, dim=0))
 
-    return torch.cat(per_batch_losses, dim=1)
+    return torch.cat(per_batch_losses, dim=1), torch.cat(per_batch_entropies, dim=1)
 
 
 def evaluate_ce_exit_threshold(losses_by_depth: Tensor, threshold: float) -> tuple[float, float]:
@@ -208,6 +218,50 @@ def evaluate_ce_exit_threshold(losses_by_depth: Tensor, threshold: float) -> tup
     exit_iterations[~exited] = flat_losses.shape[0]
     exit_losses[~exited] = flat_losses[-1][~exited]
     return exit_iterations.float().mean().item(), exit_losses.mean().item()
+
+
+def evaluate_entropy_exit_threshold(
+    losses_by_depth: Tensor,
+    entropies_by_depth: Tensor,
+    threshold: float,
+) -> tuple[float, float]:
+    flat_losses = losses_by_depth.reshape(losses_by_depth.shape[0], -1)
+    flat_entropies = entropies_by_depth.reshape(entropies_by_depth.shape[0], -1)
+    token_count = flat_losses.shape[1]
+    exited = torch.zeros(token_count, dtype=torch.bool)
+    exit_iterations = torch.zeros(token_count, dtype=torch.long)
+    exit_losses = torch.zeros(token_count)
+
+    for depth_index in range(flat_entropies.shape[0]):
+        newly_exited = (~exited) & (flat_entropies[depth_index] < threshold)
+        exit_iterations[newly_exited] = depth_index + 1
+        exit_losses[newly_exited] = flat_losses[depth_index][newly_exited]
+        exited = exited | newly_exited
+
+    exit_iterations[~exited] = flat_entropies.shape[0]
+    exit_losses[~exited] = flat_losses[-1][~exited]
+    return exit_iterations.float().mean().item(), exit_losses.mean().item()
+
+
+def print_threshold_table(
+    *,
+    heading: str,
+    rows: list[dict[str, float]],
+    baseline_ce: float,
+    threshold_precision: int,
+) -> None:
+    print(heading, flush=True)
+    print(f"Baseline N={N_LAYERS} validation CE: {baseline_ce:.4f}", flush=True)
+    print("Threshold | Mean iters | Val CE | Compute fraction | CE overhead vs N=8", flush=True)
+    for row in rows:
+        print(
+            f"{row['threshold']:>{8}.{threshold_precision}f} | {row['mean_iters']:>10.2f} | {row['ce']:>6.4f} | {row['compute_fraction']:>16.4f} | {row['ce_overhead']:+.4f}",
+            flush=True,
+        )
+
+
+def closest_to_mean_iters(rows: list[dict[str, float]], target_mean_iters: float) -> dict[str, float]:
+    return min(rows, key=lambda row: (abs(row["mean_iters"] - target_mean_iters), row["ce"]))
 
 
 def print_oracle_distribution(losses_by_depth: Tensor) -> None:
@@ -269,7 +323,7 @@ def main() -> None:
         device=device,
     )
 
-    losses_by_depth = collect_validation_losses_by_iteration(
+    losses_by_depth, entropies_by_depth = collect_validation_metrics_by_iteration(
         model=model,
         val_inputs=val_inputs,
         val_targets=val_targets,
@@ -293,13 +347,12 @@ def main() -> None:
             }
         )
 
-    print(f"Baseline N={N_LAYERS} validation CE: {baseline_ce:.4f}", flush=True)
-    print("Threshold | Mean iters | Val CE | Compute fraction | CE overhead vs N=8", flush=True)
-    for row in rows:
-        print(
-            f"{row['threshold']:>8.2f} | {row['mean_iters']:>10.2f} | {row['ce']:>6.4f} | {row['compute_fraction']:>16.4f} | {row['ce_overhead']:+.4f}",
-            flush=True,
-        )
+    print_threshold_table(
+        heading="CE-based early exit:",
+        rows=rows,
+        baseline_ce=baseline_ce,
+        threshold_precision=3,
+    )
 
     pareto_row = compute_pareto_operating_point(rows)
     print(
@@ -309,6 +362,47 @@ def main() -> None:
         flush=True,
     )
     print_oracle_distribution(losses_by_depth)
+
+    entropy_rows: list[dict[str, float]] = []
+    for threshold in ENTROPY_THRESHOLDS:
+        mean_iters, ce = evaluate_entropy_exit_threshold(losses_by_depth, entropies_by_depth, threshold)
+        compute_fraction = mean_iters / N_LAYERS
+        entropy_rows.append(
+            {
+                "threshold": threshold,
+                "mean_iters": mean_iters,
+                "ce": ce,
+                "compute_fraction": compute_fraction,
+                "compute_savings": 1.0 - compute_fraction,
+                "ce_overhead": ce - baseline_ce,
+            }
+        )
+
+    print_threshold_table(
+        heading="Entropy-based early exit:",
+        rows=entropy_rows,
+        baseline_ce=baseline_ce,
+        threshold_precision=1,
+    )
+
+    ce_near_five = closest_to_mean_iters(rows, 5.0)
+    entropy_near_five = closest_to_mean_iters(entropy_rows, 5.0)
+    if ce_near_five["ce"] <= entropy_near_five["ce"]:
+        better_name = "CE-based"
+        better_row = ce_near_five
+        worse_row = entropy_near_five
+    else:
+        better_name = "entropy-based"
+        better_row = entropy_near_five
+        worse_row = ce_near_five
+
+    print(
+        "Near 5 mean iterations: "
+        f"CE-based threshold={ce_near_five['threshold']:.3f} -> mean_iters={ce_near_five['mean_iters']:.2f}, val_ce={ce_near_five['ce']:.4f}; "
+        f"entropy-based threshold={entropy_near_five['threshold']:.1f} -> mean_iters={entropy_near_five['mean_iters']:.2f}, val_ce={entropy_near_five['ce']:.4f}. "
+        f"{better_name} is better by {worse_row['ce'] - better_row['ce']:.4f} nats.",
+        flush=True,
+    )
 
 
 if __name__ == "__main__":
