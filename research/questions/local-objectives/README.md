@@ -159,6 +159,17 @@ So vertical > horizontal for local learning, but neither is sufficient for token
 - The alignment story assumes band 0 quickly learns something worth predicting; at initialization it does not.
 - A warm-up where band 0 trains alone before higher-band prediction starts might be necessary.
 
+## Literature context (quick survey, 2026-05-31)
+
+**This problem appears to be open in the literature.** No published work demonstrates competitive language modeling with purely local learning rules in multi-module systems.
+
+Closest results:
+- **Predictive Coding Networks** (Millidge, Salvatori et al., 2022-2024): proven to *approximate* backprop gradients locally, but explicitly frames PC as converging to the same solution backprop would find. Benchmarks remain small-scale (MNIST-level). Not tested on competitive LM.
+- **Forward-Forward** (Hinton, 2022): layer-local goodness objective. MNIST only. Explicitly "preliminary."
+- **Blockwise/greedy training** (Löwe 2019, Belilovsky 2019): local contrastive objectives get within 2-5% of backprop on ImageNet classification. But: sequential (not parallel), classification only, no sequence prediction results.
+
+The specific combination — parallel multi-module, local objectives, competitive token prediction — has no published positive result. Our negative result is consistent with the state of the field.
+
 ## Open questions
 
 - Is the CE stagnation a dynamics issue (readout chasing) or a representation issue (wrong features)?
