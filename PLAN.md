@@ -4,11 +4,16 @@ Working notes. Final day (2026-05-31), project concludes at midnight NZST.
 
 ---
 
-## Final state (12:02 NZST, May 31)
+## Final state (12:20 NZST, May 31)
 
-### All experiments complete
+### CORRECTION: "CE 2.67 purely-local" was mislabeled
 
-Queue drained successfully. Full results:
+The earlier hierarchical-targets result (CE 2.67) used the standard band-0 CE readout — making it a hybrid (CE on band 0, local on bands 1-7). The truly purely-local version gives CE 3.28 at step 100. No purely-local objective has beaten the control (2.70). See corrected daily report.
+
+### Active experiment
+`systemctl --user status gildnn-hier-1000` — hierarchical targets purely-local (detached), 1000 steps (~45 min total). At step 100: CE 3.28. Watching for convergence toward or plateau above the control's 2.70 wall.
+
+### Corrected results table
 
 | Experiment | CE | Steps | Notes |
 |-----------|-----|-------|-------|
@@ -16,21 +21,22 @@ Queue drained successfully. Full results:
 | GRU baseline (batch=4) | **1.74** | 1000 | Fair comparison, 11s |
 | Transformer (batch=32) | **1.84** | 1000 | 825K params, 8s |
 | Transformer (batch=4) | **2.32** | 1000 | Fair comparison, 12s |
-| Hierarchical targets (detached) | **2.67** | 100 | Best purely-local |
-| Control: our arch, no local loss | **2.70** | 100 | Matches 1000-step result |
+| Hier targets hybrid (CE + local) | **~2.67** | 100 | ≈ control, not purely-local |
+| Control: our arch, no local loss | **2.70** | 100 | = 1000-step result |
 | Our arch (default, 1000 steps) | **2.69** | 1000 | 16M params, 220s |
 | Band0-local-loss + CE on band 0 | **3.04** | 100 | Local prediction + CE |
-| Band0-local-loss (detached) | **3.24→3.41** | 100→500 | CE stagnates while prediction improves |
+| Band0-local-loss (detached) | **3.24→3.41** | 100→500 | Purely local, CE stagnates |
+| Hier targets purely-local (detached) | **3.28** | 100 | Band 0 untrained, 1000-step run active |
 | Combined (band0+hier+attn+detach) | **3.35** | 100 | Worse than parts individually |
-| Per-band CE + attention | **3.03** | 2000 | Rejected (not local) |
 
-### Key findings from final queue
-1. **Batch-4 baselines close the fairness argument**: GRU at batch=4 still 1.74, nearly a full nat better than any config of our architecture
-2. **Combined features hurt**: adding everything together (3.35) is worse than hierarchical-targets alone (2.67). The detached readout can't exploit cascading representations.
-3. **Architecture hits a wall early**: control at 100 steps (2.70) ≈ 1000 steps (2.69) — diminishing returns after step ~50
+### Key conclusion (corrected)
+No purely-local objective has matched or beaten the control's CE (2.70). All tested purely-local objectives produce CE 3.2-3.4 from a detached readout. The 1000-step run will determine if this is a convergence delay or a fundamental ceiling.
 
-### Project complete
-All planned experiments run. Reports updated. See `research/weekly/2026-05-31.md` for the final project summary.
+### What remains
+- [ ] Wait for 1000-step purely-local hierarchical targets result
+- [ ] Run matched detached control (attention-readout + detach-readout, default local loss) for comparison
+- [ ] Update weekly with final correction and 1000-step result
+- [ ] Final commit
 
 ### Architecture spec (reference)
 

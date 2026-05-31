@@ -54,7 +54,7 @@ So the best current target family is probably: **predict a learned or fixed proj
 | Approach | Local? | Timescale diff? | Task-aligned? | Tested? | Result |
 |----------|--------|-----------------|---------------|---------|--------|
 | Predict-next-inputs (band0 token+neighbor) | ✓ | ~ | ✓ (band 0) | ✓ | CE 3.24 at 100 steps (detached readout) |
-| Hierarchical targets (band k → mean of band k-1) | ✓ | ✓ | ✓ (via hierarchy) | ✓ | CE 2.67 at 100 steps (detached readout) |
+| Hierarchical targets (band k → mean of band k-1) | ✓ | ✓ | ✓ (via hierarchy) | ✓ | **Corrected:** hybrid=2.67 (≈control), purely-local=3.28 |
 | Hierarchical future prediction through noise | ✓ | ✓ | ✓ (via hierarchy) | ✗ | Untested — need future-state targeting |
 | SFA / VICReg temporal | ✓ | ✓✓ | ~ (indirect) | ✗ | Good auxiliary candidate |
 | Forward-Forward | ✓ | ? | ? | ✗ | Unclear (negative generation problem) |
@@ -83,9 +83,18 @@ Band 0 becomes excellent at predicting its inputs (loss → 0.59) but the detach
 1. **Training dynamics**: the attention head is chasing rapidly-changing representations it can't influence
 2. **Representation mismatch**: predicting inputs well doesn't create states linearly decodable as token logits
 
-### Hierarchical targets (`--hierarchical-targets --attention-readout --detach-readout`)
+### Hierarchical targets (`--hierarchical-targets`)
 
-Band k predicts the mean state of band k-1. CE 2.67 at 100 steps (best purely-local result so far). However, this may be partly "cheating": lower-band means ARE your neighbors in the 2D grid, so this is very similar to neighbor prediction but with spatial averaging.
+Band k predicts the mean state of band k-1.
+
+**CORRECTION (discovered 2026-05-31 12:15):** The earlier "CE 2.67 at 100 steps (best purely-local result)" was mislabeled. That result used `--hierarchical-targets` with the STANDARD band-0 readout (CE gradient into band 0). It was a hybrid: CE trained band 0, hierarchical targets trained bands 1-7. The 2.67 came from the standard band-0 CE head — essentially the same as the control (2.70) within noise.
+
+The truly purely-local configuration (`--hierarchical-targets --attention-readout --detach-readout`, where NO band gets CE gradient) gives **CE 3.28 at step 100** — significantly worse than the control. Band 0 is completely untrained in this config (no prediction target for the bottom band, no CE because detached).
+
+So the honest results are:
+- Hybrid (CE on band 0 + hierarchical targets on bands 1-7): CE ~2.67 (≈ control, within noise)
+- Purely local (no CE anywhere, detached attention readout): CE 3.28 (worse than control)
+- A 1000-step purely-local run is in progress to see if it converges.
 
 ## Why per-band CE works and these don't (fully)
 
