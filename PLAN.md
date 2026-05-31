@@ -4,10 +4,36 @@ Working notes. Final day (2026-05-31), project concludes at midnight NZST.
 
 ---
 
-## Final state (13:09 NZST, May 31)
+## Current state (14:00 NZST, May 31)
 
-### Baselines — DONE
-Dictation-09 asks for baselines. They were already run at 11:48 today (before the dictation was written). Evidence: `runs/queue-logs/20260531-114828-968102-ablation-queue.log` (transformer, 1.84) and `runs/queue-logs/20260531-114840-371122-ablation-queue.log` (GRU, 1.35). Both scripts live in `experiments/baselines/`.
+### Pathway 1 weight-tying experiment — DONE ✓ (positive result)
+
+Clean test of the core thesis: weight-tied (1 block applied N times) vs untied (N distinct blocks). Pre-LN causal transformer, 8 layers/iterations, 1000 steps, 3 seeds, validation CE.
+
+**Results:**
+
+| Model | Params | Val CE (mean) | Notes |
+|-------|--------|---------------|-------|
+| Tied d=128 | 230K | 2.070 | Same FLOPs as untied d=128 |
+| Tied d=192 | 493K | 1.899 | |
+| **Tied d=256** | **854K** | **1.788** | Beats untied with half the params |
+| Untied d=128 | 1.6M | 1.866 | 7× more params, WORSE quality |
+| Transformer 4L (baseline) | 825K | ~1.84 | Standard pre-LN baseline |
+| GRU (baseline) | 820K | ~1.35 | Sequential recurrence wins |
+
+**Conclusions:**
+1. At matched FLOPs (same d, same iterations): untied beats tied by 0.20 nats. Extra capacity per depth helps.
+2. At matched params (~850K): tied (d=256, 8 iter) beats untied (d=128, 8 layers) AND the 4-layer transformer baseline. Width compensates effectively.
+3. The per-param efficiency of weight tying is roughly 3× (tied at ~550K ≈ untied at 1.6M in quality).
+4. Weight tying is NOT free at matched compute, but it IS efficient at matched memory. The value proposition: fewer params + dynamic depth potential.
+
+**Still worse than GRU (1.35 vs 1.79).** But GRU has sequential token-to-token recurrence which is a fundamentally different mechanism. The tied transformer's advantage is parallelizability across tokens and dynamic iteration count.
+
+### What to explore next (remaining runway)
+
+- **N-scaling:** Does tied d=256 benefit from N=16 or N=32 iterations? (Tests stability + depth benefit)
+- **Per-FLOP fairness:** Tied d=256 uses 4× the FLOPs of untied d=128. At matched FLOPs (tied d=128 vs untied d=128), untied wins. The question is whether the extra FLOPs are "cheap" (same params, just more iterations).
+- **Dynamic depth:** Can we iterate less on easy tokens? (Pathway 5 intersection)
 
 ### CORRECTION: "CE 2.67 purely-local" was mislabeled
 

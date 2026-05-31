@@ -1,6 +1,6 @@
 # Process
 
-> **Project concluded 2026-05-31.** This document describes operational processes used during the project's active period. See `PLAN.md` for final state and `research/weekly/2026-05-31.md` for the final summary.
+> **Timebox:** this project concludes at midnight NZST 2026-05-31. See `PLAN.md` for current state.
 
 How work gets done in this project.
 
