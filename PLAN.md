@@ -10,8 +10,10 @@ Working notes. Final day (2026-05-31), project concludes at midnight NZST.
 
 The earlier hierarchical-targets result (CE 2.67) used the standard band-0 CE readout — making it a hybrid (CE on band 0, local on bands 1-7). The truly purely-local version gives CE 3.28 at step 100. No purely-local objective has beaten the control (2.70). See corrected daily report.
 
-### Active experiment
-`systemctl --user status gildnn-hier-1000` — hierarchical targets purely-local (detached), 1000 steps (~45 min total). At step 100: CE 3.28. Watching for convergence toward or plateau above the control's 2.70 wall.
+### Active experiment — COMPLETED
+Hierarchical targets purely-local (detached), 1000 steps. **Result: CE 3.28 → 3.52 (WORSE over training).**
+
+Local prediction learning actively hurts token classification. As modules specialize for inter-band prediction, they move AWAY from representations the attention head can exploit. The ~3.28 at step 100 was incidental token info from initialization; training destroys it.
 
 ### Corrected results table
 
@@ -29,13 +31,13 @@ The earlier hierarchical-targets result (CE 2.67) used the standard band-0 CE re
 | Hier targets purely-local (detached) | **3.28** | 100 | Band 0 untrained, 1000-step run active |
 | Combined (band0+hier+attn+detach) | **3.35** | 100 | Worse than parts individually |
 
-### Key conclusion (corrected)
-No purely-local objective has matched or beaten the control's CE (2.70). All tested purely-local objectives produce CE 3.2-3.4 from a detached readout. The 1000-step run will determine if this is a convergence delay or a fundamental ceiling.
+### Key conclusion (final)
+**Local prediction learning is anti-correlated with token classification on this architecture.** All tested purely-local objectives produce CE 3.2-3.5 from a detached readout, and CE WORSENS over training (3.28 → 3.52 at 1000 steps). The modules learn their local tasks well (prediction loss 4.17 → 1.97) while simultaneously becoming LESS useful for token prediction. The architecture's thesis — that local learning creates globally-useful representations through topology — is not validated.
 
 ### What remains
-- [ ] Wait for 1000-step purely-local hierarchical targets result
-- [ ] Run matched detached control (attention-readout + detach-readout, default local loss) for comparison
-- [ ] Update weekly with final correction and 1000-step result
+- [x] 1000-step purely-local hierarchical targets result — DONE (negative: CE worsens)
+- [ ] Update daily report with 1000-step result
+- [ ] Update weekly with definitive negative conclusion
 - [ ] Final commit
 
 ### Architecture spec (reference)
