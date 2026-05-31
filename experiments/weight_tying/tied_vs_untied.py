@@ -150,6 +150,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--d-model", type=int, default=DEFAULT_MODEL_DIM)
     parser.add_argument("--mlp-dim", type=int, default=None, help="MLP hidden dim (default: 4*d_model)")
     parser.add_argument("--n-heads", type=int, default=DEFAULT_N_HEADS)
+    parser.add_argument("--chunk-size", type=int, default=CHUNK_SIZE, help="Context window size")
     parser.add_argument("--tied-only", action="store_true", help="Only run the tied model")
     args = parser.parse_args()
 
@@ -184,11 +185,12 @@ def build_models(
     model_dim: int,
     mlp_dim: int,
     n_heads: int,
+    chunk_size: int = CHUNK_SIZE,
     device: torch.device,
     tied_only: bool = False,
 ) -> tuple[TiedTransformer, UntiedTransformer | None]:
     base_token_embedding = nn.Embedding(vocab_size, model_dim)
-    base_position_embedding = nn.Embedding(CHUNK_SIZE, model_dim)
+    base_position_embedding = nn.Embedding(chunk_size, model_dim)
     base_block = TransformerBlock(model_dim=model_dim, n_heads=n_heads, mlp_dim=mlp_dim)
     base_final_norm = nn.LayerNorm(model_dim)
     base_lm_head = nn.Linear(model_dim, vocab_size)
@@ -213,9 +215,9 @@ def build_models(
     return tied_model.to(device), untied_model.to(device) if untied_model else None
 
 
-def prepare_dataset() -> tuple[Tensor, Tensor, Tensor, Tensor, int]:
+def prepare_dataset(chunk_size: int = CHUNK_SIZE) -> tuple[Tensor, Tensor, Tensor, Tensor, int]:
     (train_inputs, train_next_tokens), (val_inputs, val_next_tokens), vocab_size = load_dataset(
-        context_size=CHUNK_SIZE
+        context_size=chunk_size
     )
     train_targets = torch.cat((train_inputs[:, 1:], train_next_tokens.unsqueeze(1)), dim=1)
     val_targets = torch.cat((val_inputs[:, 1:], val_next_tokens.unsqueeze(1)), dim=1)
@@ -335,6 +337,7 @@ def train_one_seed(
     model_dim: int,
     mlp_dim: int,
     n_heads: int,
+    chunk_size: int = CHUNK_SIZE,
     tied_only: bool,
     train_inputs: Tensor,
     train_targets: Tensor,
@@ -350,6 +353,7 @@ def train_one_seed(
         model_dim=model_dim,
         mlp_dim=mlp_dim,
         n_heads=n_heads,
+        chunk_size=chunk_size,
         device=device,
         tied_only=tied_only,
     )
@@ -437,7 +441,7 @@ def train_one_seed(
 def main() -> None:
     args = parse_args()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    train_inputs, train_targets, val_inputs, val_targets, vocab_size = prepare_dataset()
+    train_inputs, train_targets, val_inputs, val_targets, vocab_size = prepare_dataset(args.chunk_size)
 
     tied_final_val_ces: list[float] = []
     untied_final_val_ces: list[float] = []
@@ -453,6 +457,7 @@ def main() -> None:
             model_dim=args.d_model,
             mlp_dim=args.mlp_dim,
             n_heads=args.n_heads,
+            chunk_size=args.chunk_size,
             tied_only=args.tied_only,
             train_inputs=train_inputs,
             train_targets=train_targets,
