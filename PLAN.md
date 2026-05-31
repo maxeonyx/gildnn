@@ -73,6 +73,24 @@ Concretely: can a globally-trained multi-rate 192-module graph show a quality/co
 
 16M params, CE 2.69, 220s — vs GRU 820K params, CE 1.35, 8s. The architecture is 20x bigger, 27x slower, and nearly 2x worse. Its value proposition was always "local learning at scale" or "dynamic computation." Local learning failed. Dynamic computation is untested.
 
+---
+
+## Suggested ROADMAP.md updates (Max-only edits)
+
+**Pathway 3 (Local Learning):**
+- Confidence: **DECREASED significantly**
+- New evidence: All tested purely-local objectives (InfoNCE, hierarchical targets, predict-next-inputs, combined) produce CE 3.2-3.5 vs control 2.70. CE worsens with training (3.28→3.52 at 1000 steps). Gradient cosine between local and CE objectives: 0.013. The predict-neighbors family is structurally misaligned.
+- Prior results section needs updating with these stronger negative results
+- Suggest adding: "Evidence that would increase confidence → A local objective whose gradient is positively correlated with CE (cosine > 0.1)"
+- The "Core open question" section still frames this as unsolved — it IS unsolved, but the evidence is now much more negative
+
+**Pathway 1 (Wide Recurrent vs Deep Transformer):**
+- Confidence: unchanged (still untested on this architecture)
+- Suggest noting: this is now the gating question for the entire project
+
+**Pathway 8 (Multi-Rate):**
+- Prior results should note: "At ctx=128, multi-rate gives 20.7% speedup but compute-matched all-rate-1 wins by ~0.018 nats — this is a time/quality tradeoff, not free quality"
+
 ### Architecture spec (reference)
 
 **192-module 2D grid:**
