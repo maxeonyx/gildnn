@@ -4,47 +4,22 @@ Working notes. Final day (2026-05-31), project concludes at midnight NZST.
 
 ---
 
-## Active work (final session, May 31 ~18:15 NZST)
+## Active work (final session, May 31 ~19:00-21:00 NZST)
 
-### Bidirectional laterals fix — DONE ✓
+### SPEC.md architecture skeleton — DONE ✓
 
-Dictation 10 confirmed: upward-only laterals was a bug. Higher levels should influence lower levels. Fixed in `190a243`: lateral_signal from level k now flows both to level k+1 AND level k-1 (when that level fires). Dictation 11 confirmed: multi-rate delay is fine (higher levels fire less frequently → downward info arrives slowly, which is the design intent). Dictation 12 confirmed: state is persistent across tokens ✓ (no reset at token boundaries).
+Built the complete SPEC architecture from scratch in `experiments/spec_graph/`. All 7 components implemented and verified working.
 
-### 8-level bidirectional results — DONE (mixed)
+**Best configuration:** predict_horizon=4, noise_std=0.5, grid 4×6 (24 nodes), rollout_steps=8, d_model=128.
 
-500 steps, n=8, d=128, spt=4, seq=2048, batch=8, noise=0.1, lr=3e-4, CUDA graphs (~1.7s/step):
+**Results (500 steps, ~6 min):**
+- Pure-local: head CE 3.78 (0.39 nats below random, no CE gradient into graph)
+- Scaffolded (head gradient): head CE 3.72
+- Variable depth confirmed: h2=3.82 > h4=3.78 > h6=3.76 ≈ h8=3.76
+- Local loss stays ~0.49 with predict_horizon=4 (doesn't collapse)
+- Broadcast scalar reward: zero measurable effect (Adam absorbs constant scaling)
 
-| Step | Bidir+residual | Prior (replace, upward-only) |
-|------|---------------|------------------------------|
-| 50   | 3.33          | 3.33                         |
-| 100  | 3.23          | 3.01                         |
-| 200  | 2.99          | 2.47                         |
-| 500  | **2.78**      | **2.30**                     |
-
-Bidirectional + residual (CE 2.78) is worse than original (CE 2.30) at step 500. But better than 1-level floor (~2.37). Two changes were made simultaneously (residual + bidirectional), so this is confounded.
-
-### Queue running — comparison experiments — DONE ✓
-
-All 4 experiments completed. Results:
-
-| Config | CE @ 500 |
-|--------|---------|
-| 1-level spt=1 | **2.45** |
-| 1-level spt=4 | 2.63 |
-| 8-level spt=1 (bidir) | 2.57 |
-| 8-level spt=8 (bidir) | 3.31 |
-
-**Conclusion:** Bidirectional laterals hurt (+0.12 nats vs 1-level at spt=1). More spt hurts uniformly. Local InfoNCE creates representations that actively harm CE when fed downward. Original upward-only+replace (CE 2.30) remains best.
-
-### Theory insight (important)
-
-With **detached** laterals, higher levels cannot receive CE gradient. They're trained ONLY by local prediction loss (InfoNCE), which is orthogonal to CE (gradient cosine 0.013). So information flowing down from higher levels is representations optimized for neighbor-prediction, NOT token-prediction. This may explain why multi-level doesn't help CE much.
-
-**Possible resolution:** The downward signal might still help as a diversity/regularization mechanism (different features for level 0 to exploit), even if it wasn't trained for that purpose. The queue experiments will test this.
-
-### CUDA graph capture restored — DONE ✓
-
-Committed `aa78d4b`. 1.76s/step with CUDA graphs (14× vs original 26s baseline).
+**Key insight:** "Predict your inputs K steps ahead" with K≥4 keeps the local task hard enough to sustain learning and produce representations the central head finds useful. K=1 collapses trivially.
 
 ---
 
