@@ -4,46 +4,33 @@ Working notes. Final day (2026-05-31), project concludes at midnight NZST.
 
 ---
 
-## Current state (11:55 NZST, May 31)
+## Final state (12:02 NZST, May 31)
 
-### Queue running
-`systemctl --user status gildnn-ablation-queue` — auto-draining experiments. Check `runs/queue-logs/` for results.
+### All experiments complete
 
-Remaining in queue:
-1. Combined: `--band0-local-loss --hierarchical-targets --attention-readout --detach-readout` (100 steps) — RUNNING NOW
-2. Transformer baseline batch_size=4 (1000 steps)
-3. GRU baseline batch_size=4 (1000 steps)
-4. Control: default config, no local loss (100 steps)
-
-### Results collected today
+Queue drained successfully. Full results:
 
 | Experiment | CE | Steps | Notes |
 |-----------|-----|-------|-------|
 | GRU baseline (batch=32) | **1.35** | 1000 | 820K params, 8s |
-| Transformer baseline (batch=32) | **1.84** | 1000 | 825K params, 8s |
-| Our arch (default) | **2.69** | 1000 | 16M params, 220s |
+| GRU baseline (batch=4) | **1.74** | 1000 | Fair comparison, 11s |
+| Transformer (batch=32) | **1.84** | 1000 | 825K params, 8s |
+| Transformer (batch=4) | **2.32** | 1000 | Fair comparison, 12s |
 | Hierarchical targets (detached) | **2.67** | 100 | Best purely-local |
+| Control: our arch, no local loss | **2.70** | 100 | Matches 1000-step result |
+| Our arch (default, 1000 steps) | **2.69** | 1000 | 16M params, 220s |
 | Band0-local-loss + CE on band 0 | **3.04** | 100 | Local prediction + CE |
 | Band0-local-loss (detached) | **3.24→3.41** | 100→500 | CE stagnates while prediction improves |
+| Combined (band0+hier+attn+detach) | **3.35** | 100 | Worse than parts individually |
 | Per-band CE + attention | **3.03** | 2000 | Rejected (not local) |
 
-### Key insight
-Per dictation 07: "Aux loss numbers are completely meaningless. The question is whether it's the right incentive, not whether it's learning well given its incentive." Stop reporting prediction loss.
+### Key findings from final queue
+1. **Batch-4 baselines close the fairness argument**: GRU at batch=4 still 1.74, nearly a full nat better than any config of our architecture
+2. **Combined features hurt**: adding everything together (3.35) is worse than hierarchical-targets alone (2.67). The detached readout can't exploit cascading representations.
+3. **Architecture hits a wall early**: control at 100 steps (2.70) ≈ 1000 steps (2.69) — diminishing returns after step ~50
 
-### What's done
-- [x] Queue mechanism (`experiments/queue_runner.py`)
-- [x] Baselines (transformer, GRU)
-- [x] Band0-local-loss implementation
-- [x] 500-step detached result (negative: CE stagnates)
-- [x] Horizontal vs vertical coupling insight
-- [x] Daily report updated
-- [x] Weekly report updated
-
-### What remains
-- [ ] Collect remaining queue results (combined, batch-4 baselines, control)
-- [ ] Update daily/weekly with final results
-- [ ] Final commit and push
-- [ ] Pretrained embeddings: Max asked about it. For char-level with 65 tokens, the answer is "doesn't apply cleanly" — see daily report.
+### Project complete
+All planned experiments run. Reports updated. See `research/weekly/2026-05-31.md` for the final project summary.
 
 ### Architecture spec (reference)
 
