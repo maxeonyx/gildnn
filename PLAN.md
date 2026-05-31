@@ -65,7 +65,7 @@ At ctx=256:
 - Per-param: tied d=256 N=8 (887K) val CE 1.841 vs untied d=128 N=8 (1.6M) val CE 1.905 → **tied wins** (0.064 nats)
 - FLOP-matched: tied d=256 N=2 (887K) val CE 1.962 vs untied d=128 N=8 (1.6M) val CE 1.905 → **untied wins** (0.057 nats)
 
-At ctx=128 both comparisons favored tied. At ctx=256 only per-param holds. Longer context benefits from more iterations/depth.
+Iteration scaling at ctx=256: gains per doubling stay high (0.05-0.07 nats) vs ctx=128 where they taper (0.043→0.014→0.019). The model is "hungry for depth" at longer context — dynamic depth decisions are more impactful.
 
 ### What to explore next (remaining runway)
 
