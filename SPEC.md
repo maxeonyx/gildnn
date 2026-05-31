@@ -11,7 +11,7 @@ A graph of nodes.
 Each node:
 - Receives inputs from its graph neighbours (stale — delayed by one of the sender's steps)
 - Possibly receives raw input (token embeddings, sensory data) as an additional input
-- Fires when triggered (accumulation/information-based, not a fixed schedule)
+- Fires every step (all nodes, synchronously in the simple case)
 - Produces outputs that become its neighbours' future inputs
 - Achieves its incentives. Internal architecture is irrelevant to this spec.
 
@@ -27,7 +27,7 @@ Lateral connections between nodes carry signals with:
 
 2. **Noise bottleneck (principled).** Calibrated noise is injected into the lateral signal. The SNR controls information capacity. This forces compression — a node cannot relay its full internal state; it must select what to communicate. The noise IS the information bottleneck. Noise levels may differ per connection or be learned.
 
-3. **Bidirectional but not symmetric.** Connections exist in both directions. The two directions of a connection may have different projections, different noise levels, different roles. With inputs entering at multiple points, there's no single global "direction" — just local asymmetry relative to nearby input sources.
+3. **Bidirectional, symmetric mechanism.** Connections exist in both directions with the same mechanism (same projections, same noise). The asymmetry in what actually flows — and how nodes use it — emerges from their different positions in the graph relative to input sources. It is not designed in.
 
 ---
 
@@ -164,8 +164,8 @@ These are scaffolding for early experiments. They should be removable. If the pr
 
 - **Locality vs learnability.** The project's evidence says strict detachment kills learning. Neighbourhood reward (B1) is less strict — but is it enough? Unknown.
 - **Task signal propagation.** Does task-relevance propagate through the graph via communication + reward modulation? Or does it attenuate too fast? Dense graphs (every node within 2-3 hops of raw input) might solve this structurally.
-- **Adaptive firing stability.** Nodes that fire rarely get less learning signal. Does the broadcast scalar compensate? Or do slow nodes become spectators?
-- **Universal objective expressiveness.** "Predict your inputs" is a specific choice. Is it rich enough to produce diverse useful representations, or does it converge to homogeneous features across nodes?
+- **Universal objective expressiveness.** "Predict your next inputs" is a specific choice. Is it rich enough to produce diverse useful representations, or does it converge to homogeneous features across nodes?
+- **Credit assignment with scalar reward.** REINFORCE-style learning from a global scalar is high variance. Can it learn fast enough, or does credit assignment fail at graph scale?
 
 ---
 
