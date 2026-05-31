@@ -1,5 +1,1 @@
-# Baselines (1000 steps each, ~2-5 min)
-# Our architecture: band0-local-loss + CE on band 0 (no detach) — does local prediction help CE?
-# Combined: band0-local-loss + hierarchical-targets + detached attention
-# Fair comparison: baselines at batch_size=4 (same as our arch)
-# Control: default config (no local loss) at 100 steps for comparison
+# Queue empty — project concluded 2026-05-31
