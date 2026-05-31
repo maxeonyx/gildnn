@@ -8,6 +8,7 @@ Pathway 5 (Dynamic Depth & Early Exit) — bridges the oracle→deployable gap.
 """
 from __future__ import annotations
 
+import argparse
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -40,6 +41,7 @@ from experiments.weight_tying.dynamic_depth import (
     train_model,
 )
 from experiments.weight_tying.tied_vs_untied import CausalSelfAttention, TransformerBlock
+from experiments.weight_tying.tied_vs_untied import prepare_dataset as prepare_dataset_with_chunk_size
 
 
 torch.backends.cuda.matmul.allow_tf32 = True
@@ -471,9 +473,14 @@ def print_oracle_efficiency_table(rows: list[dict[str, str | float]]) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Learned halting predictor for dynamic depth.")
+    parser.add_argument("--chunk-size", type=int, default=CHUNK_SIZE, help="Context window size")
+    args = parser.parse_args()
+    chunk_size = args.chunk_size
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     set_seed(SEED)
-    train_inputs, train_targets, val_inputs, val_targets, vocab_size = prepare_dataset()
+    train_inputs, train_targets, val_inputs, val_targets, vocab_size = prepare_dataset_with_chunk_size(chunk_size)
 
     # --- Phase 1: Train base model ---
     model = TiedTransformerDynamicDepth(
@@ -482,11 +489,11 @@ def main() -> None:
         mlp_dim=MLP_DIM,
         n_heads=N_HEADS,
         n_layers=N_LAYERS,
-        chunk_size=CHUNK_SIZE,
+        chunk_size=chunk_size,
     ).to(device)
 
     print(
-        f"device={device} seed={SEED} d_model={MODEL_DIM} n_layers={N_LAYERS} ctx={CHUNK_SIZE}",
+        f"device={device} seed={SEED} d_model={MODEL_DIM} n_layers={N_LAYERS} ctx={chunk_size}",
         flush=True,
     )
     train_model(
