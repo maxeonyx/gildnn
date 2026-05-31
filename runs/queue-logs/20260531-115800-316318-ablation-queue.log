@@ -1,0 +1,20 @@
+command: CC=/usr/bin/gcc-15 .venv/bin/python experiments/baselines/gru.py --steps 1000 --log-every 100 --batch-size 4
+timestamp: 2026-05-31T11:58:00+12:00
+queue: ablation-queue
+
+params=820797
+step=100 ce_loss=2.4482 elapsed_s=1.24
+step=200 ce_loss=2.1631 elapsed_s=2.27
+step=300 ce_loss=1.8962 elapsed_s=3.31
+step=400 ce_loss=1.9311 elapsed_s=4.34
+step=500 ce_loss=2.0390 elapsed_s=5.36
+step=600 ce_loss=1.7113 elapsed_s=6.38
+step=700 ce_loss=1.8332 elapsed_s=7.43
+step=800 ce_loss=1.8707 elapsed_s=8.46
+step=900 ce_loss=1.5459 elapsed_s=9.48
+step=1000 ce_loss=1.7441 elapsed_s=10.51
+{"step_count": 1000, "final_ce_loss": 1.744058, "total_time_s": 10.510958, "model": "gru", "params": 820797}
+DONE
+
+exit code: 0
+elapsed time: 13.775s

@@ -1,0 +1,20 @@
+command: CC=/usr/bin/gcc-15 .venv/bin/python experiments/baselines/transformer.py --steps 1000 --log-every 100 --batch-size 4
+timestamp: 2026-05-31T11:57:45+12:00
+queue: ablation-queue
+
+params=825405
+step=100 ce_loss=2.5743 elapsed_s=1.17
+step=200 ce_loss=2.5556 elapsed_s=2.36
+step=300 ce_loss=2.4838 elapsed_s=3.58
+step=400 ce_loss=2.4355 elapsed_s=4.79
+step=500 ce_loss=2.4198 elapsed_s=6.02
+step=600 ce_loss=2.3650 elapsed_s=7.23
+step=700 ce_loss=2.4845 elapsed_s=8.44
+step=800 ce_loss=2.2476 elapsed_s=9.65
+step=900 ce_loss=2.2626 elapsed_s=10.82
+step=1000 ce_loss=2.3183 elapsed_s=12.01
+{"step_count": 1000, "final_ce_loss": 2.318304, "total_time_s": 12.014097, "model": "transformer", "params": 825405}
+DONE
+
+exit code: 0
+elapsed time: 15.212s

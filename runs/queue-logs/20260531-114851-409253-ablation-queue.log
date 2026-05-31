@@ -1,0 +1,30 @@
+command: CC=/usr/bin/gcc-15 .venv/bin/python experiments/automaton_graph/train.py --band0-local-loss --steps 100 --log-every 10
+timestamp: 2026-05-31T11:48:51+12:00
+queue: ablation-queue
+
+starting training steps=100 batch_size=4 chunk_size=128 device=cuda streaming=False
+step=10 ce_loss=3.5122 total_prediction_loss=910.0843 per_band_ce_loss=0.0000 elapsed_s=26.21
+  per_band_mean_prediction_loss: b0=4.3155, b1=4.8290, b2=4.7913, b3=4.7883, b4=4.7977, b5=4.8513, b6=4.8274, b7=4.7196
+step=20 ce_loss=3.5241 total_prediction_loss=847.4001 per_band_ce_loss=0.0000 elapsed_s=52.03
+  per_band_mean_prediction_loss: b0=3.4377, b1=4.4845, b2=4.4733, b3=4.5368, b4=4.5696, b5=4.6328, b6=4.5688, b7=4.6048
+step=30 ce_loss=3.4344 total_prediction_loss=810.9189 per_band_ce_loss=0.0000 elapsed_s=77.66
+  per_band_mean_prediction_loss: b0=3.1312, b1=4.2916, b2=4.2894, b3=4.3273, b4=4.3844, b5=4.4804, b6=4.4510, b7=4.4329
+step=40 ce_loss=3.3905 total_prediction_loss=794.0040 per_band_ce_loss=0.0000 elapsed_s=103.41
+  per_band_mean_prediction_loss: b0=3.0376, b1=4.2333, b2=4.2282, b3=4.2535, b4=4.2915, b5=4.3497, b6=4.3521, b7=4.3376
+step=50 ce_loss=3.5100 total_prediction_loss=785.2758 per_band_ce_loss=0.0000 elapsed_s=129.23
+  per_band_mean_prediction_loss: b0=3.0122, b1=4.2142, b2=4.2079, b3=4.2224, b4=4.2427, b5=4.2684, b6=4.2671, b7=4.2849
+step=60 ce_loss=3.2642 total_prediction_loss=777.3411 per_band_ce_loss=0.0000 elapsed_s=155.06
+  per_band_mean_prediction_loss: b0=2.8799, b1=4.2058, b2=4.1989, b3=4.2059, b4=4.2223, b5=4.2158, b6=4.1768, b7=4.2839
+step=70 ce_loss=3.2356 total_prediction_loss=771.5076 per_band_ce_loss=0.0000 elapsed_s=180.81
+  per_band_mean_prediction_loss: b0=2.8672, b1=4.2012, b2=4.1932, b3=4.2003, b4=4.2133, b5=4.1024, b6=4.0848, b7=4.2837
+step=80 ce_loss=3.2773 total_prediction_loss=760.2004 per_band_ce_loss=0.0000 elapsed_s=206.93
+  per_band_mean_prediction_loss: b0=2.8233, b1=4.2008, b2=4.1926, b3=4.1971, b4=4.1528, b5=3.8227, b6=4.0293, b7=4.2565
+step=90 ce_loss=3.0540 total_prediction_loss=751.3925 per_band_ce_loss=0.0000 elapsed_s=232.92
+  per_band_mean_prediction_loss: b0=2.7005, b1=4.1968, b2=4.1944, b3=4.1981, b4=3.9366, b5=3.7404, b6=3.9833, b7=4.3579
+step=100 ce_loss=3.0439 total_prediction_loss=745.6279 per_band_ce_loss=0.0000 elapsed_s=258.86
+  per_band_mean_prediction_loss: b0=2.6728, b1=4.1897, b2=4.1982, b3=4.1778, b4=3.8189, b5=3.7338, b6=3.9928, b7=4.2838
+{"step_count": 100, "total_time_s": 258.858357, "final_ce_loss": 3.04394, "final_total_prediction_loss": 745.62793, "final_per_band_ce_loss": 0.0, "final_per_band_mean_prediction_loss": [2.672819, 4.189704, 4.198179, 4.177779, 3.818949, 3.73382, 3.992799, 4.28378], "final_per_band_ce": []}
+DONE
+
+exit code: 0
+elapsed time: 261.546s

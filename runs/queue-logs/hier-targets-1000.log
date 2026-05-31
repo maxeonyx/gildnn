@@ -1,0 +1,25 @@
+starting training steps=1000 batch_size=4 chunk_size=128 device=cuda streaming=False
+step=100 ce_loss=3.2809 total_prediction_loss=699.5117 per_band_ce_loss=0.0000 elapsed_s=258.02
+  per_band_mean_prediction_loss: b0=0.0000, b1=4.1669, b2=4.1748, b3=4.1734, b4=4.1410, b5=3.8029, b6=4.0916, b7=4.5956
+step=200 ce_loss=3.3173 total_prediction_loss=638.6077 per_band_ce_loss=0.0000 elapsed_s=515.62
+  per_band_mean_prediction_loss: b0=0.0000, b1=3.4006, b2=4.2301, b3=4.4389, b4=3.6953, b5=3.9085, b6=3.8097, b7=3.1256
+step=300 ce_loss=3.2992 total_prediction_loss=613.2715 per_band_ce_loss=0.0000 elapsed_s=773.67
+  per_band_mean_prediction_loss: b0=0.0000, b1=2.9270, b2=3.3099, b3=3.5065, b4=3.5545, b5=3.4833, b6=4.9162, b7=3.8558
+step=400 ce_loss=3.3035 total_prediction_loss=530.1453 per_band_ce_loss=0.0000 elapsed_s=1031.17
+  per_band_mean_prediction_loss: b0=0.0000, b1=2.6290, b2=2.7080, b3=3.1974, b4=3.4433, b5=3.3778, b6=3.4531, b7=3.2808
+step=500 ce_loss=3.4356 total_prediction_loss=512.2386 per_band_ce_loss=0.0000 elapsed_s=1288.24
+  per_band_mean_prediction_loss: b0=0.0000, b1=2.1069, b2=2.2777, b3=3.3371, b4=4.0195, b5=2.9963, b6=3.3039, b7=3.3019
+saved checkpoint runs/checkpoints.ignore/step_000500.pt
+step=600 ce_loss=3.3145 total_prediction_loss=504.7274 per_band_ce_loss=0.0000 elapsed_s=1546.02
+  per_band_mean_prediction_loss: b0=0.0000, b1=2.2200, b2=2.0117, b3=2.3445, b4=2.9302, b5=3.0222, b6=4.1118, b7=4.3900
+step=700 ce_loss=3.2723 total_prediction_loss=458.1742 per_band_ce_loss=0.0000 elapsed_s=1802.99
+  per_band_mean_prediction_loss: b0=0.0000, b1=2.0484, b2=1.6632, b3=2.1985, b4=2.9174, b5=3.1781, b6=3.3503, b7=3.7348
+step=800 ce_loss=3.4197 total_prediction_loss=558.7312 per_band_ce_loss=0.0000 elapsed_s=2061.45
+  per_band_mean_prediction_loss: b0=0.0000, b1=2.2396, b2=2.2896, b3=2.9397, b4=3.6603, b5=3.8781, b6=4.1680, b7=4.1052
+step=900 ce_loss=3.3731 total_prediction_loss=531.9109 per_band_ce_loss=0.0000 elapsed_s=2319.89
+  per_band_mean_prediction_loss: b0=0.0000, b1=2.3708, b2=1.9798, b3=2.3445, b4=2.8334, b5=3.9102, b6=4.3189, b7=4.4053
+step=1000 ce_loss=3.5164 total_prediction_loss=529.2764 per_band_ce_loss=0.0000 elapsed_s=2577.58
+  per_band_mean_prediction_loss: b0=0.0000, b1=2.3263, b2=1.9680, b3=2.7293, b4=3.4866, b5=3.6349, b6=3.7473, b7=4.1609
+saved checkpoint runs/checkpoints.ignore/step_001000.pt
+{"step_count": 1000, "total_time_s": 2578.034342, "final_ce_loss": 3.516431, "final_total_prediction_loss": 529.276367, "final_per_band_ce_loss": 0.0, "final_per_band_mean_prediction_loss": [0.0, 2.326271, 1.968006, 2.729305, 3.486573, 3.63488, 3.747262, 4.160885], "final_per_band_ce": []}
+DONE
