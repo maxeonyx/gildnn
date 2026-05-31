@@ -4,7 +4,7 @@ Working notes. Final day (2026-05-31), project concludes at midnight NZST.
 
 ---
 
-## Current state (14:00 NZST, May 31)
+## Final state (15:10 NZST, May 31 — project concluded)
 
 ### Pathway 1 weight-tying experiment — DONE ✓ (positive result)
 
@@ -68,19 +68,9 @@ At ctx=256:
 
 Iteration scaling at ctx=256: gains per doubling stay high (0.05-0.07 nats) vs ctx=128 where they taper (0.043→0.014→0.019). The model is "hungry for depth" at longer context — dynamic depth decisions are more impactful.
 
-### What to explore next (remaining runway)
+### Local learning — DONE ✓ (negative for tested family)
 
-- **Training WITH dynamic depth:** Use ACT/CALM-style training where the model learns to exit early — might front-load computation and improve both quality and efficiency
-- **Joint halting + model training:** Train the base model with the halting head simultaneously (should produce clearer halting signals)
-
-### CORRECTION: "CE 2.67 purely-local" was mislabeled
-
-The earlier hierarchical-targets result (CE 2.67) used the standard band-0 CE readout — making it a hybrid (CE on band 0, local on bands 1-7). The truly purely-local version gives CE 3.28 at step 100. No purely-local objective has beaten the control (2.70). See corrected daily report.
-
-### Active experiment — COMPLETED
-Hierarchical targets purely-local (detached), 1000 steps. **Result: CE 3.28 → 3.52 (WORSE over training).**
-
-Local prediction learning actively hurts token classification. As modules specialize for inter-band prediction, they move AWAY from representations the attention head can exploit. The ~3.28 at step 100 was incidental token info from initialization; training destroys it.
+All tested purely-local objectives from the "predict neighbor state" family (InfoNCE, hierarchical targets, predict-next-inputs) are structurally misaligned with token prediction. CE 3.2-3.5 vs control 2.70, worsening over training (3.28 → 3.52 at 1000 steps). Gradient cosine 0.013 (orthogonal). Scoped to 3 objectives, 1 architecture, detached laterals.
 
 ### Corrected results table (all validation CE)
 
@@ -100,13 +90,6 @@ Previous reports showed misleading "GRU 1.35 vs our 2.70" — that compared GRU 
 **The tested local objectives (predict neighbors/lower-bands/inputs) are anti-correlated with token classification on this architecture.** All tested purely-local objectives produce CE 3.2-3.5 from a detached readout, and CE WORSENS over training (3.28 → 3.52 at 1000 steps). The modules learn their local tasks well (prediction loss 4.17 → 1.97) while becoming less useful for token prediction.
 
 **Scope of this result:** Only 3 local objectives tested, all from the same "predict neighbor state" family. One architecture, one communication structure (detached laterals). This does NOT prove local learning is impossible — it shows this specific family doesn't work here. Different objective classes or different architectures remain untested.
-
-### What remains
-- [x] 1000-step purely-local hierarchical targets result — DONE (negative: CE worsens)
-- [x] Update daily report with 1000-step result
-- [x] Update weekly with definitive negative conclusion
-- [x] Theoretical analysis: formal argument for why tested objective family fails
-- [x] Final commit
 
 ---
 
@@ -157,8 +140,9 @@ Previous reports showed misleading "GRU 1.35 vs our 2.70" — that compared GRU 
 - The "Core open question" section still frames this as unsolved — it IS unsolved, but the evidence is now much more negative
 
 **Pathway 1 (Wide Recurrent vs Deep Transformer):**
-- Confidence: unchanged (still untested on this architecture)
-- Suggest noting: this is now the gating question for the entire project
+- Confidence: **INCREASED — VALIDATED** on clean tied transformer (not 192-module graph)
+- New evidence: tied d=256 N=8 (854K) beats untied d=128 N=8 (1.6M) at both ctx=128 and ctx=256. Per-param advantage robust. FLOP-matched holds at ctx=128, breaks at ctx=256.
+- Suggest noting: the 192-module graph (which adds multi-rate, stale laterals, topology) remains untested in a clean comparison
 
 **Pathway 8 (Multi-Rate):**
 - Prior results should note: "At ctx=128, multi-rate gives 20.7% speedup but compute-matched all-rate-1 wins by ~0.018 nats — this is a time/quality tradeoff, not free quality"
