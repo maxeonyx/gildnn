@@ -168,4 +168,21 @@ So vertical > horizontal for local learning, but neither is sufficient for token
 - How much lateral noise is enough to prevent copying without making the target effectively random?
 - Is the "purely detached" constraint too strict? Maybe a small task signal to the readout is acceptable if modules still learn locally.
 
+## Evaluation of untested candidates (theoretical, 2026-05-31)
+
+Scored against the 5 necessary properties. The fundamental blocker is **(5)**: with detached laterals, no module receives any signal about whether what it produces is downstream-useful for token prediction.
+
+| Candidate | 1 Sufficiency | 2 Predictive | 3 Bottleneck | 4 Complementarity | 5 Downstream visible | Verdict |
+|---|---|---|---|---|---|---|
+| Delta prediction (state change) | ~ | ✓ | ~ | ✗ | ✗ | Marginal improvement — cheap probe at best |
+| MI maximization (MINE) | ✗ | ✗ | ✗ | ✗ | ✗ | Anti-bottleneck, rewards copying shared info |
+| VICReg temporal | ~ | ~ | ~ | ✗ | ✗ | Auxiliary shaping only, not a primary objective |
+| Forward-Forward | ✗ | ✗ | ~ | ✗ | ✗ | "Looks real" detector ≠ token-useful |
+| Contrastive temporal distinction | ✗ | ~ | ✓ | ✗ | ✗ | Same failure mode as InfoNCE with temporal negatives |
+| Communication through coherence | ✗ | ✗ | ✗ | ~ | ✗ | Routing mechanism, not a learning rule |
+| BYOL/SimSiam self-prediction | ✗ | ~ | ✗ | ✗ | ✗ | Self-consistency ≠ token sufficiency |
+| Sparse random subset prediction | ✗ | ~ | ~ | ✗ | ✗ | Random bottleneck ≠ useful bottleneck |
+
+**Conclusion:** No untested candidate satisfies even 3 of 5 properties. The fundamental issue is architectural (property 5), not objective-specific. With detached laterals, a module cannot learn what's useful downstream — so any objective that doesn't explicitly embed task information will produce features optimized for local prediction geometry, not global token utility. This suggests the path forward requires **architecture change** (non-detached communication or explicit utility signals), not just objective redesign.
+
 For now the design-space answer is: **predict something about your neighbors' future through a bottleneck**. The exact form (what target, what loss, how much global signal is acceptable) is the open experimental question with multiple candidates to test.
