@@ -58,7 +58,7 @@ Concretely: can a globally-trained multi-rate 192-module graph show a quality/co
 
 ### Pathway priority (after local-learning negative results)
 
-1. **Pathway 1 (Wide Recurrent vs Deep Transformer)** — the fundamental thesis. Never directly compared on this architecture. If weight-tied recurrence + width can't buy a real advantage under ordinary global training, nothing else matters.
+1. **Pathway 1 (Wide Recurrent vs Deep Transformer)** — the fundamental thesis. The *assembled 192-module system* was compared against baselines and lost badly (CE 2.69 at 16M params/220s vs GRU 1.74 at 820K/11s). But this doesn't cleanly test the core thesis ("same weights applied N times vs N distinct layers") because the system adds multi-rate, stale laterals, topology, etc. The clean weight-tied-vs-untied comparison at matched FLOPs remains unrun. If resumed, this is the first experiment — with fairness axes (per-param AND per-FLOP) declared up front.
 
 2. **Pathway 5 (Dynamic Depth / Early Exit)** — strongest near-term value story. If different tokens genuinely need different iteration counts, that's an architecture win regardless of local learning.
 
