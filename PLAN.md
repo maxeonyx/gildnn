@@ -43,11 +43,15 @@ Same tied d=256 model (854K params), varying iterations:
 
 Logarithmic scaling: ~0.02-0.04 improvement per doubling. Pre-LN + grad clip = stable through 32 iterations.
 
+### Dynamic depth — DONE ✓ (practically demonstrated)
+
+CE-based early exit (oracle): 43% compute savings at +0.045 nats. Early exit at small thresholds actually IMPROVES quality (regularization). Entropy-based exit (deployable): works but noisier (~15% savings at +0.025 nats, or 31% at +0.15).
+
 ### What to explore next (remaining runway)
 
-- **N-scaling:** Does tied d=256 benefit from N=16 or N=32 iterations? (Tests stability + depth benefit)
-- **Per-FLOP fairness:** Tied d=256 uses 4× the FLOPs of untied d=128. At matched FLOPs (tied d=128 vs untied d=128), untied wins. The question is whether the extra FLOPs are "cheap" (same params, just more iterations).
-- **Dynamic depth:** Can we iterate less on easy tokens? (Pathway 5 intersection)
+- **Learned halting predictor:** Train a small network to predict "will the next iteration improve CE by more than X?" — bridges the gap between oracle and deployable
+- **Longer context:** ctx=256, 512 — does the tied model's advantage grow?
+- **Training WITH dynamic depth:** Use ACT/CALM-style training where the model learns to exit early — might front-load computation and improve both quality and efficiency
 
 ### CORRECTION: "CE 2.67 purely-local" was mislabeled
 
@@ -58,21 +62,19 @@ Hierarchical targets purely-local (detached), 1000 steps. **Result: CE 3.28 → 
 
 Local prediction learning actively hurts token classification. As modules specialize for inter-band prediction, they move AWAY from representations the attention head can exploit. The ~3.28 at step 100 was incidental token info from initialization; training destroys it.
 
-### Corrected results table
+### Corrected results table (all validation CE)
 
-| Experiment | CE | Steps | Notes |
-|-----------|-----|-------|-------|
-| GRU baseline (batch=32) | **1.35** | 1000 | 820K params, 8s |
-| GRU baseline (batch=4) | **1.74** | 1000 | Fair comparison, 11s |
-| Transformer (batch=32) | **1.84** | 1000 | 825K params, 8s |
-| Transformer (batch=4) | **2.32** | 1000 | Fair comparison, 12s |
-| Hier targets hybrid (CE + local) | **~2.67** | 100 | ≈ control, not purely-local |
-| Control: our arch, no local loss | **2.70** | 100 | = 1000-step result |
-| Our arch (default, 1000 steps) | **2.69** | 1000 | 16M params, 220s |
-| Band0-local-loss + CE on band 0 | **3.04** | 100 | Local prediction + CE |
-| Band0-local-loss (detached) | **3.24→3.41** | 100→500 | Purely local, CE stagnates |
-| Hier targets purely-local (detached) | **3.28→3.52** | 100→1000 | Worsens with training |
-| Combined (band0+hier+attn+detach) | **3.35** | 100 | Worse than parts individually |
+| Experiment | Val CE | Params | Notes |
+|-----------|--------|--------|-------|
+| GRU baseline | **1.58** | 820K | Best at step 1000; sequential recurrence |
+| **Tied d=256 N=8** | **1.67** | **854K** | **Best at step 2000; beats transformer** |
+| Transformer 4L baseline | 1.71 | 825K | Best at step 2000+ |
+| Tied d=256 N=8 (@step 1000) | 1.78 | 854K | Still improving |
+| Untied d=128 N=8 | 1.87 | 1.6M | 7× more params, WORSE |
+| Tied d=256 N=2 | 1.85 | 854K | Same FLOPs as untied, BETTER |
+| Control: 192-module arch | ~2.70 | 16M | Communication structure problem |
+
+Previous reports showed misleading "GRU 1.35 vs our 2.70" — that compared GRU train CE to architecture train CE. Fair val-CE comparison: GRU 1.58 vs tied 1.67 (gap: 0.09 nats).
 
 ### Key conclusion (scoped)
 **The tested local objectives (predict neighbors/lower-bands/inputs) are anti-correlated with token classification on this architecture.** All tested purely-local objectives produce CE 3.2-3.5 from a detached readout, and CE WORSENS over training (3.28 → 3.52 at 1000 steps). The modules learn their local tasks well (prediction loss 4.17 → 1.97) while becoming less useful for token prediction.
