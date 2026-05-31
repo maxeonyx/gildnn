@@ -11,7 +11,7 @@ Each experiment gets its own subdirectory: `experiments/<experiment-name>/`. The
 - Raw outputs: prediction dumps, loss logs, debug traces, text samples
 - Any artifact that is too messy or verbose for the Max-readable report
 
-Run experiments from the repo root: `.\.venv\Scripts\python.exe -m runs.<name>` (e.g. `runs.closed_loop_prediction`, `runs.transformer_baseline`). The `experiments/` directory holds artifacts, not entry-point scripts.
+Run experiments from the repo root: `.venv/bin/python -m experiments.<name>.<script>` or directly `.venv/bin/python experiments/<name>/script.py`. The `experiments/` directory holds both entry-point scripts and artifacts.
 
 **Why `-m`:** When Python runs a script directly (`python runs/foo.py`), it puts `runs/` on sys.path — not the repo root. This means `from core import ...` fails with ImportError. Using `-m` puts the current working directory on sys.path instead, so `core` is importable. The scripts also have a `sys.path.insert` fallback, so direct execution works too — but `-m` is the canonical method.
 
@@ -38,7 +38,7 @@ This is per run, not per task. If you fix something and want to retry a 10-20 mi
 
 Experiments expected to take more than ~5 minutes use a **two-phase delegation**:
 
-1. **Phase 1 (launch only):** Start the process in the background (`Start-Process` on Windows). Return the PID and log path. Stop immediately — do NOT wait, poll, or check results.
+1. **Phase 1 (launch only):** Start the process in the background (`systemd-run --user` on Linux). Return the PID and log path. Stop immediately — do NOT wait, poll, or check results.
 2. **Phase 2 (check):** The orchestrator resumes you later to analyse results. The orchestrator decides when; you don't.
 
 Set `PYTHONUNBUFFERED=1` before launching. The experiment scripts manage `runs/active.lock` automatically (create on startup, remove on exit via `atexit`). Failing to split the two-phase delegation is a process failure.
