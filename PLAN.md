@@ -29,6 +29,20 @@ Clean test of the core thesis: weight-tied (1 block applied N times) vs untied (
 
 **Still worse than GRU (1.35 vs 1.79).** But GRU has sequential token-to-token recurrence which is a fundamentally different mechanism. The tied transformer's advantage is parallelizability across tokens and dynamic iteration count.
 
+### Iteration scaling — DONE ✓ (logarithmic, stable to N=32)
+
+Same tied d=256 model (854K params), varying iterations:
+
+| N | Val CE | Notes |
+|---|--------|-------|
+| 2 | 1.845 | Same FLOPs as untied-d128-N8, BETTER quality |
+| 4 | 1.802 | |
+| 8 | 1.788 | |
+| 16 | 1.769 | |
+| 32 | 1.740 | Stable, no explosion |
+
+Logarithmic scaling: ~0.02-0.04 improvement per doubling. Pre-LN + grad clip = stable through 32 iterations.
+
 ### What to explore next (remaining runway)
 
 - **N-scaling:** Does tied d=256 benefit from N=16 or N=32 iterations? (Tests stability + depth benefit)
