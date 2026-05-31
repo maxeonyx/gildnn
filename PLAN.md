@@ -112,21 +112,23 @@ Previous reports showed misleading "GRU 1.35 vs our 2.70" — that compared GRU 
 
 ## If this project is picked up again
 
-### The gating question (answer this FIRST)
+### Answered questions (do NOT re-test)
 
-**"With ordinary global training, does this architecture family buy any real advantage that a much simpler recurrent/transformer baseline does not?"**
+1. **Pathway 1 — VALIDATED.** Weight tying works. Tied d=256 N=8 (854K params) beats untied d=128 N=8 (1.6M params) at both ctx=128 and ctx=256. Per-param advantage is robust. FLOP-matched advantage (tied N=2 vs untied N=8) holds at ctx=128 but breaks at ctx=256 — longer context needs more iterations.
 
-Concretely: can a globally-trained multi-rate 192-module graph show a quality/compute or dynamic-depth advantage at matched wall-clock or FLOPs vs a GRU/transformer? If no, the 192-module graph should be demoted from "core architecture" to "interesting failed branch."
+2. **Pathway 5 — VALIDATED.** Dynamic depth is practical. Learned halting predictor: 22-23% savings at zero/negligible CE overhead, 85-100% oracle efficiency. Hidden state encodes halting signal (r=0.51-0.53). Confirmed at both ctx=128 and ctx=256.
 
-### Pathway priority (after local-learning negative results)
+3. **Pathway 3 (predict-neighbors family) — NEGATIVE.** All tested purely-local objectives from the "predict neighbor state" family are structurally misaligned. Gradient cosine 0.013. CE worsens over training. Scoped to: 3 objectives, 1 architecture, detached laterals.
 
-1. **Pathway 1 (Wide Recurrent vs Deep Transformer)** — the fundamental thesis. The *assembled 192-module system* was compared against baselines and lost badly (CE 2.69 at 16M params/220s vs GRU 1.74 at 820K/11s). But this doesn't cleanly test the core thesis ("same weights applied N times vs N distinct layers") because the system adds multi-rate, stale laterals, topology, etc. The clean weight-tied-vs-untied comparison at matched FLOPs remains unrun. If resumed, this is the first experiment — with fairness axes (per-param AND per-FLOP) declared up front.
+### What remains open
 
-2. **Pathway 5 (Dynamic Depth / Early Exit)** — strongest near-term value story. If different tokens genuinely need different iteration counts, that's an architecture win regardless of local learning.
+1. **Joint training with dynamic depth (ACT/CALM-style):** The frozen-model probe shows the information is there. Training model + halting head simultaneously should produce clearer signals and let the model learn to front-load computation.
 
-3. **Pathway 8 (Multi-Rate at long context)** — only tested at ctx=32 where slow bands are useless. At ctx=512+ the multi-rate structure might show genuine timescale separation under global CE.
+2. **Pathway 8 (Multi-Rate at long context):** Only tested at ctx=32/128 where slow bands are useless. At ctx=512+ the multi-rate structure might show genuine timescale separation under global CE.
 
-4. **Pathway 3 (Local Learning)** — paused for the predict-neighbors family. Would need a fundamentally different objective class to revisit. The necessary properties are documented in `research/questions/local-objectives/README.md`.
+3. **The 192-module graph communication problem:** CE 2.69 is caused by stale detached laterals / topology / narrow d_stream=96 — NOT by weight tying. The graph needs either fresh communication design or should be abandoned in favor of the simpler tied transformer (which already works).
+
+4. **Local learning (different objective families):** The predict-neighbors family failed. Fundamentally different approaches (e.g., information-theoretic objectives, contrastive temporal coding, predictive coding with different inductive biases) are untested. The architectural blocker is documented in `research/questions/local-objectives/README.md`.
 
 ### Unaddressed items from dictations
 
