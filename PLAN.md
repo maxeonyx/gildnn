@@ -4,7 +4,10 @@ Working notes. Final day (2026-05-31), project concludes at midnight NZST.
 
 ---
 
-## Final state (12:20 NZST, May 31)
+## Final state (13:09 NZST, May 31)
+
+### Baselines — DONE
+Dictation-09 asks for baselines. They were already run at 11:48 today (before the dictation was written). Evidence: `runs/queue-logs/20260531-114828-968102-ablation-queue.log` (transformer, 1.84) and `runs/queue-logs/20260531-114840-371122-ablation-queue.log` (GRU, 1.35). Both scripts live in `experiments/baselines/`.
 
 ### CORRECTION: "CE 2.67 purely-local" was mislabeled
 
