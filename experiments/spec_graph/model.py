@@ -22,6 +22,7 @@ class SpecGraphConfig:
     ema_decay: float = 0.999
     reward_gain: float = 64.0
     predict_horizon: int = 4
+    disable_reward: bool = False
     detach_head_input: bool = True
     readout_temperature: float = 1.0
     input_rows: tuple[int, ...] = (0,)
@@ -255,7 +256,10 @@ class SpecGraphModel(nn.Module):
                 if ring_full:
                     old_prediction = current.prediction_ring[ring_pos]
                     per_node_local_loss = F.mse_loss(old_prediction, clean_lateral, reduction="none").mean(dim=-1)
-                    weighted_local_loss = per_node_local_loss * current.delayed_reward.detach()
+                    if self.config.disable_reward:
+                        weighted_local_loss = per_node_local_loss
+                    else:
+                        weighted_local_loss = per_node_local_loss * current.delayed_reward.detach()
                     local_losses.append(weighted_local_loss.mean())
                     next_neighbor_loss_buffer = per_node_local_loss.mean(dim=0).detach()
                 else:

@@ -65,6 +65,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--local-loss-weight", type=float, default=1.0)
     parser.add_argument("--ema-decay", type=float, default=0.99)
     parser.add_argument("--allow-head-gradient", action="store_true", help="Allow CE gradient to flow into graph nodes (scaffolding)")
+    parser.add_argument("--no-reward", action="store_true", help="Disable reward modulation (constant reward=1.0)")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--log-every", type=int, default=10)
     parser.add_argument("--sanity-check-only", action="store_true")
@@ -135,6 +136,7 @@ def main() -> None:
             noise_std=args.noise_std,
             ema_decay=args.ema_decay,
             predict_horizon=args.predict_horizon,
+            disable_reward=args.no_reward,
             detach_head_input=not args.allow_head_gradient,
         )
     ).to(device)
