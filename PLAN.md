@@ -124,9 +124,11 @@ Previous reports showed misleading "GRU 1.35 vs our 2.70" — that compared GRU 
 - Detached laterals being BETTER than full backprop suggests weaker coupling + strong global objective may be the right direction
 - These are lessons from 3 objectives on 1 architecture — not universal impossibility claims
 
-### What the architecture IS currently competitive at (nothing yet)
+### Competitiveness summary
 
-16M params, CE 2.69, 220s — vs GRU 820K params, CE 1.35, 8s. The architecture is 20x bigger, 27x slower, and nearly 2x worse. Its value proposition was always "local learning at scale" or "dynamic computation." The tested local objectives didn't work. Dynamic computation is untested.
+**The simpler tied transformer IS competitive:** val CE 1.67 (854K params) vs GRU 1.58 (820K) — gap is only 0.09 nats. Beats standard untied transformer (1.71, 825K) and untied-8L (1.87, 1.6M). Dynamic depth validated: 22% savings at near-zero overhead.
+
+**The 192-module graph is NOT competitive:** CE 2.69, 16M params, 220s. 20x bigger, 27x slower, nearly 2x worse than GRU. Its value proposition (local learning at scale, dynamic computation) was only partly tested — local learning negative, dynamic computation not tested on this topology.
 
 ---
 
