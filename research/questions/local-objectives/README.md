@@ -123,9 +123,9 @@ In our experiments: neighbor states, lower-band means, and next-step inputs are 
 
 The measured gradient cosine (0.013) is not bad luck — it's a structural consequence. The local objectives and CE are asking for different things, and optimizing one actively moves features away from the other.
 
-**What's dead:** "Generic local prediction objectives become language-useful through topology." This is falsified.
+**What's established:** The tested "predict neighbor state" family of local objectives does not produce token-useful representations on this architecture with detached laterals. The gradient is orthogonal to CE, and training actively degrades token-prediction performance.
 
-**What remains open:** Whether a *different* class of local objective — one that targets bottlenecked predictive structure rather than raw state reconstruction, and possibly with a non-detached communication architecture — could align local learning with token prediction. The necessary properties:
+**What remains open:** Whether a *different* class of local objective — one that targets bottlenecked predictive structure rather than raw state reconstruction, and possibly with a different communication architecture — could align local learning with token prediction. The necessary properties:
 1. Target must be closer to a sufficient statistic for future tokens (not raw neighbor state)
 2. Must be predictive (future-oriented), not reconstructive (present snapshot)
 3. Must be bottlenecked (force selection, not copying)

@@ -31,8 +31,10 @@ Local prediction learning actively hurts token classification. As modules specia
 | Hier targets purely-local (detached) | **3.28** | 100 | Band 0 untrained, 1000-step run active |
 | Combined (band0+hier+attn+detach) | **3.35** | 100 | Worse than parts individually |
 
-### Key conclusion (final)
-**Local prediction learning is anti-correlated with token classification on this architecture.** All tested purely-local objectives produce CE 3.2-3.5 from a detached readout, and CE WORSENS over training (3.28 → 3.52 at 1000 steps). The modules learn their local tasks well (prediction loss 4.17 → 1.97) while simultaneously becoming LESS useful for token prediction. The architecture's thesis — that local learning creates globally-useful representations through topology — is not validated.
+### Key conclusion (scoped)
+**The tested local objectives (predict neighbors/lower-bands/inputs) are anti-correlated with token classification on this architecture.** All tested purely-local objectives produce CE 3.2-3.5 from a detached readout, and CE WORSENS over training (3.28 → 3.52 at 1000 steps). The modules learn their local tasks well (prediction loss 4.17 → 1.97) while becoming less useful for token prediction.
+
+**Scope of this result:** Only 3 local objectives tested, all from the same "predict neighbor state" family. One architecture, one communication structure (detached laterals). This does NOT prove local learning is impossible — it shows this specific family doesn't work here. Different objective classes or different architectures remain untested.
 
 ### What remains
 - [x] 1000-step purely-local hierarchical targets result — DONE (negative: CE worsens)
@@ -51,7 +53,7 @@ Local prediction learning actively hurts token classification. As modules specia
 
 Concretely: can a globally-trained multi-rate 192-module graph show a quality/compute or dynamic-depth advantage at matched wall-clock or FLOPs vs a GRU/transformer? If no, the 192-module graph should be demoted from "core architecture" to "interesting failed branch."
 
-### Pathway priority (post local-learning failure)
+### Pathway priority (after local-learning negative results)
 
 1. **Pathway 1 (Wide Recurrent vs Deep Transformer)** — the fundamental thesis. Never directly compared on this architecture. If weight-tied recurrence + width can't buy a real advantage under ordinary global training, nothing else matters.
 
@@ -59,19 +61,18 @@ Concretely: can a globally-trained multi-rate 192-module graph show a quality/co
 
 3. **Pathway 8 (Multi-Rate at long context)** — only tested at ctx=32 where slow bands are useless. At ctx=512+ the multi-rate structure might show genuine timescale separation under global CE.
 
-4. **Pathway 3 (Local Learning)** — PAUSED. Only revisit with a fundamentally different objective class (not "predict neighbors"). The necessary properties are documented in `research/questions/local-objectives/README.md`.
+4. **Pathway 3 (Local Learning)** — paused for the predict-neighbors family. Would need a fundamentally different objective class to revisit. The necessary properties are documented in `research/questions/local-objectives/README.md`.
 
-### Key lessons from the negative result
+### What the tested local objectives taught us
 
-- Topology alone does NOT create task information the objective never rewards
+- The predict-neighbors family (InfoNCE, hierarchical targets, predict-next-inputs) is structurally misaligned with token prediction on this architecture
 - All positive results (detached laterals, multi-rate, width scaling) relied on global CE somewhere
-- Detached laterals being BETTER than full backprop suggests weaker coupling + strong global objective is the right direction
-- Future work should bias toward simpler coupling, not more elaborate local-learning machinery
-- The architecture's value proposition (if any) is dynamic computation, not local learning
+- Detached laterals being BETTER than full backprop suggests weaker coupling + strong global objective may be the right direction
+- These are lessons from 3 objectives on 1 architecture — not universal impossibility claims
 
-### What the architecture IS currently competitive at (nothing)
+### What the architecture IS currently competitive at (nothing yet)
 
-16M params, CE 2.69, 220s — vs GRU 820K params, CE 1.35, 8s. The architecture is 20x bigger, 27x slower, and nearly 2x worse. Its value proposition was always "local learning at scale" or "dynamic computation." Local learning failed. Dynamic computation is untested.
+16M params, CE 2.69, 220s — vs GRU 820K params, CE 1.35, 8s. The architecture is 20x bigger, 27x slower, and nearly 2x worse. Its value proposition was always "local learning at scale" or "dynamic computation." The tested local objectives didn't work. Dynamic computation is untested.
 
 ---
 
