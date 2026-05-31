@@ -2,9 +2,11 @@
 
 Serves [dictation 2026-05-31-01](../../../dictations/2026-05-31-01.md), [dictation 2026-05-30-03](../../../dictations/2026-05-30-03.md), and [dictation 2026-05-31-04](../../../dictations/2026-05-31-04.md) (explore many, don't settle).
 
-## Status: exploration in progress
+## Status: negative result (corrected 2026-05-31)
 
-No single answer yet. Two candidates show life; neither is conclusive. The core question remains open: what local objective is both genuinely local AND creates representations useful for token prediction?
+**No purely-local objective has produced representations competitive with CE training.** All tested purely-local objectives (with detached readout) produce CE 3.2-3.5, vs the control's 2.70. The 0.5 nat gap is consistent, large, and does not close over 500+ steps.
+
+The earlier "CE 2.67 — best purely-local result" was mislabeled: it was a hybrid with CE on band 0. See correction section below.
 
 ## The bracketing result
 
@@ -96,11 +98,28 @@ So the honest results are:
 - Purely local (no CE anywhere, detached attention readout): CE 3.28 (worse than control)
 - A 1000-step purely-local run is in progress to see if it converges.
 
-## Why per-band CE works and these don't (fully)
+## Why per-band CE works and local objectives don't
 
-Per-band CE gets CE 2.54 because it directly optimizes through the logit head — the representation IS optimized for token classification. The detached-readout experiments have a fundamental mismatch: modules optimize for local prediction, the readout must somehow exploit representations optimized for a different purpose.
+The gap is not about the readout. The standard model (CE on band 0, standard band-0 readout) achieves CE 2.70 — proving band 0's representations DO encode tokens when trained by CE. A detached attention head could attend to band 0 and achieve ~2.70 if band 0 had good representations. It doesn't (~3.2-3.3) because:
 
-This suggests the right answer might not be "purely local learning + detached readout" but rather "local learning + a small amount of task signal through the readout." The question becomes: how much task signal, and does it violate the local-learning principle?
+**Local objectives produce different representation geometries than CE.** CE directly optimizes "state → next-token logits." Local prediction optimizes "state → neighbor prediction accuracy." These create fundamentally different features:
+
+- **CE-trained band 0**: encodes whatever combination of current context predicts the NEXT token. The representation IS a token classifier.
+- **Locally-trained band 0**: encodes whatever helps predict the next INPUT (neighbor states + token embedding). This implicitly encodes the next token (it's part of the input), but the encoding is mixed with neighbor-prediction features and isn't in logit-extractable form.
+
+Evidence: band0-local-loss prediction loss goes from 4.65 → 0.54 (excellent local prediction) while CE stays flat at 3.3 (terrible token classification). The representation IS learning — just not learning something the readout can exploit.
+
+This is not a readout problem. It's a feature-geometry problem.
+
+## The fundamental tension
+
+The project's thesis: "local objectives can produce globally-useful representations through topology." The evidence says no — at least for these objectives on this architecture. The representations that local objectives create are locally optimal but globally unexploitable.
+
+Possible escapes (not tested):
+1. **Train the readout WITH gradient into modules** — but this violates "purely local"
+2. **A local objective whose optimal features ARE logit-extractable** — not obvious what this would be
+3. **Much longer training** — the 1000-step run will test this (if CE drops from 3.28 toward 2.7 over 1000 steps, convergence is just slow)
+4. **Different architecture** — maybe the 2D grid + detached laterals is the wrong topology for local learning
 
 ## Experiment queue (next to try)
 
