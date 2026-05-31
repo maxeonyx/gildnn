@@ -27,15 +27,17 @@ Lateral connections between nodes carry signals with:
 
 2. **Noise bottleneck (principled).** Calibrated noise is injected into the lateral signal. The SNR controls information capacity. This forces compression — a node cannot relay its full internal state; it must select what to communicate. The noise IS the information bottleneck. Noise levels may differ per connection or be learned.
 
-3. **Bidirectional but not symmetric.** Connections exist in both directions. The two directions have different roles: "toward raw input" and "away from raw input." These are not hierarchical layers — just relative position in the graph w.r.t. where raw input enters.
+3. **Bidirectional but not symmetric.** Connections exist in both directions. The two directions of a connection may have different projections, different noise levels, different roles. With inputs entering at multiple points, there's no single global "direction" — just local asymmetry relative to nearby input sources.
 
 ---
 
-## Firing trigger
+## Firing
 
-Nodes fire based on an accumulation or information-based trigger — NOT a fixed schedule. The principle: temporal abstraction emerges from when nodes choose to fire, not from a designer-imposed rate. Nodes near raw input (which changes every token) fire frequently. Interior nodes that see slowly-changing signals fire less often.
+All nodes fire every step. The graph executes for ~2G steps (where G is graph width) per token, at minimum on the first token of a sequence or on difficult positions. This is slightly wasteful on repetitive input or early timesteps where information hasn't propagated yet, but not a huge deal.
 
-The exact trigger mechanism is an open experimental question (prediction error threshold, information accumulation, learned gate, etc.).
+Nodes are sized to extract maximum performance from the hardware. In the ideal version, nodes don't care about synchronization AT ALL — they could be completely different machines running at their own speed. This is why B1 (scalar reward, no shared computation graph) is the target: nodes are fully independent computational units.
+
+Adaptive firing (nodes skip updates when inputs haven't changed) is a future optimization, not a core architectural requirement.
 
 ---
 
@@ -51,14 +53,16 @@ The asymmetry matters: inputs are spread across many nodes, output is one centra
 
 ## Training: rollouts and multi-horizon prediction
 
-The graph executes rollouts — multiple steps of all nodes firing per input token. At each rollout step, the central head can make predictions:
+The graph executes rollouts — ~2G steps per input token (where G is graph width). At each rollout step, the central head can make predictions:
 
-- **Variable thinking depth:** Predict next token after 1, 2, 3, 4... (up to ~graph_width * 2) steps of graph execution. More steps = more thinking = potentially better predictions.
+- **Variable thinking depth:** Predict next token after 1, 2, 3, 4... steps of graph execution. More steps = more thinking = potentially better predictions.
 - **Future token prediction:** At any rollout step, predict not just the next token but tokens +1, +2, +3... ahead.
 - **Multi-token output:** Possibly predict multiple tokens from a single graph state (1 step → M tokens).
 - **Loss self-prediction:** Heads predict their own loss at each step. This enables dynamic depth (stop thinking when the loss predictor says more steps won't help) and dynamic rollout (know how many future tokens you got right).
 
-All of this produces CE losses. These are aggregated into the broadcast scalar reward that modulates node learning. The nodes don't know about the head directly — they only see the scalar.
+At inference: pick the top token at all horizons, or (better) use a small autoregressive predictor fed by the graph state rather than separate CE heads at each horizon. The exact inference strategy is not principled — whatever works.
+
+All training CE losses are aggregated into the broadcast scalar reward that modulates node learning. The nodes don't know about the head directly — they only see the scalar.
 
 This is orthogonal to the local learning question. The multi-horizon training is HOW the network's task performance is measured. The local node objective is HOW nodes learn to produce useful states. They're separate mechanisms connected only by the reward broadcast.
 
@@ -75,8 +79,8 @@ This is orthogonal to the local learning question. The multi-horizon training is
 All nodes have the same objective — including nodes connected to raw input. The objective is not differentiated by position in the graph.
 
 **What that objective IS is the central unsolved problem.** This is not a gap in the spec — it IS the research question. Candidates:
-- **Predict your inputs.** Every node predicts what it will receive next from its neighbours (and from raw input, if connected).
-- **Minimize free energy.** Minimize prediction error about inputs, subject to a complexity constraint on outputs (noise bottleneck provides this).
+- **Predict your next inputs.** Every node predicts what it will receive at its NEXT step from its neighbours (and from raw input, if connected). Temporal prediction, not reconstruction of current inputs.
+- **Minimize free energy.** Minimize prediction error about next inputs, subject to a complexity constraint on outputs (noise bottleneck provides this).
 - **Something else entirely.** The right answer may not be in the "predict" family at all.
 
 The constraint: whatever it is, it must be universal (same rule for all nodes), local (computable from the node's own inputs/outputs/neighbourhood), and must produce representations that the central head finds useful — even though nodes don't know about the head. The broadcast scalar reward is the only signal connecting node objectives to task performance.
@@ -123,8 +127,8 @@ The task signal is indirect and local. Whether this is SUFFICIENT for useful lea
 - **Per-node token prediction (per-band CE).** Rejected. Broadcasting the token objective to every node is unprincipled. One centralized output, one task loss.
 - **Different objectives for different nodes.** All nodes have the same objective. Position in the graph determines what inputs are available, not what the node is trying to do.
 - **Full backprop through the graph.** Explicitly what we're avoiding.
-- **Hierarchical layers/bands.** Not a design primitive. Hierarchy may emerge from graph distance to raw input and from firing patterns. It is not imposed.
-- **Fixed rate schedules.** Hack for early experiments. Real system uses information-based triggers.
+- **Hierarchical layers/bands.** Not a design primitive. Hierarchy may emerge from graph structure. It is not imposed.
+- **Fixed rate schedules.** All nodes fire every step. Multi-rate is not part of the core design.
 
 ---
 
@@ -133,7 +137,7 @@ The task signal is indirect and local. Whether this is SUFFICIENT for useful lea
 These are scaffolding for early experiments. They should be removable. If the principled design requires them permanently, that's evidence the principled design is wrong.
 
 - **"Predict your neighbour N steps ahead"** — Provides learning signal where neighbourhood reward is too weak. Hacky because N is arbitrary and the objective is hand-designed rather than universal.
-- **Fixed multi-rate** — Approximation of adaptive firing.
+- **Fixed multi-rate** — Approximation of temporal abstraction. All nodes fire every step in the real design; multi-rate is a cheap proxy if adaptive skipping is needed later.
 - **Fixed/designed topology** — Necessary initially, to be relaxed.
 - **Truncated backprop through neighbours (variant A)** — Provides gradient directly, more practical than B1, but NOT biologically plausible (requires computing through neighbour's weights). Use for capability testing. Not the target architecture.
 - **Gradient from central head into graph nodes** — If the broadcast scalar alone doesn't ground nodes sufficiently, allowing the head's CE gradient to flow into graph nodes (through the attention) is acceptable as scaffolding. But ideally nodes learn from local objectives + scalar reward only.
@@ -142,19 +146,17 @@ These are scaffolding for early experiments. They should be removable. If the pr
 
 ## The key experimental questions (ordered by importance)
 
-1. **What is the universal node objective?** "Predict your inputs" is a candidate. There may be others. This is the research question — everything else is engineering.
+1. **What is the universal node objective?** "Predict your next inputs" is a candidate. There may be others. This is the research question — everything else is engineering.
 
 2. **Does universal objective + noise bottleneck + broadcast reward produce representations the central head can use?** If yes, the architecture works. If no, something fundamental is missing.
 
-3. **What is the right firing trigger?** Does temporal abstraction actually emerge from adaptive firing?
+3. **What topology works?** Does structure matter, or does any reasonably-connected graph learn? What extracts max performance from the hardware?
 
-4. **What topology works?** Does structure matter, or does any reasonably-connected graph learn?
+4. **How much noise?** What SNR gives the best compression/performance tradeoff?
 
-5. **How much noise?** What SNR gives the best compression/performance tradeoff?
+5. **Is the broadcast scalar reward necessary?** Can neighbourhood signals alone do credit assignment, or is the global scalar required?
 
-6. **Is the broadcast scalar reward necessary?** Can neighbourhood signals alone do credit assignment, or is the global scalar required?
-
-7. **How many nodes need raw input?** One? Many? Does density of input connections matter?
+6. **How many nodes need raw input?** One? Many? Does density of input connections matter?
 
 ---
 
