@@ -23,15 +23,18 @@ Dictation 10 confirmed: upward-only laterals was a bug. Higher levels should inf
 
 Bidirectional + residual (CE 2.78) is worse than original (CE 2.30) at step 500. But better than 1-level floor (~2.37). Two changes were made simultaneously (residual + bidirectional), so this is confounded.
 
-### Queue running — comparison experiments (ETA ~19:15 NZST)
+### Queue running — comparison experiments — DONE ✓
 
-`experiments/bidir-comparisons.queue` via `bidir-queue` systemd unit. 4 experiments:
-1. 1-level spt=4 (floor baseline, no laterals)
-2. 1-level spt=1 (best single-level)
-3. 8-level spt=1 (bidirectional but no autonomous steps)
-4. 8-level spt=8 (max autonomous steps — tests lateral rescue)
+All 4 experiments completed. Results:
 
-**Key question:** Does multi-level bidirectional beat 1-level at matched spt? If so, laterals provide value. If not, the communication structure is still broken.
+| Config | CE @ 500 |
+|--------|---------|
+| 1-level spt=1 | **2.45** |
+| 1-level spt=4 | 2.63 |
+| 8-level spt=1 (bidir) | 2.57 |
+| 8-level spt=8 (bidir) | 3.31 |
+
+**Conclusion:** Bidirectional laterals hurt (+0.12 nats vs 1-level at spt=1). More spt hurts uniformly. Local InfoNCE creates representations that actively harm CE when fed downward. Original upward-only+replace (CE 2.30) remains best.
 
 ### Theory insight (important)
 
