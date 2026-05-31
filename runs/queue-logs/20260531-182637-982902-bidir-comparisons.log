@@ -1,0 +1,20 @@
+command: /home/maxeonyx/gildnn/.venv/bin/python /home/maxeonyx/gildnn/experiments/automaton/train_cuda_graph.py --n-levels 1 --d-stream 128 --steps-per-token 1 --chunk-size 128 --seq-len 2048 --batch-size 8 --noise-std 0.0 --lr 3e-4 --steps 500 --log-every 50 --no-lock --report-path /tmp/bidir_1level_spt1_report.json --log-path /tmp/bidir_1level_spt1_run.jsonl
+timestamp: 2026-05-31T18:26:37+12:00
+queue: bidir-comparisons
+
+{"stage": "cuda_graph_status", "requested": true, "active": true, "failure_reason": null}
+{"stage": "cuda_graph_speed_estimate", "active": true, "avg_wall_time_s": 0.451547, "estimated_speedup_vs_26s_baseline": 57.58}
+{"step": 50, "ce_loss": 3.129194, "xblk_penalty": 0.0, "total_loss": 3.129194, "prediction_losses": [0.0], "prediction_counts": [2047], "wall_time_s": 0.390478}
+{"step": 100, "ce_loss": 2.848458, "xblk_penalty": 0.0, "total_loss": 2.848458, "prediction_losses": [0.0], "prediction_counts": [2047], "wall_time_s": 0.39182}
+{"step": 150, "ce_loss": 2.675493, "xblk_penalty": 0.0, "total_loss": 2.675493, "prediction_losses": [0.0], "prediction_counts": [2047], "wall_time_s": 0.390285}
+{"step": 200, "ce_loss": 2.611399, "xblk_penalty": 0.0, "total_loss": 2.611399, "prediction_losses": [0.0], "prediction_counts": [2047], "wall_time_s": 0.391771}
+{"step": 250, "ce_loss": 2.563215, "xblk_penalty": 0.0, "total_loss": 2.563215, "prediction_losses": [0.0], "prediction_counts": [2047], "wall_time_s": 0.395076}
+{"step": 300, "ce_loss": 2.535055, "xblk_penalty": 0.0, "total_loss": 2.535055, "prediction_losses": [0.0], "prediction_counts": [2047], "wall_time_s": 0.395202}
+{"step": 350, "ce_loss": 2.504438, "xblk_penalty": 0.0, "total_loss": 2.504438, "prediction_losses": [0.0], "prediction_counts": [2047], "wall_time_s": 0.39048}
+{"step": 400, "ce_loss": 2.465648, "xblk_penalty": 0.0, "total_loss": 2.465648, "prediction_losses": [0.0], "prediction_counts": [2047], "wall_time_s": 0.39189}
+{"step": 450, "ce_loss": 2.467726, "xblk_penalty": 0.0, "total_loss": 2.467726, "prediction_losses": [0.0], "prediction_counts": [2047], "wall_time_s": 0.395405}
+{"step": 500, "ce_loss": 2.44556, "xblk_penalty": 0.0, "total_loss": 2.44556, "prediction_losses": [0.0], "prediction_counts": [2047], "wall_time_s": 0.39357}
+{"stage": "report_written", "report_path": "/tmp/bidir_1level_spt1_report.json"}
+
+exit code: 0
+elapsed time: 199.833s

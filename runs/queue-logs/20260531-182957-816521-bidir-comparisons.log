@@ -1,0 +1,20 @@
+command: /home/maxeonyx/gildnn/.venv/bin/python /home/maxeonyx/gildnn/experiments/automaton/train_cuda_graph.py --n-levels 8 --d-stream 128 --steps-per-token 1 --chunk-size 128 --seq-len 2048 --batch-size 8 --noise-std 0.1 --lr 3e-4 --steps 500 --log-every 50 --no-lock --report-path /tmp/bidir_8level_spt1_report.json --log-path /tmp/bidir_8level_spt1_run.jsonl
+timestamp: 2026-05-31T18:29:57+12:00
+queue: bidir-comparisons
+
+{"stage": "cuda_graph_status", "requested": true, "active": true, "failure_reason": null}
+{"stage": "cuda_graph_speed_estimate", "active": true, "avg_wall_time_s": 0.534058, "estimated_speedup_vs_26s_baseline": 48.684}
+{"step": 50, "ce_loss": 3.163993, "xblk_penalty": 8e-06, "total_loss": 3.197129, "prediction_losses": [0.0, 0.004025, 0.003341, 0.002949, 0.00313, 0.003261, 0.003235, 0.013187], "prediction_counts": [2047, 1023, 511, 255, 127, 63, 31, 15], "wall_time_s": 0.508497}
+{"step": 100, "ce_loss": 2.926329, "xblk_penalty": 5.8e-05, "total_loss": 2.965109, "prediction_losses": [0.0, 0.00509, 0.003823, 0.003257, 0.003454, 0.003461, 0.003429, 0.016208], "prediction_counts": [2047, 1023, 511, 255, 127, 63, 31, 15], "wall_time_s": 0.508719}
+{"step": 150, "ce_loss": 2.769226, "xblk_penalty": 0.000118, "total_loss": 2.813864, "prediction_losses": [0.0, 0.005355, 0.003863, 0.00327, 0.003399, 0.003406, 0.003672, 0.021556], "prediction_counts": [2047, 1023, 511, 255, 127, 63, 31, 15], "wall_time_s": 0.515861}
+{"step": 200, "ce_loss": 2.706589, "xblk_penalty": 0.000237, "total_loss": 2.755508, "prediction_losses": [0.0, 0.005383, 0.003896, 0.003254, 0.00338, 0.0034, 0.003836, 0.025533], "prediction_counts": [2047, 1023, 511, 255, 127, 63, 31, 15], "wall_time_s": 0.509844}
+{"step": 250, "ce_loss": 2.661669, "xblk_penalty": 0.000279, "total_loss": 2.713522, "prediction_losses": [0.0, 0.005327, 0.003929, 0.003265, 0.003395, 0.003415, 0.003934, 0.028309], "prediction_counts": [2047, 1023, 511, 255, 127, 63, 31, 15], "wall_time_s": 0.513587}
+{"step": 300, "ce_loss": 2.618096, "xblk_penalty": 0.000279, "total_loss": 2.67109, "prediction_losses": [0.0, 0.005206, 0.003908, 0.003303, 0.003433, 0.003438, 0.003989, 0.029438], "prediction_counts": [2047, 1023, 511, 255, 127, 63, 31, 15], "wall_time_s": 0.515939}
+{"step": 350, "ce_loss": 2.614895, "xblk_penalty": 0.000411, "total_loss": 2.669316, "prediction_losses": [0.0, 0.005222, 0.003911, 0.003321, 0.003476, 0.003538, 0.004046, 0.030496], "prediction_counts": [2047, 1023, 511, 255, 127, 63, 31, 15], "wall_time_s": 0.509719}
+{"step": 400, "ce_loss": 2.583755, "xblk_penalty": 0.000503, "total_loss": 2.638618, "prediction_losses": [0.0, 0.005157, 0.003832, 0.00338, 0.003577, 0.00363, 0.004203, 0.030582], "prediction_counts": [2047, 1023, 511, 255, 127, 63, 31, 15], "wall_time_s": 0.510954}
+{"step": 450, "ce_loss": 2.591092, "xblk_penalty": 0.000372, "total_loss": 2.646343, "prediction_losses": [0.0, 0.005136, 0.003815, 0.003498, 0.003618, 0.00376, 0.004224, 0.030829], "prediction_counts": [2047, 1023, 511, 255, 127, 63, 31, 15], "wall_time_s": 0.511422}
+{"step": 500, "ce_loss": 2.568931, "xblk_penalty": 0.000467, "total_loss": 2.624957, "prediction_losses": [0.0, 0.005153, 0.00378, 0.003547, 0.003778, 0.003952, 0.004399, 0.030951], "prediction_counts": [2047, 1023, 511, 255, 127, 63, 31, 15], "wall_time_s": 0.513391}
+{"stage": "report_written", "report_path": "/tmp/bidir_8level_spt1_report.json"}
+
+exit code: 0
+elapsed time: 259.438s

@@ -5,10 +5,7 @@
 # 1-level baseline (no laterals at all) - establishes floor
 
 # 1-level spt=1 (no autonomous steps) - best single-level performance
-/home/maxeonyx/gildnn/.venv/bin/python /home/maxeonyx/gildnn/experiments/automaton/train_cuda_graph.py --n-levels 1 --d-stream 128 --steps-per-token 1 --chunk-size 128 --seq-len 2048 --batch-size 8 --noise-std 0.0 --lr 3e-4 --steps 500 --log-every 50 --no-lock --report-path /tmp/bidir_1level_spt1_report.json --log-path /tmp/bidir_1level_spt1_run.jsonl
 
 # 8-level spt=1 (fires every step, bidirectional but no autonomous steps)
-/home/maxeonyx/gildnn/.venv/bin/python /home/maxeonyx/gildnn/experiments/automaton/train_cuda_graph.py --n-levels 8 --d-stream 128 --steps-per-token 1 --chunk-size 128 --seq-len 2048 --batch-size 8 --noise-std 0.1 --lr 3e-4 --steps 500 --log-every 50 --no-lock --report-path /tmp/bidir_8level_spt1_report.json --log-path /tmp/bidir_8level_spt1_run.jsonl
 
 # 8-level spt=8 (more autonomous steps - tests if laterals truly help)
-/home/maxeonyx/gildnn/.venv/bin/python /home/maxeonyx/gildnn/experiments/automaton/train_cuda_graph.py --n-levels 8 --d-stream 128 --steps-per-token 8 --chunk-size 128 --seq-len 2048 --batch-size 8 --noise-std 0.1 --lr 3e-4 --steps 500 --log-every 50 --no-lock --report-path /tmp/bidir_8level_spt8_report.json --log-path /tmp/bidir_8level_spt8_run.jsonl
