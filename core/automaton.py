@@ -81,6 +81,10 @@ class CellularAutomaton(nn.Module):
         self.steps_per_token = steps_per_token
         self.rates = resolved_rates
         self.register_buffer("rate_tensor", torch.tensor(resolved_rates, dtype=torch.long), persistent=False)
+        # Mask for skipping level 0 in local prediction loss (CUDA-graph-compatible: no CPU→CUDA copy at runtime)
+        level0_mask = torch.ones(n_levels, dtype=torch.bool)
+        level0_mask[0] = False
+        self.register_buffer("_skip_level0", level0_mask, persistent=False)
         self.noise_std = noise_std
         self.d_hidden = d_hidden if d_hidden is not None else 4 * d_stream
         self.readout_temperature = readout_temperature
@@ -298,13 +302,14 @@ class CellularAutomaton(nn.Module):
             detached_combined = combined.detach()
             prediction_errors = self._prediction_errors(current_predictions, detached_combined)
             # Level 0 uses CE for grounding - no local prediction loss (InfoNCE conflicts with CE)
-            prediction_errors[0] = 0.0
+            # Use precomputed mask instead of scalar assignment for CUDA graph compatibility
+            prediction_errors = prediction_errors * self._skip_level0.to(dtype=prediction_errors.dtype)
             prediction_loss_sums = prediction_loss_sums + (
                 prediction_errors * active_predictions.to(dtype=prediction_errors.dtype)
             )
             prediction_counts = prediction_counts + active_predictions.to(dtype=torch.long)
             active_predictions = active_predictions.clone()
-            active_predictions[0] = False
+            active_predictions = active_predictions & self._skip_level0
             self._update_contrastive_buffer(detached_combined, active_predictions)
 
             hidden = self._stacked_linear(combined, self.w1, self.b1)
