@@ -47,11 +47,23 @@ Logarithmic scaling: ~0.02-0.04 improvement per doubling. Pre-LN + grad clip = s
 
 CE-based early exit (oracle): 43% compute savings at +0.045 nats. Early exit at small thresholds actually IMPROVES quality (regularization). Entropy-based exit (deployable): works but noisier (~15% savings at +0.025 nats, or 31% at +0.15).
 
+### Learned halting predictor — DONE ✓ (strong positive)
+
+Tiny MLP (261→64→1) trained on frozen model's hidden states predicts remaining CE gain `g_d = L_d - L_8`. Evaluated on held-out 20% of validation set.
+
+| Operating point | Mean Iters | Compute Savings | CE Overhead | Oracle Efficiency |
+|----------------|------------|-----------------|-------------|-------------------|
+| thr=0.05 | 6.12 | 23.5% | −0.000 | 73% |
+| thr=0.10 | 5.53 | 30.9% | +0.023 | 85% |
+| thr=0.20 | 4.71 | 41.1% | +0.081 | 96% |
+
+Hidden state Pearson r=0.53 vs entropy-only r=0.42. Per-depth hidden r=0.31–0.40. Dominates all fixed-depth and entropy heuristic baselines.
+
 ### What to explore next (remaining runway)
 
-- **Learned halting predictor:** Train a small network to predict "will the next iteration improve CE by more than X?" — bridges the gap between oracle and deployable
 - **Longer context:** ctx=256, 512 — does the tied model's advantage grow?
 - **Training WITH dynamic depth:** Use ACT/CALM-style training where the model learns to exit early — might front-load computation and improve both quality and efficiency
+- **Joint halting + model training:** Train the base model with the halting head simultaneously (should produce clearer halting signals)
 
 ### CORRECTION: "CE 2.67 purely-local" was mislabeled
 
