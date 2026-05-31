@@ -322,9 +322,10 @@ class CellularAutomaton(nn.Module):
             current_has_predicted = current_has_predicted | fires
 
             next_lateral_buffers = torch.where(fire_mask, torch.zeros_like(current_lateral_buffers), current_lateral_buffers)
-            upward = self._add_noise(output.detach())
+            lateral_signal = self._add_noise(output.detach())
             arrivals = torch.zeros_like(next_lateral_buffers)
-            arrivals[1:] = upward[:-1] * fire_mask[:-1].to(dtype=upward.dtype)
+            arrivals[1:] = arrivals[1:] + lateral_signal[:-1] * fire_mask[:-1].to(dtype=lateral_signal.dtype)
+            arrivals[:-1] = arrivals[:-1] + lateral_signal[1:] * fire_mask[1:].to(dtype=lateral_signal.dtype)
             current_lateral_buffers = next_lateral_buffers + arrivals
 
             if step_index == self.steps_per_token - 1:
